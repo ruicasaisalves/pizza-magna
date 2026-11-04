@@ -51,22 +51,27 @@ def erode(m):
     return e
 
 # ---------------- ESPARGO (lança deitada, cabeça para a direita) ----------------
-def asparagus(seed, W=28, H=14, ang=None):
+def asparagus(seed, L=40, ang=None):
+    """L = comprimento da lança em píxeis; a cabeça mede sempre ~8 px, o resto é talo"""
     rng = np.random.default_rng(seed + 1500)
     a = (rng.random() - .5) * .5 if ang is None else ang
+    W, H = L + 4, int(np.ceil(L * abs(np.sin(a)) + 4 * abs(np.cos(a)))) + 9
     if ang is not None and abs(np.sin(ang)) > .5: W, H = H, W
     u, v = axes(W, H, a)
-    t = (u + 12.5) / 25                                    # 0 no corte, 1 na ponta
-    tip = np.clip((t - .7) / .3, 0, 1)
-    half = np.where(t > .7, 3.1 * np.sqrt(np.clip(1 - tip ** 2.2, 0, 1)) + .2, 2.3)      # cabeça mais gorda e em bico
-    vv = v - .5 * np.sin(t * 2.4 + seed)
+    t = (u + L / 2) / L                                    # 0 no corte, 1 na ponta
+    t0 = 1 - 8.5 / L                                       # onde começa a cabeça
+    tip = np.clip((t - t0) / (1 - t0), 0, 1)
+    half = np.where(t > t0, 3.1 * np.sqrt(np.clip(1 - tip ** 2.2, 0, 1)) + .2, 2.3)      # cabeça mais gorda e em bico
+    vv = v - .6 * np.sin(t * 2.4 + seed)
     mask = (t >= 0) & (t <= 1) & (np.abs(vv) <= half)
     height = np.clip(1 - (vv / (half + .01)) ** 2, 0, 1) * 1.6
     scales = ((u * 1.2 + np.abs(vv) * 1.8) % 3.2) < 1.2
-    bract = (np.abs(t - .38) < .03) | (np.abs(t - .58) < .03)
-    mat = [['asptip' if mask[y, x] and (t[y, x] > .7 and (scales[y, x] or t[y, x] > .9) or bract[y, x] and abs(vv[y, x]) > .9) else 'asp'
+    bract = np.zeros_like(t, bool)
+    for tb in np.arange(.22, t0 - .05, 6.5 / L):           # escamas soltas ao longo do talo
+        bract |= np.abs(t - tb) < .7 / L
+    mat = [['asptip' if mask[y, x] and (t[y, x] > t0 and (scales[y, x] or tip[y, x] > .7) or bract[y, x] and abs(vv[y, x]) > .9) else 'asp'
             for x in range(W)] for y in range(H)]
-    light = np.clip(shade(height, mask) * .85 + .2 + np.where(t < .05, .25, 0), 0, 1) * mask
+    light = np.clip(shade(height, mask) * .85 + .2 + np.where(t < 1.5 / L, .25, 0), 0, 1) * mask
     return render(mat, light, mask, {'asptip': 'asptip'})
 
 # ---------------- CAMARÃO (em C, cabeça à direita) ----------------
