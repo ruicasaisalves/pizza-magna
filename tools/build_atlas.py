@@ -9,7 +9,7 @@ Chaves:
   <id>_0..2       ingrediente inteiro/fatiado (3 variantes), com sombra
   <id>_n          ingrediente que roda (ROTATE): uma só peça, sem sombra. O jogo roda-a
                   em quartos de volta (sem perder píxeis) e junta a sombra depois
-  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel não tem
+  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel e o milho não têm
   sauce_<id>      disco de molho, 170 px
   crust_<id>      bordo da massa (anel), 170 px
   marble          bancada de mármore 320x200
@@ -29,6 +29,7 @@ import gen_ingredients as G
 import gen_ingredients2 as G2
 import gen_ingredients3 as G3
 import gen_ingredients4 as G4
+import gen_ingredients5 as G5
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -57,9 +58,22 @@ INGS = {
     'ananas':       (G3.pineapple,  ('pine', 'cube', 11)),
     'mel':          (G4.honey,      None),
     'ovo':          (G4.egg,        ('eggw', 'chunk', 9)),
+    'espargos':     (G5.asparagus,  ('asp', 'flake', 40)),
+    'camarao':      (G5.shrimp,     ('shrimp', 'chunk', 9)),
+    'figo':         (G5.fig,        ('fig', 'cube', 11)),
+    'milho':        (G5.corn,       None),
+    'frango':       (G5.chicken,    ('chick', 'cube', 12)),
+    'salame':       (G5.salami,     ('salami', 'cube', 11)),
+    'gorgonzola':   (G5.gorgonzola, ('gorg', 'flake', 40)),
+    'alheira':      (G5.alheira,    ('alh', 'cube', 11)),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
-ROTATE = {'bacon': lambda: G.bacon(1, ang=0)}
+ROTATE = {
+    'bacon': lambda: G.bacon(1, ang=0),            # 2 posições: deitado, de pé
+    'espargos': lambda: G5.asparagus(2, ang=0),    # 4: a cabeça aponta para um lado
+    'camarao': lambda: G5.shrimp(1, ang=0),        # 4
+    'figo': lambda: G5.fig(2, ang=0),              # 4: o pé aponta para um lado
+}
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
 
