@@ -43,3 +43,12 @@ https://pizzalegacy.nl/ · código: https://codeberg.org/cowomaly/pizzalegacy/
 - **Não inclui os recursos do jogo original**: pede uma cópia legal da versão DOS em inglês. Windows, Linux, macOS e Haiku.
 - Útil como **referência de regras e equilíbrio** (economia, concorrentes, ingredientes, ciclo de gestão). Para ler o código e as ideias, sim.
 - **Cuidado com a GPL v3:** copiar código dele para o Pizza Magna obrigaria a publicar o nosso jogo também em GPL v3. Para evitar, ler só para perceber as mecânicas e escrever o nosso código de raiz. Os recursos do original continuam fora de questão.
+
+---
+
+# Decisão de estilo (novembro de 2026)
+
+**Pixel detalhado, à maneira dos jogos de gestão dos anos 90**, num ecrã lógico de 320×200 ampliado por inteiros:
+ingredientes de ~25–30 px, luz de cima-esquerda, rampas curtas por material, dithering ordenado 4×4 e contorno seletivo
+(o tom mais escuro do próprio material, não preto), 3 variantes por ingrediente, pizza sobre bancada de mármore.
+Gerador: `tools/gen_ingredients.py` (mozzarella, tomate, bacon; `python3 tools/gen_ingredients.py <pasta>`).
