@@ -32,6 +32,7 @@ import gen_ingredients4 as G4
 import gen_ingredients5 as G5
 import gen_ingredients6 as G6
 import gen_ingredients7 as G7
+import gen_ingredients8 as G8
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -80,6 +81,12 @@ INGS = {
     'sardinha':     (G7.sardine,    ('sardback', 'chunk', 9)),
     'salmao':       (G7.salmon,     ('salmon', 'chunk', 9)),
     'polvo':        (G7.octopus,    ('octo', 'cube', 11)),
+    'burrata':      (G8.burrata,    ('burcream', 'shred', 40)),
+    'lulas':        (G8.squid,      ('squid', 'chunk', 9)),
+    'beringela':    (G8.aubergine,  ('aub', 'flake', 40)),
+    'morcela':      (G8.morcela,    ('morc', 'cube', 11)),
+    'nozes':        (G8.walnut,     ('walnut', 'dice', 22)),
+    'batata':       (G8.potato,     ('pot', 'flake', 40)),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
 ROTATE = {
