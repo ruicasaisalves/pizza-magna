@@ -18,4 +18,9 @@ Objetivo: 4 000 € e 3★ para abrir a segunda loja.
 
 ## Tecnologia
 
-Um único ficheiro HTML com JavaScript simples, sem dependências. Os gráficos são desenhados em canvas e ampliados sem suavização para dar o aspeto pixel-art. O jogo grava no `localStorage` do browser.
+HTML e JavaScript simples, sem dependências nem build.
+
+- `index.html`: jogo, interface e simulação.
+- `sprites.js`: todos os sprites em pixel-art (chão, paredes, mobília, fornos, personagens), gerados em código numa grelha de 16 px e guardados em cache. Para trocar por um pack comprado, basta substituir as funções deste ficheiro mantendo os mesmos nomes.
+
+A sala do restaurante é um mapa de 20×17 tiles. Os clientes e os empregados encontram caminho entre as mesas com pesquisa em largura (BFS). O jogo grava no `localStorage` do browser.
