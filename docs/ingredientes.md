@@ -13,7 +13,9 @@
 **Toques finais:** ✓ Ovo · Azeite · Balsâmico · Trufa ralada · Natas azedas · Maionese · Batata palha
 
 ## Formas de cortar
-Cada ingrediente pode entrar **inteiro/fatiado** ou **ralado/picado** (como no original). Ralado cobre mais área com menos peso, espalha o sabor por igual e muda o custo por porção.
+Cada ingrediente pode entrar **inteiro/fatiado** ou **ralado/picado** (como no original).
+
+**Regra do picado:** ervas, vegetais (incluindo cogumelos) e queijos → ralado fino (tiras ou migalhas de 1–2 px). Carnes e enchidos → cubinhos de 3–4 px em 3/4. Peixe e marisco → lascas irregulares de 4–6 px. Ralado cobre mais área com menos peso, espalha o sabor por igual e muda o custo por porção.
 
 ## Ideias
 - Portugueses (alheira, farinheira, São Jorge, polvo, grelos, marmelada) desbloqueados por região.

@@ -144,6 +144,19 @@ def grated(ramp, seed, kind='shred', W=26, H=24, n_bits=26, edge_ramp=None):
             for i, (x, y) in enumerate(pts):
                 if 0 <= x < W and 0 <= y < H:
                     px[x, y] = ramp[min(len(ramp) - 1, 2 + (i == 1) + int(rng.random() * 2))] + (255,)
+        elif kind == 'chunk':
+            # lasca irregular de 4-6 px com luz de cima-esquerda (peixe, carnes desfiadas)
+            rw, rh = rng.uniform(2, 3.2), rng.uniform(1.6, 2.4)
+            for yy in range(-3, 4):
+                for xx in range(-4, 5):
+                    d = (xx / rw) ** 2 + (yy / rh) ** 2
+                    if d > 1 + rng.uniform(-.25, .1): continue
+                    x, y = x0 + xx, y0 + yy
+                    if not (0 <= x < W and 0 <= y < H): continue
+                    if d > .7: col = ramp[0] if (xx + yy) > 0 else ramp[1]
+                    elif xx + yy < -1: col = ramp[-1]
+                    else: col = ramp[len(ramp) // 2 + (rng.random() < .3)]
+                    px[x, y] = col + (255,)
         elif kind == 'cube':
             sz = int(rng.integers(3, 5))
             for yy in range(sz + 2):
@@ -168,8 +181,8 @@ def grated(ramp, seed, kind='shred', W=26, H=24, n_bits=26, edge_ramp=None):
 
 if __name__ == '__main__':
     sets = [
-        ('Cogumelos', [mushroom(s) for s in (1, 2, 3)], grated('gill', 1, 'dice', n_bits=22)),
-        ('Atum', [tuna(s) for s in (1, 2, 3)], grated('tuna', 2, 'flake', n_bits=46)),
+        ('Cogumelos', [mushroom(s) for s in (1, 2, 3)], grated('gill', 1, 'flake', n_bits=40)),
+        ('Atum', [tuna(s) for s in (1, 2, 3)], grated('tuna', 2, 'chunk', n_bits=9)),
         ('Pepperoni', [pepperoni(s) for s in (1, 2, 3)], grated('pep', 3, 'cube', n_bits=11)),
         ('Chouriço', [chourico(s) for s in (1, 2, 3)], grated('chour', 6, 'cube', n_bits=11)),
         ('Fiambre', [ham(s) for s in (1, 2, 3)], grated('ham', 4, 'cube', n_bits=12)),
