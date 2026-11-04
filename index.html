@@ -241,7 +241,7 @@ en:{
   'k.q':'Quality','k.cost':'Production cost','k.portions':'{n} portions · suggested price {p}','k.appeal':'Appeal by customer type',
   'k.empty':'Empty pizza. Start with the cheese.','k.needname':'Give the pizza a name.','k.needmore':'Add a few toppings first.',
   'k.updated':'{x} updated.','k.menufull':'The menu already has 5 pizzas. Remove one first.','k.added':'{x} is on the menu at {p}.',
-  'k.newname':'New pizza',
+  'k.newname':'New pizza','k.rotate':'Rotate {x}','k.rotatetip':'Turns the last piece or the next one. With a mouse, right-click a piece to turn it.','k.norotate':'{x} doesn’t need turning.',
   'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte':'DRIZZLE','bench.q':'QUALITY','bench.n':'PIECES'
 },
 pt:{
@@ -282,7 +282,7 @@ pt:{
   'k.q':'Qualidade','k.cost':'Custo de produção','k.portions':'{n} porções · preço sugerido {p}','k.appeal':'Apelo por público',
   'k.empty':'Pizza vazia. Começa pelo queijo.','k.needname':'Dá um nome à pizza.','k.needmore':'Põe pelo menos alguns ingredientes.',
   'k.updated':'{x} atualizada.','k.menufull':'O menu já tem 5 pizzas. Remove uma primeiro.','k.added':'{x} entrou no menu por {p}.',
-  'k.newname':'Nova pizza',
+  'k.newname':'Nova pizza','k.rotate':'Rodar {x}','k.rotatetip':'Roda a última peça ou a próxima. Com o rato, clica com o botão direito numa peça para a rodar.','k.norotate':'{x} não precisa de rodar.',
   'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte':'EM FIO','bench.q':'QUALIDADE','bench.n':'PEÇAS'
 }};
 function t(key,v){let s=I18N[LANG][key]??I18N.en[key]??key;if(v)for(const k in v)s=s.split('{'+k+'}').join(v[k]);return s}
@@ -388,7 +388,7 @@ function freshState(){
     v:1,tab:'cozinha',day:1,money:1000,rep:1,ovens:1,cooks:1,deco:0,ads:false,unlocked:['base'],
     menu:[{id:'p1',name:'Margherita da Casa',dough:'napo',sauce:'tomate',pieces:[...spread('mozzarella',11,.74,0),...spread('manjericao',6,.62,3)],price:9}],
     draft:{name:'Fiambre e Cogumelos',dough:'alta',sauce:'tomate',pieces:[...spread('mozzarella',10,.74,1),...spread('fiambre',7,.66,4),...spread('cogumelos',7,.7,9)],editing:null},
-    sel:'fiambre',cut:'w',rival:{name:'Pizza Rápida',q:52,price:7,promo:false},
+    sel:'fiambre',cut:'w',rot:{},rival:{name:'Pizza Rápida',q:52,price:7,promo:false},
     news:['Abriste a tua pizzaria na Rua das Flores. A Pizza Rápida, mesmo ao lado, já tem clientela fiel.'],
     discovered:[],contestEntry:null,contestLog:[],lastSales:{},seenIntro:false,goalDone:false,over:false
   };
@@ -453,8 +453,11 @@ const atlasReady=new Promise(res=>{ATL.img.onload=()=>{ATL.ok=true;res()};ATL.im
 const PZ=ATLAS.pizza,PR=PZ/2;
 function spr(c,key,x,y,alpha){const f=ATLAS.frames[key];if(!f||!ATL.ok)return;if(alpha!=null)c.globalAlpha=alpha;c.drawImage(ATL.img,f[0],f[1],f[2],f[3],Math.round(x-f[2]/2),Math.round(y-f[3]/2),f[2],f[3]);c.globalAlpha=1}
 const canGrate=id=>!!ATLAS.frames[id+'_g0'];
+const canRotate=id=>!!ATLAS.frames[id+'_r0'];          // one shape drawn at 8 angles (22.5° steps)
 const pieceVar=x=>(x.v!=null?x.v:Math.floor(x.r*7))%3;
-const pieceKey=x=>x.i+'_'+(x.g&&canGrate(x.i)?'g':'')+pieceVar(x);
+const pieceAng=x=>(x.a!=null?x.a:pieceVar(x)*3)%8;
+const wholeKey=(id,v,a)=>canRotate(id)?id+'_r'+a:id+'_'+v;
+const pieceKey=x=>x.g&&canGrate(x.i)?x.i+'_g'+pieceVar(x):wholeKey(x.i,pieceVar(x),pieceAng(x));
 const LAYER={mozzarella:0,queijo_serra:0,manjericao:2,rucula:2,mel:3,ovo:1.5};
 /* Pizza at the logical 170 px scale: sauce, toppings, then the crust ring on top so pieces tuck under the rim. */
 function composePizza(p){
@@ -494,6 +497,7 @@ function kitchenHTML(){
         <div class="hint">${t('k.hint')}</div>
         <div class="tools">
           <button class="btn sm" data-act="sprinkle">${esc(t('k.sprinkle',{x:ING[state.sel].n}))}</button>
+          <button class="btn sm" data-act="rotate" ${canRotate(state.sel)?'':'hidden'} title="${esc(t('k.rotatetip'))}">${esc(t('k.rotate',{x:ING[state.sel].n}))}</button>
           <button class="btn sm" data-act="undo">${t('k.undo')}</button>
           <button class="btn sm" data-act="clear">${t('k.clear')}</button>
         </div>
@@ -538,7 +542,9 @@ function setupPizzaCanvas(){
   let down=false,last=null;
   const pos=e=>{const r=cv.getBoundingClientRect();const lx=(e.clientX-r.left)/r.width*BW,ly=(e.clientY-r.top)/r.height*BH;return {lx,ly,x:(lx-PCX)/PR,y:(ly-PCY)/PR}};
   const bowlAt=p=>BOWLS.find(b=>p.lx>=b.x-6&&p.lx<=b.x+BOWL_W+6&&p.ly>=b.y-4&&p.ly<=b.y+BOWL_H+16);
+  cv.oncontextmenu=e=>{e.preventDefault();const p=pos(e);if(Math.hypot(p.x,p.y)<=1)rotatePiece(p)};
   cv.onpointerdown=e=>{
+    if(e.button!==0)return;
     const p=pos(e),b=bowlAt(p);
     if(b){setCut(b.g);return}
     if(Math.hypot(p.x,p.y)>1)return;
@@ -557,6 +563,18 @@ function setCut(g){
   if(g&&!canGrate(state.sel)){toast(t('k.nograte',{x:ING[state.sel].n}));return}
   state.cut=g?'g':'w';drawBench();save();
 }
+const curAng=()=>((state.rot||{})[state.sel]||0)%8;
+/* Rotate: the piece under the pointer if there is one; otherwise the next piece (and the last one, if it was just put down). */
+function rotatePiece(p){
+  const id=state.sel,ps=state.draft.pieces;
+  const isRot=x=>!x.g&&canRotate(x.i);
+  let hit=null;
+  if(p)for(let k=ps.length-1;k>=0;k--){const x=ps[k];if(isRot(x)&&Math.hypot(x.x-p.x,x.y-p.y)<.14){hit=x;break}}
+  if(!hit&&!p){const last=ps[ps.length-1];if(last&&last.i===id&&isRot(last))hit=last}
+  if(hit){hit.a=(pieceAng(hit)+1)%8;state.rot={...state.rot,[hit.i]:hit.a};drawDraft();save();return true}
+  if(!canRotate(id)){if(!p)toast(t('k.norotate',{x:ING[id].n}));return false}
+  state.rot={...state.rot,[id]:(curAng()+1)%8};drawBench();save();return true;
+}
 const curCut=()=>state.cut==='g'&&canGrate(state.sel)?1:0;
 function benchText(c,s,x,y,col='#2c1a0b',hl='rgba(255,255,255,.55)'){c.font='8px Silkscreen, monospace';c.textAlign='center';c.textBaseline='top';c.fillStyle=hl;c.fillText(s,x,y+1);c.fillStyle=col;c.fillText(s,x,y)}
 function pxRect(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,1);c.fillRect(x,y+h-1,w,1);c.fillRect(x,y,1,h);c.fillRect(x+w-1,y,1,h)}
@@ -568,7 +586,7 @@ function drawBench(){
   c.fillStyle='rgba(40,30,20,.32)';c.beginPath();c.ellipse(PCX+3,PCY+4,PR+1,PR,0,0,Math.PI*2);c.fill();
   if(!pz.pizza)pz.pizza=composePizza(d);
   c.drawImage(pz.pizza,PX,PY);
-  if(pz.ghost)spr(c,sel+'_'+(cut?'g':'')+'0',PCX+pz.ghost.x*PR,PCY+pz.ghost.y*PR,.6);
+  if(pz.ghost)spr(c,cut?sel+'_g0':wholeKey(sel,0,curAng()),PCX+pz.ghost.x*PR,PCY+pz.ghost.y*PR,.6);
   // right side: ingredient name plate and two bowls (whole / grated)
   const cx=BOWLS[0].x+BOWL_W/2;
   c.fillStyle='#4a260f';c.fillRect(cx-46,6,92,13);c.fillStyle='#e3b34a';c.fillRect(cx-45,7,90,11);c.fillStyle='#fbe39a';c.fillRect(cx-45,7,90,1);
@@ -577,7 +595,7 @@ function drawBench(){
     const on=b.g===cut,ok=!b.g||canGrate(sel),bx=b.x+BOWL_W/2,by=b.y+13;
     if(on){pxRect(c,b.x-5,b.y-4,BOWL_W+10,BOWL_H+18,'#3a2706');pxRect(c,b.x-4,b.y-3,BOWL_W+8,BOWL_H+16,'#e3b34a');pxRect(c,b.x-3,b.y-2,BOWL_W+6,BOWL_H+14,'#94661a')}
     spr(c,'bowl',bx,b.y+BOWL_H/2);
-    if(ok){const k=sel+'_'+(b.g?'g':'');spr(c,k+'1',bx-9,by-1);spr(c,k+'2',bx+9,by);spr(c,k+'0',bx,by+2)}
+    if(ok){if(!b.g&&canRotate(sel))spr(c,wholeKey(sel,0,curAng()),bx,by+1);else{const k=b.g?v=>sel+'_g'+v:v=>sel+'_'+v;spr(c,k(1),bx-9,by-1);spr(c,k(2),bx+9,by);spr(c,k(0),bx,by+2)}}
     benchText(c,t(b.g?(ok?(ING[sel].t.includes('queijo')?'bench.grated':'bench.chopped'):'bench.nograte'):'bench.whole'),bx,b.y+BOWL_H+3,on?'#2c1a0b':'#6c5233');
   }
   // little LCD with portions and quality
@@ -593,7 +611,7 @@ function addPiece(p){
   if(!state.unlocked.includes(ING[state.sel].pack)){toast(t('k.locked',{i:ING[state.sel].n,p:PACKS[ING[state.sel].pack]}));return false}
   if(state.draft.pieces.length>=70){toast(t('k.full'));return false}
   const piece={i:state.sel,x:+p.x.toFixed(3),y:+p.y.toFixed(3),r:+(Math.random()*6.28).toFixed(2),v:Math.floor(Math.random()*3)};
-  if(curCut())piece.g=1;
+  if(curCut())piece.g=1;else if(canRotate(state.sel))piece.a=curAng();
   state.draft.pieces.push(piece);
   drawDraft();updateAnalysis();return true;
 }
@@ -610,7 +628,7 @@ function updateAnalysis(){
   </div>`;
   save();
 }
-function drawIngIcons(){document.querySelectorAll('canvas[data-ing]').forEach(cv=>{const c=cv.getContext('2d');c.clearRect(0,0,32,32);spr(c,cv.dataset.ing+'_0',16,16)})}
+function drawIngIcons(){document.querySelectorAll('canvas[data-ing]').forEach(cv=>{const c=cv.getContext('2d');c.clearRect(0,0,32,32);spr(c,wholeKey(cv.dataset.ing,0,0),16,16)})}
 
 /* ================= UI: MENU ================= */
 function menuHTML(){
@@ -1000,7 +1018,8 @@ function go(tab){if(anim)return;state.tab=tab;render();window.scrollTo(0,0)}
 const ACT={
   dough:b=>{state.draft.dough=b.dataset.v;render()},
   sauce:b=>{state.draft.sauce=b.dataset.v;render()},
-  ing:b=>{const k=b.dataset.v;if(!state.unlocked.includes(ING[k].pack)){toast(t('k.locked',{i:ING[k].n,p:PACKS[ING[k].pack]}));return}state.sel=k;document.querySelectorAll('.ing').forEach(x=>x.classList.toggle('on',x.dataset.v===k));const sp=$('[data-act="sprinkle"]');if(sp)sp.textContent=t('k.sprinkle',{x:ING[k].n});drawBench()},
+  ing:b=>{const k=b.dataset.v;if(!state.unlocked.includes(ING[k].pack)){toast(t('k.locked',{i:ING[k].n,p:PACKS[ING[k].pack]}));return}state.sel=k;document.querySelectorAll('.ing').forEach(x=>x.classList.toggle('on',x.dataset.v===k));const sp=$('[data-act="sprinkle"]');if(sp)sp.textContent=t('k.sprinkle',{x:ING[k].n});const rb=$('[data-act="rotate"]');if(rb){rb.hidden=!canRotate(k);rb.textContent=t('k.rotate',{x:ING[k].n})}drawBench()},
+  rotate:()=>rotatePiece(null),
   sprinkle:()=>{for(let k=0;k<6;k++){const a=Math.random()*6.283,r=Math.sqrt(Math.random())*.76;if(!addPiece({x:Math.cos(a)*r,y:Math.sin(a)*r}))break}},
   undo:()=>{state.draft.pieces.pop();drawDraft();updateAnalysis()},
   clear:()=>{state.draft.pieces=[];drawDraft();updateAnalysis()},

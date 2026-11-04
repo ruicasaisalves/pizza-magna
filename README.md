@@ -8,7 +8,7 @@ Jogo de gestão de pizzarias para browser e telemóvel, em estilo pixel-art dos 
 
 Abre `index.html` num browser. Não precisa de instalação nem de servidor.
 
-- **Cozinha:** inventa pizzas numa bancada de mármore (ecrã lógico de 320×200). Cada ingrediente entra inteiro ou ralado/picado: o ralado pesa e custa menos por porção e espalha o sabor. A qualidade depende da quantidade, da distribuição e dos combos (há 16 por descobrir).
+- **Cozinha:** inventa pizzas numa bancada de mármore (ecrã lógico de 320×200). Cada ingrediente entra inteiro ou ralado/picado: o ralado pesa e custa menos por porção e espalha o sabor. O bacon é uma só peça que roda em passos de 22,5°: botão direito do rato sobre uma peça, ou o botão **Rodar** (telemóvel), que roda a última peça posta ou a próxima. A qualidade depende da quantidade, da distribuição e dos combos (há 16 por descobrir).
 - **Menu:** até 5 pizzas, com preços ajustáveis.
 - **Abrir:** vê a sala de cima. Os clientes (estudantes, famílias, turistas, gourmets) escolhem entre ti e a Pizza Rápida, a rival.
 - **Loja:** fornos, pizzaiolos, decoração, folhetos e fornecedores de ingredientes portugueses.
