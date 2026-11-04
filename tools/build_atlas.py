@@ -30,6 +30,7 @@ import gen_ingredients2 as G2
 import gen_ingredients3 as G3
 import gen_ingredients4 as G4
 import gen_ingredients5 as G5
+import gen_ingredients6 as G6
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -66,6 +67,12 @@ INGS = {
     'salame':       (G5.salami,     ('salami', 'cube', 11)),
     'gorgonzola':   (G5.gorgonzola, G5.gorgonzola_crumbs),
     'alheira':      (G5.alheira,    ('alh', 'cube', 11)),
+    'espinafres':   (G6.spinach,    ('spin', 'flake', 44)),
+    'tomate_cherry': (G6.cherry,    ('cherry', 'cube', 11)),
+    'jalapenos':    (G6.jalapeno,   ('jal', 'flake', 40)),
+    'anchovas':     (G6.anchovy,    ('anch', 'chunk', 9)),
+    'ricotta':      (G6.ricotta,    ('ricotta', 'flake', 40)),
+    'pera':         (G6.pear,       ('pear', 'cube', 11)),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
 ROTATE = {
@@ -73,6 +80,8 @@ ROTATE = {
     'espargos': lambda: G5.asparagus(2, ang=0),    # 4: a cabeça aponta para um lado
     'camarao': lambda: G5.shrimp(1, ang=0),        # 4
     'figo': lambda: G5.fig(2, ang=0),              # 4: o pé aponta para um lado
+    'anchovas': lambda: G6.anchovy(1, ang=0),      # 4: a cauda aponta para um lado
+    'pera': lambda: G6.pear(1, ang=0),             # 4: o pé aponta para um lado
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
