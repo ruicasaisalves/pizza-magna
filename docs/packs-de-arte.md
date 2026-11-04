@@ -31,3 +31,15 @@ https://limezu.itch.io/moderninteriors
 - Testar a versão grátis do Modern Interiors: sentar, comer, levar tabuleiro, cozinhar.
 - Ler a Mana Seed User License, se a opção Mana Seed avançar.
 - Tudo o que é específico de pizza (fornos, pizzas, ingredientes, caixas, menu) continua a ser desenhado por mim em `sprites.js`, na mesma escala e paleta do pack escolhido.
+
+---
+
+# Outras referências guardadas
+
+## Pizza Legacy (reimplementação open source do Pizza Tycoon)
+https://pizzalegacy.nl/ · código: https://codeberg.org/cowomaly/pizzalegacy/
+
+- Projeto de hobby desde 2010, em C++, licença **GNU GPL v3**. Versão 1.0.0-beta.2 (novembro de 2026), dada como completa, a afinar equilíbrio e erros.
+- **Não inclui os recursos do jogo original**: pede uma cópia legal da versão DOS em inglês. Windows, Linux, macOS e Haiku.
+- Útil como **referência de regras e equilíbrio** (economia, concorrentes, ingredientes, ciclo de gestão). Para ler o código e as ideias, sim.
+- **Cuidado com a GPL v3:** copiar código dele para o Pizza Magna obrigaria a publicar o nosso jogo também em GPL v3. Para evitar, ler só para perceber as mecânicas e escrever o nosso código de raiz. Os recursos do original continuam fora de questão.
