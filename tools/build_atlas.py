@@ -31,6 +31,7 @@ import gen_ingredients3 as G3
 import gen_ingredients4 as G4
 import gen_ingredients5 as G5
 import gen_ingredients6 as G6
+import gen_ingredients7 as G7
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -73,6 +74,12 @@ INGS = {
     'anchovas':     (G6.anchovy,    ('anch', 'chunk', 9)),
     'ricotta':      (G6.ricotta,    ('ricotta', 'flake', 40)),
     'pera':         (G6.pear,       ('pear', 'cube', 11)),
+    'cabra':        (G7.goat,       ('goat', 'flake', 40)),
+    'alho':         (G7.garlic,     ('garlic', 'flake', 36)),
+    'grelos':       (G7.grelos,     ('grelo', 'flake', 44)),
+    'sardinha':     (G7.sardine,    ('sardback', 'chunk', 9)),
+    'salmao':       (G7.salmon,     ('salmon', 'chunk', 9)),
+    'polvo':        (G7.octopus,    ('octo', 'cube', 11)),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
 ROTATE = {
@@ -82,6 +89,8 @@ ROTATE = {
     'figo': lambda: G5.fig(2, ang=0),              # 4: o pé aponta para um lado
     'anchovas': lambda: G6.anchovy(1, ang=0),      # 4: a cauda aponta para um lado
     'pera': lambda: G6.pear(1, ang=0),             # 4: o pé aponta para um lado
+    'sardinha': lambda: G7.sardine(1, ang=0),      # 4: a cauda aponta para um lado
+    'polvo': lambda: G7.octopus(1, ang=0),         # 4: o tentáculo enrola para um lado
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
