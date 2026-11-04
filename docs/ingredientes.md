@@ -4,12 +4,12 @@
 
 **Massas:** ✓★ Fina · ✓★ Napolitana · ✓★ Alta · Integral · Sem glúten · Fermentação lenta · Bordo recheado
 **Molhos:** ✓★ Tomate · ✓★ Natas · ✓★ Pesto · ✓★ Sem molho · Barbecue · Arrabbiata · Azeite e alho · Trufa · Pimentos assados
-**Queijos:** ✓★ Mozzarella · ✓★ Queijo da Serra · Parmesão · ✓★ Gorgonzola · Cheddar · ✓★ Cabra · ✓★ Burrata · ✓★ Ricotta · Provolone · Feta · Emmental · São Jorge · Flamengo
-**Carnes:** ✓★ Fiambre · ✓★ Pepperoni · ✓★ Chouriço · ✓★ Presunto · ✓★ Bacon · ✓★ Salame · ✓★ Frango · Carne picada · Salsicha italiana · Prosciutto · Kebab · ✓★ Alheira · Farinheira · ✓★ Morcela · Leitão
+**Queijos:** ✓★ Mozzarella · ✓★ Queijo da Serra · ✓★ Parmesão · ✓★ Gorgonzola · Cheddar · ✓★ Cabra · ✓★ Burrata · ✓★ Ricotta · Provolone · Feta · Emmental · São Jorge · Flamengo
+**Carnes:** ✓★ Fiambre · ✓★ Pepperoni · ✓★ Chouriço · ✓★ Presunto · ✓★ Bacon · ✓★ Salame · ✓★ Frango · Carne picada · ✓★ Salsicha italiana · Prosciutto · Kebab · ✓★ Alheira · Farinheira · ✓★ Morcela · Leitão
 **Peixe e marisco:** ✓★ Atum · ✓★ Bacalhau · ✓★ Anchovas · ✓★ Camarão · ✓★ Sardinha · ✓★ Salmão fumado · ✓★ Polvo · Amêijoas · ✓★ Lulas
-**Vegetais:** ✓★ Cogumelos · ✓★ Cebola · ✓★ Pimento · ✓★ Azeitonas · ✓★ Rúcula · ✓★ Tomate · ✓★ Tomate cherry · ✓★ Milho · ✓★ Espinafres · ✓★ Espargos · Alcachofra · ✓★ Beringela · Curgete · ✓★ Jalapeños · Cebola roxa · ✓★ Alho · Padrón · ✓★ Grelos · Couve galega · ✓★ Batata
+**Vegetais:** ✓★ Cogumelos · ✓★ Cebola · ✓★ Pimento · ✓★ Azeitonas · ✓★ Rúcula · ✓★ Tomate · ✓★ Tomate cherry · ✓★ Milho · ✓★ Espinafres · ✓★ Espargos · ✓★ Alcachofra · ✓★ Beringela · ✓★ Curgete · ✓★ Jalapeños · Cebola roxa · ✓★ Alho · ✓★ Padrón · ✓★ Grelos · Couve galega · ✓★ Batata
 **Ervas e especiarias:** ✓★ Manjericão · ✓★ Piri-piri · Orégãos · Alecrim · Tomilho · Coentros · Salsa · Pimenta
-**Frutas e doces:** ✓★ Ananás · ✓★ Mel · ✓★ Figo · ✓★ Pera · Maçã · Marmelada · ✓★ Nozes · Pinhões · Chocolate · Nutella · Banana
+**Frutas e doces:** ✓★ Ananás · ✓★ Mel · ✓★ Figo · ✓★ Pera · Maçã · Marmelada · ✓★ Nozes · ✓★ Pinhões · Chocolate · Nutella · Banana
 **Toques finais:** ✓★ Ovo · Azeite · Balsâmico · Trufa ralada · Natas azedas · Maionese · Batata palha
 
 ## Formas de cortar

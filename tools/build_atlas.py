@@ -9,7 +9,7 @@ Chaves:
   <id>_0..2       ingrediente inteiro/fatiado (3 variantes), com sombra
   <id>_n          ingrediente que roda (ROTATE): uma só peça, sem sombra. O jogo roda-a
                   em quartos de volta (sem perder píxeis) e junta a sombra depois
-  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel e o milho não têm
+  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel, o milho e os pinhões não têm
   sauce_<id>      disco de molho, 170 px
   crust_<id>      bordo da massa (anel), 170 px
   marble          bancada de mármore 320x200
@@ -33,6 +33,7 @@ import gen_ingredients5 as G5
 import gen_ingredients6 as G6
 import gen_ingredients7 as G7
 import gen_ingredients8 as G8
+import gen_ingredients9 as G9
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -87,6 +88,12 @@ INGS = {
     'morcela':      (G8.morcela,    ('morc', 'cube', 11)),
     'nozes':        (G8.walnut,     ('walnut', 'dice', 22)),
     'batata':       (G8.potato,     ('pot', 'flake', 40)),
+    'parmesao':     (G9.parmesan,   ('parm', 'shred', 40)),
+    'alcachofra':   (G9.artichoke,  ('artheart', 'flake', 40)),
+    'curgete':      (G9.zucchini,   ('zuc', 'flake', 40)),
+    'salsicha':     (G9.sausage,    ('sals', 'cube', 11)),
+    'padron':       (G9.padron,     ('padron', 'flake', 40)),
+    'pinhoes':      (G9.pinenuts,   None),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
 ROTATE = {
@@ -98,6 +105,8 @@ ROTATE = {
     'pera': lambda: G6.pear(1, ang=0),             # 4: o pé aponta para um lado
     'sardinha': lambda: G7.sardine(1, ang=0),      # 4: a cauda aponta para um lado
     'polvo': lambda: G7.octopus(1, ang=0),         # 4: o tentáculo enrola para um lado
+    'alcachofra': lambda: G9.artichoke(1, ang=0),  # 4: as folhas abrem para um lado
+    'padron': lambda: G9.padron(1, ang=0),         # 4: o pé fica de um lado
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
