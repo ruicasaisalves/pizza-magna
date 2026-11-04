@@ -148,9 +148,11 @@ def mozz(seed, W=30, H=26):
     return img
 
 # ---------------- BACON (tira ondulada) ----------------
-def bacon(seed, W=34, H=24):
+def bacon(seed, W=34, H=24, ang=None):
+    """ang (radianos) fixa a orientação da tira; sem ele, sai um ângulo ao acaso pela seed."""
     rng = np.random.default_rng(seed + 200)
-    ang = (rng.random() - .5) * .9
+    a0 = (rng.random() - .5) * .9
+    ang = a0 if ang is None else ang
     ca, sa = np.cos(ang), np.sin(ang)
     ys, xs = np.mgrid[0:H, 0:W]
     u = (xs - (W - 1) / 2) * ca + (ys - (H - 1) / 2) * sa       # ao longo da tira
