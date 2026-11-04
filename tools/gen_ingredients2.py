@@ -18,6 +18,9 @@ R.update({
     'tuna': hexs(['#7a5640', '#a77e62', '#c99f80', '#e2c0a0', '#f3dcc2']),
     'pep': hexs(['#5a1208', '#86200f', '#b0331a', '#d24c2c', '#ec7048']),
     'pepfat': hexs(['#c98a72', '#e6b29a', '#f6d4c0']),
+    'chour': hexs(['#3a0c08', '#5c160e', '#7e2416', '#a03a24', '#bf5434']),
+    'chfat': hexs(['#d8b8a0', '#f0dcc8', '#fff4e8']),
+    'chskin': hexs(['#24070a', '#3e0e0c', '#5a1a12']),
     'ham': hexs(['#a04e52', '#c86f70', '#e2908c', '#f2b2aa', '#fbd2c8']),
     'hamfat': hexs(['#d8b8a8', '#efd6c8', '#fff0e6']),
 })
@@ -91,6 +94,19 @@ def pepperoni(seed, D=20):
         px[x, y] = R['pep'][4] + (255,)
     return img
 
+# ---------------- CHOURIÇO (rodela com gordura e pele) ----------------
+def chourico(seed, D=20):
+    rng = np.random.default_rng(seed + 700)
+    ys, xs, c, _ = grid(D, D)
+    r = np.hypot(xs - c, ys - c) / (D / 2 - .4)
+    mask = r <= 1
+    height = np.clip(1 - r ** 2, 0, 1) ** .5 * 1.6
+    n = noise(D, D, 2, rng)
+    mat = [['chfat' if (mask[y, x] and r[y, x] < .8 and n[y, x] > .7) else ('chskin' if r[y, x] > .84 else 'chour')
+            for x in range(D)] for y in range(D)]
+    light = np.clip(shade(height, mask) * .8 + .22, 0, 1) * mask
+    return render(mat, light, mask, {'chfat': 'chour'})
+
 # ---------------- FIAMBRE (fatia dobrada) ----------------
 def ham(seed, W=24, H=22):
     rng = np.random.default_rng(seed + 600)
@@ -128,6 +144,17 @@ def grated(ramp, seed, kind='shred', W=26, H=24, n_bits=26, edge_ramp=None):
             for i, (x, y) in enumerate(pts):
                 if 0 <= x < W and 0 <= y < H:
                     px[x, y] = ramp[min(len(ramp) - 1, 2 + (i == 1) + int(rng.random() * 2))] + (255,)
+        elif kind == 'cube':
+            sz = int(rng.integers(3, 5))
+            for yy in range(sz + 2):
+                for xx in range(sz + 1):
+                    x, y = x0 + xx, y0 + yy
+                    if not (0 <= x < W and 0 <= y < H): continue
+                    if yy < 2:   col = ramp[-1] if xx < sz else ramp[-2]   # topo iluminado
+                    elif xx == sz: col = ramp[0]                            # lado na sombra
+                    else:        col = ramp[len(ramp) // 2]                 # face da frente
+                    if yy == sz + 1: col = ramp[0]                          # base escura
+                    px[x, y] = col + (255,)
         else:
             s = 2 if kind == 'dice' else 1
             for yy in range(s + 1):
@@ -143,8 +170,9 @@ if __name__ == '__main__':
     sets = [
         ('Cogumelos', [mushroom(s) for s in (1, 2, 3)], grated('gill', 1, 'dice', n_bits=22)),
         ('Atum', [tuna(s) for s in (1, 2, 3)], grated('tuna', 2, 'flake', n_bits=46)),
-        ('Pepperoni', [pepperoni(s) for s in (1, 2, 3)], grated('pep', 3, 'dice', n_bits=22)),
-        ('Fiambre', [ham(s) for s in (1, 2, 3)], grated('ham', 4, 'dice', n_bits=24)),
+        ('Pepperoni', [pepperoni(s) for s in (1, 2, 3)], grated('pep', 3, 'cube', n_bits=11)),
+        ('Chouriço', [chourico(s) for s in (1, 2, 3)], grated('chour', 6, 'cube', n_bits=11)),
+        ('Fiambre', [ham(s) for s in (1, 2, 3)], grated('ham', 4, 'cube', n_bits=12)),
         ('Mozzarella', [G.mozz(s) for s in (1, 2, 3)], grated('mozz', 5, 'shred', n_bits=40)),
     ]
     for name, arr, gr in sets:
@@ -179,7 +207,7 @@ if __name__ == '__main__':
     for k in range(14):
         a, r = prng.random() * 6.28, np.sqrt(prng.random()) * 56
         layer.alpha_composite(grated('mozz', 50 + k, 'shred', n_bits=40), (int(85 + np.cos(a) * r - 13), int(85 + np.sin(a) * r - 12)))
-    pieces = [s[1][i % 3] for s in sets[:4] for i in range(4)]
+    pieces = [s[1][i % 3] for s in sets[:5] for i in range(3)] + [grated(k, 70 + i, 'cube', n_bits=9) for i, k in enumerate(['ham', 'chour', 'ham'])]
     prng.shuffle(pieces); spots = []
     for p in pieces:
         for _ in range(300):
