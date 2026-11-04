@@ -29,7 +29,7 @@ R.update({
     'salfat': hexs(['#e0c8c0', '#f4e4dc', '#fff8f4']),
     'salskin': hexs(['#2a0a0c', '#46141a', '#6a2228']),
     'gorg': hexs(['#a89c78', '#d0c6a2', '#e8e0c4', '#f6f1e2', '#fffdf6']),
-    'gvein': hexs(['#2e4a42', '#4a6e62', '#6e9486']),
+    'gvein': hexs(['#1a2a5e', '#2c4a96', '#4a72c8', '#82a4e6']),
     'figskin': hexs(['#2a0e2a', '#4a1a44', '#6e2a62', '#8e4480']),
     'fig': hexs(['#7a1a2a', '#b02a3a', '#d8505a', '#f08a8a', '#ffc4bc']),
     'figw': hexs(['#c8b890', '#e6dcbc', '#fbf4e2']),
@@ -163,7 +163,7 @@ def gorgonzola(seed, W=24, H=20):
     mask = rr <= 1
     n = noise(H, W, 3, rng); n2 = noise(H, W, 2, rng)
     height = np.clip(1 - rr ** 2, 0, 1) ** .5 * 1.8 + (n2 - .5) * .9
-    vein = (np.abs(n - .5) < .055) | (n2 > .86)
+    vein = (np.abs(n - .5) < .07) | (n2 > .84)
     mat = [['gvein' if mask[y, x] and vein[y, x] and rr[y, x] < .9 else 'gorg' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .75 + .3, 0, 1) * mask, mask, {'gvein': 'gorg'})
 
@@ -179,6 +179,17 @@ def alheira(seed, D=20):
     mat = [['alhskin' if r[y, x] > .86 or (bits[y, x] and r[y, x] < .75) else 'alh' for x in range(D)] for y in range(D)]
     return render(mat, np.clip(shade(height, mask) * .8 + .22, 0, 1) * mask, mask, {'alh': 'alhskin'})
 
+def gorgonzola_crumbs(seed):
+    """migalhas de gorgonzola: o ralado normal, com parte das migalhas em azul"""
+    img = grated('gorg', seed, 'flake', n_bits=40)
+    rng = np.random.default_rng(seed + 2300); px = img.load(); blue = R['gvein']
+    for y in range(img.height):
+        for x in range(img.width):
+            c = px[x, y]
+            if c[3] and c[:3] != R['gorg'][0] and rng.random() < .45:
+                px[x, y] = blue[1 + int(rng.random() * 3)] + (255,)
+    return img
+
 SETS = [
     ('Espargos', asparagus, ('asp', 'flake', 40)),
     ('Camarão', shrimp, ('shrimp', 'chunk', 9)),
@@ -186,7 +197,7 @@ SETS = [
     ('Milho', corn, None),
     ('Frango', chicken, ('chick', 'cube', 12)),
     ('Salame', salami, ('salami', 'cube', 11)),
-    ('Gorgonzola', gorgonzola, ('gorg', 'flake', 40)),
+    ('Gorgonzola', gorgonzola, gorgonzola_crumbs),
     ('Alheira', alheira, ('alh', 'cube', 11)),
 ]
 
@@ -202,7 +213,7 @@ if __name__ == '__main__':
     for i, (name, fn, gr) in enumerate(SETS):
         key = name.lower().replace('ã', 'a')
         arr = [fn(s) for s in (1, 2, 3)]
-        g = grated(gr[0], 60 + i, gr[1], n_bits=gr[2]) if gr else None
+        g = (gr(60 + i) if callable(gr) else grated(gr[0], 60 + i, gr[1], n_bits=gr[2])) if gr else None
         for j, im in enumerate(arr): im.save(f'{OUT}{key}_{j + 1}.png')
         if g: g.save(f'{OUT}{key}_picado.png')
         y = 36 + i * ROW

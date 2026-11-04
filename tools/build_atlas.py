@@ -36,7 +36,7 @@ from gen_ingredients import R, hexs, noise, shade, render, drop
 PIZZA = 170          # diâmetro da pizza no ecrã lógico 320x200
 ROOT = os.path.join(HERE, '..')
 
-# id do jogo -> (inteiro(seed), (rampa, tipo, n_bits) do ralado ou None)
+# id do jogo -> (inteiro(seed), ralado: (rampa, tipo, n_bits), função(seed) ou None)
 INGS = {
     'mozzarella':   (G.mozz,        ('mozz', 'shred', 40)),
     'queijo_serra': (G4.serra,      ('serra', 'flake', 40)),
@@ -64,7 +64,7 @@ INGS = {
     'milho':        (G5.corn,       None),
     'frango':       (G5.chicken,    ('chick', 'cube', 12)),
     'salame':       (G5.salami,     ('salami', 'cube', 11)),
-    'gorgonzola':   (G5.gorgonzola, ('gorg', 'flake', 40)),
+    'gorgonzola':   (G5.gorgonzola, G5.gorgonzola_crumbs),
     'alheira':      (G5.alheira,    ('alh', 'cube', 11)),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
@@ -138,9 +138,9 @@ def sprites():
             for j, s in enumerate((1, 2, 3)):
                 out[f'{k}_{j}'] = drop(fn(s))
         if gr:
-            ramp, kind, n = gr
             for j in range(3):
-                out[f'{k}_g{j}'] = drop(G2.grated(ramp, 40 + j * 17 + len(k), kind, n_bits=n))
+                sd = 40 + j * 17 + len(k)
+                out[f'{k}_g{j}'] = drop(gr(sd) if callable(gr) else G2.grated(gr[0], sd, gr[1], n_bits=gr[2]))
     out.update(bases())
     out['marble'] = G.marble(320, 200, np.random.default_rng(5)).convert('RGBA')
     out['bowl'] = bowl()
