@@ -9,7 +9,7 @@ Chaves:
   <id>_0..2       ingrediente inteiro/fatiado (3 variantes), com sombra
   <id>_n          ingrediente que roda (ROTATE): uma só peça, sem sombra. O jogo roda-a
                   em quartos de volta (sem perder píxeis) e junta a sombra depois
-  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel e o milho não têm
+  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel, o milho e os pinhões não têm
   sauce_<id>      disco de molho, 170 px
   crust_<id>      bordo da massa (anel), 170 px
   marble          bancada de mármore 320x200
@@ -30,6 +30,10 @@ import gen_ingredients2 as G2
 import gen_ingredients3 as G3
 import gen_ingredients4 as G4
 import gen_ingredients5 as G5
+import gen_ingredients6 as G6
+import gen_ingredients7 as G7
+import gen_ingredients8 as G8
+import gen_ingredients9 as G9
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -66,6 +70,30 @@ INGS = {
     'salame':       (G5.salami,     ('salami', 'cube', 11)),
     'gorgonzola':   (G5.gorgonzola, G5.gorgonzola_crumbs),
     'alheira':      (G5.alheira,    ('alh', 'cube', 11)),
+    'espinafres':   (G6.spinach,    ('spin', 'flake', 44)),
+    'tomate_cherry': (G6.cherry,    ('cherry', 'cube', 11)),
+    'jalapenos':    (G6.jalapeno,   ('jal', 'flake', 40)),
+    'anchovas':     (G6.anchovy,    ('anch', 'chunk', 9)),
+    'ricotta':      (G6.ricotta,    ('ricotta', 'flake', 40)),
+    'pera':         (G6.pear,       ('pear', 'cube', 11)),
+    'cabra':        (G7.goat,       ('goat', 'flake', 40)),
+    'alho':         (G7.garlic,     ('garlic', 'flake', 36)),
+    'grelos':       (G7.grelos,     ('grelo', 'flake', 44)),
+    'sardinha':     (G7.sardine,    ('sardback', 'chunk', 9)),
+    'salmao':       (G7.salmon,     ('salmon', 'chunk', 9)),
+    'polvo':        (G7.octopus,    ('octo', 'cube', 11)),
+    'burrata':      (G8.burrata,    ('burcream', 'shred', 40)),
+    'lulas':        (G8.squid,      ('squid', 'chunk', 9)),
+    'beringela':    (G8.aubergine,  ('aub', 'flake', 40)),
+    'morcela':      (G8.morcela,    ('morc', 'cube', 11)),
+    'nozes':        (G8.walnut,     ('walnut', 'dice', 22)),
+    'batata':       (G8.potato,     ('pot', 'flake', 40)),
+    'parmesao':     (G9.parmesan,   ('parm', 'shred', 40)),
+    'alcachofra':   (G9.artichoke,  ('artheart', 'flake', 40)),
+    'curgete':      (G9.zucchini,   ('zuc', 'flake', 40)),
+    'salsicha':     (G9.sausage,    ('sals', 'cube', 11)),
+    'padron':       (G9.padron,     ('padron', 'flake', 40)),
+    'pinhoes':      (G9.pinenuts,   None),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
 ROTATE = {
@@ -73,6 +101,12 @@ ROTATE = {
     'espargos': lambda: G5.asparagus(2, ang=0),    # 4: a cabeça aponta para um lado
     'camarao': lambda: G5.shrimp(1, ang=0),        # 4
     'figo': lambda: G5.fig(2, ang=0),              # 4: o pé aponta para um lado
+    'anchovas': lambda: G6.anchovy(1, ang=0),      # 4: a cauda aponta para um lado
+    'pera': lambda: G6.pear(1, ang=0),             # 4: o pé aponta para um lado
+    'sardinha': lambda: G7.sardine(1, ang=0),      # 4: a cauda aponta para um lado
+    'polvo': lambda: G7.octopus(1, ang=0),         # 4: o tentáculo enrola para um lado
+    'alcachofra': lambda: G9.artichoke(1, ang=0),  # 4: as folhas abrem para um lado
+    'padron': lambda: G9.padron(1, ang=0),         # 4: o pé fica de um lado
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
