@@ -7,8 +7,8 @@ e um mapa de frames:  ATLAS = {src, frames: {chave: [x, y, w, h]}}.
 
 Chaves:
   <id>_0..2       ingrediente inteiro/fatiado (3 variantes), com sombra
-  <id>_r0..7      ingrediente que roda (ROTATE): uma só peça em 8 orientações de 22,5°,
-                  desenhada de raiz em cada ângulo (rodar os píxeis estragava o desenho)
+  <id>_n          ingrediente que roda (ROTATE): uma só peça, sem sombra. O jogo roda-a
+                  em quartos de volta (sem perder píxeis) e junta a sombra depois
   <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel não tem
   sauce_<id>      disco de molho, 170 px
   crust_<id>      bordo da massa (anel), 170 px
@@ -58,8 +58,8 @@ INGS = {
     'mel':          (G4.honey,      None),
     'ovo':          (G4.egg,        ('eggw', 'chunk', 9)),
 }
-# uma só forma, em 8 ângulos (0°..157,5°); a tira é simétrica a 180°
-ROTATE = {'bacon': lambda a: G.bacon(1, W=36, H=36, ang=a)}
+# peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
+ROTATE = {'bacon': lambda: G.bacon(1, ang=0)}
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
 
@@ -119,8 +119,7 @@ def sprites():
     out = {}
     for k, (fn, gr) in INGS.items():
         if k in ROTATE:
-            for j in range(8):
-                out[f'{k}_r{j}'] = drop(ROTATE[k](j * np.pi / 8))
+            out[f'{k}_n'] = ROTATE[k]()
         else:
             for j, s in enumerate((1, 2, 3)):
                 out[f'{k}_{j}'] = drop(fn(s))

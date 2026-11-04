@@ -299,6 +299,8 @@ const SAUCES={
   pesto:{n:'Pesto',c:.7,col:'#5f8f2f',t:['gourmet']},
   sem:{n:'Sem molho',c:0,col:null,t:[]}
 };
+/* rot: how many quarter-turn positions a piece has. Round pieces don't turn (1); symmetric ones like a bacon
+   strip have 2 (lying, standing); pieces with a front, like a bunch of asparagus tips, have 4. */
 const ING={
   mozzarella:{n:'Mozzarella',c:.08,t:['queijo'],pack:'base'},
   fiambre:{n:'Fiambre',c:.07,t:['carne'],pack:'base'},
@@ -310,7 +312,7 @@ const ING={
   ananas:{n:'Ananás',c:.06,t:['doce'],pack:'base'},
   manjericao:{n:'Manjericão',c:.05,t:['vegetal','classico','gourmet'],pack:'base'},
   atum:{n:'Atum',c:.09,t:['peixe'],pack:'base'},
-  bacon:{n:'Bacon',c:.10,t:['carne'],pack:'base'},
+  bacon:{n:'Bacon',c:.10,t:['carne'],pack:'base',rot:2},
   tomate:{n:'Tomate',c:.04,t:['vegetal','classico'],pack:'base'},
   chourico:{n:'Chouriço',c:.11,t:['carne','picante','portugues'],pack:'local'},
   piripiri:{n:'Piri-piri',c:.03,t:['picante','portugues'],pack:'local'},
@@ -451,12 +453,34 @@ function circ(c,x,y,r){c.beginPath();c.arc(x,y,r,0,Math.PI*2)}
 const ATL={img:new Image(),ok:false};
 const atlasReady=new Promise(res=>{ATL.img.onload=()=>{ATL.ok=true;res()};ATL.img.onerror=()=>res();ATL.img.src=ATLAS.src});
 const PZ=ATLAS.pizza,PR=PZ/2;
-function spr(c,key,x,y,alpha){const f=ATLAS.frames[key];if(!f||!ATL.ok)return;if(alpha!=null)c.globalAlpha=alpha;c.drawImage(ATL.img,f[0],f[1],f[2],f[3],Math.round(x-f[2]/2),Math.round(y-f[3]/2),f[2],f[3]);c.globalAlpha=1}
+/* A turning piece is one image (<id>_n) turned by whole quarter turns, so no pixel is lost;
+   the shadow is added after turning so it always falls down-right, like the generator's drop(). */
+const turnedCache=new Map();
+function turned(id,q){
+  const key=id+q;if(turnedCache.has(key))return turnedCache.get(key);
+  const f=ATLAS.frames[id+'_n'],sw=f[2],sh=f[3],w=q%2?sh:sw,h=q%2?sw:sh;
+  const mk=(a,b)=>{const cv=document.createElement('canvas');cv.width=a;cv.height=b;const c=cv.getContext('2d');c.imageSmoothingEnabled=false;return [cv,c]};
+  const [rc,r]=mk(w,h);
+  r.setTransform(...[[1,0,0,1,0,0],[0,1,-1,0,w,0],[-1,0,0,-1,w,h],[0,-1,1,0,0,h]][q]);
+  r.drawImage(ATL.img,f[0],f[1],sw,sh,0,0,sw,sh);
+  const [shc,shx]=mk(w,h);shx.drawImage(rc,0,0);shx.globalCompositeOperation='source-in';shx.fillStyle='rgba(60,10,4,.43)';shx.fillRect(0,0,w,h);
+  const [oc,o]=mk(w+2,h+2);o.drawImage(shc,2,2);o.drawImage(rc,0,0);
+  turnedCache.set(key,oc);return oc;
+}
+function spr(c,key,x,y,alpha){
+  if(!ATL.ok)return;let src;
+  const m=/^(.+)_q(\d)$/.exec(key);
+  if(m){const cv=turned(m[1],+m[2]);src=[cv,0,0,cv.width,cv.height]}
+  else{const f=ATLAS.frames[key];if(!f)return;src=[ATL.img,...f]}
+  const [img,sx,sy,w,h]=src;
+  if(alpha!=null)c.globalAlpha=alpha;c.drawImage(img,sx,sy,w,h,Math.round(x-w/2),Math.round(y-h/2),w,h);c.globalAlpha=1;
+}
 const canGrate=id=>!!ATLAS.frames[id+'_g0'];
-const canRotate=id=>!!ATLAS.frames[id+'_r0'];          // one shape drawn at 8 angles (22.5° steps)
+const turns=id=>ATLAS.frames[id+'_n']?(ING[id].rot||1):1;
+const canRotate=id=>turns(id)>1;
 const pieceVar=x=>(x.v!=null?x.v:Math.floor(x.r*7))%3;
-const pieceAng=x=>(x.a!=null?x.a:pieceVar(x)*3)%8;
-const wholeKey=(id,v,a)=>canRotate(id)?id+'_r'+a:id+'_'+v;
+const pieceAng=x=>(x.a!=null?x.a:pieceVar(x))%turns(x.i);
+const wholeKey=(id,v,a)=>ATLAS.frames[id+'_n']?id+'_q'+(a%turns(id)):id+'_'+v;
 const pieceKey=x=>x.g&&canGrate(x.i)?x.i+'_g'+pieceVar(x):wholeKey(x.i,pieceVar(x),pieceAng(x));
 const LAYER={mozzarella:0,queijo_serra:0,manjericao:2,rucula:2,mel:3,ovo:1.5};
 /* Pizza at the logical 170 px scale: sauce, toppings, then the crust ring on top so pieces tuck under the rim. */
@@ -563,7 +587,7 @@ function setCut(g){
   if(g&&!canGrate(state.sel)){toast(t('k.nograte',{x:ING[state.sel].n}));return}
   state.cut=g?'g':'w';drawBench();save();
 }
-const curAng=()=>((state.rot||{})[state.sel]||0)%8;
+const curAng=()=>((state.rot||{})[state.sel]||0)%turns(state.sel);
 /* Rotate: the piece under the pointer if there is one; otherwise the next piece (and the last one, if it was just put down). */
 function rotatePiece(p){
   const id=state.sel,ps=state.draft.pieces;
@@ -571,9 +595,9 @@ function rotatePiece(p){
   let hit=null;
   if(p)for(let k=ps.length-1;k>=0;k--){const x=ps[k];if(isRot(x)&&Math.hypot(x.x-p.x,x.y-p.y)<.14){hit=x;break}}
   if(!hit&&!p){const last=ps[ps.length-1];if(last&&last.i===id&&isRot(last))hit=last}
-  if(hit){hit.a=(pieceAng(hit)+1)%8;state.rot={...state.rot,[hit.i]:hit.a};drawDraft();save();return true}
+  if(hit){hit.a=(pieceAng(hit)+1)%turns(hit.i);state.rot={...state.rot,[hit.i]:hit.a};drawDraft();save();return true}
   if(!canRotate(id)){if(!p)toast(t('k.norotate',{x:ING[id].n}));return false}
-  state.rot={...state.rot,[id]:(curAng()+1)%8};drawBench();save();return true;
+  state.rot={...state.rot,[id]:(curAng()+1)%turns(id)};drawBench();save();return true;
 }
 const curCut=()=>state.cut==='g'&&canGrate(state.sel)?1:0;
 function benchText(c,s,x,y,col='#2c1a0b',hl='rgba(255,255,255,.55)'){c.font='8px Silkscreen, monospace';c.textAlign='center';c.textBaseline='top';c.fillStyle=hl;c.fillText(s,x,y+1);c.fillStyle=col;c.fillText(s,x,y)}
