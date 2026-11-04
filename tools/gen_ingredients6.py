@@ -26,6 +26,9 @@ R.update({
     'jalpith': hexs(['#a8b884', '#ccdaa4', '#e6efc8', '#f6fae6']),
     'anch': hexs(['#3a1a10', '#5e2a18', '#8a4426', '#b06838', '#d49a62']),
     'anchskin': hexs(['#3e3e48', '#6a6a78', '#a4a4b4', '#d4d4e0']),
+    'anchback': hexs(['#101c2a', '#1e3448', '#305068', '#4a7290', '#7aa0bc']),
+    'anchbelly': hexs(['#7a808e', '#a4aab8', '#ccd2dc', '#eef0f6']),
+    'anchsilver': hexs(['#a8b4c4', '#d0dae6', '#f4f8fc', '#ffffff']),
     'ricotta': hexs(['#b4ac9c', '#d6d0c2', '#ece8de', '#f8f6f0', '#ffffff']),
     'pear': hexs(['#c8b47c', '#e2d4a2', '#f2eac8', '#fbf6e4', '#fffdf4']),
     'pearskin': hexs(['#5e5a14', '#8a8420', '#b4ac34', '#d4c852']),
@@ -87,23 +90,47 @@ def jalapeno(seed, D=15):
         if 0 <= x < D and 0 <= y < D: px[x, y] = (246, 240, 206, 255)
     return img
 
-# ---------------- ANCHOVA (filete, cauda para a direita) ----------------
-def anchovy(seed, L=26, ang=None):
+# ---------------- ANCHOVA (peixinho inteiro: cabeça à esquerda, cauda à direita) ----------------
+def anchovy(seed, L=28, ang=None):
     rng = np.random.default_rng(seed + 2700)
     a = (rng.random() - .5) * .8 if ang is None else ang
-    W, H = L + 4, int(np.ceil(L * abs(np.sin(a)) + 8 * abs(np.cos(a)))) + 9
+    W, H = L + 4, int(np.ceil(L * abs(np.sin(a)) + 10 * abs(np.cos(a)))) + 8
     if ang is not None and abs(np.sin(ang)) > .5: W, H = H, W
     u, v = axes(W, H, a)
-    t = (u + L / 2) / L                                     # 0 na cabeça cortada, 1 na cauda
-    vv = v - .9 * np.sin(t * 3.4 + seed)
-    half = np.where(t < .82, 3.2 * np.clip(t / .12, .55, 1), 3.2 * np.clip(1 - (t - .82) / .1, .3, 1))
-    fork = (t > .9) & (t <= 1) & (np.abs(np.abs(vv) - (t - .9) * 30) <= 1.3)    # cauda em V
-    body = (t >= 0) & (t <= .92) & (np.abs(vv) <= half)
+    t = (u + L / 2) / L                                     # 0 no focinho, 1 na cauda
+    vv = v - .7 * np.sin(t * 3 + seed)                      # corpo levemente curvado
+    half = np.select([t < .14, t < .62, t < .86],
+                     [3.6 * np.sqrt(np.clip(t / .14, 0, 1)),            # focinho redondo
+                      3.6 + 0 * t,                                       # corpo
+                      3.6 - (t - .62) / .24 * 2.6], .9)                  # afina até à cauda
+    body = (t >= 0) & (t <= .88) & (np.abs(vv) <= half)
+    fork = (t > .84) & (t <= 1) & (np.abs(np.abs(vv) - (t - .84) * 26) <= 1.3)   # cauda em forquilha
     mask = body | fork
-    height = np.clip(1 - (vv / (half + .01)) ** 2, 0, 1) * 1.3
-    mat = [['anchskin' if mask[y, x] and (fork[y, x] and not body[y, x] or vv[y, x] < -half[y, x] + 1.1) else 'anch'
-            for x in range(W)] for y in range(H)]
-    return render(mat, np.clip(shade(height, mask) * .85 + .22, 0, 1) * mask, mask, {'anchskin': 'anchskin'})
+    height = np.clip(1 - (vv / (half + .01)) ** 2, 0, 1) * 1.5
+    gill = body & (np.abs(t - .2 - (vv / 3.6) ** 2 * .04) < .55 / L)
+    stripe = body & (np.abs(vv - .3) < .55) & (t > .24) & (t < .84)
+    def m(y, x):
+        if not mask[y, x]: return 'anchback'
+        if fork[y, x] and not body[y, x]: return 'anchback'
+        if gill[y, x]: return 'anchback'
+        if stripe[y, x]: return 'anchsilver'
+        return 'anchback' if vv[y, x] < 0 else 'anchbelly'
+    mat = [[m(y, x) for x in range(W)] for y in range(H)]
+    light = np.clip(shade(height, mask) * .8 + .25 + np.where(stripe, .35, 0), 0, 1) * mask
+    img = render(mat, light, mask, {'anchbelly': 'anchback', 'anchsilver': 'anchback'})
+    # olho: ponto escuro com brilho, na cabeça, acima do meio
+    ex, ey = -L / 2 + .1 * L, -1.0
+    ca, sa = np.cos(a), np.sin(a)
+    cx, cy = (W - 1) / 2, (H - 1) / 2
+    def at(uu, ww):
+        ww = ww + .7 * np.sin((uu + L / 2) / L * 3 + seed)
+        return int(round(cx + uu * ca - ww * sa)), int(round(cy + uu * sa + ww * ca))
+    px = img.load()
+    x, y = at(ex, ey)
+    if 0 <= x < W and 0 <= y < H: px[x, y] = (12, 14, 20, 255)
+    x, y = at(ex - 1, ey - 1)
+    if 0 <= x < W and 0 <= y < H and mask[y, x]: px[x, y] = (236, 240, 248, 255)
+    return img
 
 # ---------------- RICOTTA (colherada granulosa) ----------------
 def ricotta(seed, W=22, H=18):
