@@ -271,7 +271,7 @@ en:{
   'k.empty':'Empty pizza. Start with the cheese.','k.needname':'Give the pizza a name.','k.needmore':'Add a few toppings first.',
   'k.updated':'{x} updated.','k.menufull':'The menu already has 5 pizzas. Remove one first.','k.added':'{x} is on the menu at {p}.',
   'k.newname':'New pizza','k.rotate':'Rotate {x}','k.rotatetip':'Turns the last piece or the next one. With a mouse, right-click a piece to turn it.','k.norotate':'{x} doesn’t need turning.',
-  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte':'DRIZZLE','bench.q':'PRICE','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES'
+  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte':'DRIZZLE','bench.q':'PRICE','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','share.btn':'Share','share.download':'Download image','share.copy':'Copy text','share.copied':'Text copied.','share.close':'Close','share.make':'Make yours at','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES'
 },
 pt:{
   'ing.mozzarella':'Mozzarella','ing.fiambre':'Fiambre','ing.pepperoni':'Pepperoni','ing.cogumelos':'Cogumelos','ing.azeitonas':'Azeitonas',
@@ -336,7 +336,7 @@ pt:{
   'k.empty':'Pizza vazia. Começa pelo queijo.','k.needname':'Dá um nome à pizza.','k.needmore':'Põe pelo menos alguns ingredientes.',
   'k.updated':'{x} atualizada.','k.menufull':'O menu já tem 5 pizzas. Remove uma primeiro.','k.added':'{x} entrou no menu por {p}.',
   'k.newname':'Nova pizza','k.rotate':'Rodar {x}','k.rotatetip':'Roda a última peça ou a próxima. Com o rato, clica com o botão direito numa peça para a rodar.','k.norotate':'{x} não precisa de rodar.',
-  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte':'EM FIO','bench.q':'PREÇO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS'
+  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte':'EM FIO','bench.q':'PREÇO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','share.btn':'Partilhar','share.download':'Descarregar imagem','share.copy':'Copiar texto','share.copied':'Texto copiado.','share.close':'Fechar','share.make':'Faz a tua em','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS'
 }};
 function t(key,v){let s=I18N[LANG][key]??I18N.en[key]??key;if(v)for(const k in v)s=s.split('{'+k+'}').join(v[k]);return s}
 
@@ -764,7 +764,7 @@ function kitchenHTML(){
           <div class="field"><span class="lbl">${t('k.dough')}</span><div class="seg">${seg(DOUGHS,'dough',d.dough)}</div></div>
           <div class="field"><span class="lbl">${t('k.sauce')}</span><div class="seg">${seg(SAUCES,'sauce',d.sauce)}</div></div>
         </div>
-        <div class="row"><button class="btn primary big" data-act="savepizza">${d.editing?t('k.save.edit'):t('k.save.new')}</button><span class="sub">${t('k.inmenu',{n:state.menu.length})}</span></div>
+        <div class="row"><button class="btn primary big" data-act="savepizza">${d.editing?t('k.save.edit'):t('k.save.new')}</button><button class="btn big" data-act="share">${t('share.btn')}</button><span class="sub">${t('k.inmenu',{n:state.menu.length})}</span></div>
       </div>
       <div class="stack">
         <div class="card" id="analysis"></div>
@@ -894,7 +894,7 @@ function menuHTML(){
     <div><h3>${esc(p.name)}</h3><span class="sub">${DOUGHS[p.dough].n} · ${SAUCES[p.sauce].n}</span>
       <div class="price"><button data-act="pdn" data-id="${p.id}" aria-label="Baixar preço">−</button><b>${eur(p.price)}</b><button data-act="pup" data-id="${p.id}" aria-label="Subir preço">+</button></div>
       <dl class="kv"><dt>Qualidade</dt><dd>${a.q}/100</dd><dt>Custo</dt><dd>${eur(a.cost)}</dd><dt>Margem</dt><dd style="color:${margin>0?'var(--good)':'var(--bad)'}">${eur(margin)}</dd><dt>Preço justo</dt><dd>~${eur(suggestPrice(a))}</dd><dt>Vendidas ontem</dt><dd>${sold}</dd></dl>
-      <div class="row"><button class="btn sm" data-act="edit" data-id="${p.id}">Editar receita</button><button class="btn sm danger" data-act="rm" data-id="${p.id}">Remover</button></div>
+      <div class="row"><button class="btn sm" data-act="edit" data-id="${p.id}">Editar receita</button><button class="btn sm" data-act="share" data-id="${p.id}">${t('share.btn')}</button><button class="btn sm danger" data-act="rm" data-id="${p.id}">Remover</button></div>
     </div></div>`}).join('')}
   ${state.menu.length<5?`<button class="empty" data-tab-go="cozinha" style="background:transparent;font-weight:800">+ Criar nova pizza (${state.menu.length}/5)</button>`:''}
   </div></div>`;
@@ -1228,6 +1228,41 @@ function contestHTML(){
 }
 
 /* ================= MODALS ================= */
+/* ================= SHARE ================= */
+/* A 1080x1350 card (portrait, fits phone feeds): the pizza in pixel art at x3, the recipe and the site. */
+const SITE='www.pizzamagna.xyz';
+function recipeIngs(p){const cnt={};for(const x of p.pieces)cnt[x.i]=(cnt[x.i]||0)+1;return Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(i=>ING[i].n)}
+function wrapLines(c,text,maxW){const out=[];let line='';for(const w of text.split(' ')){const tryL=line?line+' '+w:w;if(c.measureText(tryL).width>maxW&&line){out.push(line);line=w}else line=tryL}if(line)out.push(line);return out}
+function shareCard(p,name){
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  for(let y=0;y<H;y+=44){c.fillStyle=(y/44)%2?'#573117':'#4c2a13';c.fillRect(0,y,W,44);c.fillStyle='rgba(20,8,2,.55)';c.fillRect(0,y,W,3)}  // wood planks
+  c.fillStyle='#2a1407';c.fillRect(48,48,W-96,H-96);c.fillStyle='#f3e6c6';c.fillRect(60,60,W-120,H-120);c.fillStyle='#e6d3a8';c.fillRect(60,60,W-120,8);
+  c.imageSmoothingEnabled=false;
+  c.fillStyle='rgba(40,25,10,.25)';c.beginPath();c.ellipse(W/2+10,320+268,262,258,0,0,Math.PI*2);c.fill();
+  c.drawImage(composePizza(p),W/2-255,320,510,510);
+  c.textAlign='center';c.fillStyle='#7a4520';c.font='bold 30px Silkscreen, monospace';c.fillText('PIZZA MAGNA',W/2,130);
+  c.fillStyle='#2c1a0b';c.font='bold 60px Silkscreen, monospace';
+  wrapLines(c,name.toUpperCase(),W-200).slice(0,2).forEach((l,i)=>c.fillText(l,W/2,215+i*66));
+  c.font='34px "Pixelify Sans", sans-serif';c.fillStyle='#6c5233';
+  c.fillText(DOUGHS[p.dough].n+' · '+SAUCES[p.sauce].n,W/2,900);
+  c.fillStyle='#2c1a0b';c.font='38px "Pixelify Sans", sans-serif';
+  wrapLines(c,recipeIngs(p).join(' · '),W-200).slice(0,4).forEach((l,i)=>c.fillText(l,W/2,970+i*50));
+  c.fillStyle='#c4352a';c.fillRect(60,H-170,W-120,110);c.fillStyle='#fff1d2';c.font='bold 40px Silkscreen, monospace';c.fillText(SITE.toUpperCase(),W/2,H-100);
+  return cv;
+}
+async function sharePizza(p,name){
+  if(!p.pieces.length){toast(t('k.needmore'));return}
+  try{await document.fonts.ready}catch(_){}
+  const cv=shareCard(p,name),text=`${name}\n${DOUGHS[p.dough].n} · ${SAUCES[p.sauce].n}\n${recipeIngs(p).join(', ')}\n${t('share.make')} ${SITE}`;
+  const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
+  const file=new File([blob],(name.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'pizza')+'.png',{type:'image/png'});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name,text});return}}catch(e){if(e&&e.name==='AbortError')return}
+  // no system share sheet (desktop, some browsers): show the card with download and copy
+  const url=URL.createObjectURL(blob);
+  modal(`<h2>${esc(name)}</h2><img src="${url}" alt="${esc(name)}" style="width:100%;image-rendering:pixelated;border:3px solid var(--wood-deep)">
+    <div class="row"><a class="btn primary" href="${url}" download="${file.name}">${t('share.download')}</a><button class="btn" data-act="copyshare">${t('share.copy')}</button><button class="btn ghost" data-act="close">${t('share.close')}</button></div>`);
+  $('[data-act="copyshare"]').dataset.text=text;
+}
 function modal(html){$('#mbox').innerHTML=html;$('#modal').hidden=false;const b=$('#mbox button');if(b)b.focus()}
 function closeModal(){$('#modal').hidden=true}
 function showReport(r){
@@ -1303,6 +1338,8 @@ const ACT={
   reset:b=>{if(!b.dataset.armed){b.dataset.armed='1';b.textContent='Tens a certeza? Perdes o progresso';setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='Recomeçar o jogo'}},3500);return}state=freshState();state.seenIntro=true;render();toast('Jogo recomeçado.')},
   hardreset:()=>{state=freshState();state.seenIntro=true;closeModal();render()},
   closereport:()=>afterReport(),
+  share:b=>{const p=b.dataset.id?state.menu.find(x=>x.id===b.dataset.id):state.draft;if(!p)return;const name=b.dataset.id?p.name:(($('#pname')||{}).value||p.name||'Pizza').trim();sharePizza(p,name)},
+  copyshare:b=>{const txt=b.dataset.text;const ok=()=>toast(t('share.copied'));const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;ta.rows=5;ta.style.width='100%';b.replaceWith(ta);ta.select()};try{navigator.clipboard.writeText(txt).then(ok,fallback)}catch(_){fallback()}},
   close:()=>closeModal()
 };
 document.addEventListener('click',e=>{
