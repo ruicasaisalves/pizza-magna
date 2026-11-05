@@ -21,3 +21,25 @@ Cada ingrediente pode entrar **inteiro/fatiado** ou **ralado/picado** (como no o
 - Portugueses (alheira, farinheira, São Jorge, polvo, grelos, marmelada) desbloqueados por região.
 - Luxo (trufa, burrata, salmão, camarão): caros, adorados pelos gourmets, raros nos fornecedores.
 - Combos possíveis: Nutella e banana (sobremesa).
+
+## Para fazer (outras culturas)
+Lote a desenhar, ainda sem sprite nem dados no jogo.
+- **Tofu** (China, vegetariano)
+- **Char siu** (China, carne de porco adocicada)
+- **Edamame** (Japão, vegetal)
+- **Frango teriyaki** (Japão, carne)
+- **Catupiry** (Brasil, queijo cremoso)
+- **Calabresa** (Brasil, enchido)
+- **Mejillones** (Espanha, marisco)
+- **Brie** (França, queijo)
+- **Frango tikka** (Índia, carne marinada)
+- **Grão-de-bico** (Índia, vegetal)
+
+## Sleeper (ideias guardadas)
+Ideias por país, em espera. Não estão no plano, mas ficam registadas para mais tarde.
+- **China:** molho hoisin, bok choy, pimenta de Sichuan, ovo de século (luxo), óleo de chili.
+- **Japão:** ebi (camarão de sushi), ikura (ovas de salmão, luxo), shiso, gergelim torrado, molho ponzu, miso, nori, maionese Kewpie.
+- **Brasil:** queijo coalho, carne-seca, palmito, goiabada, mandioca frita.
+- **Espanha:** chorizo ibérico (distinto do chouriço), jamón serrano (luxo), manchego, morcilla, pimentão piquillo, romesco, membrillo.
+- **França:** camembert, comté, lardons, magret de pato (luxo), confit de pato, tapenade, ratatouille.
+- **Índia:** paneer, molho de caril, chutney de manga, keema, ghee, garam masala, raita.
