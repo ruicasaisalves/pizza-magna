@@ -39,6 +39,7 @@ import gen_ingredients11 as G11
 import gen_ingredients12 as G12
 import gen_ingredients13 as G13
 import gen_ingredients14 as G14
+import gen_ingredients15 as G15
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -130,6 +131,16 @@ INGS = {
     'pimenta':      (G14.peppercorns, ('pepcorn', 'flake', 50)),
     'marmelada':    (G14.marmelada, ('quince', 'cube', 11)),
     'trufa':        (G14.truffle,   ('truf', 'flake', 44)),
+    'tofu':         (G15.tofu,      ('tofu', 'flake', 40)),
+    'char_siu':     (G15.char_siu,  ('charsiu', 'cube', 12)),
+    'edamame':      (G15.edamame,   ('edapod', 'dice', 22)),
+    'frango_teriyaki': (G15.teriyaki, ('teri', 'cube', 12)),
+    'catupiry':     (G15.catupiry,  None),
+    'calabresa':    (G15.calabresa, ('calab', 'cube', 11)),
+    'mejillones':   (G15.mussel,    ('musmeat', 'chunk', 9)),
+    'brie':         (G15.brie,      ('brie', 'shred', 40)),
+    'frango_tikka': (G15.tikka,     ('tikka', 'cube', 12)),
+    'grao':         (G15.chickpeas, None),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
 ROTATE = {
@@ -152,6 +163,9 @@ ROTATE = {
     'leitao': lambda: G13.leitao(1, ang=0),        # 4: o courato fica de um lado
     'salsa': lambda: G13.parsley(1, ang=0),        # 4: o pé fica de um lado
     'tomilho': lambda: G14.thyme(1, ang=0),        # 4: o raminho tem pé e ponta
+    'edamame': lambda: G15.edamame(1, ang=0),      # 2: a vagem é igual de ponta a ponta
+    'mejillones': lambda: G15.mussel(1, ang=0),    # 4: o bico da concha fica de um lado
+    'brie': lambda: G15.brie(1, ang=0),            # 4: a cunha aponta para um lado
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}

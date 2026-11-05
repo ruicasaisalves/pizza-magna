@@ -14,7 +14,7 @@
 
 ## Formas de cortar
 Cada ingrediente pode entrar **inteiro/fatiado** ou **ralado/picado** (como no original).
-Exceções que não se picam: fios e gotas (mel, azeite, balsâmico), o que se espalha (Nutella, maionese, natas azedas) e o que já é miúdo (milho, pinhões, batata palha).
+Exceções que não se picam: fios e gotas (mel, azeite, balsâmico), o que se espalha (Nutella, maionese, natas azedas, catupiry) e o que já é miúdo (milho, pinhões, batata palha, grão-de-bico).
 
 **Regra do picado:** ervas, vegetais (incluindo cogumelos) e queijos → ralado fino (tiras ou migalhas de 1–2 px). Carnes e enchidos → cubinhos de 3–4 px em 3/4. Peixe e marisco → lascas irregulares de 4–6 px. Ralado cobre mais área com menos peso, espalha o sabor por igual e muda o custo por porção.
 
@@ -23,18 +23,18 @@ Exceções que não se picam: fios e gotas (mel, azeite, balsâmico), o que se e
 - Portugueses (alheira, farinheira, São Jorge, polvo, grelos, marmelada) desbloqueados por região.
 - Luxo (trufa, burrata, salmão, camarão): caros, adorados pelos gourmets, raros nos fornecedores.
 
-## Para fazer (outras culturas)
-Lote a desenhar, ainda sem sprite nem dados no jogo.
-- **Tofu** (China, vegetariano)
-- **Char siu** (China, carne de porco adocicada)
-- **Edamame** (Japão, vegetal)
-- **Frango teriyaki** (Japão, carne)
-- **Catupiry** (Brasil, queijo cremoso)
-- **Calabresa** (Brasil, enchido)
-- **Mejillones** (Espanha, marisco)
-- **Brie** (França, queijo)
-- **Frango tikka** (Índia, carne marinada)
-- **Grão-de-bico** (Índia, vegetal)
+## Outras culturas
+✓★ = já no jogo (lote 15).
+- ✓★ **Tofu** (China, vegetariano)
+- ✓★ **Char siu** (China, carne de porco adocicada)
+- ✓★ **Edamame** (Japão, vegetal)
+- ✓★ **Frango teriyaki** (Japão, carne)
+- ✓★ **Catupiry** (Brasil, queijo cremoso)
+- ✓★ **Calabresa** (Brasil, enchido)
+- ✓★ **Mejillones** (Espanha, marisco; no jogo em português: mexilhões)
+- ✓★ **Brie** (França, queijo)
+- ✓★ **Frango tikka** (Índia, carne marinada)
+- ✓★ **Grão-de-bico** (Índia, vegetal)
 
 ## Sleeper (ideias guardadas)
 Ideias por país, em espera. Não estão no plano, mas ficam registadas para mais tarde.
