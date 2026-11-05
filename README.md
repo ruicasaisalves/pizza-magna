@@ -2,8 +2,6 @@
 
 Jogo de gestão de pizzarias para browser e telemóvel, em estilo pixel-art dos anos 90.
 
-> Protótipo. O nome do jogo dentro do protótipo ainda é "Massa Mestra".
-
 ## Como jogar
 
 Abre `index.html` num browser. Não precisa de instalação nem de servidor.
