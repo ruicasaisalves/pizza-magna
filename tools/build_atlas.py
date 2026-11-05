@@ -9,7 +9,7 @@ Chaves:
   <id>_0..2       ingrediente inteiro/fatiado (3 variantes), com sombra
   <id>_n          ingrediente que roda (ROTATE): uma só peça, sem sombra. O jogo roda-a
                   em quartos de volta (sem perder píxeis) e junta a sombra depois
-  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel, o milho, os pinhões, a Nutella, o azeite, o balsâmico e a maionese não têm
+  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel, o milho, os pinhões, a Nutella, o azeite, o balsâmico, a maionese e a batata palha não têm
   sauce_<id>      disco de molho, 170 px
   crust_<id>      bordo da massa (anel), 170 px
   marble          bancada de mármore 320x200
@@ -36,6 +36,7 @@ import gen_ingredients8 as G8
 import gen_ingredients9 as G9
 import gen_ingredients10 as G10
 import gen_ingredients11 as G11
+import gen_ingredients12 as G12
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -108,6 +109,12 @@ INGS = {
     'maionese':     (G11.mayonnaise, None),
     'cheddar':      (G11.cheddar,   ('ched', 'shred', 40)),
     'coentros':     (G11.coriander, ('coent', 'flake', 44)),
+    'provolone':    (G12.provolone, ('prov', 'shred', 40)),
+    'carne_picada': (G12.minced_beef, ('beef', 'cube', 12)),
+    'cebola_roxa':  (G12.red_onion, ('redon', 'flake', 44)),
+    'alecrim':      (G12.rosemary,  ('rosem', 'flake', 44)),
+    'maca':         (G12.apple,     ('apple', 'cube', 11)),
+    'batata_palha': (G12.straw_potato, None),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
 ROTATE = {
@@ -124,6 +131,8 @@ ROTATE = {
     'ameijoas': lambda: G10.clam(1, ang=0),        # 4: a dobradiça da concha fica de um lado
     'oregaos': lambda: G10.oregano(1, ang=0),      # 4: o raminho tem pé e ponta
     'coentros': lambda: G11.coriander(1, ang=0),   # 4: o pé fica de um lado
+    'alecrim': lambda: G12.rosemary(1, ang=0),     # 4: o raminho tem pé e ponta
+    'maca': lambda: G12.apple(1, ang=0),           # 4: casca curva de um lado, corte do caroço do outro
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
