@@ -1,0 +1,32 @@
+# Pizza Magna
+
+Jogo de gestão de pizzarias em pixel art dos anos 90, para browser e telemóvel. É HTML e JS simples, sem build nem dependências: abre-se o `index.html` diretamente do disco. Dentro do jogo, o nome ainda é "Massa Mestra".
+
+## Ficheiros
+- `index.html`: o jogo todo (cerca de 1200 linhas). **Não o leias inteiro.** Procura a secção pelo marcador com grep e lê só essa:
+  - `= LANGUAGE =`: `LANG` e a tabela `I18N` (en/pt)
+  - `= DATA =`: `DOUGHS`, `SAUCES`, `ING`, `PACKS`, `COMBOS`, `SEG`, `THEMES` e as constantes de economia
+  - `= PIZZA ANALYSIS =`: `analyze()` (qualidade, custo, apelo) e `contestScore()`
+  - `= DRAWING`: atlas, `spr()`, peças que rodam (`turned()`), `composePizza()`, `LAYER`
+  - `= UI: KITCHEN =` e `-- the pizza bench`: a bancada 320×200, as taças, `addPiece()`, `rotatePiece()`
+  - `= UI: DAY =`, `-- simulation`, `-- restaurant room`: o dia, os clientes e a sala em tiles
+  - `= UI: SHOP =`, `= UI: CONTEST =`, `= MODALS =`
+  - `= RENDER + EVENTS =`: `render()` e as ações dos botões (`ACT`)
+- `sprites.js`: sala, mobília e personagens, gerados em código.
+- `assets/ingredients.js`: atlas dos ingredientes. **É gerado** por `tools/build_atlas.py`; nunca se edita à mão. Ver `tools/CLAUDE.md`.
+- `docs/ingredientes.md`: a lista de ingredientes (✓★ = já no jogo) e as ideias de combos.
+- `docs/packs-de-arte.md`: packs de arte avaliados e a decisão de estilo.
+
+## Regras
+- **Idioma:** o jogo é em inglês por omissão e em português quando o browser está em `pt`. Todo o texto visível vem de `I18N`, com a mesma chave em `en` e em `pt`. Até agora estão migrados a cozinha e os nomes de ingredientes, massas, molhos, combos e públicos; o resto ainda está escrito em português no código, e o que se tocar migra-se.
+- **Respostas e documentação** em português de Portugal. Comentários no `index.html` em inglês; nos geradores Python, em português.
+- **Gravações:** o estado vai para `localStorage` (`massa-mestra-v1`). Campos novos precisam de um valor por omissão, para os jogos já gravados continuarem a abrir.
+- Não acrescentes dependências nem passos de build.
+
+## Testar
+- `node tools/test_ingredients.js [id1,id2] <pasta>`: verifica sprites, traduções e combos, e põe peças na bancada.
+- Para outros ecrãs, usa o Playwright: `require('playwright')` funciona sem instalar nada.
+
+## Tarefas com procedimento próprio
+- Ingredientes novos ou correções de um sprite: usa a skill `novo-lote`.
+- Mexer nos geradores de sprites: lê `tools/CLAUDE.md`.
