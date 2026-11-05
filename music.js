@@ -40,6 +40,18 @@ const MUSIC = (() => {
         bass: 'F2 C3 C3 F2 C3 C3 | F2 C3 C3 F2 C3 C3 | C2 G2 Bb2 C2 G2 Bb2 | C2 G2 Bb2 C2 G2 Bb2 | F2 C3 C3 F2 C3 C3 | C2 G2 Bb2 C2 G2 Bb2 | F2 C3 C3 F2 C3 C3 | F2 C3 C3 F2 C3 C3 | C2 G2 Bb2 C2 G2 Bb2 | F2 C3 C3 F2 C3 C3 | F2 C3 C3 F2 C3 C3 | C2 G2 G2 C2 G2 G2 | Bb1 F2 F2 Bb1 F2 F2 | F2 C3 C3 F2 C3 C3 | C2 G2 Bb2 C2 G2 Bb2 | F2 C3 C3 F2 - -',
         harm: 'A4 - - - - - | A4 - - - - - | Bb4 - - - - - | Bb4 - - - - - | A4 - - - - - | Bb4 - - - - - | A4 - - - - - | A4 - - - - - | Bb4 - - - - - | A4 - - - - - | A4 - - - - - | G4 - - - - - | D5 - - - - - | A4 - - - - - | Bb4 - - - - - | A4 - - . . .' },
       drums: 'k . . h . .' },
+    { id: 'positano', title: 'Pomeriggio a Positano', bpm: 140, beat: 8, loops: 3, trem: true, parts: 'A',   // a quiet afternoon by the sea
+      A: {
+        lead: 'B4 - - - D5 - G5 - | F#5 - - - E5 - D5 - | C5 - - - E5 - A5 - | G5 - - - - - . . | E5 - - - G5 - B5 - | A5 - - - G5 - E5 - | D5 - - - C5 - A4 - | G4 - - - - - . .',
+        bass: 'G2 - D3 - G2 - D3 - | D2 - A2 - D2 - A2 - | C2 - G2 - C2 - G2 - | G2 - D3 - G2 - D3 - | E2 - B2 - E2 - B2 - | C2 - G2 - C2 - G2 - | D2 - A2 - D2 - A2 - | G2 - D3 - G2 - - -',
+        harm: 'D4 - - - - - - - | F#4 - - - - - - - | E4 - - - - - - - | D4 - - - - - - - | G4 - - - - - - - | E4 - - - - - - - | F#4 - - - - - - - | B3 - - - - - . .' },
+      drums: 'k . . . h . . .' },
+    { id: 'siesta', title: 'Siesta in Piazza', bpm: 120, beat: 6, loops: 3, trem: false, parts: 'A',   // a slow, sleepy waltz
+      A: {
+        lead: 'A4 - C5 - F5 - | E5 - - - D5 - | C5 - - - A4 - | C5 - - - - - | D5 - F5 - Bb5 - | A5 - - - G5 - | F5 - - - E5 - | F5 - - - . .',
+        bass: 'F2 - A2 - C3 - | C2 - E2 - G2 - | F2 - A2 - C3 - | C2 - E2 - G2 - | Bb1 - D2 - F2 - | F2 - A2 - C3 - | C2 - E2 - G2 - | F2 - - - . .',
+        harm: 'C4 - - - - - | E4 - - - - - | C4 - - - - - | E4 - - - - - | D4 - - - - - | C4 - - - - - | E4 - - - - - | A3 - - - . .' },
+      drums: 'k . . . h .' },
   ];
 
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
