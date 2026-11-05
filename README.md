@@ -22,6 +22,8 @@ HTML e JavaScript simples, sem dependências nem build.
 
 - `index.html`: jogo, interface e simulação.
 - `assets/ingredients.js`: atlas com os ingredientes, massas, molhos, bancada e taça em pixel detalhado. É gerado por `python3 tools/build_atlas.py` a partir de `tools/gen_ingredients*.py`; não se edita à mão.
+- `tools/test_ingredients.js`: testa os ingredientes no browser (sprites, traduções, combos, rodar). `node tools/test_ingredients.js id1,id2 <pasta>`.
+- `.claude/skills/novo-lote/`: o procedimento para acrescentar um lote de ingredientes, carregado só quando se pede um lote novo.
 - `sprites.js`: todos os sprites em pixel-art (chão, paredes, mobília, fornos, personagens), gerados em código numa grelha de 16 px e guardados em cache. Para trocar por um pack comprado, basta substituir as funções deste ficheiro mantendo os mesmos nomes.
 
 A sala do restaurante é um mapa de 20×17 tiles. Os clientes e os empregados encontram caminho entre as mesas com pesquisa em largura (BFS). O jogo grava no `localStorage` do browser.
