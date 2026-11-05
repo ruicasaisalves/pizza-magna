@@ -83,7 +83,14 @@ def drizzle(ramp, seed, base, W=30, H=24, thick=1, drops=3, drop_r=(1.4, 2.2)):
 
 def olive_oil(seed):
     """azeite: fio fino e gotas largas, amarelo-esverdeado"""
-    return drizzle('oil', seed, 5500, thick=1, drops=3, drop_r=(1.8, 2.8))
+    img = drizzle('oil', seed, 5500, thick=1, drops=3, drop_r=(1.8, 2.8))
+    # um pouco translúcido: o corpo do azeite deixa ver a pizza; os brilhos ficam opacos
+    px = img.load(); top = R['oil'][-1]
+    for y in range(img.height):
+        for x in range(img.width):
+            c = px[x, y]
+            if c[3] and c[:3] != top: px[x, y] = c[:3] + (175,)
+    return img
 
 def balsamic(seed):
     """balsâmico: fio fino e escuro, quase preto, com muitas gotinhas"""
