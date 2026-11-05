@@ -64,15 +64,17 @@ h3{font-size:.92rem}
 .stats{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
 .opt-btn{display:inline-flex;align-items:center;gap:6px;order:3}
 /* mute: fixed in the top-right corner, above every screen and dialog */
-#mute{position:fixed;z-index:25;top:calc(env(safe-area-inset-top,0px) + 8px);right:max(8px,env(safe-area-inset-right,0px));width:38px;height:38px;padding:0;display:grid;place-items:center;
+#hdr{position:sticky}
+#mute{position:absolute;z-index:6;top:8px;right:max(8px,env(safe-area-inset-right,0px));width:38px;height:38px;padding:0;display:grid;place-items:center;
   color:var(--brass-ink);background:linear-gradient(var(--brass-hi),var(--brass) 45%,var(--brass-lo));border:2px solid var(--brass-ink);border-radius:3px;box-shadow:inset 1px 1px 0 rgba(255,255,255,.6),0 3px 0 var(--wood-deep)}
-#fs{position:fixed;z-index:25;top:calc(env(safe-area-inset-top,0px) + 8px);right:calc(max(8px,env(safe-area-inset-right,0px)) + 46px);width:38px;height:38px;padding:0;display:grid;place-items:center;
+#fs{position:absolute;z-index:6;top:8px;right:calc(max(8px,env(safe-area-inset-right,0px)) + 46px);width:38px;height:38px;padding:0;display:grid;place-items:center;
   color:var(--brass-ink);background:linear-gradient(var(--brass-hi),var(--brass) 45%,var(--brass-lo));border:2px solid var(--brass-ink);border-radius:3px;box-shadow:inset 1px 1px 0 rgba(255,255,255,.6),0 3px 0 var(--wood-deep)}
 #fs svg{width:20px;height:20px}
 #mute.off{background:linear-gradient(#f6ead0,#dcc699);color:var(--bad)}
 #mute svg{width:22px;height:22px}
 .hdr-in{padding-right:max(104px,env(safe-area-inset-right,0px))}
 .sandbox .opt-btn{margin-left:auto}
+@media (max-width:600px){.hdr-in{padding-right:max(16px,env(safe-area-inset-right,0px))}.brand{max-width:calc(100% - 100px);margin-right:96px}.hdr-in .opt-btn,.sandbox .hdr-in .opt-btn{margin-left:auto;margin-right:auto}}
 .opts{display:flex;flex-direction:column;gap:14px}
 .opts section{display:flex;flex-direction:column;gap:8px;border-top:2px dashed var(--line);padding-top:12px}
 .stat{background:var(--lcd-bg);border:2px solid var(--wood-deep);box-shadow:inset 0 0 0 1px #1d331a;padding:2px 8px;display:flex;flex-direction:column;min-width:0}
@@ -740,6 +742,7 @@ function drawMini(cv,p,size){const c=fitCanvas(cv,size,size);c.clearRect(0,0,siz
 /* ================= UI: HEADER ================= */
 function starsHTML(r){let h='';for(let i=1;i<=5;i++)h+=`<i class="${r>=i-.5?'on':''}">★</i>`;return h}
 function renderHeader(){
+  const corner=[$('#fs'),$('#mute')];   // keep the corner buttons across the header rebuild
   const pm=clamp(state.money/GOAL_MONEY,0,1),pr=clamp(state.rep/GOAL_REP,0,1);
   $('#hdr').innerHTML=`<div class="hdr-in">
     <div class="brand" data-act="chef" role="button" tabindex="0" title="${esc(t('chef.edit'))}" style="cursor:pointer"><canvas id="logo" width="68" height="68"></canvas>Pizza Magna</div>
@@ -752,6 +755,7 @@ function renderHeader(){
     <div class="goal"><span>Objetivo: ${GOAL_MONEY.toLocaleString('pt-PT')} € e ${GOAL_REP}★ para abrir a 2.ª loja</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>
   </div>`;
   drawMini($('#logo'),state.menu[0]||state.draft,30);
+  $('#hdr').append(...corner);   // corner buttons ride in the header, not over the page
 }
 
 /* ================= UI: KITCHEN ================= */
@@ -1442,7 +1446,8 @@ document.addEventListener('input',e=>{if(e.target.id==='pname')state.draft.name=
 document.addEventListener('input',e=>{if(e.target.id==='musVol'){const v=MUSIC.setVolume(+e.target.value);const x=$('#musVolTxt');if(x)x.textContent=t('mus.v'+v)}});
 document.addEventListener('change',e=>{if(e.target.id==='importFile'&&e.target.files[0])importSave(e.target.files[0])});
 document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='chefName'||e.target.id==='shopName'){e.preventDefault();const b=$('[data-start]');if(!b||!b.disabled)ACT.savechef()}else if(e.target.classList&&e.target.classList.contains('brand'))showChef()});
-let rsT;window.addEventListener('resize',()=>{clearTimeout(rsT);rsT=setTimeout(()=>{if(!anim)render()},150)});
+// re-render only when the width changes: the phone keyboard changes the height, and a re-render would kill the field being typed in
+let rsT,rsW=window.innerWidth;window.addEventListener('resize',()=>{clearTimeout(rsT);rsT=setTimeout(()=>{if(window.innerWidth===rsW)return;rsW=window.innerWidth;if(!anim)render()},150)});
 
 document.addEventListener('pm-music',e=>{const n=$('#musNow');if(n)n.textContent=t('mus.now',{x:e.detail})});
 const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/>';
