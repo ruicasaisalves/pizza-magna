@@ -9,7 +9,7 @@ Chaves:
   <id>_0..2       ingrediente inteiro/fatiado (3 variantes), com sombra
   <id>_n          ingrediente que roda (ROTATE): uma só peça, sem sombra. O jogo roda-a
                   em quartos de volta (sem perder píxeis) e junta a sombra depois
-  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel, o milho e os pinhões não têm
+  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel, o milho, os pinhões, a Nutella, o azeite, o balsâmico, a maionese, a batata palha e as natas azedas não têm
   sauce_<id>      disco de molho, 170 px
   crust_<id>      bordo da massa (anel), 170 px
   marble          bancada de mármore 320x200
@@ -34,6 +34,12 @@ import gen_ingredients6 as G6
 import gen_ingredients7 as G7
 import gen_ingredients8 as G8
 import gen_ingredients9 as G9
+import gen_ingredients10 as G10
+import gen_ingredients11 as G11
+import gen_ingredients12 as G12
+import gen_ingredients13 as G13
+import gen_ingredients14 as G14
+import gen_ingredients15 as G15
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -94,6 +100,47 @@ INGS = {
     'salsicha':     (G9.sausage,    ('sals', 'cube', 11)),
     'padron':       (G9.padron,     ('padron', 'flake', 40)),
     'pinhoes':      (G9.pinenuts,   None),
+    'nutella':      (G10.nutella,   None),
+    'banana':       (G10.banana,    ('banana', 'cube', 11)),
+    'feta':         (G10.feta,      ('feta', 'flake', 40)),
+    'farinheira':   (G10.farinheira, ('farin', 'cube', 11)),
+    'ameijoas':     (G10.clam,      ('clammeat', 'chunk', 9)),
+    'oregaos':      (G10.oregano,   G10.oregano_flakes),
+    'prosciutto':   (G11.prosciutto, ('prosc', 'chunk', 9)),
+    'azeite':       (G11.olive_oil, None),
+    'balsamico':    (G11.balsamic,  None),
+    'maionese':     (G11.mayonnaise, None),
+    'cheddar':      (G11.cheddar,   ('ched', 'shred', 40)),
+    'coentros':     (G11.coriander, ('coent', 'flake', 44)),
+    'provolone':    (G12.provolone, ('prov', 'shred', 40)),
+    'carne_picada': (G12.minced_beef, ('beef', 'cube', 12)),
+    'cebola_roxa':  (G12.red_onion, ('redon', 'flake', 44)),
+    'alecrim':      (G12.rosemary,  ('rosem', 'flake', 44)),
+    'maca':         (G12.apple,     ('apple', 'cube', 11)),
+    'batata_palha': (G12.straw_potato, None),
+    'sao_jorge':    (G13.sao_jorge, ('sj', 'shred', 40)),
+    'leitao':       (G13.leitao,    ('pork', 'cube', 12)),
+    'couve_galega': (G13.couve,     ('kale', 'shred', 40)),
+    'salsa':        (G13.parsley,   ('parsley', 'flake', 44)),
+    'chocolate':    (G13.chocolate, ('choc', 'shred', 40)),
+    'natas_azedas': (G13.sour_cream, None),
+    'emmental':     (G14.emmental,  ('emm', 'shred', 40)),
+    'flamengo':     (G14.flamengo,  ('flam', 'shred', 40)),
+    'kebab':        (G14.kebab,     ('kebab', 'cube', 12)),
+    'tomilho':      (G14.thyme,     ('thyme', 'flake', 44)),
+    'pimenta':      (G14.peppercorns, ('pepcorn', 'flake', 50)),
+    'marmelada':    (G14.marmelada, ('quince', 'cube', 11)),
+    'trufa':        (G14.truffle,   ('truf', 'flake', 44)),
+    'tofu':         (G15.tofu,      ('tofu', 'flake', 40)),
+    'char_siu':     (G15.char_siu,  ('charsiu', 'cube', 12)),
+    'edamame':      (G15.edamame,   ('edapod', 'dice', 22)),
+    'frango_teriyaki': (G15.teriyaki, ('teri', 'cube', 12)),
+    'catupiry':     (G15.catupiry,  None),
+    'calabresa':    (G15.calabresa, ('calab', 'cube', 11)),
+    'mejillones':   (G15.mussel,    ('musmeat', 'chunk', 9)),
+    'brie':         (G15.brie,      ('brie', 'shred', 40)),
+    'frango_tikka': (G15.tikka,     ('tikka', 'cube', 12)),
+    'grao':         (G15.chickpeas, None),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
 ROTATE = {
@@ -107,6 +154,18 @@ ROTATE = {
     'polvo': lambda: G7.octopus(1, ang=0),         # 4: o tentáculo enrola para um lado
     'alcachofra': lambda: G9.artichoke(1, ang=0),  # 4: as folhas abrem para um lado
     'padron': lambda: G9.padron(1, ang=0),         # 4: o pé fica de um lado
+    'ameijoas': lambda: G10.clam(1, ang=0),        # 4: a dobradiça da concha fica de um lado
+    'oregaos': lambda: G10.oregano(1, ang=0),      # 4: o raminho tem pé e ponta
+    'coentros': lambda: G11.coriander(1, ang=0),   # 4: o pé fica de um lado
+    'alecrim': lambda: G12.rosemary(1, ang=0),     # 4: o raminho tem pé e ponta
+    'maca': lambda: G12.apple(1, ang=0),           # 4: casca curva de um lado, corte do caroço do outro
+    'sao_jorge': lambda: G13.sao_jorge(1, ang=0),  # 4: a cunha aponta para um lado
+    'leitao': lambda: G13.leitao(1, ang=0),        # 4: o courato fica de um lado
+    'salsa': lambda: G13.parsley(1, ang=0),        # 4: o pé fica de um lado
+    'tomilho': lambda: G14.thyme(1, ang=0),        # 4: o raminho tem pé e ponta
+    'edamame': lambda: G15.edamame(1, ang=0),      # 2: a vagem é igual de ponta a ponta
+    'mejillones': lambda: G15.mussel(1, ang=0),    # 4: o bico da concha fica de um lado
+    'brie': lambda: G15.brie(1, ang=0),            # 4: a cunha aponta para um lado
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}

@@ -59,7 +59,8 @@ const path = require('path');
     const bb = await (await p.$('#pz')).boundingBox();
     const L = (x, y) => [bb.x + x / 320 * bb.width, bb.y + y / 200 * bb.height];
     // pontos dentro da área permitida (raio 0.8 da pizza, centro em 97,100)
-    const spots = []; for (let k = 0; k < 40; k++) { const a = k * 2.39996, r = 62 * Math.sqrt((k + .5) / 40); spots.push([97 + Math.cos(a) * r, 100 + Math.sin(a) * r]) }
+    const N = Math.max(8, ids.length * 2), spots = [];       // espalha pelo disco todo, conforme o número de peças
+    for (let k = 0; k < N; k++) { const a = k * 2.39996, r = 62 * Math.sqrt((k + .5) / N); spots.push([97 + Math.cos(a) * r, 100 + Math.sin(a) * r]) }
     let si = 0;
     const rotated = {};
     for (const id of ids.filter(i => !unknown.includes(i))) {
