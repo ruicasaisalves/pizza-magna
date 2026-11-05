@@ -1247,9 +1247,9 @@ function shareCard(p,name){
   c.imageSmoothingEnabled=false;
   c.fillStyle='rgba(40,25,10,.25)';c.beginPath();c.ellipse(W/2+10,320+268,262,258,0,0,Math.PI*2);c.fill();
   c.drawImage(composePizza(p),W/2-255,320,510,510);
-  c.textAlign='center';c.fillStyle='#7a4520';c.font='bold 30px Silkscreen, monospace';c.fillText('PIZZA MAGNA',W/2,130);
+  c.textAlign='center';
   c.fillStyle='#2c1a0b';c.font='bold 60px Silkscreen, monospace';
-  wrapLines(c,name.toUpperCase(),W-200).slice(0,2).forEach((l,i)=>c.fillText(l,W/2,215+i*66));
+  const tl=wrapLines(c,name.toUpperCase(),W-200).slice(0,2);tl.forEach((l,i)=>c.fillText(l,W/2,(tl.length>1?175:205)+i*66));   // recipe name is the headline
   c.font='34px "Pixelify Sans", sans-serif';c.fillStyle='#6c5233';
   c.fillText(DOUGHS[p.dough].n+' · '+SAUCES[p.sauce].n,W/2,900);
   c.fillStyle='#2c1a0b';c.font='38px "Pixelify Sans", sans-serif';
