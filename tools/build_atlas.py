@@ -9,7 +9,7 @@ Chaves:
   <id>_0..2       ingrediente inteiro/fatiado (3 variantes), com sombra
   <id>_n          ingrediente que roda (ROTATE): uma só peça, sem sombra. O jogo roda-a
                   em quartos de volta (sem perder píxeis) e junta a sombra depois
-  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel, o milho e os pinhões não têm
+  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel, o milho, os pinhões e a Nutella não têm
   sauce_<id>      disco de molho, 170 px
   crust_<id>      bordo da massa (anel), 170 px
   marble          bancada de mármore 320x200
@@ -34,6 +34,7 @@ import gen_ingredients6 as G6
 import gen_ingredients7 as G7
 import gen_ingredients8 as G8
 import gen_ingredients9 as G9
+import gen_ingredients10 as G10
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -94,6 +95,12 @@ INGS = {
     'salsicha':     (G9.sausage,    ('sals', 'cube', 11)),
     'padron':       (G9.padron,     ('padron', 'flake', 40)),
     'pinhoes':      (G9.pinenuts,   None),
+    'nutella':      (G10.nutella,   None),
+    'banana':       (G10.banana,    ('banana', 'cube', 11)),
+    'feta':         (G10.feta,      ('feta', 'flake', 40)),
+    'farinheira':   (G10.farinheira, ('farin', 'cube', 11)),
+    'ameijoas':     (G10.clam,      ('clammeat', 'chunk', 9)),
+    'oregaos':      (G10.oregano,   G10.oregano_flakes),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
 ROTATE = {
@@ -107,6 +114,8 @@ ROTATE = {
     'polvo': lambda: G7.octopus(1, ang=0),         # 4: o tentáculo enrola para um lado
     'alcachofra': lambda: G9.artichoke(1, ang=0),  # 4: as folhas abrem para um lado
     'padron': lambda: G9.padron(1, ang=0),         # 4: o pé fica de um lado
+    'ameijoas': lambda: G10.clam(1, ang=0),        # 4: a dobradiça da concha fica de um lado
+    'oregaos': lambda: G10.oregano(1, ang=0),      # 4: o raminho tem pé e ponta
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
