@@ -40,6 +40,7 @@ import gen_ingredients12 as G12
 import gen_ingredients13 as G13
 import gen_ingredients14 as G14
 import gen_ingredients15 as G15
+import gen_bases as GB
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
@@ -187,6 +188,10 @@ def bases():
         a = np.array(G4.base(D, name, 'Tomate', seed=3 + len(k)))
         a[r <= 1 - G4.DOUGH[name], 3] = 0
         out['crust_' + k] = Image.fromarray(a)
+    for k in GB.DOUGHS:                                       # massas novas (gen_bases.py)
+        out['crust_' + k] = GB.crust(D, k, seed=len(k))
+    for k in GB.SAUCES:                                       # molhos novos
+        out['sauce_' + k] = GB.sauce(D, k, seed=len(k))
     return out
 
 
