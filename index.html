@@ -271,7 +271,7 @@ en:{
   'k.empty':'Empty pizza. Start with the cheese.','k.needname':'Give the pizza a name.','k.needmore':'Add a few toppings first.',
   'k.updated':'{x} updated.','k.menufull':'The menu already has 5 pizzas. Remove one first.','k.added':'{x} is on the menu at {p}.',
   'k.newname':'New pizza','k.rotate':'Rotate {x}','k.rotatetip':'Turns the last piece or the next one. With a mouse, right-click a piece to turn it.','k.norotate':'{x} doesn’t need turning.',
-  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte':'DRIZZLE','bench.q':'PRICE','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','share.btn':'Share','share.download':'Download image','share.copy':'Copy text','share.copied':'Text copied.','share.close':'Close','share.make':'Make yours at','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES'
+  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte':'DRIZZLE','bench.q':'PRICE','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','chef.title':'Welcome, chef!','chef.lead':'What should we call you? Your name signs every pizza you share.','chef.name':'Chef’s name','chef.shop':'Pizzeria name','chef.defshop':'Pizzeria {c}','chef.save':'Start cooking','chef.need':'Write the chef’s name first.','chef.hello':'Good luck, chef {c}!','chef.edit':'Change chef and pizzeria','chef.by':'Made by {c} · {s}','share.btn':'Share','share.download':'Download image','share.copy':'Copy text','share.copied':'Text copied.','share.close':'Close','share.make':'Make yours at','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES'
 },
 pt:{
   'ing.mozzarella':'Mozzarella','ing.fiambre':'Fiambre','ing.pepperoni':'Pepperoni','ing.cogumelos':'Cogumelos','ing.azeitonas':'Azeitonas',
@@ -336,7 +336,7 @@ pt:{
   'k.empty':'Pizza vazia. Começa pelo queijo.','k.needname':'Dá um nome à pizza.','k.needmore':'Põe pelo menos alguns ingredientes.',
   'k.updated':'{x} atualizada.','k.menufull':'O menu já tem 5 pizzas. Remove uma primeiro.','k.added':'{x} entrou no menu por {p}.',
   'k.newname':'Nova pizza','k.rotate':'Rodar {x}','k.rotatetip':'Roda a última peça ou a próxima. Com o rato, clica com o botão direito numa peça para a rodar.','k.norotate':'{x} não precisa de rodar.',
-  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte':'EM FIO','bench.q':'PREÇO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','share.btn':'Partilhar','share.download':'Descarregar imagem','share.copy':'Copiar texto','share.copied':'Texto copiado.','share.close':'Fechar','share.make':'Faz a tua em','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS'
+  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte':'EM FIO','bench.q':'PREÇO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','chef.title':'Bem-vindo, chef!','chef.lead':'Como te chamas? O teu nome assina todas as pizzas que partilhares.','chef.name':'Nome do chef','chef.shop':'Nome da pizzaria','chef.defshop':'Pizzaria {c}','chef.save':'Começar a cozinhar','chef.need':'Escreve primeiro o nome do chef.','chef.hello':'Bom trabalho, chef {c}!','chef.edit':'Mudar chef e pizzaria','chef.by':'Feita por {c} · {s}','share.btn':'Partilhar','share.download':'Descarregar imagem','share.copy':'Copiar texto','share.copied':'Texto copiado.','share.close':'Fechar','share.make':'Faz a tua em','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS'
 }};
 function t(key,v){let s=I18N[LANG][key]??I18N.en[key]??key;if(v)for(const k in v)s=s.split('{'+k+'}').join(v[k]);return s}
 
@@ -604,7 +604,7 @@ function freshState(){
     draft:{name:'Fiambre e Cogumelos',dough:'alta',sauce:'tomate',pieces:[...spread('mozzarella',10,.74,1),...spread('fiambre',7,.66,4),...spread('cogumelos',7,.7,9)],editing:null},
     sel:'fiambre',cut:'w',rot:{},rival:{name:'Pizza Rápida',q:52,price:7,promo:false},
     news:['Abriste a tua pizzaria na Rua das Flores. A Pizza Rápida, mesmo ao lado, já tem clientela fiel.'],
-    discovered:[],contestEntry:null,contestLog:[],lastSales:{},seenIntro:false,goalDone:false,over:false
+    discovered:[],contestEntry:null,contestLog:[],lastSales:{},seenIntro:false,goalDone:false,over:false,chef:'',shop:''
   };
 }
 let state;
@@ -714,7 +714,7 @@ function starsHTML(r){let h='';for(let i=1;i<=5;i++)h+=`<i class="${r>=i-.5?'on'
 function renderHeader(){
   const pm=clamp(state.money/GOAL_MONEY,0,1),pr=clamp(state.rep/GOAL_REP,0,1);
   $('#hdr').innerHTML=`<div class="hdr-in">
-    <div class="brand"><canvas id="logo" width="68" height="68"></canvas>Pizza Magna</div>
+    <div class="brand" data-act="chef" role="button" tabindex="0" title="${esc(t('chef.edit'))}" style="cursor:pointer"><canvas id="logo" width="68" height="68"></canvas>Pizza Magna</div>
     <div class="stats">
       <div class="stat"><span class="lbl">Dia</span><b>${state.day} · ${wdName(state.day)}</b></div>
       <div class="stat"><span class="lbl">Caixa</span><b>${eur(state.money)}</b></div>
@@ -1228,6 +1228,13 @@ function contestHTML(){
 }
 
 /* ================= MODALS ================= */
+/* ================= CHEF ================= */
+/* The player's chef name and pizzeria name, asked at the start; they sign the share card. */
+const chefLine=()=>state.chef?t('chef.by',{c:state.chef,s:state.shop||t('chef.defshop',{c:state.chef})}):'';
+function showChef(){modal(`<h2>${t('chef.title')}</h2><p class="sub" style="margin:0">${t('chef.lead')}</p>
+  <div class="field"><label class="lbl" for="chefName">${t('chef.name')}</label><input id="chefName" maxlength="24" value="${esc(state.chef||'')}" placeholder="Rui"></div>
+  <div class="field"><label class="lbl" for="shopName">${t('chef.shop')}</label><input id="shopName" maxlength="28" value="${esc(state.shop||'')}" placeholder="${esc(t('chef.defshop',{c:state.chef||'Rui'}))}"></div>
+  <button class="btn primary big" data-act="savechef">${t('chef.save')}</button>`);setTimeout(()=>{const i=$('#chefName');if(i)i.focus()},0)}
 /* ================= SHARE ================= */
 /* A 1080x1350 card (portrait, fits phone feeds): the pizza in pixel art at x3, the recipe and the site. */
 const SITE='www.pizzamagna.xyz';
@@ -1246,14 +1253,15 @@ function shareCard(p,name){
   c.font='34px "Pixelify Sans", sans-serif';c.fillStyle='#6c5233';
   c.fillText(DOUGHS[p.dough].n+' · '+SAUCES[p.sauce].n,W/2,900);
   c.fillStyle='#2c1a0b';c.font='38px "Pixelify Sans", sans-serif';
-  wrapLines(c,recipeIngs(p).join(' · '),W-200).slice(0,4).forEach((l,i)=>c.fillText(l,W/2,970+i*50));
+  wrapLines(c,recipeIngs(p).join(' · '),W-200).slice(0,3).forEach((l,i)=>c.fillText(l,W/2,970+i*50));
+  const by=chefLine();if(by){c.fillStyle='#7a4520';c.font='bold 36px "Pixelify Sans", sans-serif';c.fillText(by,W/2,1138)}
   c.fillStyle='#c4352a';c.fillRect(60,H-170,W-120,110);c.fillStyle='#fff1d2';c.font='bold 40px Silkscreen, monospace';c.fillText(SITE.toUpperCase(),W/2,H-100);
   return cv;
 }
 async function sharePizza(p,name){
   if(!p.pieces.length){toast(t('k.needmore'));return}
   try{await document.fonts.ready}catch(_){}
-  const cv=shareCard(p,name),text=`${name}\n${DOUGHS[p.dough].n} · ${SAUCES[p.sauce].n}\n${recipeIngs(p).join(', ')}\n${t('share.make')} ${SITE}`;
+  const cv=shareCard(p,name),text=`${name}\n${DOUGHS[p.dough].n} · ${SAUCES[p.sauce].n}\n${recipeIngs(p).join(', ')}\n${chefLine()?chefLine()+'\n':''}${t('share.make')} ${SITE}`;
   const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
   const file=new File([blob],(name.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'pizza')+'.png',{type:'image/png'});
   try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name,text});return}}catch(e){if(e&&e.name==='AbortError')return}
@@ -1340,6 +1348,10 @@ const ACT={
   closereport:()=>afterReport(),
   share:b=>{const p=b.dataset.id?state.menu.find(x=>x.id===b.dataset.id):state.draft;if(!p)return;const name=b.dataset.id?p.name:(($('#pname')||{}).value||p.name||'Pizza').trim();sharePizza(p,name)},
   copyshare:b=>{const txt=b.dataset.text;const ok=()=>toast(t('share.copied'));const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;ta.rows=5;ta.style.width='100%';b.replaceWith(ta);ta.select()};try{navigator.clipboard.writeText(txt).then(ok,fallback)}catch(_){fallback()}},
+  chef:()=>showChef(),
+  savechef:()=>{const c=($('#chefName').value||'').trim();if(!c){toast(t('chef.need'));$('#chefName').focus();return}
+    state.chef=c;state.shop=($('#shopName').value||'').trim();save();closeModal();toast(t('chef.hello',{c}));
+    if(!state.seenIntro){state.seenIntro=true;save();showIntro()}},
   close:()=>closeModal()
 };
 document.addEventListener('click',e=>{
@@ -1348,6 +1360,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=ACT[b.dataset.act];if(f)f(b);
 });
 document.addEventListener('input',e=>{if(e.target.id==='pname')state.draft.name=e.target.value});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='chefName'||e.target.id==='shopName'){e.preventDefault();ACT.savechef()}else if(e.target.classList&&e.target.classList.contains('brand'))showChef()});
 let rsT;window.addEventListener('resize',()=>{clearTimeout(rsT);rsT=setTimeout(()=>{if(!anim)render()},150)});
 
 function start(data){
@@ -1361,7 +1374,8 @@ function start(data){
     document.body.classList.add('sandbox');
   }
   render();
-  if(!state.seenIntro){state.seenIntro=true;save();showIntro()}
+  if(!state.chef)showChef();
+  else if(!state.seenIntro){state.seenIntro=true;save();showIntro()}
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(!anim)render()});
 }
 window.claude?.hot?.snapshot?.(()=>({state}));
