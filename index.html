@@ -609,7 +609,9 @@ function freshState(){
 }
 let state;
 // test bench: everything unlocked, only Kitchen and Menu, its own save (window.PM_SANDBOX or #sandbox)
-const SANDBOX=!!window.PM_SANDBOX||location.hash==='#sandbox';
+// the public site (pizzamagna.xyz / GitHub Pages) shows only the bench, never the full game
+const LIVE_BENCH=/(^|\.)pizzamagna\.xyz$|\.github\.io$/.test(location.hostname);
+const SANDBOX=LIVE_BENCH||!!window.PM_SANDBOX||location.hash==='#sandbox';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state))}catch(e){}}
 function load(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&s.v===1)return s}catch(e){}return null}
