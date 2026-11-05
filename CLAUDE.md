@@ -1,6 +1,6 @@
 # Pizza Magna
 
-Jogo de gestão de pizzarias em pixel art dos anos 90, para browser e telemóvel. É HTML e JS simples, sem build nem dependências: abre-se o `index.html` diretamente do disco. Dentro do jogo, o nome ainda é "Massa Mestra".
+Jogo de gestão de pizzarias em pixel art dos anos 90, para browser e telemóvel. É HTML e JS simples, sem build nem dependências: abre-se o `index.html` diretamente do disco.
 
 ## Ficheiros
 - `index.html`: o jogo todo (cerca de 1200 linhas). **Não o leias inteiro.** Procura a secção pelo marcador com grep e lê só essa:

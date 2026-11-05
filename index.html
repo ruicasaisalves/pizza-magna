@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Massa Mestra</title>
+<title>Pizza Magna</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Pixelify+Sans:wght@400;600;700&display=swap">
@@ -185,11 +185,11 @@ table.rank tr.me td{color:var(--tomato-lo);font-weight:700}
 <header id="hdr"></header>
 <main id="view"></main>
 <nav id="nav"><div class="in">
-  <button data-tab="cozinha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1.4"/><circle cx="14.5" cy="9" r="1.2"/><circle cx="13" cy="15" r="1.4"/></svg>Cozinha</button>
-  <button data-tab="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Menu</button>
-  <button data-tab="dia" class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16l-1.5-5h-13z"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>Abrir</button>
-  <button data-tab="loja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h10.2L20 7H6.3"/><circle cx="9" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg>Loja</button>
-  <button data-tab="concurso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8"/></svg>Concurso</button>
+  <button data-tab="cozinha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1.4"/><circle cx="14.5" cy="9" r="1.2"/><circle cx="13" cy="15" r="1.4"/></svg><span data-i18n="nav.cozinha">Cozinha</span></button>
+  <button data-tab="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><span data-i18n="nav.menu">Menu</span></button>
+  <button data-tab="dia" class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16l-1.5-5h-13z"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg><span data-i18n="nav.dia">Abrir</span></button>
+  <button data-tab="loja"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h10.2L20 7H6.3"/><circle cx="9" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg><span data-i18n="nav.loja">Loja</span></button>
+  <button data-tab="concurso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8"/></svg><span data-i18n="nav.concurso">Concurso</span></button>
 </div></nav>
 <div id="modal" hidden><div class="box" id="mbox"></div></div>
 <div id="toast" hidden></div>
@@ -267,7 +267,7 @@ en:{
   'k.empty':'Empty pizza. Start with the cheese.','k.needname':'Give the pizza a name.','k.needmore':'Add a few toppings first.',
   'k.updated':'{x} updated.','k.menufull':'The menu already has 5 pizzas. Remove one first.','k.added':'{x} is on the menu at {p}.',
   'k.newname':'New pizza','k.rotate':'Rotate {x}','k.rotatetip':'Turns the last piece or the next one. With a mouse, right-click a piece to turn it.','k.norotate':'{x} doesn’t need turning.',
-  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte':'DRIZZLE','bench.q':'QUALITY','bench.n':'PIECES'
+  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte':'DRIZZLE','bench.q':'PRICE','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES'
 },
 pt:{
   'ing.mozzarella':'Mozzarella','ing.fiambre':'Fiambre','ing.pepperoni':'Pepperoni','ing.cogumelos':'Cogumelos','ing.azeitonas':'Azeitonas',
@@ -332,7 +332,7 @@ pt:{
   'k.empty':'Pizza vazia. Começa pelo queijo.','k.needname':'Dá um nome à pizza.','k.needmore':'Põe pelo menos alguns ingredientes.',
   'k.updated':'{x} atualizada.','k.menufull':'O menu já tem 5 pizzas. Remove uma primeiro.','k.added':'{x} entrou no menu por {p}.',
   'k.newname':'Nova pizza','k.rotate':'Rodar {x}','k.rotatetip':'Roda a última peça ou a próxima. Com o rato, clica com o botão direito numa peça para a rodar.','k.norotate':'{x} não precisa de rodar.',
-  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte':'EM FIO','bench.q':'QUALIDADE','bench.n':'PEÇAS'
+  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte':'EM FIO','bench.q':'PREÇO','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS'
 }};
 function t(key,v){let s=I18N[LANG][key]??I18N.en[key]??key;if(v)for(const k in v)s=s.split('{'+k+'}').join(v[k]);return s}
 
@@ -708,7 +708,7 @@ function starsHTML(r){let h='';for(let i=1;i<=5;i++)h+=`<i class="${r>=i-.5?'on'
 function renderHeader(){
   const pm=clamp(state.money/GOAL_MONEY,0,1),pr=clamp(state.rep/GOAL_REP,0,1);
   $('#hdr').innerHTML=`<div class="hdr-in">
-    <div class="brand"><canvas id="logo" width="68" height="68"></canvas>Massa Mestra</div>
+    <div class="brand"><canvas id="logo" width="68" height="68"></canvas>Pizza Magna</div>
     <div class="stats">
       <div class="stat"><span class="lbl">Dia</span><b>${state.day} · ${wdName(state.day)}</b></div>
       <div class="stat"><span class="lbl">Caixa</span><b>${eur(state.money)}</b></div>
@@ -836,11 +836,11 @@ function drawBench(){
     benchText(c,t(b.g?(ok?(ING[sel].t.includes('queijo')?'bench.grated':'bench.chopped'):'bench.nograte'):'bench.whole'),bx,b.y+BOWL_H+3,on?'#2c1a0b':'#6c5233');
   }
   // little LCD with portions and quality
-  const a=analyze(d),lx=BOWLS[0].x-13,ly=164,lw=BOWL_W+26;   // wide enough for 'QUALIDADE 100'
+  const a=analyze(d),lx=BOWLS[0].x-13,ly=164,lw=BOWL_W+26;   // wide enough for 'PREÇO 10,00 €'
   c.fillStyle='#2a1407';c.fillRect(lx-2,ly-2,lw+4,32);c.fillStyle='#081008';c.fillRect(lx,ly,lw,28);
   c.font='8px Silkscreen, monospace';c.textBaseline='top';c.fillStyle='#8cff73';
   c.textAlign='left';c.fillText(t('bench.q'),lx+3,ly+3);c.fillText(t('bench.n'),lx+3,ly+15);
-  c.textAlign='right';c.fillText(String(a.q),lx+lw-3,ly+3);c.fillText(String(d.pieces.length),lx+lw-3,ly+15);
+  c.textAlign='right';c.fillText(eur(suggestPrice(a)),lx+lw-3,ly+3);c.fillText(String(d.pieces.length),lx+lw-3,ly+15);   // top line: suggested price, not quality
 }
 function drawDraft(){if(!pz)return;pz.pizza=null;drawBench()}
 function addPiece(p){
@@ -909,7 +909,7 @@ function lcdText(){
   const r=state.rival;
   return [
     L(`DIA ${state.day} ${wdName(state.day).toUpperCase()}`,clock),
-    'MASSA MESTRA',
+    'PIZZA MAGNA',
     '<span class="dim">RUA DAS FLORES, N.º 1</span>',
     '<span class="dim">'+'-'.repeat(W)+'</span>',
     L('POPULARIDADE',state.rep.toFixed(1).replace('.',',')+'/5'),
@@ -966,7 +966,7 @@ function resolveContest(){
   const day=state.day,th=themeFor(day),p=state.menu.find(x=>x.id===state.contestEntry);if(!p)return null;
   const mine=contestScore(th,p);const base=Math.min(92,50+day*1.1);
   const names=NPCS.filter(n=>n!==state.rival.name).sort(()=>Math.random()-.5).slice(0,3).concat([state.rival.name]);
-  const rows=names.map(n=>({n,s:Math.round(base+Math.random()*16-8)}));rows.push({n:'Massa Mestra · '+p.name,s:Math.round(mine.s),me:true,dq:mine.dq});
+  const rows=names.map(n=>({n,s:Math.round(base+Math.random()*16-8)}));rows.push({n:'Pizza Magna · '+p.name,s:Math.round(mine.s),me:true,dq:mine.dq});
   rows.sort((a,b)=>b.s-a.s);const pos=rows.findIndex(x=>x.me)+1;
   const prize=[600,250,80][pos-1]||0,rep=[.4,.2,.1][pos-1]||0;
   state.money+=prize;state.rep=clamp(state.rep+rep,0,5);
@@ -1229,7 +1229,7 @@ function afterReport(){
   if(state.over){modal(`<h2>Falência</h2><p>As dívidas passaram dos 500 €. O banco fechou a pizzaria ao fim de ${state.day-1} dias.</p><button class="btn primary big" data-act="hardreset">Começar de novo</button>`);return}
   if(!state.goalDone&&state.money>=GOAL_MONEY&&state.rep>=GOAL_REP){state.goalDone=true;save();modal(`<h2>Objetivo cumprido!</h2><p>Juntaste ${eur(state.money)} e ${state.rep.toFixed(1)}★ em ${state.day-1} dias. No jogo completo, aqui abririas a segunda loja noutro bairro.</p><p class="sub">Podes continuar a jogar para bater o teu recorde.</p><button class="btn primary big" data-act="close">Continuar</button>`)}
 }
-function showIntro(){modal(`<h2>Bem-vindo à Massa Mestra</h2><p style="margin:0">Tens uma pizzaria pequena na Rua das Flores e 1 000 € em caixa. Ao lado, a Pizza Rápida vende barato.</p>
+function showIntro(){modal(`<h2>Bem-vindo à Pizza Magna</h2><p style="margin:0">Tens uma pizzaria pequena na Rua das Flores e 1 000 € em caixa. Ao lado, a Pizza Rápida vende barato.</p>
   <ol><li><b>Cozinha:</b> inventa pizzas. Massa, molho, quantidade, distribuição e combos contam para a qualidade.</li>
   <li><b>Menu:</b> até 5 pizzas. Põe preços que cada público aceite pagar.</li>
   <li><b>Abrir:</b> vê os clientes a escolher entre ti e o rival. A reputação sobe com clientes satisfeitos.</li>
@@ -1295,6 +1295,7 @@ document.addEventListener('input',e=>{if(e.target.id==='pname')state.draft.name=
 let rsT;window.addEventListener('resize',()=>{clearTimeout(rsT);rsT=setTimeout(()=>{if(!anim)render()},150)});
 
 function start(data){
+  document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n)});   // static labels (nav)
   state=(data&&data.state)||load()||freshState();
   if(state.over){state=freshState();state.seenIntro=true}
   if(SANDBOX){
