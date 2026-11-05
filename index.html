@@ -82,6 +82,8 @@ h3{font-size:.92rem}
 @media (max-width:420px){.stage{padding:8px 4px}}
 .stage canvas{touch-action:none;max-width:100%;display:block;cursor:crosshair;box-shadow:0 0 0 2px var(--wood-deep)}
 .pantry .ings{margin-top:8px}
+.pantry .cats{margin-top:8px}
+.pantry .cats button small{opacity:.6}
 @media (min-width:1000px){.pantry{max-height:516px;overflow:auto}}
 .stage .hint{color:#fff4dc;font-size:.85rem;text-shadow:1px 1px 0 var(--wood-deep);text-align:center}
 .tools{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
@@ -267,7 +269,7 @@ en:{
   'k.empty':'Empty pizza. Start with the cheese.','k.needname':'Give the pizza a name.','k.needmore':'Add a few toppings first.',
   'k.updated':'{x} updated.','k.menufull':'The menu already has 5 pizzas. Remove one first.','k.added':'{x} is on the menu at {p}.',
   'k.newname':'New pizza','k.rotate':'Rotate {x}','k.rotatetip':'Turns the last piece or the next one. With a mouse, right-click a piece to turn it.','k.norotate':'{x} doesn’t need turning.',
-  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte':'DRIZZLE','bench.q':'PRICE','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES'
+  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte':'DRIZZLE','bench.q':'PRICE','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES'
 },
 pt:{
   'ing.mozzarella':'Mozzarella','ing.fiambre':'Fiambre','ing.pepperoni':'Pepperoni','ing.cogumelos':'Cogumelos','ing.azeitonas':'Azeitonas',
@@ -332,7 +334,7 @@ pt:{
   'k.empty':'Pizza vazia. Começa pelo queijo.','k.needname':'Dá um nome à pizza.','k.needmore':'Põe pelo menos alguns ingredientes.',
   'k.updated':'{x} atualizada.','k.menufull':'O menu já tem 5 pizzas. Remove uma primeiro.','k.added':'{x} entrou no menu por {p}.',
   'k.newname':'Nova pizza','k.rotate':'Rodar {x}','k.rotatetip':'Roda a última peça ou a próxima. Com o rato, clica com o botão direito numa peça para a rodar.','k.norotate':'{x} não precisa de rodar.',
-  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte':'EM FIO','bench.q':'PREÇO','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS'
+  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte':'EM FIO','bench.q':'PREÇO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS'
 }};
 function t(key,v){let s=I18N[LANG][key]??I18N.en[key]??key;if(v)for(const k in v)s=s.split('{'+k+'}').join(v[k]);return s}
 
@@ -720,10 +722,22 @@ function renderHeader(){
 }
 
 /* ================= UI: KITCHEN ================= */
+/* Ingredient groups for the pantry tabs. Tags decide most of them; herbs and extras are listed by hand. */
+const CATS=['queijo','carne','peixe','vegetal','ervas','doce','extras'];
+const HERBS=['manjericao','oregaos','alecrim','tomilho','salsa','coentros','pimenta','piripiri'];
+const EXTRAS=['azeite','balsamico','maionese','natas_azedas','ovo','nozes','pinhoes','batata_palha'];
+function ingCat(id){const t=ING[id].t;if(HERBS.includes(id))return 'ervas';if(EXTRAS.includes(id))return 'extras';
+  for(const c of ['queijo','carne','peixe','doce','vegetal'])if(t.includes(c))return c;return 'extras'}
+function pantryHTML(){
+  const cat=CATS.includes(state.cat)?state.cat:ingCat(state.sel);
+  const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}">${t('cat.'+c)} <small>${Object.keys(ING).filter(k=>ingCat(k)===c).length}</small></button>`).join('');
+  const ids=Object.keys(ING).filter(k=>ingCat(k)===cat).sort((a,b)=>ING[a].n.localeCompare(ING[b].n,LANG));   // A to Z in the player's language
+  const ings=ids.map(k=>{const v=ING[k],locked=!state.unlocked.includes(v.pack);return `<button class="ing ${state.sel===k?'on':''} ${locked?'locked':''}" data-act="ing" data-v="${k}" ${locked?`title="${esc(t('k.unlock',{x:PACKS[v.pack]}))}"`:''}><canvas data-ing="${k}" width="32" height="32"></canvas>${esc(v.n)}<small>${locked?esc(PACKS[v.pack]):eur(v.c)}</small></button>`}).join('');
+  return `<span class="lbl">${t('k.ings')}</span><div class="seg cats" role="tablist">${tabs}</div><div class="ings">${ings}</div>`;
+}
 function kitchenHTML(){
   const d=state.draft;
   const seg=(obj,key,cur)=>Object.entries(obj).map(([k,v])=>`<button data-act="${key}" data-v="${k}" class="${cur===k?'on':''}">${esc(v.n)}<small>${v.c?eur(v.c):''}</small></button>`).join('');
-  const ings=Object.entries(ING).map(([k,v])=>{const locked=!state.unlocked.includes(v.pack);return `<button class="ing ${state.sel===k?'on':''} ${locked?'locked':''}" data-act="ing" data-v="${k}" ${locked?`title="${esc(t('k.unlock',{x:PACKS[v.pack]}))}"`:''}><canvas data-ing="${k}" width="32" height="32"></canvas>${esc(v.n)}<small>${locked?esc(PACKS[v.pack]):eur(v.c)}</small></button>`}).join('');
   const book=COMBOS.map(c=>{const k=state.discovered.includes(c.id);const req=c.req.map(r=>r.startsWith('s:')?t('k.book.sauce',{x:SAUCES[r.slice(2)].n.toLowerCase()}):ING[r].n).join(' + ');return k?`<li><b>${c.q<0?t('k.clash'):''}${esc(c.n)}</b>${esc(req)}</li>`:`<li class="unk"><b>???</b>${t('k.book.unk',{n:c.req.length})}</li>`}).join('');
   return `<section class="kitchen">
     <div class="bench">
@@ -736,7 +750,7 @@ function kitchenHTML(){
           <button class="btn sm" data-act="clear">${t('k.clear')}</button>
         </div>
       </div>
-      <div class="card pantry"><span class="lbl">${t('k.ings')}</span><div class="ings">${ings}</div></div>
+      <div class="card pantry">${pantryHTML()}</div>
     </div>
     <div class="grid2">
       <div class="stack">
@@ -1255,6 +1269,7 @@ function go(tab){if(anim||(SANDBOX&&!['cozinha','menu'].includes(tab)))return;st
 const ACT={
   dough:b=>{state.draft.dough=b.dataset.v;render()},
   sauce:b=>{state.draft.sauce=b.dataset.v;render()},
+  cat:b=>{state.cat=b.dataset.v;const pe=$('.pantry');if(pe){pe.innerHTML=pantryHTML();drawIngIcons()}save()},
   ing:b=>{const k=b.dataset.v;if(!state.unlocked.includes(ING[k].pack)){toast(t('k.locked',{i:ING[k].n,p:PACKS[ING[k].pack]}));return}state.sel=k;document.querySelectorAll('.ing').forEach(x=>x.classList.toggle('on',x.dataset.v===k));const sp=$('[data-act="sprinkle"]');if(sp)sp.textContent=t('k.sprinkle',{x:ING[k].n});const rb=$('[data-act="rotate"]');if(rb){rb.hidden=!canRotate(k);rb.textContent=t('k.rotate',{x:ING[k].n})}drawBench()},
   rotate:()=>rotatePiece(null),
   sprinkle:()=>{for(let k=0;k<6;k++){const a=Math.random()*6.283,r=Math.sqrt(Math.random())*.76;if(!addPiece({x:Math.cos(a)*r,y:Math.sin(a)*r}))break}},
