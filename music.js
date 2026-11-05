@@ -44,6 +44,9 @@ const MUSIC = (() => {
 
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
   let ctx = null, master = null, wobble = null, voices = [], timer = null, current = null, armed = false;
+  const VOL = 'pm-music-vol', LEVELS = [.25, .5, 1, 1.6, 2.3];   // 1 = low ... 5 = max; 3 (the middle) is the default
+  const getVol = () => { try { const v = +localStorage.getItem(VOL); return v >= 1 && v <= 5 ? v : 3 } catch (_) { return 3 } };
+  const gainFor = v => .16 * LEVELS[v - 1];
   const prefOn = () => { try { return localStorage.getItem(PREF) !== 'off' } catch (_) { return true } };
   const setPref = on => { try { localStorage.setItem(PREF, on ? 'on' : 'off') } catch (_) {} };
 
@@ -72,7 +75,7 @@ const MUSIC = (() => {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
     ctx = new AC();
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200; lp.Q.value = .4;   // lo-fi: soften the top
-    master = ctx.createGain(); master.gain.value = .16;
+    master = ctx.createGain(); master.gain.value = gainFor(getVol());
     master.connect(lp); lp.connect(ctx.destination);
     wobble = ctx.createOscillator(); wobble.frequency.value = .35;                                     // slow tape wobble
     const depth = ctx.createGain(); depth.gain.value = 6; wobble.connect(depth); wobble.start();
@@ -160,6 +163,9 @@ const MUSIC = (() => {
   return {
     songs: SONGS, arm, play, stop: stopAll,
     isOn: prefOn,
+    volume: getVol,
+    setVolume(v) { v = Math.max(1, Math.min(5, Math.round(v))); try { localStorage.setItem(VOL, v) } catch (_) {}
+      if (master) master.gain.setTargetAtTime(gainFor(v), ctx.currentTime, .05); return v },
     playing: () => current && current.title,
     toggle() { const on = !prefOn(); setPref(on); if (on) play(); else stopAll(); return on },
     next() { setPref(true); play() },
