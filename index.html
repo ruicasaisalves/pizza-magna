@@ -23,6 +23,7 @@ body{color:var(--on-wood);font-family:var(--f-body);font-size:15px;line-height:1
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--wood-deep)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+.sandbox .stats,.sandbox .goal{display:none}
 canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--cheese);outline-offset:2px}
@@ -603,7 +604,9 @@ function freshState(){
   };
 }
 let state;
-const SAVE_KEY='massa-mestra-v1';
+// test bench: everything unlocked, only Kitchen and Menu, its own save (window.PM_SANDBOX or #sandbox)
+const SANDBOX=!!window.PM_SANDBOX||location.hash==='#sandbox';
+const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state))}catch(e){}}
 function load(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&s.v===1)return s}catch(e){}return null}
 
@@ -1248,7 +1251,7 @@ function render(){
   if(state.tab==='dia')drawRoom();
   save();
 }
-function go(tab){if(anim)return;state.tab=tab;render();window.scrollTo(0,0)}
+function go(tab){if(anim||(SANDBOX&&!['cozinha','menu'].includes(tab)))return;state.tab=tab;render();window.scrollTo(0,0)}
 const ACT={
   dough:b=>{state.draft.dough=b.dataset.v;render()},
   sauce:b=>{state.draft.sauce=b.dataset.v;render()},
@@ -1294,6 +1297,12 @@ let rsT;window.addEventListener('resize',()=>{clearTimeout(rsT);rsT=setTimeout((
 function start(data){
   state=(data&&data.state)||load()||freshState();
   if(state.over){state=freshState();state.seenIntro=true}
+  if(SANDBOX){
+    state.unlocked=['base',...Object.keys(PACKS)];state.seenIntro=true;if(!['cozinha','menu'].includes(state.tab))state.tab='cozinha';
+    document.querySelectorAll('#nav button').forEach(b=>{if(!['cozinha','menu'].includes(b.dataset.tab))b.hidden=true});
+    $('#nav .in').style.gridTemplateColumns='repeat(2,1fr)';$('#nav .in').style.maxWidth='320px';
+    document.body.classList.add('sandbox');
+  }
   render();
   if(!state.seenIntro){state.seenIntro=true;save();showIntro()}
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(!anim)render()});

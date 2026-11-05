@@ -24,6 +24,7 @@ Jogo de gestão de pizzarias em pixel art dos anos 90, para browser e telemóvel
 - Não acrescentes dependências nem passos de build.
 
 ## Testar
+- Modo de teste: `index.html#sandbox` (ou `window.PM_SANDBOX=true`) abre só a Cozinha e o Menu, com tudo desbloqueado e gravação à parte. É o que está publicado no artefacto "Bancada de Pizzas".
 - `node tools/test_ingredients.js [id1,id2] <pasta>`: verifica sprites, traduções e combos, e põe peças na bancada.
 - Para outros ecrãs, usa o Playwright: `require('playwright')` funciona sem instalar nada.
 
