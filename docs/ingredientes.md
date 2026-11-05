@@ -2,8 +2,8 @@
 
 ✓ = já existe no jogo. ★ = já desenhado no estilo pixel detalhado.
 
-**Massas:** ✓★ Fina · ✓★ Napolitana · ✓★ Alta · Integral · Sem glúten · Fermentação lenta · Bordo recheado
-**Molhos:** ✓★ Tomate · ✓★ Natas · ✓★ Pesto · ✓★ Sem molho · Barbecue · Arrabbiata · Azeite e alho · Trufa · Pimentos assados
+**Massas:** ✓★ Fina · ✓★ Napolitana · ✓★ Alta · ✓★ Integral · ✓★ Sem glúten · ✓★ Fermentação lenta · ✓★ Bordo recheado
+**Molhos:** ✓★ Tomate · ✓★ Natas · ✓★ Pesto · ✓★ Sem molho · ✓★ Barbecue · ✓★ Arrabbiata · ✓★ Azeite e alho · ✓★ Trufa · ✓★ Pimentos assados
 **Queijos:** ✓★ Mozzarella · ✓★ Queijo da Serra · ✓★ Parmesão · ✓★ Gorgonzola · ✓★ Cheddar · ✓★ Cabra · ✓★ Burrata · ✓★ Ricotta · ✓★ Provolone · ✓★ Feta · ✓★ Emmental · ✓★ São Jorge · ✓★ Flamengo
 **Carnes:** ✓★ Fiambre · ✓★ Pepperoni · ✓★ Chouriço · ✓★ Presunto · ✓★ Bacon · ✓★ Salame · ✓★ Frango · ✓★ Carne picada · ✓★ Salsicha italiana · ✓★ Prosciutto · ✓★ Kebab · ✓★ Alheira · ✓★ Farinheira · ✓★ Morcela · ✓★ Leitão
 **Peixe e marisco:** ✓★ Atum · ✓★ Bacalhau · ✓★ Anchovas · ✓★ Camarão · ✓★ Sardinha · ✓★ Salmão fumado · ✓★ Polvo · ✓★ Amêijoas · ✓★ Lulas
