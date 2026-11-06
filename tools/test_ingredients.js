@@ -54,18 +54,22 @@ const path = require('path');
   if (ids.length) {
     const unknown = await p.evaluate(ids => ids.filter(i => !ING[i]), ids);
     if (unknown.length) report.problemas.push('ids desconhecidos: ' + unknown);
-    await p.evaluate(() => { closeModal(); state.unlocked = ['base', 'local', 'gourmet']; state.draft.pieces = []; state.draft.sauce = 'tomate'; render() });
+    const semPeso = await p.evaluate(() => Object.keys(ING).filter(i => !(i in GRAMS)));
+    if (semPeso.length) report.problemas.push('sem peso em GRAMS: ' + semPeso);
+    await p.evaluate(() => { closeModal(); state.unlocked = ['base', 'local', 'gourmet']; state.draft.pieces = []; state.draft.sauce = 'tomate'; state.zoom = false; render() });
     await p.waitForTimeout(300);
+    const G = await p.evaluate(() => ({BW, BH, PCX, PCY, OY}));   // geometria da bancada (tem a faixa do título em cima)
     const bb = await (await p.$('#pz')).boundingBox();
-    const L = (x, y) => [bb.x + x / 320 * bb.width, bb.y + y / 200 * bb.height];
-    // pontos dentro da área permitida (raio 0.8 da pizza, centro em 97,100)
+    const L = (x, y) => [bb.x + x / G.BW * bb.width, bb.y + y / G.BH * bb.height];
+    // pontos dentro da área permitida (raio 0.8 da pizza, à volta do centro)
     const N = Math.max(8, ids.length * 2), spots = [];       // espalha pelo disco todo, conforme o número de peças
-    for (let k = 0; k < N; k++) { const a = k * 2.39996, r = 62 * Math.sqrt((k + .5) / N); spots.push([97 + Math.cos(a) * r, 100 + Math.sin(a) * r]) }
+    for (let k = 0; k < N; k++) { const a = k * 2.39996, r = 62 * Math.sqrt((k + .5) / N); spots.push([G.PCX + Math.cos(a) * r, G.PCY + Math.sin(a) * r]) }
     let si = 0;
     const rotated = {};
     for (const id of ids.filter(i => !unknown.includes(i))) {
+      await p.evaluate(id => { state.cat = ingCat(id); const pe = $('.pantry'); pe.innerHTML = pantryHTML(); drawIngIcons() }, id);   // abre o separador do ingrediente
       await p.click(`[data-act="ing"][data-v="${id}"]`);
-      let [x, y] = L(256, 50); await p.mouse.click(x, y);                       // taça "inteiro"
+      let [x, y] = L(256, 50 + G.OY); await p.mouse.click(x, y);                       // taça "inteiro"
       for (let k = 0; k < 2; k++) { [x, y] = L(...spots[si++ % spots.length]); await p.mouse.click(x, y) }
       const canRot = await p.evaluate(id => canRotate(id), id);
       const btnHidden = await p.$eval('[data-act="rotate"]', e => e.hidden);

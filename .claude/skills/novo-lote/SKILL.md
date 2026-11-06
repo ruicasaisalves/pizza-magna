@@ -45,6 +45,7 @@ Lê `tools/CLAUDE.md`. Tem o método de desenho, as regras de rodar (`ING.rot` 1
   - **Tags:** `queijo carne peixe vegetal doce picante classico portugues gourmet`.
   - **Packs:** `base` para o barato e comum; `local` (Mercado Local) para o português e para peixe; `gourmet` (Delicatessen) para o caro e de luxo.
   - **Custo por porção:** 0,02 (alho) a 0,20 (burrata).
+- **`GRAMS`:** o peso em gramas de uma peça inteira (o picado pesa `GRATED_W`, 70%). O teste falha se faltar.
 - **`COMBOS`:** um combo positivo por ingrediente novo, e um choque por lote.
   - Formato: `{id, n, req:[ids ou 's:molho'], q, seg:{estudante,familia,turista,gourmet}}`.
   - Os choques têm `q` negativo e `quote`.

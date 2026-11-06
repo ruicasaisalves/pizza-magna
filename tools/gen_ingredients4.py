@@ -40,14 +40,15 @@ def chili(seed, W=20, H=12):
     mat = [['stem' if stem[y, x] and not body[y, x] else 'chili' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask, mask, {'stem': 'stem'})
 
-def egg(seed, W=28, H=26):
+def egg(seed, W=34, H=31, k=1.2):
+    """ovo estrelado; k=1.2: 20% maior do que o desenho original (28x26)"""
     rng = np.random.default_rng(seed + 1400)
     ys, xs, cx, cy = grid(W, H)
     ang = np.arctan2(ys - cy, xs - cx); a, b = rng.random(2) * 6.28
-    r = np.hypot(xs - cx, ys - cy) / (12.5 * (1 + .1 * np.sin(ang * 3 + a) + .07 * np.sin(ang * 5 + b)))
+    r = np.hypot(xs - cx, ys - cy) / (12.5 * k * (1 + .1 * np.sin(ang * 3 + a) + .07 * np.sin(ang * 5 + b)))
     mask = r <= 1
-    yx, yy = cx + (rng.random() - .5) * 4, cy + (rng.random() - .5) * 3
-    ry = np.hypot(xs - yx, ys - yy) / 5.2
+    yx, yy = cx + (rng.random() - .5) * 4 * k, cy + (rng.random() - .5) * 3 * k
+    ry = np.hypot(xs - yx, ys - yy) / (5.2 * k)
     yolk = ry <= 1
     height = np.clip(1 - r ** 2, 0, 1) ** .3 * .8 + np.where(yolk, np.sqrt(np.clip(1 - ry ** 2, 0, 1)) * 2.4, 0)
     mat = [['yolk' if yolk[y, x] else 'eggw' for x in range(W)] for y in range(H)]
