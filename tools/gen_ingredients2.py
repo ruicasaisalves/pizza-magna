@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Pizza Magna — mais ingredientes em pixel detalhado (cogumelos, atum, pepperoni,
-fiambre) e a forma RALADA/PICADA de cada um. Mesmo método de gen_ingredients.py.
-Uso: python3 tools/gen_ingredients2.py <pasta>"""
+"""Pizza Magna: more toppings in detailed pixel art (mushrooms, tuna, pepperoni,
+ham) and the GRATED/CHOPPED form of each. Same method as gen_ingredients.py.
+Usage: python3 tools/gen_ingredients2.py <folder>"""
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -29,7 +29,7 @@ def grid(W, H):
     ys, xs = np.mgrid[0:H, 0:W]
     return ys, xs, (W - 1) / 2, (H - 1) / 2
 
-# ---------------- COGUMELO (fatia: chapéu + pé) ----------------
+# ---------------- MUSHROOM (slice: cap + stem) ----------------
 def mushroom(seed, W=26, H=24):
     rng = np.random.default_rng(seed + 300)
     ys, xs, cx, cy = grid(W, H)
@@ -47,7 +47,7 @@ def mushroom(seed, W=26, H=24):
     mat = [['gill' if (inner[y, x] or stem[y, x]) else 'cap' for x in range(W)] for y in range(H)]
     light = np.clip(shade(height, mask) * .9 + .15, 0, 1) * mask
     img = render(mat, light, mask, {'gill': 'cap'})
-    # lamelas: riscos finos no interior do chapéu
+    # gills: thin lines inside the cap
     px = img.load()
     for x in range(W):
         for y in range(H):
@@ -55,7 +55,7 @@ def mushroom(seed, W=26, H=24):
                 px[x, y] = R['gill'][1] + (255,)
     return img
 
-# ---------------- ATUM (lascas) ----------------
+# ---------------- TUNA (flakes) ----------------
 def tuna(seed, W=28, H=24):
     rng = np.random.default_rng(seed + 400)
     ys, xs, cx, cy = grid(W, H)
@@ -68,12 +68,12 @@ def tuna(seed, W=28, H=24):
         m = d <= 1; mask |= m
         height = np.maximum(height, np.clip(1 - d, 0, 1) ** .6 * 2.2)
     n = noise(H, W, 2, rng)
-    height += (np.sin(xs * 1.1 + ys * .5 + n * 3) * .15)      # fibras
+    height += (np.sin(xs * 1.1 + ys * .5 + n * 3) * .15)      # fibres
     mat = [['tuna'] * W for _ in range(H)]
     light = np.clip(shade(height, mask) * .9 + .12, 0, 1) * mask
     return render(mat, light, mask, {})
 
-# ---------------- PEPPERONI (rodela que enrola nas bordas) ----------------
+# ---------------- PEPPERONI (slice that curls at the edges) ----------------
 def pepperoni(seed, D=20):
     rng = np.random.default_rng(seed + 500)
     ys, xs, c, _ = grid(D, D)
@@ -81,20 +81,20 @@ def pepperoni(seed, D=20):
     ang = np.arctan2(dy, dx)
     r = np.hypot(dx, dy) / (D / 2 - .4) / (1 + .04 * np.sin(ang * 3 + seed))
     mask = r <= 1
-    height = (r ** 2) * 1.6 - np.clip(1 - r ** 2, 0, 1) * .4          # copo: bordo sobe
+    height = (r ** 2) * 1.6 - np.clip(1 - r ** 2, 0, 1) * .4          # cup: the edge rises
     n = noise(D, D, 2, rng)
     mat = [['pepfat' if (mask[y, x] and r[y, x] < .82 and n[y, x] > .82) else 'pep' for x in range(D)] for y in range(D)]
     light = np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask
     img = render(mat, light, mask, {'pepfat': 'pep'})
     px = img.load()
-    for x in range(D):            # bordo tostado
+    for x in range(D):            # toasted edge
         for y in range(D):
             if mask[y, x] and .82 < r[y, x] <= .93 and (x + y + seed) % 3: px[x, y] = R['pep'][1] + (255,)
     for (x, y) in [(int(c - 3), int(c - 4)), (int(c - 4), int(c - 3))]:
         px[x, y] = R['pep'][4] + (255,)
     return img
 
-# ---------------- CHOURIÇO (rodela com gordura e pele) ----------------
+# ---------------- CHOURIÇO (slice with fat and skin) ----------------
 def chourico(seed, D=20):
     rng = np.random.default_rng(seed + 700)
     ys, xs, c, _ = grid(D, D)
@@ -107,7 +107,7 @@ def chourico(seed, D=20):
     light = np.clip(shade(height, mask) * .8 + .22, 0, 1) * mask
     return render(mat, light, mask, {'chfat': 'chour'})
 
-# ---------------- FIAMBRE (fatia dobrada) ----------------
+# ---------------- HAM (folded slice) ----------------
 def ham(seed, W=24, H=22):
     rng = np.random.default_rng(seed + 600)
     ys, xs, cx, cy = grid(W, H)
@@ -117,17 +117,17 @@ def ham(seed, W=24, H=22):
     qx, qy = np.clip(np.abs(u) - (hw - rad), 0, None), np.clip(np.abs(v) - (hh - rad), 0, None)
     n = noise(H, W, 4, rng)
     mask = np.hypot(qx, qy) <= rad + (n - .5) * 1.2
-    fold = u * .55 + v * .2                                  # dobra na diagonal
+    fold = u * .55 + v * .2                                  # diagonal fold
     height = np.where(fold > 1, 2.2 - (fold - 1) * .25, fold * 1.1) + (n - .5) * .5
     fat = (np.hypot(qx, qy) > rad - 1.6) & mask
     mat = [['hamfat' if fat[y, x] else 'ham' for x in range(W)] for y in range(H)]
     light = np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask
     return render(mat, light, mask, {'hamfat': 'ham'})
 
-# ---------------- RALADO / PICADO ----------------
+# ---------------- GRATED / CHOPPED ----------------
 def grated(ramp, seed, kind='shred', W=26, H=24, n_bits=26, edge_ramp=None):
-    """Monte de pedacinhos: 'shred' = tiras finas (queijo ralado),
-    'dice' = cubinhos (fiambre, pepperoni, cogumelo picado), 'flake' = migalhas."""
+    """Pile of little bits: 'shred' = thin strips (grated cheese),
+    'dice' = small cubes (ham, pepperoni, chopped mushroom), 'flake' = crumbs."""
     rng = np.random.default_rng(seed + 900)
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0)); px = img.load()
     ramp = R[ramp]; dark = R[edge_ramp or 0] if edge_ramp else None
@@ -140,12 +140,12 @@ def grated(ramp, seed, kind='shred', W=26, H=24, n_bits=26, edge_ramp=None):
             pts = [(int(round(x0 + np.cos(ang) * t)), int(round(y0 + np.sin(ang) * t * .7))) for t in range(L_)]
             for i, (x, y) in enumerate(pts):
                 if 0 <= x < W and 0 <= y + 1 < H:
-                    px[x, y + 1] = ramp[0] + (255,)               # sombra por baixo
+                    px[x, y + 1] = ramp[0] + (255,)               # shadow underneath
             for i, (x, y) in enumerate(pts):
                 if 0 <= x < W and 0 <= y < H:
                     px[x, y] = ramp[min(len(ramp) - 1, 2 + (i == 1) + int(rng.random() * 2))] + (255,)
         elif kind == 'chunk':
-            # lasca irregular de 4-6 px com luz de cima-esquerda (peixe, carnes desfiadas)
+            # irregular 4-6 px flake lit from the top left (fish, shredded meats)
             rw, rh = rng.uniform(2, 3.2), rng.uniform(1.6, 2.4)
             for yy in range(-3, 4):
                 for xx in range(-4, 5):
@@ -163,10 +163,10 @@ def grated(ramp, seed, kind='shred', W=26, H=24, n_bits=26, edge_ramp=None):
                 for xx in range(sz + 1):
                     x, y = x0 + xx, y0 + yy
                     if not (0 <= x < W and 0 <= y < H): continue
-                    if yy < 2:   col = ramp[-1] if xx < sz else ramp[-2]   # topo iluminado
-                    elif xx == sz: col = ramp[0]                            # lado na sombra
-                    else:        col = ramp[len(ramp) // 2]                 # face da frente
-                    if yy == sz + 1: col = ramp[0]                          # base escura
+                    if yy < 2:   col = ramp[-1] if xx < sz else ramp[-2]   # lit top
+                    elif xx == sz: col = ramp[0]                            # side in shadow
+                    else:        col = ramp[len(ramp) // 2]                 # front face
+                    if yy == sz + 1: col = ramp[0]                          # dark base
                     px[x, y] = col + (255,)
         else:
             s = 2 if kind == 'dice' else 1
@@ -174,8 +174,8 @@ def grated(ramp, seed, kind='shred', W=26, H=24, n_bits=26, edge_ramp=None):
                 for xx in range(s + 1):
                     x, y = x0 + xx, y0 + yy
                     if not (0 <= x < W and 0 <= y < H): continue
-                    if xx == s or yy == s: px[x, y] = ramp[0] + (255,)         # aresta escura
-                    elif xx == 0 and yy == 0: px[x, y] = ramp[-1] + (255,)     # canto iluminado
+                    if xx == s or yy == s: px[x, y] = ramp[0] + (255,)         # dark edge
+                    elif xx == 0 and yy == 0: px[x, y] = ramp[-1] + (255,)     # lit corner
                     else: px[x, y] = ramp[len(ramp) // 2] + (255,)
     return img
 
@@ -197,8 +197,8 @@ if __name__ == '__main__':
     K, ROW = 6, 170
     sheet = Image.new('RGB', (1000, 40 + ROW * len(sets) + 40 + 600 + 20), (27, 20, 16))
     dr = ImageDraw.Draw(sheet)
-    dr.text((20, 10), 'Inteiro / fatiado (×6, 3 variantes)', fill=(240, 220, 180), font=fs)
-    dr.text((760, 10), 'Ralado / picado (×6)', fill=(240, 220, 180), font=fs)
+    dr.text((20, 10), 'Whole / sliced (x6, 3 variants)', fill=(240, 220, 180), font=fs)
+    dr.text((760, 10), 'Grated / chopped (x6)', fill=(240, 220, 180), font=fs)
     for i, (name, arr, gr) in enumerate(sets):
         y = 36 + i * ROW
         dr.text((20, y + 4), name, fill=(240, 220, 180), font=f)
@@ -209,14 +209,14 @@ if __name__ == '__main__':
             bg = Image.new('RGB', (190, ROW - 12), (196, 52, 28))
             bg.paste(m, ((190 - m.width) // 2, (ROW - 12 - m.height) // 2), m)
             sheet.paste(bg, (x, y)); x += 200
-    # cena: pizza com mistura, metade com queijo ralado
+    # scene: pizza with a mix, half with grated cheese
     rng = np.random.default_rng(9)
     SW, SH = 320, 200
     scene = marble(SW, SH, rng).convert('RGBA')
     pz = pizza_base(170, rng)
     layer = Image.new('RGBA', (170, 170), (0, 0, 0, 0))
     prng = np.random.default_rng(3)
-    # base de queijo ralado espalhado por toda a pizza
+    # grated cheese spread over the whole pizza
     for k in range(14):
         a, r = prng.random() * 6.28, np.sqrt(prng.random()) * 56
         layer.alpha_composite(grated('mozz', 50 + k, 'shred', n_bits=40), (int(85 + np.cos(a) * r - 13), int(85 + np.sin(a) * r - 12)))
@@ -233,7 +233,7 @@ if __name__ == '__main__':
     sh = Image.new('RGBA', (176, 176), (0, 0, 0, 0)); ImageDraw.Draw(sh).ellipse((4, 6, 174, 176), fill=(40, 30, 20, 90))
     scene.alpha_composite(sh, (70, 12)); scene.alpha_composite(pz, (72, 12))
     y0 = 36 + ROW * len(sets) + 8
-    dr.text((20, y0), 'Na pizza (320×200 ×3): mozzarella ralada por baixo, os 4 novos por cima', fill=(240, 220, 180), font=fs)
+    dr.text((20, y0), 'On the pizza (320x200 x3): grated mozzarella below, the 4 new ones on top', fill=(240, 220, 180), font=fs)
     sheet.paste(scene.convert('RGB').resize((SW * 3, SH * 3), Image.NEAREST), (20, y0 + 24))
     sheet.save(OUT + 'preview_ingredientes2.png')
     print('ok', sheet.size)

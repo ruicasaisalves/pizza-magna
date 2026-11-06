@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Pizza Magna: décimo sexto lote. Salsicha Frankfurt de lata: comprida, lisa, rosada e
-brilhante, com as pontas redondas. Mesmo método de gen_ingredients.py (ver tools/CLAUDE.md).
+"""Pizza Magna: sixteenth batch. Canned frankfurter: long, smooth, pink and
+glossy, with round ends. Same method as gen_ingredients.py (see tools/CLAUDE.md).
 
-Roda com 2 posições (é igual de ponta a ponta); com ang=0 sai deitada.
-Picada: rodelas, com o miolo claro e a pele mais escura à volta.
-Uso: python3 tools/gen_ingredients16.py <pasta>"""
+Rotates with 2 positions (it is the same end to end); with ang=0 it lies down.
+Chopped: slices, pale inside with darker skin around.
+Usage: python3 tools/gen_ingredients16.py <folder>"""
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -16,30 +16,30 @@ from gen_ingredients5 import axes
 OUT = (sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '..', 'preview')) + '/'
 
 R.update({
-    'frank': hexs(['#7a2e1c', '#a8482c', '#cc6a44', '#e48c62', '#f6b48c']),       # pele cozida
-    'frankin': hexs(['#c47a66', '#de9a84', '#f0b8a2', '#fad4c2']),               # miolo da rodela
+    'frank': hexs(['#7a2e1c', '#a8482c', '#cc6a44', '#e48c62', '#f6b48c']),       # cooked skin
+    'frankin': hexs(['#c47a66', '#de9a84', '#f0b8a2', '#fad4c2']),               # inside of the slice
 })
 
-# ---------------- SALSICHA FRANKFURT (de lata: grande, lisa, pontas redondas) ----------------
+# ---------------- FRANKFURTER (canned: big, smooth, round ends) ----------------
 def frankfurt(seed, ang=None, L=42, T=9):
     rng = np.random.default_rng(seed + 4800)
-    a = 0 if ang is None else ang                              # roda: as variantes saem todas deitadas
+    a = 0 if ang is None else ang                              # rotates: the variants all come out lying down
     W, H = int(np.ceil(L * abs(np.cos(a)) + T * abs(np.sin(a)))) + 4, int(np.ceil(L * abs(np.sin(a)) + T * abs(np.cos(a)))) + 4
     if ang is not None and abs(np.sin(ang)) > .5: W, H = H, W
     u, v = axes(W, H, a)
-    bend = (.8, -.6, 1.2)[(seed - 1) % 3]                            # curva ligeira, como sai da lata
+    bend = (.8, -.6, 1.2)[(seed - 1) % 3]                            # slight curve, as it comes out of the can
     vv = v - bend * ((2 * u / L) ** 2 - .5)
     half = T / 2
-    cap = np.clip(np.abs(u) - (L / 2 - half), 0, None)        # pontas em meia-lua
+    cap = np.clip(np.abs(u) - (L / 2 - half), 0, None)        # half-moon ends
     d = np.hypot(cap, vv) / half
     mask = d <= 1
     height = np.sqrt(np.clip(1 - d ** 2, 0, 1)) * 3
-    shine = mask & (np.abs(vv + half * .5) < 1) & (np.abs(u) < L / 2 - 4)   # brilho comprido da pele
+    shine = mask & (np.abs(vv + half * .5) < 1) & (np.abs(u) < L / 2 - 4)   # long shine on the skin
     mat = [['frank'] * W for _ in range(H)]
     light = np.clip(shade(height, mask) * .9 + .12 + np.where(shine, .6, 0), 0, 1) * mask
     img = render(mat, light, mask, {})
     px = img.load()
-    for end in (-1, 1):                                       # o nó da tripa em cada ponta, um pouco mais escuro
+    for end in (-1, 1):                                       # the casing knot at each end, a bit darker
         x, y = W / 2 + np.cos(a) * end * (L / 2 - 1), H / 2 + np.sin(a) * end * (L / 2 - 1)
         if ang is not None and abs(np.sin(ang)) > .5: x, y = W / 2 + np.sin(a) * end * (L / 2 - 1), H / 2 + np.cos(a) * end * (L / 2 - 1)
         xi, yi = int(round(x - .5)), int(round(y - .5))
@@ -47,7 +47,7 @@ def frankfurt(seed, ang=None, L=42, T=9):
     return img
 
 def slices(seed, W=26, H=24):
-    """picado: 4 ou 5 rodelas espalhadas, miolo claro e anel de pele"""
+    """chopped: 4 or 5 scattered slices, pale inside with a ring of skin"""
     rng = np.random.default_rng(seed + 4900)
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     placed = []
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     fs = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 15)
     ROW = 200
     sheet = Image.new('RGB', (1000, 40 + ROW * len(SETS)), (27, 20, 16)); dr = ImageDraw.Draw(sheet)
-    dr.text((20, 10), 'Inteiro (a 1.ª é a deitada) / picado', fill=(240, 220, 180), font=fs)
+    dr.text((20, 10), 'Whole (the 1st lies down) / chopped', fill=(240, 220, 180), font=fs)
     for i, (name, fn, gr) in enumerate(SETS):
         arr = [fn(1, ang=0), fn(2), fn(3), gr(1)]
         y = 36 + i * ROW; x = 20

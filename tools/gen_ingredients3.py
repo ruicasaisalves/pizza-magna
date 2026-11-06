@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Pizza Magna — terceiro lote em pixel detalhado: azeitonas, cebola, pimento,
-manjericão, ananás e presunto, com a forma picada pela regra de docs/ingredientes.md.
-Uso: python3 tools/gen_ingredients3.py <pasta>"""
+"""Pizza Magna: third batch in detailed pixel art: olives, onion, pepper,
+basil, pineapple and presunto, with the chopped form following the rule in docs/ingredients.md.
+Usage: python3 tools/gen_ingredients3.py <folder>"""
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -43,7 +43,7 @@ def onion(seed, D=24):
     r = np.hypot(xs - c, ys - c); ang = np.arctan2(ys - c, xs - c)
     a0 = rng.random() * 6.28
     mask = np.zeros((D, D), bool); height = np.zeros((D, D))
-    for rr, span in ((10.5, 4.6), (7.5, 3.6), (4.6, 2.6)):        # anéis concêntricos, em arco
+    for rr, span in ((10.5, 4.6), (7.5, 3.6), (4.6, 2.6)):        # concentric rings, in an arc
         da = np.angle(np.exp(1j * (ang - a0 - rng.random() * .6)))
         m = (np.abs(r - rr) <= 1.1) & (np.abs(da) <= span / 2)
         mask |= m; height = np.maximum(height, np.where(m, 1.4 - np.abs(r - rr), 0))
@@ -78,9 +78,9 @@ def pineapple(seed, W=26, H=24):
     ys, xs, cx, cy = grid(W, H)
     a = rng.random() * 6.28
     u = (xs - cx) * np.cos(a) + (ys - cy) * np.sin(a); v = -(xs - cx) * np.sin(a) + (ys - cy) * np.cos(a)
-    mask = (v >= -8) & (v <= 8) & (np.abs(u) <= (v + 8) * .6 + 1.4)     # cunha
+    mask = (v >= -8) & (v <= 8) & (np.abs(u) <= (v + 8) * .6 + 1.4)     # wedge
     n = noise(H, W, 2, rng)
-    height = 1.6 - (v + 6) * .08 + np.sin(u * 1.6 + n * 2) * .25            # fibras
+    height = 1.6 - (v + 6) * .08 + np.sin(u * 1.6 + n * 2) * .25            # fibres
     mat = [['pinecore' if (mask[y, x] and v[y, x] < -5) else 'pine' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .8 + .22, 0, 1) * mask, mask, {'pinecore': 'pine'})
 
@@ -89,12 +89,12 @@ def presunto(seed, W=28, H=20):
     ys, xs, cx, cy = grid(W, H)
     a = (rng.random() - .5) * 1.0; ph = rng.random() * 6.28
     u = (xs - cx) * np.cos(a) + (ys - cy) * np.sin(a); v = -(xs - cx) * np.sin(a) + (ys - cy) * np.cos(a)
-    vv = v - 1.0 * np.sin(u * .3 + ph)                                       # fatia larga, levemente dobrada
+    vv = v - 1.0 * np.sin(u * .3 + ph)                                       # wide slice, slightly folded
     half = 6.2 + .6 * np.sin(u * .5 + ph)
     mask = (np.abs(vv) <= half) & (np.abs(u) <= 12.5)
     n = noise(H, W, 3, rng)
     height = .9 * np.cos(u * .3 + ph) + np.clip(1 - (vv / half) ** 2, 0, 1) * 1.2 + (n - .5) * .5
-    streak = np.abs(np.sin(u * .55 + vv * .9 + n * 2)) < .14   # veios de gordura
+    streak = np.abs(np.sin(u * .55 + vv * .9 + n * 2)) < .14   # veins of fat
     mat = [['prosfat' if (mask[y, x] and (vv[y, x] < -half[y, x] + 1.6 or streak[y, x])) else 'pros' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .85 + .18, 0, 1) * mask, mask, {'prosfat': 'pros'})
 
@@ -112,8 +112,8 @@ if __name__ == '__main__':
     K, ROW = 6, 150
     sheet = Image.new('RGB', (1000, 40 + ROW * len(sets) + 40 + 600 + 20), (27, 20, 16))
     dr = ImageDraw.Draw(sheet)
-    dr.text((20, 10), 'Inteiro / fatiado (×6, 3 variantes)', fill=(240, 220, 180), font=fs)
-    dr.text((760, 10), 'Ralado / picado (×6)', fill=(240, 220, 180), font=fs)
+    dr.text((20, 10), 'Whole / sliced (x6, 3 variants)', fill=(240, 220, 180), font=fs)
+    dr.text((760, 10), 'Grated / chopped (x6)', fill=(240, 220, 180), font=fs)
     for i, (name, arr, gr) in enumerate(sets):
         for j, im in enumerate(arr): im.save(f'{OUT}{name.lower()}_{j + 1}.png')
         gr.save(f'{OUT}{name.lower()}_picado.png')
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     sh = Image.new('RGBA', (176, 176), (0, 0, 0, 0)); ImageDraw.Draw(sh).ellipse((4, 6, 174, 176), fill=(40, 30, 20, 90))
     scene.alpha_composite(sh, (70, 12)); scene.alpha_composite(pz, (72, 12))
     y0 = 36 + ROW * len(sets) + 8
-    dr.text((20, y0), 'Na pizza (320×200 ×3)', fill=(240, 220, 180), font=fs)
+    dr.text((20, y0), 'On the pizza (320x200 x3)', fill=(240, 220, 180), font=fs)
     sheet.paste(scene.convert('RGB').resize((SW * 3, SH * 3), Image.NEAREST), (20, y0 + 24))
     sheet.save(OUT + 'preview_ingredientes3.png')
     print('ok', sheet.size)

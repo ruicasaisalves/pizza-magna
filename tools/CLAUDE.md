@@ -1,45 +1,46 @@
-# Geradores de sprites
+# Sprite generators
 
-`gen_ingredients.py` a `gen_ingredients9.py` desenham os ingredientes em Python (numpy + PIL). `build_atlas.py` junta-os em `../assets/ingredients.js`.
+`gen_ingredients.py` to `gen_ingredients16.py` draw the toppings in Python (numpy + PIL); `gen_bases.py` draws the doughs and sauces. `build_atlas.py` packs them into `../assets/ingredients.js`. Code comments and docs are in English.
 
-## Depois de mudar um gerador
-1. `python3 tools/gen_ingredientsN.py <scratchpad>/gN` gera a folha de prévia (`preview_ingredientesN.png`). **Olha para ela** com Read.
-2. `python3 tools/build_atlas.py` regenera o atlas.
-3. `node tools/test_ingredients.js <ids> <scratchpad>`, e olha para `bancada.png`.
+## After changing a generator
+1. `python3 tools/gen_ingredientsN.py <scratchpad>/gN` makes the preview sheet (`preview_ingredientesN.png`). **Look at it** with Read.
+2. `python3 tools/build_atlas.py` rebuilds the atlas.
+3. `node tools/test_ingredients.js <ids> <scratchpad>`, and look at `bench.png`.
 
-A pasta `preview/` está no `.gitignore`; as prévias vão para o scratchpad.
+The `preview/` folder is in `.gitignore`; previews go to the scratchpad.
 
-## Método de desenho
-- **Escala:** ecrã lógico de 320×200 e pizza de 170 px. As peças medem 15 a 30 px, e as compridas até 40 px.
-- **Luz:** o volume é um campo de altura; `shade()` dá a luz, sempre de cima-esquerda.
-- **Cor:** cada material tem uma rampa curta em `R`, de 4 ou 5 tons, do escuro ao claro.
-- **`render(mat, light, mask, mapa)`:** aplica o dithering ordenado 4×4 e o contorno seletivo. O contorno usa o tom escuro da própria rampa, nunca preto. O `mapa` diz que rampa contorna cada material.
+## Drawing method
+- **Scale:** 320×200 logical screen and a 170 px pizza. Pieces are 15 to 30 px, long ones up to 42 px.
+- **Light:** volume is a height field; `shade()` gives the light, always from the top left.
+- **Colour:** each material has a short ramp in `R`, 4 or 5 tones, dark to light.
+- **`render(mat, light, mask, map)`:** applies the 4×4 ordered dithering and the selective outline. The outline uses the material's own dark tone, never black. The `map` says which ramp outlines each material.
 - **Helpers:**
-  - `grid` e `axes(W, H, ang)` dão as coordenadas ao longo (u) e através (v) da peça;
-  - `erode` faz camadas a partir da borda;
-  - `noise` dá textura;
-  - `drop` faz a sombra de 2 px, que o `build_atlas.py` aplica.
-- **Variantes:** 3 por ingrediente, com seeds 1, 2 e 3. Cada função usa `np.random.default_rng(seed + base)`, com uma base própria. O lote 9 chega a `+4700`; continua a partir daí.
+  - `grid` and `axes(W, H, ang)` give coordinates along (u) and across (v) the piece;
+  - `erode` makes layers from the edge;
+  - `noise` gives texture;
+  - `drop` makes the 2 px shadow, applied by `build_atlas.py`.
+- **Variants:** 3 per topping, with seeds 1, 2 and 3. Each function uses `np.random.default_rng(seed + base)` with its own base. Batch 16 reaches `+4900`; carry on from there.
 
-## Rodar (`ING.rot` no jogo)
-É sempre a **mesma imagem** rodada em quartos de volta, pelo jogo, sem perder píxeis; a sombra é calculada depois.
-- **1:** redondo ou sem frente. Não roda e tem 3 variantes.
-- **2:** simétrico, como o bacon (deitado ou de pé).
-- **4:** tem frente (cauda, pé, ponta).
+## Rotation (`ING.rot` in the game)
+It is always the **same image** turned in quarter turns by the game, without losing pixels; the shadow is computed afterwards.
+- **1:** round or without a front. Doesn't rotate and has 3 variants.
+- **2:** symmetric, like bacon (lying or standing).
+- **4:** has a front (tail, stem, tip).
 
-A função recebe `ang`. Com `ang=0`, a peça sai deitada com a frente para a direita, e o canvas troca W/H quando `|sin(ang)| > .5`. No atlas, entra em `ROTATE` como `<id>_n`, sem sombra.
+The function takes `ang`. With `ang=0` the piece lies down with its front to the right, and the canvas swaps W/H when `|sin(ang)| > .5`. In the atlas it goes into `ROTATE` as `<id>_n`, without shadow.
 
-## Picado (`grated()` em `gen_ingredients2.py`)
-- Ervas, vegetais e queijos → `flake`; queijos que se ralam → `shred`.
-- Carnes e enchidos → `cube`.
-- Peixe e marisco → `chunk`.
-- Frutos secos → `dice`.
-- O que já é miúdo, ou só vai em fio → nenhum.
-- Para misturar cores, passa uma função `f(seed)` (ver `gorgonzola_crumbs`).
+## Chopped (`grated()` in `gen_ingredients2.py`)
+- Herbs, vegetables and cheeses → `flake`; cheeses that get grated → `shred`.
+- Meats and sausages → `cube`.
+- Fish and seafood → `chunk`.
+- Nuts → `dice`.
+- Things already small, or only drizzled → none.
+- To mix colours, pass a function `f(seed)` (see `gorgonzola_crumbs`).
+- Grated cheeses use a big loose handful: in `build_atlas.py`, `('ramp', 'shred', 130, BIG)` with `BIG = {'W': 60, 'H': 56}`. In the game they are listed in `BIG_SHRED` (one handful = 1.5 portions).
 
-## Chaves no atlas
-- `<id>_0..2`: inteiro.
-- `<id>_n`: inteiro de uma peça que roda.
-- `<id>_g0..2`: picado.
-- `sauce_<id>`, `crust_<id>`: molho e bordo, de 170 px.
-- `marble`, `bowl`: a bancada e a taça.
+## Atlas keys
+- `<id>_0..2`: whole.
+- `<id>_n`: whole piece that rotates.
+- `<id>_g0..2`: chopped.
+- `sauce_<id>`, `crust_<id>`: sauce and crust, 170 px.
+- `marble`, `bowl`: the bench and the bowl.

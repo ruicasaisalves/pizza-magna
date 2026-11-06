@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Pizza Magna: sexto lote em pixel detalhado. Espinafres, tomate cherry, jalapeños,
-anchovas, ricotta e pera, com a forma picada pela regra de docs/ingredientes.md.
-Mesmo método de gen_ingredients.py.
+"""Pizza Magna: sixth batch in detailed pixel art. Spinach, cherry tomato, jalapeños,
+anchovies, ricotta and pear, with the chopped form following the rule in docs/ingredients.md.
+Same method as gen_ingredients.py.
 
-As peças com frente (anchova com cauda, meia pera com pé) aceitam `ang`: com ang=0 saem
-deitadas, com a frente para a direita, e o jogo roda essa imagem em quartos de volta.
-Uso: python3 tools/gen_ingredients6.py <pasta>"""
+Pieces with a front (anchovy with a tail, half pear with a stem) take `ang`: with ang=0 they
+lie down with the front to the right, and the game turns that image in quarter turns.
+Usage: python3 tools/gen_ingredients6.py <folder>"""
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -36,23 +36,23 @@ R.update({
     'pstem': hexs(['#2e1a0a', '#4e2e14', '#6e4420']),
 })
 
-# ---------------- ESPINAFRE (folha oval, um pouco murcha do forno) ----------------
+# ---------------- SPINACH (oval leaf, a bit wilted from the oven) ----------------
 def spinach(seed, W=26, H=20):
     rng = np.random.default_rng(seed + 2400)
     u, v = axes(W, H, rng.random() * 6.28)
     n = noise(H, W, 3, rng)
-    t = (u + 10) / 20                                       # 0 no pé, 1 na ponta
+    t = (u + 10) / 20                                       # 0 at the stem, 1 at the tip
     halfw = np.sin(np.clip(t, 0, 1) * np.pi) ** .55 * 7.2 * (1 + (n - .5) * .35)
     leaf = (t >= 0) & (t <= 1) & (np.abs(v) <= halfw)
     stem = (u >= -13) & (u < -9.5) & (np.abs(v) <= .9)
     mask = leaf | stem
-    height = np.clip(1 - (v / (halfw + .01)) ** 2, 0, 1) * 1.3 + (n - .5) * .9    # ondulada
+    height = np.clip(1 - (v / (halfw + .01)) ** 2, 0, 1) * 1.3 + (n - .5) * .9    # wavy
     lat = (np.abs((u - np.abs(v) * .9) % 4.5 - 2.2) < .45) & (np.abs(v) > 1) & (np.abs(v) < halfw - 1.2)
     mat = [['spinvein' if mask[y, x] and (stem[y, x] or abs(v[y, x]) < .55 and t[y, x] < .9 or lat[y, x]) else 'spin'
             for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .8 + .22, 0, 1) * mask, mask, {'spinvein': 'spin'})
 
-# ---------------- TOMATE CHERRY (metade) ----------------
+# ---------------- CHERRY TOMATO (half) ----------------
 def cherry(seed, D=14):
     rng = np.random.default_rng(seed + 2500)
     ys, xs, c, _ = grid(D, D)
@@ -61,19 +61,19 @@ def cherry(seed, D=14):
     ang = np.arctan2(ys - c, xs - c) - rng.random() * 3.14
     mask = r <= 1
     height = np.sqrt(np.clip(1 - r ** 2, 0, 1)) * 2.2
-    # dois lóbulos de sementes, um de cada lado do septo
+    # two seed lobes, one each side of the septum
     lobe = (r > .25) & (r < .72) & (np.abs(np.sin(ang)) > .42)
     mat = [['cherry' if r[y, x] > .8 or not lobe[y, x] else 'cherryj' for x in range(D)] for y in range(D)]
     img = render(mat, np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask, mask, {'cherryj': 'cherry'})
     px = img.load()
-    for k in range(4):                                       # sementes
+    for k in range(4):                                       # seeds
         a = ang[0, 0] * 0 + (k // 2) * np.pi + (k % 2 - .5) * .5 + np.pi / 2 + rng.random() * .2
         x, y = int(round(c + np.cos(a) * 3.2)), int(round(c + np.sin(a) * 3.2))
         if mask[y, x]: px[x, y] = (255, 240, 190, 255)
-    px[int(c - 3), int(c - 3)] = R['cherry'][4] + (255,)      # brilho
+    px[int(c - 3), int(c - 3)] = R['cherry'][4] + (255,)      # shine
     return img
 
-# ---------------- JALAPEÑO (rodela) ----------------
+# ---------------- JALAPEÑO (slice) ----------------
 def jalapeno(seed, D=15):
     rng = np.random.default_rng(seed + 2600)
     ys, xs, c, _ = grid(D, D)
@@ -84,27 +84,27 @@ def jalapeno(seed, D=15):
     mat = [['jal' if r[y, x] > .7 else 'jalpith' for x in range(D)] for y in range(D)]
     img = render(mat, np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask, mask, {'jalpith': 'jal'})
     px = img.load()
-    for k in range(3 + seed % 2):                            # sementes coladas à polpa
+    for k in range(3 + seed % 2):                            # seeds stuck to the flesh
         a = rng.random() * 6.28
         x, y = int(round(c + np.cos(a) * 3)), int(round(c + np.sin(a) * 3))
         if 0 <= x < D and 0 <= y < D: px[x, y] = (246, 240, 206, 255)
     return img
 
-# ---------------- ANCHOVA (peixinho inteiro: cabeça à esquerda, cauda à direita) ----------------
+# ---------------- ANCHOVY (whole little fish: head on the left, tail on the right) ----------------
 def anchovy(seed, L=28, ang=None):
     rng = np.random.default_rng(seed + 2700)
     a = (rng.random() - .5) * .8 if ang is None else ang
     W, H = L + 4, int(np.ceil(L * abs(np.sin(a)) + 10 * abs(np.cos(a)))) + 8
     if ang is not None and abs(np.sin(ang)) > .5: W, H = H, W
     u, v = axes(W, H, a)
-    t = (u + L / 2) / L                                     # 0 no focinho, 1 na cauda
-    vv = v - .7 * np.sin(t * 3 + seed)                      # corpo levemente curvado
+    t = (u + L / 2) / L                                     # 0 at the snout, 1 at the tail
+    vv = v - .7 * np.sin(t * 3 + seed)                      # body slightly curved
     half = np.select([t < .14, t < .62, t < .86],
-                     [3.6 * np.sqrt(np.clip(t / .14, 0, 1)),            # focinho redondo
-                      3.6 + 0 * t,                                       # corpo
-                      3.6 - (t - .62) / .24 * 2.6], .9)                  # afina até à cauda
+                     [3.6 * np.sqrt(np.clip(t / .14, 0, 1)),            # round snout
+                      3.6 + 0 * t,                                       # body
+                      3.6 - (t - .62) / .24 * 2.6], .9)                  # tapers to the tail
     body = (t >= 0) & (t <= .88) & (np.abs(vv) <= half)
-    fork = (t > .84) & (t <= 1) & (np.abs(np.abs(vv) - (t - .84) * 26) <= 1.3)   # cauda em forquilha
+    fork = (t > .84) & (t <= 1) & (np.abs(np.abs(vv) - (t - .84) * 26) <= 1.3)   # forked tail
     mask = body | fork
     height = np.clip(1 - (vv / (half + .01)) ** 2, 0, 1) * 1.5
     gill = body & (np.abs(t - .2 - (vv / 3.6) ** 2 * .04) < .55 / L)
@@ -118,7 +118,7 @@ def anchovy(seed, L=28, ang=None):
     mat = [[m(y, x) for x in range(W)] for y in range(H)]
     light = np.clip(shade(height, mask) * .8 + .25 + np.where(stripe, .35, 0), 0, 1) * mask
     img = render(mat, light, mask, {'anchbelly': 'anchback', 'anchsilver': 'anchback'})
-    # olho: ponto escuro com brilho, na cabeça, acima do meio
+    # eye: dark dot with a highlight, on the head, above the middle
     ex, ey = -L / 2 + .1 * L, -1.0
     ca, sa = np.cos(a), np.sin(a)
     cx, cy = (W - 1) / 2, (H - 1) / 2
@@ -132,7 +132,7 @@ def anchovy(seed, L=28, ang=None):
     if 0 <= x < W and 0 <= y < H and mask[y, x]: px[x, y] = (236, 240, 248, 255)
     return img
 
-# ---------------- RICOTTA (colherada granulosa) ----------------
+# ---------------- RICOTTA (grainy spoonful) ----------------
 def ricotta(seed, W=22, H=18):
     rng = np.random.default_rng(seed + 2800)
     ys, xs, cx, cy = grid(W, H)
@@ -141,25 +141,25 @@ def ricotta(seed, W=22, H=18):
     rr = np.hypot(dx, dy) / (1 + .1 * np.sin(ang * 3 + a) + .07 * np.sin(ang * 6 + b))
     mask = rr <= 1
     grain = rng.random((H, W))
-    height = np.clip(1 - rr ** 2, 0, 1) ** .6 * 2.2 + (grain - .5) * .7            # grãos de coalho
+    height = np.clip(1 - rr ** 2, 0, 1) ** .6 * 2.2 + (grain - .5) * .7            # curd grains
     mat = [['ricotta'] * W for _ in range(H)]
     return render(mat, np.clip(shade(height, mask) * .7 + .3, 0, 1) * mask, mask, {})
 
-# ---------------- PERA (metade cortada ao comprido, pé para a direita) ----------------
+# ---------------- PEAR (half cut lengthwise, stem to the right) ----------------
 def pear(seed, ang=None, W=28, H=22):
     rng = np.random.default_rng(seed + 2900)
     a = (rng.random() - .5) * 1.0 if ang is None else ang
     if ang is not None and abs(np.sin(ang)) > .5: W, H = H, W
     u, v = axes(W, H, a)
     u = u + 1.5
-    w = np.where(u <= -3, 8 * np.sqrt(np.clip(1 - ((u + 3) / 8) ** 2, 0, 1)),      # bojo
-                 np.where(u <= 5, 8 - (u + 3) * .45, 4.4 * np.sqrt(np.clip(1 - ((u - 5) / 5.5) ** 2, 0, 1))))   # pescoço
+    w = np.where(u <= -3, 8 * np.sqrt(np.clip(1 - ((u + 3) / 8) ** 2, 0, 1)),      # belly
+                 np.where(u <= 5, 8 - (u + 3) * .45, 4.4 * np.sqrt(np.clip(1 - ((u - 5) / 5.5) ** 2, 0, 1))))   # neck
     body = (u >= -11) & (u <= 10.5) & (np.abs(v) <= w)
     stem = (u > 9.5) & (u <= 13) & (np.abs(v - (u - 9.5) * .35) <= .9)
     mask = body | stem
     e2 = erode(erode(body))
     core = np.hypot((u + 3.5) / 3.2, v / 2.2) <= 1
-    seeds = (np.hypot((u + 3.5 - np.abs(v) * .4) / 1.5, (np.abs(v) - 1.7) / .75) <= 1)    # duas pevides em V
+    seeds = (np.hypot((u + 3.5 - np.abs(v) * .4) / 1.5, (np.abs(v) - 1.7) / .75) <= 1)    # two pips in a V
     height = np.clip(1 - (v / (w + .01)) ** 2, 0, 1) * 1.4 + np.where(core, -.3, 0)
     mat = [[('pstem' if stem[y, x] and not body[y, x] else 'pearskin' if not e2[y, x]
              else 'pearseed' if seeds[y, x] else 'pear') for x in range(W)] for y in range(H)]
@@ -181,8 +181,8 @@ if __name__ == '__main__':
     K, ROW = 6, 150
     sheet = Image.new('RGB', (1000, 40 + ROW * len(SETS)), (27, 20, 16))
     dr = ImageDraw.Draw(sheet)
-    dr.text((20, 10), 'Inteiro / fatiado (×6, 3 variantes)', fill=(240, 220, 180), font=fs)
-    dr.text((760, 10), 'Ralado / picado (×6)', fill=(240, 220, 180), font=fs)
+    dr.text((20, 10), 'Whole / sliced (x6, 3 variants)', fill=(240, 220, 180), font=fs)
+    dr.text((760, 10), 'Grated / chopped (x6)', fill=(240, 220, 180), font=fs)
     for i, (name, fn, gr) in enumerate(SETS):
         key = name.lower().replace(' ', '_').replace('ñ', 'n')
         arr = [fn(s) for s in (1, 2, 3)]

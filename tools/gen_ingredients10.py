@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Pizza Magna: décimo lote em pixel detalhado. Nutella, banana, feta, farinheira,
-amêijoas e orégãos, com a forma picada pela regra de docs/ingredientes.md.
-Mesmo método de gen_ingredients.py (ver tools/CLAUDE.md).
+"""Pizza Magna: tenth batch in detailed pixel art. Nutella, banana, feta, farinheira,
+clams and oregano, with the chopped form following the rule in docs/ingredients.md.
+Same method as gen_ingredients.py (see tools/CLAUDE.md).
 
-As peças com frente (amêijoa com a dobradiça da concha, raminho de orégãos) aceitam `ang`:
-com ang=0 saem deitadas, com a frente para a direita, e o jogo roda essa imagem em quartos de volta.
-Uso: python3 tools/gen_ingredients10.py <pasta>"""
+Pieces with a front (clam with the shell hinge, oregano sprig) take `ang`:
+with ang=0 they lie down with the front to the right, and the game turns that image in quarter turns.
+Usage: python3 tools/gen_ingredients10.py <folder>"""
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -31,7 +31,7 @@ R.update({
     'orestem': hexs(['#3a3a1a', '#5a5a2a', '#7e7c40']),
 })
 
-# ---------------- NUTELLA (colherada espalhada, com o remoinho da colher) ----------------
+# ---------------- NUTELLA (spread spoonful, with the swirl of the spoon) ----------------
 def nutella(seed, W=24, H=19):
     rng = np.random.default_rng(seed + 4800)
     ys, xs, cx, cy = grid(W, H)
@@ -40,13 +40,13 @@ def nutella(seed, W=24, H=19):
     r = np.hypot(dx, dy)
     rr = r / (1 + .1 * np.sin(ang * 3 + a) + .06 * np.sin(ang * 5 + b))
     mask = rr <= 1
-    swirl = np.sin(ang * 1 + r * 9 + a) * .45                 # remoinho deixado pela colher
+    swirl = np.sin(ang * 1 + r * 9 + a) * .45                 # swirl left by the spoon
     height = np.clip(1 - rr ** 2, 0, 1) ** .5 * 1.6 + swirl * np.clip(1 - rr, 0, 1)
     mat = [['nutella'] * W for _ in range(H)]
-    light = np.clip(shade(height, mask) * 1.05 + .08, 0, 1) * mask      # brilhante: contraste forte
+    light = np.clip(shade(height, mask) * 1.05 + .08, 0, 1) * mask      # glossy: strong contrast
     return render(mat, light, mask, {})
 
-# ---------------- BANANA (rodela, com a estrela de sementes no meio) ----------------
+# ---------------- BANANA (slice, with the star of seeds in the middle) ----------------
 def banana(seed, D=16):
     rng = np.random.default_rng(seed + 4900)
     ys, xs, c, _ = grid(D, D)
@@ -55,63 +55,63 @@ def banana(seed, D=16):
     ang = np.arctan2(ys - c, xs - c) - rng.random() * 2
     mask = r <= 1
     height = np.clip(1 - r ** 2, 0, 1) ** .4 * 1.2
-    star = (r < .38) & (np.abs(np.sin(ang * 1.5)) > .82) & (r > .12)     # três raios de sementes
+    star = (r < .38) & (np.abs(np.sin(ang * 1.5)) > .82) & (r > .12)     # three rays of seeds
     mat = [['banseed' if star[y, x] else 'banana' for x in range(D)] for y in range(D)]
-    light = np.clip(shade(height, mask) * .65 + .35 - np.where(r > .82, .18, 0), 0, 1) * mask   # bordo mais escuro
+    light = np.clip(shade(height, mask) * .65 + .35 - np.where(r > .82, .18, 0), 0, 1) * mask   # darker edge
     return render(mat, light, mask, {'banseed': 'banana'})
 
-# ---------------- FETA (cubo esfarelado, em 3/4: topo claro, frente média, lado escuro) ----------------
+# ---------------- FETA (crumbly cube, in 3/4: light top, mid front, dark side) ----------------
 def feta(seed, W=17, H=17):
     rng = np.random.default_rng(seed + 5000)
     sz, d = int(rng.integers(10, 12)), 4
     x0, y0 = 1, 1
     lt = Image.new('L', (W, H), 0); dl = ImageDraw.Draw(lt)
-    dl.polygon([(x0, y0 + d), (x0 + sz, y0 + d), (x0 + sz + d, y0), (x0 + d, y0)], fill=245)                 # topo
-    dl.rectangle([x0, y0 + d, x0 + sz - 1, y0 + d + sz - 1], fill=150)                                       # frente
-    dl.polygon([(x0 + sz, y0 + d), (x0 + sz + d, y0), (x0 + sz + d, y0 + sz - 1), (x0 + sz, y0 + d + sz - 1)], fill=70)   # lado
+    dl.polygon([(x0, y0 + d), (x0 + sz, y0 + d), (x0 + sz + d, y0), (x0 + d, y0)], fill=245)                 # top
+    dl.rectangle([x0, y0 + d, x0 + sz - 1, y0 + d + sz - 1], fill=150)                                       # front
+    dl.polygon([(x0 + sz, y0 + d), (x0 + sz + d, y0), (x0 + sz + d, y0 + sz - 1), (x0 + sz, y0 + d + sz - 1)], fill=70)   # side
     light = np.array(lt) / 255.0
     mask = light > 0
-    bite = rng.random((H, W)) > .8                             # arestas esfareladas
+    bite = rng.random((H, W)) > .8                             # crumbly edges
     edge = mask & ~(np.roll(mask, 1, 0) & np.roll(mask, -1, 0) & np.roll(mask, 1, 1) & np.roll(mask, -1, 1))
     mask &= ~(edge & bite)
-    light = light + (rng.random((H, W)) - .5) * .16            # textura granulada
+    light = light + (rng.random((H, W)) - .5) * .16            # grainy texture
     mat = [['feta'] * W for _ in range(H)]
     return render(mat, np.clip(light, 0, 1) * mask, mask, {})
 
-# ---------------- FARINHEIRA (rodela clara com pimentão) ----------------
+# ---------------- FARINHEIRA (pale slice with paprika) ----------------
 def farinheira(seed, D=18):
     rng = np.random.default_rng(seed + 5100)
     ys, xs, c, _ = grid(D, D)
     r = np.hypot(xs - c, ys - c) / (D / 2 - .4)
     mask = r <= 1
     n = noise(D, D, 2, rng)
-    height = np.clip(1 - r ** 2, 0, 1) ** .5 * 1.3 + (n - .5) * .8      # miolo de farinha, esfarelado
+    height = np.clip(1 - r ** 2, 0, 1) ** .5 * 1.3 + (n - .5) * .8      # crumbly flour filling
     spec = (rng.random((D, D)) > .88) & (r < .82)
     mat = [['farinskin' if r[y, x] > .86 else 'paprika' if spec[y, x] else 'farin' for x in range(D)] for y in range(D)]
     return render(mat, np.clip(shade(height, mask) * .8 + .24, 0, 1) * mask, mask, {'farin': 'farinskin', 'paprika': 'farinskin'})
 
-# ---------------- AMÊIJOA (meia concha com o miolo; dobradiça à esquerda) ----------------
+# ---------------- CLAM (half shell with the meat; hinge on the left) ----------------
 def clam(seed, ang=None, W=22, H=20):
     rng = np.random.default_rng(seed + 5200)
     a = rng.random() * 6.28 if ang is None else ang
     if ang is not None and abs(np.sin(ang)) > .5: W, H = H, W
     u, v = axes(W, H, a)
-    # triângulo arredondado: estreito na dobradiça (esquerda), largo e redondo no bordo (direita)
+    # rounded triangle: narrow at the hinge (left), wide and round at the rim (right)
     half = 8.0 * np.sqrt(np.clip(1 - (u / 8.4) ** 2, 0, 1)) * (.82 + .18 * np.clip((u + 8.4) / 16.8, 0, 1))
     shell = (np.abs(v) <= half) & (np.abs(u) <= 8.4)
-    umbo = np.hypot((u + 8.6) / 1.8, v / 1.6) <= 1             # bico da dobradiça, curto
+    umbo = np.hypot((u + 8.6) / 1.8, v / 1.6) <= 1             # short hinge beak
     mask = shell | umbo
     meat = np.hypot((u - 1.2) / 4.4, v / 4.0) <= 1
     dist = np.hypot(u + 9.5, v * .95)
-    rings = (dist % 2.2) < .8                                  # anéis de crescimento
-    ribs = np.abs(np.sin(np.arctan2(v, u + 10) * 18)) < .25    # estrias da dobradiça para fora
+    rings = (dist % 2.2) < .8                                  # growth rings
+    ribs = np.abs(np.sin(np.arctan2(v, u + 10) * 18)) < .25    # ridges running out from the hinge
     height = np.where(meat, 1.2 + np.sqrt(np.clip(1 - (((u - 1.2) / 4.4) ** 2 + (v / 4.0) ** 2), 0, 1)) * 1.3,
                       np.clip(1 - (v / (half + .01)) ** 2, 0, 1) * .9)
     mat = [['clammeat' if meat[y, x] else 'clam' for x in range(W)] for y in range(H)]
     light = np.clip(shade(height, mask) * .7 + .3 - np.where(~meat & rings, .34, 0) - np.where(~meat & ribs, .1, 0), 0, 1) * mask
     return render(mat, light, mask, {'clammeat': 'clam'})
 
-# ---------------- ORÉGÃOS (raminho; pé à esquerda, ponta à direita) ----------------
+# ---------------- OREGANO (sprig; stem on the left, tip on the right) ----------------
 def oregano(seed, L=22, ang=None):
     rng = np.random.default_rng(seed + 5300)
     a = (rng.random() - .5) * 1.0 if ang is None else ang
@@ -122,12 +122,12 @@ def oregano(seed, L=22, ang=None):
     stem = (np.abs(vv) <= .7) & (u >= -L / 2) & (u <= L / 2 - 2)
     leaves = np.zeros_like(stem); lh = np.zeros_like(u)
     for k, lu in enumerate(np.arange(-L / 2 + 4, L / 2 - 1, 3.4)):
-        sz = 1 - (lu + L / 2) / L * .35                       # folhas mais pequenas para a ponta
+        sz = 1 - (lu + L / 2) / L * .35                       # smaller leaves towards the tip
         for side in (-1, 1):
             pu, pv = u - lu - 1, vv - side * 2.2 * sz
             e = (pu / (2.4 * sz)) ** 2 + (pv / (1.5 * sz)) ** 2
             leaves |= e <= 1; lh = np.maximum(lh, np.sqrt(np.clip(1 - e, 0, 1)) * 1.2)
-    tip = np.hypot((u - L / 2 + 1.5) / 2.2, vv / 1.6) <= 1     # rebento da ponta
+    tip = np.hypot((u - L / 2 + 1.5) / 2.2, vv / 1.6) <= 1     # bud at the tip
     leaves |= tip
     mask = stem | leaves
     height = np.maximum(np.where(stem, .6, 0), lh + np.where(tip, 1, 0))
@@ -135,7 +135,7 @@ def oregano(seed, L=22, ang=None):
     return render(mat, np.clip(shade(height, mask) * .8 + .24, 0, 1) * mask, mask, {'orestem': 'orestem'})
 
 def oregano_flakes(seed):
-    """orégãos secos: migalhas verde-acinzentadas, mais miúdas que as das ervas frescas"""
+    """dried oregano: grey-green crumbs, smaller than those of fresh herbs"""
     return grated('oreg', seed, 'flake', n_bits=50)
 
 SETS = [
@@ -154,8 +154,8 @@ if __name__ == '__main__':
     ROW = 150
     sheet = Image.new('RGB', (1000, 40 + ROW * len(SETS)), (27, 20, 16))
     dr = ImageDraw.Draw(sheet)
-    dr.text((20, 10), 'Inteiro / fatiado (3 variantes)', fill=(240, 220, 180), font=fs)
-    dr.text((760, 10), 'Ralado / picado', fill=(240, 220, 180), font=fs)
+    dr.text((20, 10), 'Whole / sliced (3 variants)', fill=(240, 220, 180), font=fs)
+    dr.text((760, 10), 'Grated / chopped', fill=(240, 220, 180), font=fs)
     for i, (name, fn, gr) in enumerate(SETS):
         key = name.lower().replace('ê', 'e').replace('ã', 'a').replace('õ', 'o')
         arr = [fn(s) for s in (1, 2, 3)]
@@ -173,6 +173,6 @@ if __name__ == '__main__':
             bg.paste(m, ((190 - m.width) // 2, (ROW - 12 - m.height) // 2), m)
             sheet.paste(bg, (x, y)); x += 200
         if not g:
-            dr.text((770, y + 60), 'só se espalha\n(não se pica)', fill=(200, 180, 150), font=fs)
+            dr.text((770, y + 60), 'spread only\n(not chopped)', fill=(200, 180, 150), font=fs)
     sheet.save(OUT + 'preview_ingredientes10.png')
     print('ok', sheet.size)

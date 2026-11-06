@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Pizza Magna: sétimo lote em pixel detalhado. Queijo de cabra, alho, grelos, sardinha,
-salmão fumado e polvo, com a forma picada pela regra de docs/ingredientes.md.
-Mesmo método de gen_ingredients.py.
+"""Pizza Magna: seventh batch in detailed pixel art. Goat's cheese, garlic, turnip greens, sardine,
+smoked salmon and octopus, with the chopped form following the rule in docs/ingredients.md.
+Same method as gen_ingredients.py.
 
-As peças com frente (sardinha, tentáculo de polvo) aceitam `ang`: com ang=0 saem deitadas,
-com a frente para a direita, e o jogo roda essa imagem em quartos de volta.
-Uso: python3 tools/gen_ingredients7.py <pasta>"""
+Pieces with a front (sardine, octopus tentacle) take `ang`: with ang=0 they lie down,
+with the front to the right, and the game turns that image in quarter turns.
+Usage: python3 tools/gen_ingredients7.py <folder>"""
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -35,7 +35,7 @@ R.update({
     'sucker': hexs(['#c49088', '#e2b8ae', '#f6dcd4', '#fff4f0']),
 })
 
-# ---------------- QUEIJO DE CABRA (rodela com casca branca) ----------------
+# ---------------- GOAT'S CHEESE (round slice with a white rind) ----------------
 def goat(seed, D=20):
     rng = np.random.default_rng(seed + 3000)
     ys, xs, c, _ = grid(D, D)
@@ -44,11 +44,11 @@ def goat(seed, D=20):
     mask = r <= 1
     n = noise(D, D, 2, rng)
     height = np.clip(1 - r ** 2, 0, 1) ** .4 * 1.5 + (n - .5) * .5
-    toast = (n > .78) & (r < .7)                              # pintas tostadas do forno
+    toast = (n > .78) & (r < .7)                              # toasted spots from the oven
     mat = [['goatrind' if r[y, x] > .8 else 'goattoast' if toast[y, x] else 'goat' for x in range(D)] for y in range(D)]
     return render(mat, np.clip(shade(height, mask) * .7 + .3, 0, 1) * mask, mask, {'goat': 'goatrind', 'goattoast': 'goatrind'})
 
-# ---------------- ALHO (duas lâminas finas) ----------------
+# ---------------- GARLIC (two thin slivers) ----------------
 def garlic(seed, W=17, H=14):
     rng = np.random.default_rng(seed + 3100)
     ys, xs, cx, cy = grid(W, H)
@@ -57,16 +57,16 @@ def garlic(seed, W=17, H=14):
         ox, oy = cx + (k - .5) * 5 + rng.random() - .5, cy + (k - .5) * 3 + rng.random() - .5
         a = rng.random() * 3.14
         u = (xs - ox) * np.cos(a) + (ys - oy) * np.sin(a); v = -(xs - ox) * np.sin(a) + (ys - oy) * np.cos(a)
-        e = (u / 4.6) ** 2 + (np.maximum(v, -1.8 + u * u * .04) / 3.2) ** 2          # lâmina com um lado achatado
+        e = (u / 4.6) ** 2 + (np.maximum(v, -1.8 + u * u * .04) / 3.2) ** 2          # sliver with one flat side
         m = (e <= 1) & (v >= -2.2 + u * u * .05)
-        if k == 1: mask &= ~m                                  # a de cima tapa a de baixo
+        if k == 1: mask &= ~m                                  # the top one covers the bottom one
         mask |= m
         height = np.where(m, np.sqrt(np.clip(1 - e, 0, 1)) * .9 + k * .3, height)
         core = np.where(m, (np.abs(v - .4) < .7) & (np.abs(u) < 3), core)
     mat = [['garlicc' if core[y, x] else 'garlic' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .6 + .38, 0, 1) * mask, mask, {'garlicc': 'garlic'})
 
-# ---------------- GRELOS (talo com folhas e botões de flor) ----------------
+# ---------------- TURNIP GREENS (stalk with leaves and flower buds) ----------------
 def grelos(seed, W=28, H=22):
     rng = np.random.default_rng(seed + 3200)
     u, v = axes(W, H, (rng.random() - .5) * 1.4)
@@ -89,14 +89,14 @@ def grelos(seed, W=28, H=22):
     mat = [['bud' if buds[y, x] else 'grelo' if leaves[y, x] else 'grelostem' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .8 + .22, 0, 1) * mask, mask, {'grelostem': 'grelo', 'bud': 'bud'})
 
-# ---------------- SARDINHA (grelhada, cabeça à esquerda, cauda à direita) ----------------
+# ---------------- SARDINE (grilled, head on the left, tail on the right) ----------------
 def sardine(seed, L=32, ang=None):
     rng = np.random.default_rng(seed + 3300)
     a = (rng.random() - .5) * .7 if ang is None else ang
     W, H = L + 4, int(np.ceil(L * abs(np.sin(a)) + 12 * abs(np.cos(a)))) + 8
     if ang is not None and abs(np.sin(ang)) > .5: W, H = H, W
     u, v = axes(W, H, a)
-    t = (u + L / 2) / L                                     # 0 no focinho, 1 na cauda
+    t = (u + L / 2) / L                                     # 0 at the snout, 1 at the tail
     vv = v - .5 * np.sin(t * 3 + seed)
     half = np.select([t < .16, t < .55, t < .86],
                      [4.6 * np.sqrt(np.clip(t / .16, 0, 1)), 4.6 + 0 * t, 4.6 - (t - .55) / .31 * 3.6], 1.0)
@@ -105,7 +105,7 @@ def sardine(seed, L=32, ang=None):
     mask = body | fork
     height = np.clip(1 - (vv / (half + .01)) ** 2, 0, 1) * 1.7
     gill = body & (np.abs(t - .19 - (vv / 4.6) ** 2 * .05) < .55 / L)
-    char = body & (((u * .9 - vv * .6 + 40) % 6.5) < 1.1) & (t > .22) & (t < .82)   # marcas da grelha
+    char = body & (((u * .9 - vv * .6 + 40) % 6.5) < 1.1) & (t > .22) & (t < .82)   # grill marks
     def m(y, x):
         if fork[y, x] and not body[y, x] or gill[y, x]: return 'sardback'
         if char[y, x]: return 'sardchar'
@@ -123,21 +123,21 @@ def sardine(seed, L=32, ang=None):
         if 0 <= x < W and 0 <= y < H and mask[y, x]: px[x, y] = col
     return img
 
-# ---------------- SALMÃO FUMADO (fatia dobrada com veios de gordura) ----------------
+# ---------------- SMOKED SALMON (folded slice with veins of fat) ----------------
 def salmon(seed, W=28, H=20):
     rng = np.random.default_rng(seed + 3400)
     u, v = axes(W, H, (rng.random() - .5) * 1.0)
     ph = rng.random() * 6.28
-    vv = v - 1.2 * np.sin(u * .32 + ph)                     # fatia ondulada, como uma fita dobrada
+    vv = v - 1.2 * np.sin(u * .32 + ph)                     # wavy slice, like a folded ribbon
     half = 5.6 + .7 * np.sin(u * .5 + ph)
     mask = (np.abs(vv) <= half) & (np.abs(u) <= 12)
     n = noise(H, W, 3, rng)
     height = 1.1 * np.cos(u * .32 + ph) + np.clip(1 - (vv / half) ** 2, 0, 1) * 1.1 + (n - .5) * .4
-    streak = np.abs((u * .8 - vv * 1.2 + np.sin(vv * .5) * 1.2 + 40) % 4.4 - 2.2) < .5   # riscas de gordura em diagonal
+    streak = np.abs((u * .8 - vv * 1.2 + np.sin(vv * .5) * 1.2 + 40) % 4.4 - 2.2) < .5   # diagonal stripes of fat
     mat = [['salmfat' if mask[y, x] and streak[y, x] else 'salmon' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .8 + .22, 0, 1) * mask, mask, {'salmfat': 'salmon'})
 
-# ---------------- POLVO (tentáculo enrolado, ponta para dentro) ----------------
+# ---------------- OCTOPUS (curled tentacle, tip turned inwards) ----------------
 def octopus(seed, D=24, ang=None):
     rng = np.random.default_rng(seed + 3500)
     a = rng.random() * 6.28 if ang is None else ang
@@ -145,7 +145,7 @@ def octopus(seed, D=24, ang=None):
     best = np.full((D, D), 9.0); along = np.zeros((D, D)); side = np.zeros((D, D))
     S = np.linspace(0, 1, 120)
     pts = []
-    for s in S:                                             # espiral: grosso na base, fino e enrolado na ponta
+    for s in S:                                             # spiral: thick at the base, thin and curled at the tip
         th = a + s * 1.75 * np.pi
         rho = 8.2 * (1 - .62 * s)
         w = 3.4 * (1 - .78 * s) + .55
@@ -154,14 +154,14 @@ def octopus(seed, D=24, ang=None):
         d = np.hypot(xs - px_, ys - py_) / w
         upd = d < best
         best = np.where(upd, d, best); along = np.where(upd, s, along)
-        # lado de dentro da espiral: para onde ficam as ventosas
+        # inner side of the spiral: where the suckers go
         side = np.where(upd, (xs - px_) * -np.cos(th) + (ys - py_) * -np.sin(th), side)
     mask = best <= 1
     height = np.sqrt(np.clip(1 - best ** 2, 0, 1)) * 1.8
     mat = [['octo'] * D for _ in range(D)]
     img = render(mat, np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask, mask, {})
     pxl = img.load()
-    for (s, th, rho, w, px_, py_) in pts[4:100:9]:          # ventosas: pontos claros no lado de dentro
+    for (s, th, rho, w, px_, py_) in pts[4:100:9]:          # suckers: light dots on the inner side
         x = int(round(px_ - np.cos(th) * w * .55)); y = int(round(py_ - np.sin(th) * w * .55))
         if 0 <= x < D and 0 <= y < D and mask[y, x]:
             pxl[x, y] = R['sucker'][2] + (255,)
@@ -184,8 +184,8 @@ if __name__ == '__main__':
     ROW = 150
     sheet = Image.new('RGB', (1000, 40 + ROW * len(SETS)), (27, 20, 16))
     dr = ImageDraw.Draw(sheet)
-    dr.text((20, 10), 'Inteiro / fatiado (3 variantes)', fill=(240, 220, 180), font=fs)
-    dr.text((760, 10), 'Ralado / picado', fill=(240, 220, 180), font=fs)
+    dr.text((20, 10), 'Whole / sliced (3 variants)', fill=(240, 220, 180), font=fs)
+    dr.text((760, 10), 'Grated / chopped', fill=(240, 220, 180), font=fs)
     for i, (name, fn, gr) in enumerate(SETS):
         key = name.lower().replace(' ', '_').replace('ã', 'a')
         arr = [fn(s) for s in (1, 2, 3)]

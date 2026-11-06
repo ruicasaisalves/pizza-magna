@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Pizza Magna: décimo quinto lote em pixel detalhado, de outras culturas. Tofu, char siu
-(China), edamame, frango teriyaki (Japão), catupiry, calabresa (Brasil), mexilhões (Espanha),
-brie (França), frango tikka e grão-de-bico (Índia). Mesmo método de gen_ingredients.py
-(ver tools/CLAUDE.md).
+"""Pizza Magna: fifteenth batch in detailed pixel art, from other cultures. Tofu, char siu
+(China), edamame, teriyaki chicken (Japan), catupiry, calabresa (Brazil), mussels (Spain),
+brie (France), chicken tikka and chickpeas (India). Same method as gen_ingredients.py
+(see tools/CLAUDE.md).
 
-Rodam: mexilhão (bico da concha) e cunha de brie com 4 posições; vagem de edamame com 2
-(simétrica de ponta a ponta). Com ang=0 saem deitados, com a frente para a direita.
-O catupiry espalha-se e o grão-de-bico já é miúdo: nenhum dos dois se pica.
-Uso: python3 tools/gen_ingredients15.py <pasta>"""
+Rotating: mussel (shell beak) and brie wedge with 4 positions; edamame pod with 2
+(symmetric end to end). With ang=0 they lie down with the front to the right.
+Catupiry is spread and chickpeas are already small: neither is chopped.
+Usage: python3 tools/gen_ingredients15.py <folder>"""
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -39,37 +39,37 @@ R.update({
 })
 
 def box3q(W, H, x0, y0, w, h, d, top=235, front=150, side=70):
-    """caixa em 3/4 (topo, frente, lado direito) como mapa de luz, para cubos"""
+    """box in 3/4 (top, front, right side) as a light map, for cubes"""
     lt = Image.new('L', (W, H), 0); dl = ImageDraw.Draw(lt)
     dl.polygon([(x0, y0 + d), (x0 + w, y0 + d), (x0 + w + d, y0), (x0 + d, y0)], fill=top)
     dl.rectangle([x0, y0 + d, x0 + w - 1, y0 + d + h - 1], fill=front)
     dl.polygon([(x0 + w, y0 + d), (x0 + w + d, y0), (x0 + w + d, y0 + h - 1), (x0 + w, y0 + d + h - 1)], fill=side)
     return np.array(lt) / 255.0
 
-# ---------------- TOFU (cubo frito: miolo claro, arestas douradas) ----------------
+# ---------------- TOFU (fried cube: pale inside, golden edges) ----------------
 def tofu(seed, W=17, H=17):
     rng = np.random.default_rng(seed + 7900)
     s = int(rng.integers(10, 12))
     light = box3q(W, H, 1, 1, s, s - 1, 4)
     mask = light > 0
     edge = mask & ~(np.roll(mask, 1, 0) & np.roll(mask, -1, 0) & np.roll(mask, 1, 1) & np.roll(mask, -1, 1))
-    light = light + (rng.random((H, W)) - .5) * .06           # liso, com poros finos
+    light = light + (rng.random((H, W)) - .5) * .06           # smooth, with fine pores
     mat = [['tofufried' if edge[y, x] else 'tofu' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(light, 0, 1) * mask, mask, {'tofu': 'tofufried'})
 
-# ---------------- CHAR SIU (fatia de porco lacado: bordo vermelho, miolo rosado) ----------------
+# ---------------- CHAR SIU (slice of glazed pork: red edge, pink inside) ----------------
 def char_siu(seed, W=24, H=18):
     rng = np.random.default_rng(seed + 8000)
     u, v = axes(W, H, (rng.random() - .5) * 1.0)
     n = noise(H, W, 3, rng)
     mask = (np.abs(u) / 10) ** 4 + (np.abs(v) / 6.5) ** 4 <= 1 + (n - .5) * .25
     q = np.maximum(np.abs(u) / 10, np.abs(v) / 6.5)
-    glaze = q > .76 + (n - .5) * .1                          # crosta lacada à volta
+    glaze = q > .76 + (n - .5) * .1                          # glazed crust all round
     height = np.clip(1 - q ** 2, 0, 1) * .8 + np.sin(v * 1.8 + n * 3) * .15
     mat = [['charsiu' if glaze[y, x] else 'charmeat' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .8 + .24, 0, 1) * mask, mask, {'charmeat': 'charsiu'})
 
-# ---------------- EDAMAME (vagem com três grãos; simétrica de ponta a ponta) ----------------
+# ---------------- EDAMAME (pod with three beans; symmetric end to end) ----------------
 def edamame(seed, ang=None, W=24, H=12):
     rng = np.random.default_rng(seed + 8100)
     a = (rng.random() - .5) * 1.0 if ang is None else ang
@@ -78,7 +78,7 @@ def edamame(seed, ang=None, W=24, H=12):
     u, v = axes(W, H, a)
     vv = v - .6 * np.sin(u * .25)
     mask = np.zeros(u.shape, bool); height = np.zeros(u.shape)
-    for bu in (-6, 0, 6):                                     # três grãos dentro da vagem
+    for bu in (-6, 0, 6):                                     # three beans inside the pod
         e = ((u - bu) / 3.6) ** 2 + (vv / 3.0) ** 2
         mask |= e <= 1; height = np.maximum(height, np.where(e <= 1, np.sqrt(np.clip(1 - e, 0, 1)) * 1.6, 0))
     neck = (np.abs(u) <= 9.5) & (np.abs(vv) <= 2.0)
@@ -87,7 +87,7 @@ def edamame(seed, ang=None, W=24, H=12):
     mat = [['edapod'] * W for _ in range(H)]
     return render(mat, np.clip(shade(height, mask) * .85 + .22, 0, 1) * mask, mask, {})
 
-# ---------------- FRANGO TERIYAKI (pedaço lacado e brilhante, com sésamo) ----------------
+# ---------------- TERIYAKI CHICKEN (glazed, glossy piece, with sesame) ----------------
 def teriyaki(seed, W=19, H=16):
     rng = np.random.default_rng(seed + 8200)
     ys, xs, cx, cy = grid(W, H)
@@ -98,57 +98,57 @@ def teriyaki(seed, W=19, H=16):
     height = np.clip(1 - rr ** 2, 0, 1) ** .5 * 1.8
     img = render([['teri'] * W for _ in range(H)], np.clip(shade(height, mask) * 1.05 + .1, 0, 1) * mask, mask, {})
     px = img.load()
-    for _ in range(4):                                        # sementes de sésamo
+    for _ in range(4):                                        # sesame seeds
         x, y = int(cx + (rng.random() - .5) * 9), int(cy + (rng.random() - .5) * 7)
         if mask[y, x] and x + 1 < W and mask[y, x + 1]:
             px[x, y] = R['sesame'][2] + (255,); px[x + 1, y] = R['sesame'][0] + (255,)
     return img
 
-# ---------------- CATUPIRY (rosa de queijo cremoso, saído do saco) ----------------
+# ---------------- CATUPIRY (rosette of creamy cheese, piped from the bag) ----------------
 def catupiry(seed, W=22, H=20):
     rng = np.random.default_rng(seed + 8300)
     ys, xs, cx, cy = grid(W, H)
     dx, dy = (xs - cx) / (W / 2 - 1.5), (ys - cy) / (H / 2 - 1.5)
     ang = np.arctan2(dy, dx); a = rng.random() * 6.28
     r = np.hypot(dx, dy)
-    rr = r / (1 + .1 * np.sin(ang * 6 + a))                   # bordo em pétalas, do bico do saco
+    rr = r / (1 + .1 * np.sin(ang * 6 + a))                   # petal edge, from the piping nozzle
     mask = rr <= 1
-    spiral = np.sin(ang * 1 - r * 11 + a) * .35               # espiral do creme
+    spiral = np.sin(ang * 1 - r * 11 + a) * .35               # swirl of the cream
     height = np.clip(1 - rr ** 2, 0, 1) ** .7 * 1.8 + spiral * np.clip(1 - rr, 0, 1)
     return render([['catu'] * W for _ in range(H)], np.clip(shade(height, mask) * .8 + .26, 0, 1) * mask, mask, {})
 
-# ---------------- CALABRESA (rodela rosada, de bordo curvado para cima) ----------------
+# ---------------- CALABRESA (pink slice, edge curled up) ----------------
 def calabresa(seed, D=19):
     rng = np.random.default_rng(seed + 8400)
     ys, xs, c, _ = grid(D, D)
     sq = 1 + (rng.random() - .5) * .2
     r = np.hypot((xs - c) * sq, (ys - c) / sq) / (D / 2 - .4)
     mask = r <= 1
-    height = r ** 2 * 1.3                                     # bordo levantado, como copinho
+    height = r ** 2 * 1.3                                     # raised edge, like a little cup
     fat = (rng.random((D, D)) > .9) & (r < .78)
     mat = [['calabfat' if fat[y, x] else 'calab' for x in range(D)] for y in range(D)]
     light = np.clip(shade(height, mask) * .8 + .25 - np.where(r > .88, .25, 0), 0, 1) * mask
     return render(mat, light, mask, {'calabfat': 'calab'})
 
-# ---------------- MEXILHÃO (meia concha negra com o miolo cor de laranja; bico à esquerda) ----------------
+# ---------------- MUSSEL (black half shell with orange meat; beak on the left) ----------------
 def mussel(seed, ang=None, W=24, H=16):
     rng = np.random.default_rng(seed + 8500)
     a = (rng.random() - .5) * 1.0 if ang is None else ang
     if ang is not None and abs(np.sin(ang)) > .5: W, H = H, W
     elif ang is None: W, H = 26, 22
     u, v = axes(W, H, a)
-    t = np.clip((u + 10.5) / 21, 0, 1)                         # 0 no bico, 1 no bordo largo
+    t = np.clip((u + 10.5) / 21, 0, 1)                         # 0 at the beak, 1 at the wide edge
     half = 6.6 * np.clip(np.sin(np.pi * np.clip(t, 0, 1) * .92 + .12), 0, 1) ** .7 * np.where(t > .55, np.sqrt(np.clip(1 - ((t - .55) / .45) ** 2, 0, 1)), 1)
-    vv = v - (t - .5) * 1.5                                    # concha ligeiramente curva
+    vv = v - (t - .5) * 1.5                                    # slightly curved shell
     shell = (u >= -10.5) & (u <= 10.5) & (np.abs(vv) <= half) & (half > 1.2)
-    meat = shell & (np.abs(vv) <= half * .55) & (t > .3) & (t < .82)    # miolo pequeno: a concha negra domina
+    meat = shell & (np.abs(vv) <= half * .55) & (t > .3) & (t < .82)    # small meat: the black shell dominates
     rings = ((t * 21) % 3.2) < 1.0
     height = np.where(meat, 1.2 + np.clip(1 - (vv / (half + .01)) ** 2, 0, 1) * .8, np.clip(1 - (vv / (half + .01)) ** 2, 0, 1) * .6)
     mat = [['musmeat' if meat[y, x] else 'musshell' for x in range(W)] for y in range(H)]
     light = np.clip(shade(height, shell) * .8 + .25 - np.where(~meat & rings, .15, 0), 0, 1) * shell
     return render(mat, light, shell, {'musmeat': 'musshell'})
 
-# ---------------- BRIE (cunha: casca branca aveludada por fora, miolo cremoso; ponta à direita) ----------------
+# ---------------- BRIE (wedge: white velvety rind outside, creamy inside; tip on the right) ----------------
 def brie(seed, ang=None, W=24, H=20):
     rng = np.random.default_rng(seed + 8600)
     a = (rng.random() - .5) * 1.2 if ang is None else ang
@@ -159,26 +159,26 @@ def brie(seed, ang=None, W=24, H=20):
     top = (u >= -9) & (u <= 10) & (np.abs(v) <= half)
     side = (u >= -9) & (u <= 10) & (v > half) & (v <= half + 2.2 * (1 - t) + .4)
     mask = top | side
-    rind = mask & ((u < -7) | side)                           # casca branca atrás e na face de lado
-    ooze = top & (u > -7) & (rng.random(u.shape) > .9)        # miolo a escorrer
+    rind = mask & ((u < -7) | side)                           # white rind at the back and on the side face
+    ooze = top & (u > -7) & (rng.random(u.shape) > .9)        # runny inside
     light = np.where(top, .8, .5) + (rng.random(u.shape) - .5) * .1 + np.where(ooze, -.15, 0)
     mat = [['brierind' if rind[y, x] else 'brie' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(light, 0, 1) * mask, mask, {'brie': 'brierind'})
 
-# ---------------- FRANGO TIKKA (cubo marinado, com marcas do tandoor) ----------------
+# ---------------- CHICKEN TIKKA (marinated cube, with tandoor marks) ----------------
 def tikka(seed, W=18, H=16):
     rng = np.random.default_rng(seed + 8700)
     ys, xs, cx, cy = grid(W, H)
     dx, dy = (xs - cx) / 7, (ys - cy) / 6
-    q = np.maximum(np.abs(dx), np.abs(dy)) * .7 + np.hypot(dx, dy) * .35   # cubo de cantos redondos
+    q = np.maximum(np.abs(dx), np.abs(dy)) * .7 + np.hypot(dx, dy) * .35   # round-cornered cube
     n = noise(H, W, 2, rng)
     mask = q <= 1 + (n - .5) * .2
     height = np.clip(1 - q ** 2, 0, 1) ** .5 * 1.6 + (n - .5) * .5
-    charred = (rng.random((H, W)) > .86) & (q < .9)            # pontos queimados
+    charred = (rng.random((H, W)) > .86) & (q < .9)            # charred spots
     light = np.clip(shade(height, mask) * .85 + .2 - np.where(charred, .45, 0), 0, 1) * mask
     return render([['tikka'] * W for _ in range(H)], light, mask, {})
 
-# ---------------- GRÃO-DE-BICO (punhado de grãos redondos, com bico) ----------------
+# ---------------- CHICKPEAS (handful of round beans, with a beak) ----------------
 def chickpeas(seed, W=17, H=15):
     rng = np.random.default_rng(seed + 8800)
     ys, xs, cx, cy = grid(W, H)
@@ -188,7 +188,7 @@ def chickpeas(seed, W=17, H=15):
     for ox, oy in spots[:4 + seed % 2]:
         e = ((xs - cx - ox) ** 2 + (ys - cy - oy) ** 2) / 6.5
         m = (e <= 1) & ~mask
-        beak = np.hypot(xs - cx - ox - 1.6, ys - cy - oy + 1.6) < .9     # biquinho do grão
+        beak = np.hypot(xs - cx - ox - 1.6, ys - cy - oy + 1.6) < .9     # little beak of the bean
         mask |= m; height = np.where(m, np.sqrt(np.clip(1 - e, 0, 1)) * 1.8 + np.where(beak, .5, 0), height)
     return render([['grao'] * W for _ in range(H)], np.clip(shade(height, mask) * .8 + .26, 0, 1) * mask, mask, {})
 
@@ -212,8 +212,8 @@ if __name__ == '__main__':
     ROW = 150
     sheet = Image.new('RGB', (1000, 40 + ROW * len(SETS)), (27, 20, 16))
     dr = ImageDraw.Draw(sheet)
-    dr.text((20, 10), 'Inteiro / fatiado (3 variantes; nos que rodam, a 1.ª é a deitada)', fill=(240, 220, 180), font=fs)
-    dr.text((760, 10), 'Ralado / picado', fill=(240, 220, 180), font=fs)
+    dr.text((20, 10), 'Whole / sliced (3 variants; for rotating pieces, the 1st lies down)', fill=(240, 220, 180), font=fs)
+    dr.text((760, 10), 'Grated / chopped', fill=(240, 220, 180), font=fs)
     ROT = {'Edamame', 'Mexilhões', 'Brie'}
     for i, (name, fn, gr) in enumerate(SETS):
         key = name.lower().replace(' ', '_').replace('õ', 'o').replace('ã', 'a')
@@ -232,6 +232,6 @@ if __name__ == '__main__':
             bg.paste(m, ((190 - m.width) // 2, (ROW - 12 - m.height) // 2), m)
             sheet.paste(bg, (x, y)); x += 200
         if not g:
-            dr.text((770, y + 60), 'não se pica', fill=(200, 180, 150), font=fs)
+            dr.text((770, y + 60), 'not chopped', fill=(200, 180, 150), font=fs)
     sheet.save(OUT + 'preview_ingredientes15.png')
     print('ok', sheet.size)
