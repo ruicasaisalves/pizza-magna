@@ -13,7 +13,7 @@ Jogo de gestão de pizzarias em pixel art dos anos 90, para browser e telemóvel
   - `= UI: SHOP =`, `= UI: CONTEST =`, `= MODALS =`
   - `= RENDER + EVENTS =`: `render()` e as ações dos botões (`ACT`)
 - `sprites.js`: sala, mobília e personagens, gerados em código.
-- `music.js`: música 8 bits / lo-fi italiana, sintetizada com Web Audio (sem ficheiros de som). Cada música é texto: uma nota por colcheia, `-` prolonga, `.` é silêncio. Melodia, baixo e harmonia têm de ter o mesmo número de passos por parte. A preferência ligada/desligada fica em `localStorage` (`pm-music`), à parte da gravação.
+- `music.js`: música 8 bits / lo-fi italiana, sintetizada com Web Audio (sem ficheiros de som). Cada música é texto: uma nota por colcheia, `-` prolonga, `.` é silêncio. Melodia, baixo e harmonia têm de ter o mesmo número de passos por parte. As músicas tocam numa ordem fixa ("Próxima música" nas Opções). A preferência ligada/desligada fica em `localStorage` (`pm-music`), à parte da gravação.
 - `assets/ingredients.js`: atlas dos ingredientes. **É gerado** por `tools/build_atlas.py`; nunca se edita à mão. Ver `tools/CLAUDE.md`.
 - `docs/ingredientes.md`: a lista de ingredientes (✓★ = já no jogo) e as ideias de combos.
 - `docs/packs-de-arte.md`: packs de arte avaliados e a decisão de estilo.

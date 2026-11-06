@@ -102,6 +102,10 @@ h3{font-size:.92rem}
 .pantry .cats{margin-top:8px}
 .pantry .cats button small{opacity:.6}
 @media (min-width:1000px){.pantry{max-height:516px;overflow:auto}}
+.stage #zbar{display:grid;gap:6px;justify-items:center;width:100%}
+.zname{font-family:Silkscreen,monospace;color:#fff1d2;text-shadow:1px 1px 0 var(--wood-deep)}
+.zcut{display:flex;gap:6px}
+.zlcd{font-family:Silkscreen,monospace;background:#081008;color:#8cff73;border:2px solid var(--wood-deep);padding:4px 12px;display:flex;gap:18px}
 .stage .hint{color:#fff4dc;font-size:.85rem;text-shadow:1px 1px 0 var(--wood-deep);text-align:center}
 .tools{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 .field{display:flex;flex-direction:column;gap:6px}
@@ -280,7 +284,7 @@ en:{
   'n.grated':'Grated toppings spread the flavour',
   'n.combo':'Combo: {x}','n.clash':'Clash: {x}',
   'k.canvas':'Pizza being made','k.hint':'Pick a topping, choose whole or chopped, then tap or drag over the pizza',
-  'k.sprinkle':'Scatter {x}','k.undo':'Undo','k.clear':'Clear',
+  'k.zoom':'Zoom','k.unzoom':'Exit zoom','k.undo':'Undo','k.clear':'Clear',
   'k.ings':'Toppings (price per portion)','k.title.new':'New recipe','k.title.edit':'Editing recipe','k.fresh':'Start over',
   'k.name':'Pizza name','k.dough':'Dough','k.sauce':'Sauce','k.save.new':'Add to menu','k.save.edit':'Save changes',
   'k.inmenu':'{n} pizzas on the menu','k.book':'Combo book: {n}/{t} found','k.book.unk':'{n} toppings to discover',
@@ -292,7 +296,7 @@ en:{
   'k.empty':'Empty pizza. Start with the cheese.','k.needname':'Give the pizza a name.','k.needmore':'Add a few toppings first.',
   'k.updated':'{x} updated.','k.added':'{x} is on the menu at {p}.',
   'k.newname':'New pizza','k.rotate':'Rotate {x}','k.rotatetip':'Turns the last piece or the next one. With a mouse, right-click a piece to turn it.','k.norotate':'{x} doesn’t need turning.',
-  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte.drizzle':'DRIZZLE','bench.nograte.spread':'SPREAD','bench.nograte.small':'SMALL','bench.q':'PRICE','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','chef.title':'Welcome, chef!','chef.lead':'What should we call you? Your name signs every pizza you share.','chef.name':'Chef’s name','chef.shop':'Pizzeria name','chef.defshop':'Pizzeria {c}','chef.save':'Start cooking','chef.need':'Fill in the chef’s name and the pizzeria’s name.','chef.or':'or','chef.quick':'Quick start','chef.hello':'Saved. Good luck, chef {c}!','fs.enter':'Full screen','fs.exit':'Leave full screen','fs.no':'This browser does not allow full screen here.','lang.title':'Language','lang.auto':'Automatic (browser)','lang.en':'English','lang.pt':'Português','mus.title':'Music','mus.vol':'Volume','mus.v1':'Low','mus.v2':'Quiet','mus.v3':'Medium','mus.v4':'Loud','mus.v5':'Max','mus.on':'Turn music on','mus.off':'Turn music off','mus.next':'Another tune','mus.now':'Now playing: {x}','mus.waiting':'On. A tune plays every now and then.','mus.offlead':'Off.','opt.title':'Options','opt.names':'Chef and pizzeria','opt.savenames':'Save names','opt.saves':'Saved game','opt.auto':'Your progress is saved in this browser after every change. Last saved: {w}.','opt.export':'Download save','opt.import':'Import save','opt.exported':'Save file downloaded.','opt.imported':'Save imported. Welcome back, chef {c}!','opt.badfile':'That file is not a Pizza Magna save.','opt.reset':'Reset progress','opt.resetlead':'Starts again from day 1 with the starter menu. Your chef and pizzeria names stay.','opt.sure':'Sure? Click again to reset','opt.wasreset':'Progress reset.','chef.edit':'Change chef and pizzeria','chef.by':'Made by {c} · {s}','share.btn':'Download photo','share.saved':'Photo downloaded: {f}','share.manual':'Downloads are blocked here. Right-click the photo (or press and hold on a phone) and choose “Save image”.','share.close':'Close','share.make':'Make yours at','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES','rec.btn':"Share recipe",'rec.title':"Share the recipe",'rec.lead':"Anyone who opens this link gets “{x}” on their bench, piece by piece, signed with the original chef.",'rec.send':"Send…",'rec.copy':"Copy link",'rec.file':"Download .pizza file",'rec.copied':"Link copied.",'rec.selfcopy':"Select the link and copy it.",'rec.sendtxt':"Try my pizza “{x}” on Pizza Magna",'rec.filed':"Recipe downloaded: {f}",'rec.import':"Import pizza",'rec.implead':"Paste a recipe link or code, or choose a .pizza file.",'rec.load':"Put it on the bench",'rec.choose':"Choose file",'rec.got':"“{x}” by chef {c} is on the bench. Save it to add it to the menu.",'rec.bad':"That is not a Pizza Magna recipe.",'rec.from':"Recipe by {c} · {s}",
+  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte.drizzle':'DRIZZLE','bench.nograte.spread':'SPREAD','bench.nograte.small':'SMALL','bench.q':'PRICE','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','chef.title':'Welcome, chef!','chef.lead':'What should we call you? Your name signs every pizza you share.','chef.name':'Chef’s name','chef.shop':'Pizzeria name','chef.defshop':'Pizzeria {c}','chef.save':'Start cooking','chef.need':'Fill in the chef’s name and the pizzeria’s name.','chef.or':'or','chef.quick':'Quick start','chef.hello':'Saved. Good luck, chef {c}!','fs.enter':'Full screen','fs.exit':'Leave full screen','fs.no':'This browser does not allow full screen here.','lang.title':'Language','lang.auto':'Automatic (browser)','lang.en':'English','lang.pt':'Português','mus.title':'Music','mus.vol':'Volume','mus.v1':'Low','mus.v2':'Quiet','mus.v3':'Medium','mus.v4':'Loud','mus.v5':'Max','mus.on':'Turn music on','mus.off':'Turn music off','mus.next':'Next song','mus.now':'Now playing: {x}','mus.waiting':'On. A tune plays every now and then.','mus.offlead':'Off.','opt.title':'Options','opt.names':'Chef and pizzeria','opt.savenames':'Save names','opt.saves':'Saved game','opt.auto':'Your progress is saved in this browser after every change. Last saved: {w}.','opt.export':'Download save','opt.import':'Import save','opt.exported':'Save file downloaded.','opt.imported':'Save imported. Welcome back, chef {c}!','opt.badfile':'That file is not a Pizza Magna save.','opt.reset':'Reset progress','opt.resetlead':'Starts again from day 1 with the starter menu. Your chef and pizzeria names stay.','opt.sure':'Sure? Click again to reset','opt.wasreset':'Progress reset.','chef.edit':'Change chef and pizzeria','chef.by':'Made by {c} · {s}','share.btn':'Download photo','share.saved':'Photo downloaded: {f}','share.manual':'Downloads are blocked here. Right-click the photo (or press and hold on a phone) and choose “Save image”.','share.close':'Close','share.make':'Make yours at','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES','rec.btn':"Share recipe",'rec.title':"Share the recipe",'rec.lead':"Anyone who opens this link gets “{x}” on their bench, piece by piece, signed with the original chef.",'rec.send':"Send…",'rec.copy':"Copy link",'rec.file':"Download .pizza file",'rec.copied':"Link copied.",'rec.selfcopy':"Select the link and copy it.",'rec.sendtxt':"Try my pizza “{x}” on Pizza Magna",'rec.filed':"Recipe downloaded: {f}",'rec.import':"Import pizza",'rec.implead':"Paste a recipe link or code, or choose a .pizza file.",'rec.load':"Put it on the bench",'rec.choose':"Choose file",'rec.got':"“{x}” by chef {c} is on the bench. Save it to add it to the menu.",'rec.bad':"That is not a Pizza Magna recipe.",'rec.from':"Recipe by {c} · {s}",
   'menu.house':'House menu','menu.lead':'Adjust the prices. The fair price depends on quality and on who comes in: gourmets pay more, students count every cent.','menu.empty':'The menu is empty. Create a pizza in the Kitchen to open the doors.','menu.gokitchen':'Go to the Kitchen',
   'menu.cost':'Cost','menu.margin':'Margin','menu.fair':'Fair price','menu.sold':'Sold yesterday','menu.edit':'Edit recipe','menu.remove':'Remove','menu.confirm':'Confirm removal','menu.new':'+ Create new pizza ({n})','menu.pdn':'Lower price','menu.pup':'Raise price'
 },
@@ -347,7 +351,7 @@ pt:{
   'n.grated':'O ralado espalha o sabor',
   'n.combo':'Combo: {x}','n.clash':'Choque: {x}',
   'k.canvas':'Pizza em preparação','k.hint':'Escolhe um ingrediente, inteiro ou picado, e toca ou arrasta sobre a pizza',
-  'k.sprinkle':'Espalhar {x}','k.undo':'Desfazer','k.clear':'Limpar',
+  'k.zoom':'Zoom','k.unzoom':'Sair do zoom','k.undo':'Desfazer','k.clear':'Limpar',
   'k.ings':'Ingredientes (preço por porção)','k.title.new':'Nova receita','k.title.edit':'A editar receita','k.fresh':'Começar do zero',
   'k.name':'Nome da pizza','k.dough':'Massa','k.sauce':'Molho','k.save.new':'Pôr no menu','k.save.edit':'Guardar alterações',
   'k.inmenu':'{n} pizzas no menu','k.book':'Livro de combos: {n}/{t} descobertos','k.book.unk':'{n} ingredientes por descobrir',
@@ -359,7 +363,7 @@ pt:{
   'k.empty':'Pizza vazia. Começa pelo queijo.','k.needname':'Dá um nome à pizza.','k.needmore':'Põe pelo menos alguns ingredientes.',
   'k.updated':'{x} atualizada.','k.added':'{x} entrou no menu por {p}.',
   'k.newname':'Nova pizza','k.rotate':'Rodar {x}','k.rotatetip':'Roda a última peça ou a próxima. Com o rato, clica com o botão direito numa peça para a rodar.','k.norotate':'{x} não precisa de rodar.',
-  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte.drizzle':'EM FIO','bench.nograte.spread':'ESPALHA-SE','bench.nograte.small':'JÁ É MIÚDO','bench.q':'PREÇO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','chef.title':'Bem-vindo, chef!','chef.lead':'Como te chamas? O teu nome assina todas as pizzas que partilhares.','chef.name':'Nome do chef','chef.shop':'Nome da pizzaria','chef.defshop':'Pizzaria {c}','chef.save':'Começar a cozinhar','chef.need':'Preenche o nome do chef e o da pizzaria.','chef.or':'ou','chef.quick':'Começo rápido','chef.hello':'Guardado. Bom trabalho, chef {c}!','fs.enter':'Ecrã inteiro','fs.exit':'Sair do ecrã inteiro','fs.no':'Este browser não deixa usar o ecrã inteiro aqui.','lang.title':'Língua','lang.auto':'Automática (do browser)','lang.en':'English','lang.pt':'Português','mus.title':'Música','mus.vol':'Volume','mus.v1':'Baixo','mus.v2':'Suave','mus.v3':'Médio','mus.v4':'Alto','mus.v5':'Máximo','mus.on':'Ligar a música','mus.off':'Desligar a música','mus.next':'Outra música','mus.now':'A tocar: {x}','mus.waiting':'Ligada. De vez em quando toca uma música.','mus.offlead':'Desligada.','opt.title':'Opções','opt.names':'Chef e pizzaria','opt.savenames':'Guardar nomes','opt.saves':'Jogo guardado','opt.auto':'O progresso fica guardado neste browser a cada alteração. Última gravação: {w}.','opt.export':'Descarregar gravação','opt.import':'Importar gravação','opt.exported':'Ficheiro de gravação descarregado.','opt.imported':'Gravação importada. Bem-vindo de volta, chef {c}!','opt.badfile':'Esse ficheiro não é uma gravação do Pizza Magna.','opt.reset':'Recomeçar o progresso','opt.resetlead':'Volta ao dia 1, com o menu inicial. Os nomes do chef e da pizzaria ficam.','opt.sure':'Tens a certeza? Carrega outra vez','opt.wasreset':'Progresso recomeçado.','chef.edit':'Mudar chef e pizzaria','chef.by':'Feita por {c} · {s}','share.btn':'Descarregar foto','share.saved':'Foto descarregada: {f}','share.manual':'Aqui as transferências estão bloqueadas. Carrega com o botão direito na foto (ou mantém o dedo, no telemóvel) e escolhe “Guardar imagem”.','share.close':'Fechar','share.make':'Faz a tua em','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS','rec.btn':"Partilhar receita",'rec.title':"Partilhar a receita",'rec.lead':"Quem abrir este link recebe “{x}” na bancada, peça a peça, assinada pelo chef original.",'rec.send':"Enviar…",'rec.copy':"Copiar link",'rec.file':"Descarregar ficheiro .pizza",'rec.copied':"Link copiado.",'rec.selfcopy':"Seleciona o link e copia-o.",'rec.sendtxt':"Experimenta a minha pizza “{x}” no Pizza Magna",'rec.filed':"Receita descarregada: {f}",'rec.import':"Importar pizza",'rec.implead':"Cola um link ou código de receita, ou escolhe um ficheiro .pizza.",'rec.load':"Pôr na bancada",'rec.choose':"Escolher ficheiro",'rec.got':"“{x}”, do chef {c}, está na bancada. Guarda-a para a pôr no menu.",'rec.bad':"Isso não é uma receita do Pizza Magna.",'rec.from':"Receita de {c} · {s}",
+  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte.drizzle':'EM FIO','bench.nograte.spread':'ESPALHA-SE','bench.nograte.small':'JÁ É MIÚDO','bench.q':'PREÇO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','chef.title':'Bem-vindo, chef!','chef.lead':'Como te chamas? O teu nome assina todas as pizzas que partilhares.','chef.name':'Nome do chef','chef.shop':'Nome da pizzaria','chef.defshop':'Pizzaria {c}','chef.save':'Começar a cozinhar','chef.need':'Preenche o nome do chef e o da pizzaria.','chef.or':'ou','chef.quick':'Começo rápido','chef.hello':'Guardado. Bom trabalho, chef {c}!','fs.enter':'Ecrã inteiro','fs.exit':'Sair do ecrã inteiro','fs.no':'Este browser não deixa usar o ecrã inteiro aqui.','lang.title':'Língua','lang.auto':'Automática (do browser)','lang.en':'English','lang.pt':'Português','mus.title':'Música','mus.vol':'Volume','mus.v1':'Baixo','mus.v2':'Suave','mus.v3':'Médio','mus.v4':'Alto','mus.v5':'Máximo','mus.on':'Ligar a música','mus.off':'Desligar a música','mus.next':'Próxima música','mus.now':'A tocar: {x}','mus.waiting':'Ligada. De vez em quando toca uma música.','mus.offlead':'Desligada.','opt.title':'Opções','opt.names':'Chef e pizzaria','opt.savenames':'Guardar nomes','opt.saves':'Jogo guardado','opt.auto':'O progresso fica guardado neste browser a cada alteração. Última gravação: {w}.','opt.export':'Descarregar gravação','opt.import':'Importar gravação','opt.exported':'Ficheiro de gravação descarregado.','opt.imported':'Gravação importada. Bem-vindo de volta, chef {c}!','opt.badfile':'Esse ficheiro não é uma gravação do Pizza Magna.','opt.reset':'Recomeçar o progresso','opt.resetlead':'Volta ao dia 1, com o menu inicial. Os nomes do chef e da pizzaria ficam.','opt.sure':'Tens a certeza? Carrega outra vez','opt.wasreset':'Progresso recomeçado.','chef.edit':'Mudar chef e pizzaria','chef.by':'Feita por {c} · {s}','share.btn':'Descarregar foto','share.saved':'Foto descarregada: {f}','share.manual':'Aqui as transferências estão bloqueadas. Carrega com o botão direito na foto (ou mantém o dedo, no telemóvel) e escolhe “Guardar imagem”.','share.close':'Fechar','share.make':'Faz a tua em','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS','rec.btn':"Partilhar receita",'rec.title':"Partilhar a receita",'rec.lead':"Quem abrir este link recebe “{x}” na bancada, peça a peça, assinada pelo chef original.",'rec.send':"Enviar…",'rec.copy':"Copiar link",'rec.file':"Descarregar ficheiro .pizza",'rec.copied':"Link copiado.",'rec.selfcopy':"Seleciona o link e copia-o.",'rec.sendtxt':"Experimenta a minha pizza “{x}” no Pizza Magna",'rec.filed':"Receita descarregada: {f}",'rec.import':"Importar pizza",'rec.implead':"Cola um link ou código de receita, ou escolhe um ficheiro .pizza.",'rec.load':"Pôr na bancada",'rec.choose':"Escolher ficheiro",'rec.got':"“{x}”, do chef {c}, está na bancada. Guarda-a para a pôr no menu.",'rec.bad':"Isso não é uma receita do Pizza Magna.",'rec.from':"Receita de {c} · {s}",
   'menu.house':'Menu da casa','menu.lead':'Ajusta os preços. O preço justo depende da qualidade e de quem entra: gourmets pagam mais, estudantes contam cada cêntimo.','menu.empty':'O menu está vazio. Cria uma pizza na Cozinha para poderes abrir portas.','menu.gokitchen':'Ir para a Cozinha',
   'menu.cost':'Custo','menu.margin':'Margem','menu.fair':'Preço justo','menu.sold':'Vendidas ontem','menu.edit':'Editar receita','menu.remove':'Remover','menu.confirm':'Confirmar remoção','menu.new':'+ Criar nova pizza ({n})','menu.pdn':'Baixar preço','menu.pup':'Subir preço'
 }};
@@ -798,9 +802,9 @@ function kitchenHTML(){
   return `<section class="kitchen">
     <div class="bench">
       <div class="stage"><canvas id="pz" width="${BW}" height="${BH}" aria-label="${t('k.canvas')}"></canvas>
-        <div class="hint">${t('k.hint')}</div>
+        ${state.zoom?'<div id="zbar"></div>':`<div class="hint">${t('k.hint')}</div>`}
         <div class="tools">
-          <button class="btn sm" data-act="sprinkle">${esc(t('k.sprinkle',{x:ING[state.sel].n}))}</button>
+          <button class="btn sm" data-act="zoom" aria-pressed="${!!state.zoom}">${t(state.zoom?'k.unzoom':'k.zoom')}</button>
           <button class="btn sm" data-act="rotate" ${canRotate(state.sel)?'':'hidden'} title="${esc(t('k.rotatetip'))}">${esc(t('k.rotate',{x:ING[state.sel].n}))}</button>
           <button class="btn sm" data-act="undo">${t('k.undo')}</button>
           <button class="btn sm" data-act="clear">${t('k.clear')}</button>
@@ -827,8 +831,10 @@ function kitchenHTML(){
 }
 
 /* ---- the pizza bench: a 320x200 logical screen, scaled by whole numbers ---- */
-const BW=320,BH=200,PX=12,PY=15;                       // pizza top-left on the bench
-const PCX=PX+PR,PCY=PY+PR;
+// normal bench 320x200 (pizza + bowls + LCD); zoom: only the pizza, as wide as the screen, with the controls as text below
+let BW=320,BH=200,PX=12,PY=15;                         // pizza top-left on the bench
+let PCX=PX+PR,PCY=PY+PR;
+function benchLayout(){if(state.zoom){BW=BH=PZ+8;PX=PY=4}else{BW=320;BH=200;PX=12;PY=15}PCX=PX+PR;PCY=PY+PR}
 const BOWLS=[{g:0,x:227,y:26},{g:1,x:227,y:94}];       // bowl sprite top-left (58x40)
 const BOWL_W=58,BOWL_H=40;
 let pz=null;
@@ -836,16 +842,17 @@ function benchScale(){
   // whole-number zoom when it fits (x1, x2); below 320 px it shrinks to fit the phone
   const st=$('.stage'),cs=getComputedStyle(st),wide=window.innerWidth>=1000;
   const avail=$('.kitchen').clientWidth-(wide?320:0)-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-12;
+  if(state.zoom)return Math.min(avail,560)/BW;   // zoom: fill the width (phones), capped on big screens
   return avail<BW?avail/BW:Math.min(2,Math.floor(avail/BW));
 }
 function setupPizzaCanvas(){
-  const cv=$('#pz');
+  const cv=$('#pz');benchLayout();cv.width=BW;cv.height=BH;
   const k=benchScale();cv.style.width=BW*k+'px';cv.style.height=BH*k+'px';
   const c=cv.getContext('2d');c.imageSmoothingEnabled=false;
   pz={cv,c,pizza:null,ghost:null};drawDraft();
   let down=false,last=null;
   const pos=e=>{const r=cv.getBoundingClientRect();const lx=(e.clientX-r.left)/r.width*BW,ly=(e.clientY-r.top)/r.height*BH;return {lx,ly,x:(lx-PCX)/PR,y:(ly-PCY)/PR}};
-  const bowlAt=p=>BOWLS.find(b=>p.lx>=b.x-6&&p.lx<=b.x+BOWL_W+6&&p.ly>=b.y-4&&p.ly<=b.y+BOWL_H+16);
+  const bowlAt=p=>!state.zoom&&BOWLS.find(b=>p.lx>=b.x-6&&p.lx<=b.x+BOWL_W+6&&p.ly>=b.y-4&&p.ly<=b.y+BOWL_H+16);
   cv.oncontextmenu=e=>{e.preventDefault();const p=pos(e);if(Math.hypot(p.x,p.y)<=1)rotatePiece(p)};
   cv.onpointerdown=e=>{
     if(e.button!==0)return;
@@ -893,6 +900,7 @@ function drawBench(){
   if(!pz.pizza)pz.pizza=composePizza(d);
   c.drawImage(pz.pizza,PX,PY);
   if(pz.ghost)spr(c,cut?sel+'_g0':wholeKey(sel,0,curAng()),PCX+pz.ghost.x*PR,PCY+pz.ghost.y*PR,.6);
+  if(state.zoom){zoomBar();return}
   // right side: ingredient name plate and two bowls (whole / grated)
   const cx=BOWLS[0].x+BOWL_W/2;
   // name plate grows with the name (long names like "Salsicha italiana"), up to the bench edge
@@ -914,6 +922,12 @@ function drawBench(){
   c.textAlign='left';c.fillText(t('bench.q'),lx+3,ly+3);c.fillText(t('bench.n'),lx+3,ly+15);
   c.textAlign='right';c.fillText(eur(suggestPrice(a)),lx+lw-3,ly+3);c.fillText(String(d.pieces.length),lx+lw-3,ly+15);   // top line: suggested price, not quality
 }
+// zoom mode: ingredient name, whole/chopped and the price/pieces line as plain HTML under the pizza
+function zoomBar(){const el=$('#zbar');if(!el)return;const sel=state.sel,cut=curCut(),ok=canGrate(sel),a=analyze(state.draft);
+  const cutL=t(ok?(ING[sel].t.includes('queijo')?'bench.grated':'bench.chopped'):'bench.nograte.'+noCutKind(sel));
+  el.innerHTML=`<div class="zname">${esc(ING[sel].n)}</div>
+    <div class="zcut"><button class="btn sm ${cut?'ghost':'primary'}" data-act="cut" data-v="0">${t('bench.whole')}</button><button class="btn sm ${cut?'primary':'ghost'}" data-act="cut" data-v="1" ${ok?'':'disabled'}>${cutL}</button></div>
+    <div class="zlcd"><span>${t('bench.q')} ${eur(suggestPrice(a))}</span><span>${t('bench.n')} ${state.draft.pieces.length}</span></div>`}
 function drawDraft(){if(!pz)return;pz.pizza=null;drawBench()}
 function addPiece(p){
   if(Math.hypot(p.x,p.y)>.8)return false;
@@ -1442,9 +1456,10 @@ const ACT={
   dough:b=>{state.draft.dough=b.dataset.v;render()},
   sauce:b=>{state.draft.sauce=b.dataset.v;render()},
   cat:b=>{state.cat=b.dataset.v;const pe=$('.pantry');if(pe){pe.innerHTML=pantryHTML();drawIngIcons()}save()},
-  ing:b=>{const k=b.dataset.v;if(!state.unlocked.includes(ING[k].pack)){toast(t('k.locked',{i:ING[k].n,p:PACKS[ING[k].pack]}));return}state.sel=k;document.querySelectorAll('.ing').forEach(x=>x.classList.toggle('on',x.dataset.v===k));const sp=$('[data-act="sprinkle"]');if(sp)sp.textContent=t('k.sprinkle',{x:ING[k].n});const rb=$('[data-act="rotate"]');if(rb){rb.hidden=!canRotate(k);rb.textContent=t('k.rotate',{x:ING[k].n})}drawBench()},
+  ing:b=>{const k=b.dataset.v;if(!state.unlocked.includes(ING[k].pack)){toast(t('k.locked',{i:ING[k].n,p:PACKS[ING[k].pack]}));return}state.sel=k;document.querySelectorAll('.ing').forEach(x=>x.classList.toggle('on',x.dataset.v===k));const rb=$('[data-act="rotate"]');if(rb){rb.hidden=!canRotate(k);rb.textContent=t('k.rotate',{x:ING[k].n})}drawBench()},
   rotate:()=>rotatePiece(null),
-  sprinkle:()=>{for(let k=0;k<6;k++){const a=Math.random()*6.283,r=Math.sqrt(Math.random())*.76;if(!addPiece({x:Math.cos(a)*r,y:Math.sin(a)*r}))break}},
+  zoom:()=>{state.zoom=!state.zoom;save();render()},
+  cut:b=>setCut(+b.dataset.v),
   undo:()=>{state.draft.pieces.pop();drawDraft();updateAnalysis()},
   clear:()=>{state.draft.pieces=[];drawDraft();updateAnalysis()},
   newdraft:()=>{state.draft={name:t('k.newname'),dough:'napo',sauce:'tomate',pieces:[],editing:null};render()},
