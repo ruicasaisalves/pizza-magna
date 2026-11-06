@@ -49,8 +49,11 @@ PIZZA = 170          # diâmetro da pizza no ecrã lógico 320x200
 ROOT = os.path.join(HERE, '..')
 
 # id do jogo -> (inteiro(seed), ralado: (rampa, tipo, n_bits), função(seed) ou None)
+# queijos ralados: um punhado maior e mais disperso (60x56), para 10 a 12 cobrirem a pizza
+BIG = {'W': 60, 'H': 56}
+
 INGS = {
-    'mozzarella':   (G.mozz,        ('mozz', 'shred', 40)),
+    'mozzarella':   (G.mozz,        ('mozz', 'shred', 130, BIG)),
     'queijo_serra': (G4.serra,      ('serra', 'flake', 40)),
     'fiambre':      (G2.ham,        ('ham', 'cube', 12)),
     'pepperoni':    (G2.pepperoni,  ('pep', 'cube', 11)),
@@ -90,13 +93,13 @@ INGS = {
     'sardinha':     (G7.sardine,    ('sardback', 'chunk', 9)),
     'salmao':       (G7.salmon,     ('salmon', 'chunk', 9)),
     'polvo':        (G7.octopus,    ('octo', 'cube', 11)),
-    'burrata':      (G8.burrata,    ('burcream', 'shred', 40)),
+    'burrata':      (G8.burrata,    ('burcream', 'shred', 130, BIG)),
     'lulas':        (G8.squid,      ('squid', 'chunk', 9)),
     'beringela':    (G8.aubergine,  ('aub', 'flake', 40)),
     'morcela':      (G8.morcela,    ('morc', 'cube', 11)),
     'nozes':        (G8.walnut,     ('walnut', 'dice', 22)),
     'batata':       (G8.potato,     ('pot', 'flake', 40)),
-    'parmesao':     (G9.parmesan,   ('parm', 'shred', 40)),
+    'parmesao':     (G9.parmesan,   ('parm', 'shred', 130, BIG)),
     'alcachofra':   (G9.artichoke,  ('artheart', 'flake', 40)),
     'curgete':      (G9.zucchini,   ('zuc', 'flake', 40)),
     'salsicha':     (G9.sausage,    ('sals', 'cube', 11)),
@@ -112,22 +115,22 @@ INGS = {
     'azeite':       (G11.olive_oil, None),
     'balsamico':    (G11.balsamic,  None),
     'maionese':     (G11.mayonnaise, None),
-    'cheddar':      (G11.cheddar,   ('ched', 'shred', 40)),
+    'cheddar':      (G11.cheddar,   ('ched', 'shred', 130, BIG)),
     'coentros':     (G11.coriander, ('coent', 'flake', 44)),
-    'provolone':    (G12.provolone, ('prov', 'shred', 40)),
+    'provolone':    (G12.provolone, ('prov', 'shred', 130, BIG)),
     'carne_picada': (G12.minced_beef, ('beef', 'cube', 12)),
     'cebola_roxa':  (G12.red_onion, ('redon', 'flake', 44)),
     'alecrim':      (G12.rosemary,  ('rosem', 'flake', 44)),
     'maca':         (G12.apple,     ('apple', 'cube', 11)),
     'batata_palha': (G12.straw_potato, None),
-    'sao_jorge':    (G13.sao_jorge, ('sj', 'shred', 40)),
+    'sao_jorge':    (G13.sao_jorge, ('sj', 'shred', 130, BIG)),
     'leitao':       (G13.leitao,    ('pork', 'cube', 12)),
     'couve_galega': (G13.couve,     ('kale', 'shred', 40)),
     'salsa':        (G13.parsley,   ('parsley', 'flake', 44)),
     'chocolate':    (G13.chocolate, ('choc', 'shred', 40)),
     'natas_azedas': (G13.sour_cream, None),
-    'emmental':     (G14.emmental,  ('emm', 'shred', 40)),
-    'flamengo':     (G14.flamengo,  ('flam', 'shred', 40)),
+    'emmental':     (G14.emmental,  ('emm', 'shred', 130, BIG)),
+    'flamengo':     (G14.flamengo,  ('flam', 'shred', 130, BIG)),
     'kebab':        (G14.kebab,     ('kebab', 'cube', 12)),
     'tomilho':      (G14.thyme,     ('thyme', 'flake', 44)),
     'pimenta':      (G14.peppercorns, ('pepcorn', 'flake', 50)),
@@ -140,7 +143,7 @@ INGS = {
     'catupiry':     (G15.catupiry,  None),
     'calabresa':    (G15.calabresa, ('calab', 'cube', 11)),
     'mejillones':   (G15.mussel,    ('musmeat', 'chunk', 9)),
-    'brie':         (G15.brie,      ('brie', 'shred', 40)),
+    'brie':         (G15.brie,      ('brie', 'shred', 130, BIG)),
     'frango_tikka': (G15.tikka,     ('tikka', 'cube', 12)),
     'grao':         (G15.chickpeas, None),
     'frankfurt':    (G16.frankfurt, G16.slices),
@@ -241,7 +244,7 @@ def sprites():
         if gr:
             for j in range(3):
                 sd = 40 + j * 17 + len(k)
-                out[f'{k}_g{j}'] = drop(gr(sd) if callable(gr) else G2.grated(gr[0], sd, gr[1], n_bits=gr[2]))
+                out[f'{k}_g{j}'] = drop(gr(sd) if callable(gr) else G2.grated(gr[0], sd, gr[1], n_bits=gr[2], **(gr[3] if len(gr) > 3 else {})))
     out.update(bases())
     out['marble'] = G.marble(320, 200, np.random.default_rng(5)).convert('RGBA')
     out['bowl'] = bowl()
