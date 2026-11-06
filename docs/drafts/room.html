@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pizza Magna · Room draft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Pixelify+Sans:wght@400;600;700&display=swap">
+<!-- Draft of the room decoration editor (see docs/roadmap.md, "Room decoration").
+     Standalone: it does not read or write the game's save (its layout is kept under pm-room-draft).
+     Same room as the game: 20x17 tiles of 16 px, kitchen top right, door at the bottom. It reuses sprites.js
+     for the characters, the kitchen and the checked table; the new furniture is drawn in code below.
+     Furniture comes in four styles (tasca, trattoria, modern, luxury); the room's atmosphere for each
+     customer group depends on what is in it, on how consistent the style is and on free space. -->
+<style>
+:root{
+  --wood:#7a4520; --wood-hi:#a8692f; --wood-lo:#4a260f; --wood-deep:#2a1407;
+  --brass:#e3b34a; --brass-hi:#fbe39a; --brass-lo:#94661a; --brass-ink:#3a2706;
+  --parch:#f3e6c6; --parch-2:#e6d3a8; --ink:#2c1a0b; --muted:#6c5233; --line:#c8ad7c; --on-wood:#e9d2a2;
+  --tomato:#c4352a; --tomato-hi:#e8705a; --tomato-lo:#7e1d14; --cheese:#ffcf4a; --bad:#b02a1c; --good:#2e7b2c;
+  --lcd-bg:#081008; --lcd:#8cff73; --lcd-dim:#3f7f33;
+  --f-pixel:'Silkscreen','Courier New',monospace;
+  --f-lcd:'VT323','Courier New',monospace;
+  --f-body:'Pixelify Sans','Trebuchet MS',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--on-wood);font-family:var(--f-body);font-size:15px;line-height:1.4;background-color:#4c2a13;
+  background-image:repeating-linear-gradient(0deg,rgba(20,8,2,.55) 0 2px,transparent 2px 44px),repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 1px,transparent 1px 9px),linear-gradient(90deg,#4c2a13,#573117 50%,#4c2a13)}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--cheese);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-pixel);font-weight:700;margin:0;letter-spacing:.01em;line-height:1.15;text-wrap:balance}
+h2{font-size:1.05rem}h3{font-size:.86rem}
+.sub{color:var(--muted);font-size:.88rem;margin:4px 0 0}
+.hdr{display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(var(--wood-hi),var(--wood) 30%,var(--wood-lo));border-bottom:4px solid var(--wood-deep);box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.brand{font-family:var(--f-pixel);font-weight:700;font-size:1rem;color:var(--brass-ink);background:linear-gradient(var(--brass-hi),var(--brass) 50%,var(--brass-lo));padding:6px 10px;border:2px solid var(--brass-ink);border-radius:3px;white-space:nowrap}
+.crumb{font-family:var(--f-pixel);font-size:.8rem;color:var(--brass-hi);flex:1;min-width:0}
+.btn{font-family:var(--f-pixel);font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--brass-ink);
+  background:linear-gradient(var(--brass-hi),var(--brass) 45%,var(--brass-lo));border:2px solid var(--brass-ink);border-radius:3px;padding:8px 11px;
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.6),inset -1px -1px 0 rgba(0,0,0,.25),0 3px 0 var(--wood-deep)}
+.btn.primary{background:linear-gradient(var(--tomato-hi),var(--tomato) 45%,var(--tomato-lo));color:#fff1d2;border-color:#3a0c06}
+.btn.ghost{background:linear-gradient(#f6ead0,#dcc699)}
+.btn.sm{padding:6px 8px;font-size:.62rem}
+.btn[aria-pressed=true]{background:linear-gradient(var(--tomato-hi),var(--tomato) 45%,var(--tomato-lo));color:#fff1d2;border-color:#3a0c06}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:26px;max-width:1300px;margin:22px auto;padding:0 16px;align-items:start}
+@media(max-width:960px){.wrap{grid-template-columns:1fr;gap:22px}}
+.frame{border:6px solid var(--wood);background:var(--wood-deep);box-shadow:inset 0 0 0 2px var(--wood-deep),0 0 0 2px var(--wood-hi),0 0 0 5px var(--wood-deep),0 8px 0 5px rgba(0,0,0,.25)}
+#room{width:100%;height:auto;touch-action:none}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center}
+.tools .lbl{font-family:var(--f-pixel);font-size:.62rem;color:var(--brass-hi);text-transform:uppercase;margin-left:6px}
+.side{display:flex;flex-direction:column;gap:26px}
+.card{background:var(--parch);color:var(--ink);border:3px solid var(--wood-deep);border-radius:2px;padding:14px;
+  box-shadow:inset 0 0 0 3px var(--parch-2),0 0 0 3px var(--wood-hi),0 0 0 6px var(--wood-lo),0 8px 0 6px rgba(0,0,0,.22)}
+.lcd{background:var(--lcd-bg);border:3px solid #000;padding:8px 10px;box-shadow:inset 0 0 0 2px #1d2a1d;font-family:var(--f-lcd);font-size:1.25rem;line-height:1.05;color:var(--lcd);text-shadow:0 0 5px rgba(140,255,115,.4)}
+.lcd div{display:flex;justify-content:space-between;gap:10px;white-space:nowrap}
+.lcd .dim{color:var(--lcd-dim)}
+.lcd .warn{color:#ffb04a;white-space:normal}
+.segs{display:grid;grid-template-columns:auto 1fr 2.2em;gap:6px 10px;align-items:center;margin-top:12px;font-size:.85rem}
+.segs .bar{height:12px;border:2px solid var(--ink);background:#e6d3a8}
+.segs .bar b{display:block;height:100%}
+.segs .v{font-family:var(--f-lcd);font-size:1.2rem;text-align:right;line-height:1}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 12px}
+.tabs button{border:2px solid var(--line);background:#fbf3df;color:var(--ink);padding:5px 9px;font-family:var(--f-pixel);font-size:.6rem;text-transform:uppercase;border-radius:2px}
+.tabs button[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--parch)}
+.cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;max-height:560px;overflow:auto;padding:2px}
+.it{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;border:2px solid var(--line);background:#fbf3df;padding:6px 4px 5px;text-align:center;font-size:.78rem;line-height:1.1;position:relative}
+.it:hover{border-color:var(--muted)}
+.it:focus-visible{outline:3px solid var(--cheese)}
+.it[aria-pressed=true]{border-color:var(--tomato);box-shadow:0 0 0 2px var(--tomato)}
+.it canvas{height:52px;width:auto;max-width:96px}
+.it .p{font-family:var(--f-lcd);font-size:1.1rem;line-height:1}
+.chip{font-family:var(--f-pixel);font-size:.5rem;text-transform:uppercase;color:#fff;padding:2px 4px;line-height:1}
+.selbox{margin-top:12px;padding-top:10px;border-top:2px dashed var(--line)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.note{font-size:.8rem;color:var(--muted);margin:8px 0 0}
+.hint{font-size:.85rem;color:#d9bf8e;margin:10px 2px 0}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <span class="brand">PIZZA MAGNA</span>
+  <span class="crumb" data-i18n="title"></span>
+  <button class="btn sm ghost" id="lang"></button>
+</header>
+<main class="wrap">
+  <section>
+    <div class="frame"><canvas id="room" width="320" height="272" aria-label="Dining room"></canvas></div>
+    <div class="tools" id="tools"></div>
+    <p class="hint" id="hint"></p>
+  </section>
+  <div class="side">
+    <div class="card"><div class="lcd" id="lcd"></div><div class="segs" id="segs"></div><div id="sel"></div></div>
+    <div class="card"><h2 data-i18n="shop"></h2><div class="tabs" id="tabs"></div><div class="cat" id="cat"></div></div>
+  </div>
+</main>
+<script src="../../sprites.js"></script>
+<script>
+/* ================= LANGUAGE ================= */
+const I18N={
+  en:{title:'Dining room · draft',lang:'PT',shop:'Furniture shop',
+    'tab.table':'Tables','tab.decor':'Decor','tab.wall':'On the wall','tab.floor':'Floor','tab.walls':'Walls',
+    'st.tasca':'Tasca','st.tratt':'Trattoria','st.moder':'Modern','st.luxo':'Luxury',
+    guests:'Show customers',empty:'Empty room',examples:'Examples:',stop:'Stop placing',
+    'h.idle':'Pick something in the shop and tap the room to place it. Tap a piece to move or sell it.',
+    'h.place':'Tap the room to place it (green = fits). Tap again to place another.',
+    'h.wall':'Tap a spot on the back wall.',
+    lcdRoom:'ROOM',lcdStyle:'STYLE',lcdMix:'MIXED',lcdTables:'TABLES',lcdSeats:'SEATS',lcdSpent:'FURNISHED',lcdFree:'FREE FLOOR',
+    atm:'Atmosphere',
+    'w.blocked':'% table(s) cannot be reached from the door.','w.kitchen':'The waiters cannot reach the kitchen counter.','w.crowd':'The room is crowded: customers feel squeezed.',
+    'w.ok':'Every table can be reached.',
+    sell:'Sell (+%)',move:'Move',seats:'% seats',
+    'seg.est':'Students','seg.fam':'Families','seg.tur':'Tourists','seg.gou':'Gourmets',
+    'i.xadrez2':'Small checked table','i.xadrez4':'Big checked table','i.redonda':'Round wooden table','i.corrida':'Long table with benches','i.branca':'White square table',
+    'i.booth':'Leather booth','i.gala':'Gala table','i.bistro':'Marble bistro table',
+    'i.vaso':'Potted plant','i.ficus':'Tall ficus','i.oliveira':'Olive tree in a pot','i.barril':'Wine barrel','i.jukebox':'Jukebox','i.aquario':'Aquarium',
+    'i.candeeiro':'Floor lamp','i.estatua':'Marble statue','i.fonte':'Fountain','i.piano':'Grand piano','i.persa':'Persian rug','i.trapos':'Rag rug',
+    'i.garrafeira':'Wine rack','i.arcade':'Arcade machine',
+    'i.janela':'Window','i.quadro':'Painting','i.giz':'Chalkboard menu','i.azulejos':'Tile panel','i.prateleira':'Bottle shelf','i.espelho':'Gilded mirror',
+    'i.neon':'Neon sign','i.relogio':'Clock','i.fotos':'Old photographs',
+    'f.check':'Red and cream check','f.planks':'Wooden boards','f.hydraulic':'Patterned tiles','f.terrazzo':'Terrazzo','f.marble':'Marble','f.terracotta':'Terracotta',
+    'w.cream':'Cream and wood','w.azulejo':'Blue tiles','w.brick':'Bare brick','w.modern':'White and oak','w.damask':'Green damask'},
+  pt:{title:'Sala · rascunho',lang:'EN',shop:'Loja de mobília',
+    'tab.table':'Mesas','tab.decor':'Decoração','tab.wall':'Na parede','tab.floor':'Chão','tab.walls':'Paredes',
+    'st.tasca':'Tasca','st.tratt':'Trattoria','st.moder':'Moderno','st.luxo':'Luxo',
+    guests:'Ver clientes',empty:'Esvaziar',examples:'Exemplos:',stop:'Parar',
+    'h.idle':'Escolhe uma peça na loja e toca na sala para a pôr. Toca numa peça para a mudar de sítio ou vender.',
+    'h.place':'Toca na sala para a pôr (verde = cabe). Toca outra vez para pôr mais uma.',
+    'h.wall':'Toca num lugar da parede do fundo.',
+    lcdRoom:'SALA',lcdStyle:'ESTILO',lcdMix:'MISTO',lcdTables:'MESAS',lcdSeats:'LUGARES',lcdSpent:'INVESTIDO',lcdFree:'CHÃO LIVRE',
+    atm:'Ambiente',
+    'w.blocked':'% mesa(s) sem acesso a partir da porta.','w.kitchen':'Os empregados não chegam ao balcão da cozinha.','w.crowd':'A sala está apinhada: os clientes sentem-se apertados.',
+    'w.ok':'Todas as mesas têm acesso.',
+    sell:'Vender (+%)',move:'Mudar',seats:'% lugares',
+    'seg.est':'Estudantes','seg.fam':'Famílias','seg.tur':'Turistas','seg.gou':'Gourmets',
+    'i.xadrez2':'Mesa aos quadrados pequena','i.xadrez4':'Mesa aos quadrados grande','i.redonda':'Mesa redonda de madeira','i.corrida':'Mesa corrida com bancos','i.branca':'Mesa quadrada branca',
+    'i.booth':'Cabine de cabedal','i.gala':'Mesa de gala','i.bistro':'Mesa de mármore',
+    'i.vaso':'Vaso com planta','i.ficus':'Fícus alto','i.oliveira':'Oliveira em vaso','i.barril':'Pipa de vinho','i.jukebox':'Jukebox','i.aquario':'Aquário',
+    'i.candeeiro':'Candeeiro de pé','i.estatua':'Estátua de mármore','i.fonte':'Fonte','i.piano':'Piano de cauda','i.persa':'Tapete persa','i.trapos':'Tapete de trapos',
+    'i.garrafeira':'Garrafeira','i.arcade':'Máquina de jogos',
+    'i.janela':'Janela','i.quadro':'Quadro','i.giz':'Ardósia com o menu','i.azulejos':'Painel de azulejos','i.prateleira':'Prateleira de garrafas','i.espelho':'Espelho dourado',
+    'i.neon':'Néon','i.relogio':'Relógio','i.fotos':'Fotografias antigas',
+    'f.check':'Xadrez vermelho e creme','f.planks':'Soalho de madeira','f.hydraulic':'Mosaico hidráulico','f.terrazzo':'Marmorite','f.marble':'Mármore','f.terracotta':'Tijoleira',
+    'w.cream':'Creme e madeira','w.azulejo':'Azulejo azul','w.brick':'Tijolo à vista','w.modern':'Branco e carvalho','w.damask':'Damasco verde'}
+};
+let LANG=(()=>{try{const p=localStorage.getItem('pm-lang');if(p==='en'||p==='pt')return p}catch(_){}return /^pt\b/i.test(navigator.language||'')?'pt':'en'})();
+const t=(k,v)=>{const s=(I18N[LANG][k]??I18N.en[k]??k);return v===undefined?s:s.replace('%',v)};
+
+/* ================= PIXEL HELPERS ================= */
+const P=SPR.PAL,cache=new Map(),memo=(k,f)=>{if(!cache.has(k))cache.set(k,f());return cache.get(k)};
+const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return [c,c.getContext('2d')]};
+const R=(x,col,a,b,w=1,h=1)=>{x.fillStyle=col;x.fillRect(a,b,w,h)};
+const inE=(i,y,cx,cy,rx,ry)=>{const dx=(i+.5-cx)/rx,dy=(y+.5-cy)/ry;return dx*dx+dy*dy<=1};
+function ell(x,cx,cy,rx,ry,col){for(let y=Math.floor(cy-ry);y<=Math.ceil(cy+ry);y++)for(let i=Math.floor(cx-rx);i<=Math.ceil(cx+rx);i++)if(inE(i,y,cx,cy,rx,ry))R(x,col,i,y)}
+const OL=c=>SPR.outline(c);
+const rng=s=>()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff};
+const T=16,COLS=20,ROWS=17,RW=COLS*T,RH=ROWS*T,DOOR=[10,13],PICK=[16,8];
+const STYLE_COL={tasca:'#2f5f9e',tratt:'#c4352a',moder:'#2b2b33',luxo:'#a7771f'};
+
+/* ================= FLOORS (16x16) ================= */
+const FLOORS={
+  check:{style:'tratt',price:0,app:[2,3,1,0],tile:(c,r)=>SPR.floorCheck((c+r)%2)},
+  planks:{style:'tasca',price:260,app:[1,2,2,1],tile:(c,r)=>memo('fp'+(r%2)+(c%3),()=>{const [cv,x]=mk(16,16);
+    for(let k=0;k<4;k++){const y=k*4,col=['#a8692f','#9a5a2c','#b0723a','#94562a'][(k+r+c)%4];R(x,col,0,y,16,4);R(x,'#c48a52',0,y,16,1);R(x,'#5e3418',0,y+3,16,1);
+      const j=((k*7+c*5+r*3)%16);R(x,'#5e3418',j,y,1,3);if((k+c)%3===0)R(x,'#7a4520',(j+6)%16,y+1,2,1)}return cv})},
+  hydraulic:{style:'tasca',price:380,app:[0,2,4,2],tile:()=>memo('fh',()=>{const [cv,x]=mk(16,16);R(x,'#efe3c8',0,0,16,16);
+    for(const [a,b] of [[0,0],[16,0],[0,16],[16,16]])ell(x,a,b,3,3,'#c98a6a');
+    R(x,'#5a7fb8',7,3,2,10);R(x,'#5a7fb8',3,7,10,2);R(x,'#efe3c8',7,7,2,2);R(x,'#8aa8d0',6,6,1,1);R(x,'#8aa8d0',9,6,1,1);R(x,'#8aa8d0',6,9,1,1);R(x,'#8aa8d0',9,9,1,1);
+    R(x,'#d8c9a6',0,15,16,1);R(x,'#d8c9a6',15,0,1,16);return cv})},
+  terrazzo:{style:'moder',price:320,app:[3,2,1,2],tile:(c,r)=>memo('ft'+((c*7+r*3)%5),()=>{const [cv,x]=mk(16,16);const g=rng(c*31+r*17+3);R(x,'#e6e3dc',0,0,16,16);
+    for(let i=0;i<14;i++)R(x,['#b9b3a8','#9a9488','#d6a98a','#8aa0a8','#cfcac0'][Math.floor(g()*5)],Math.floor(g()*15),Math.floor(g()*15),1+Math.floor(g()*2),1);
+    R(x,'#d2cec6',0,15,16,1);R(x,'#d2cec6',15,0,1,16);return cv})},
+  marble:{style:'luxo',price:620,app:[-1,1,3,6],tile:(c,r)=>memo('fm'+((c+r)%3),()=>{const [cv,x]=mk(16,16);R(x,'#efebe3',0,0,16,16);
+    const v=(c+r)%3;for(let i=0;i<16;i++){const y=Math.round(4+v*3+Math.sin(i*.6+v)*2);R(x,'#d8d2c6',i,y,1,1);if(i%3===0)R(x,'#cfc8ba',i,y+1,1,1)}
+    for(const [a,b] of [[0,0],[15,0],[0,15],[15,15]])for(let k=0;k<4;k++)R(x,'#2b2b33',a===0?0:16-(4-k),b===0?k:15-k,4-k,1);
+    R(x,'#e0b048',0,0,1,1);R(x,'#d8d2c6',0,15,16,1);R(x,'#d8d2c6',15,0,1,16);return cv})},
+  terracotta:{style:'tratt',price:200,app:[1,3,2,0],tile:(c,r)=>memo('fc'+((c+r)%2),()=>{const [cv,x]=mk(16,16);R(x,'#8a3e22',0,0,16,16);
+    for(const [a,b,k] of [[0,0,0],[8,0,1],[0,8,1],[8,8,0]]){const col=(k+c+r)%2?'#c4643a':'#b85a32';R(x,col,a,b,7,7);R(x,'#d87a4a',a,b,7,1);R(x,'#a04a28',a,b+6,7,1)}return cv})}
+};
+/* ================= BACK WALLS (16x32) ================= */
+const trim=(x)=>{R(x,P.woodDD,0,0,16,3);R(x,P.wood,0,1,16,1)},skirt=(x,col='#3a2014')=>{R(x,col,0,30,16,2)};
+const WALLS={
+  cream:{style:'tratt',price:0,app:[1,3,1,0],tile:()=>SPR.wallDining()},
+  azulejo:{style:'tasca',price:340,app:[0,2,5,2],tile:()=>memo('wa',()=>{const [c,x]=mk(16,32);trim(x);R(x,'#f1e6cf',0,3,16,8);
+    for(let ty=11;ty<30;ty+=5)for(let tx=0;tx<16;tx+=5){R(x,'#f4f6f8',tx,ty,5,5);R(x,'#2f5f9e',tx+2,ty+1,1,3);R(x,'#2f5f9e',tx+1,ty+2,3,1);R(x,'#7aa0d0',tx,ty,1,1);R(x,'#c9d4e0',tx+4,ty,1,5);R(x,'#c9d4e0',tx,ty+4,5,1)}
+    R(x,'#2f5f9e',0,11,16,1);R(x,'#2f5f9e',0,29,16,1);skirt(x);return c})},
+  brick:{style:'tratt',price:220,app:[3,2,2,0],tile:()=>memo('wb',()=>{const [c,x]=mk(16,32);trim(x);R(x,'#d9c3a0',0,3,16,27);
+    for(let k=0,y=3;y<30;y+=4,k++)for(let i=(k%2)*-4;i<16;i+=8){const col=[ '#b0503a','#a0462f','#bf5e44','#93402a'][(i+k*3+20)%4];R(x,col,Math.max(0,i),y,Math.min(7,i+7)-Math.max(0,i),3);R(x,'rgba(255,255,255,.15)',Math.max(0,i),y,Math.min(7,i+7)-Math.max(0,i),1)}
+    skirt(x);return c})},
+  modern:{style:'moder',price:300,app:[3,2,1,3],tile:()=>memo('wm',()=>{const [c,x]=mk(16,32);R(x,'#2b2b33',0,0,16,3);R(x,'#f2f2ee',0,3,16,17);R(x,'#e2e2dc',0,19,16,1);R(x,'#17171c',0,20,16,2);
+    for(let i=0;i<16;i++)R(x,i%4===3?'#a88250':i%4===0?'#d8b680':'#c9a46e',i,22,1,8);skirt(x,'#17171c');return c})},
+  damask:{style:'luxo',price:560,app:[-1,1,3,6],tile:()=>memo('wd2',()=>{const [c,x]=mk(16,32);trim(x);R(x,'#1f4a3a',0,3,16,17);
+    for(let y=4;y<19;y+=6)for(let i=(y%12===4?0:4);i<16;i+=8){R(x,'#c9a24a',i+3,y,1,1);R(x,'#c9a24a',i+2,y+1,3,1);R(x,'#a7771f',i+1,y+2,5,1);R(x,'#c9a24a',i+2,y+3,3,1);R(x,'#c9a24a',i+3,y+4,1,1)}
+    R(x,'#e0b048',0,20,16,1);R(x,'#5e2a19',0,21,16,9);R(x,'#7a3a24',2,22,5,7);R(x,'#7a3a24',9,22,5,7);R(x,'#8f4a30',3,23,3,5);R(x,'#8f4a30',10,23,3,5);skirt(x);return c})}
+};
+
+/* ================= CHAIRS (16x16, four directions, per style) ================= */
+const CHAIRPAL={tratt:{B:P.wood,b:P.woodD,R:P.red,r:P.redD},tasca:{B:'#6e3c1a',b:'#4a2a14',R:'#d8b860',r:'#a8883a'},moder:{B:'#2b2b33',b:'#17171c',R:'#f2f2ee',r:'#c9c9c2'},luxo:{B:'#e0b048',b:'#a7771f',R:'#8c1f3a',r:'#5e1428'}};
+const SIDE=["................","..oo............","..oBo...........","..oBbo..........","..oBbo..........","..oBbo..........","..oBbo..........","..oBbooooooooo..","..oBbRRRRRRRRRo.","..oBbRRRRRRRRRo.","..obbrrrrrrrrro.","..oBo.......oBo.","..oBo.......oBo.","..oBo.......oBo.","..ooo.......ooo.","................"];
+const FRONT=["................","..oooooooooooo..","..oBBBBBBBBBBo..","..obbbbbbbbbbo..","..oBo.oBBo.oBo..","..oBo.oBBo.oBo..","..oBooooooooBo..","..oRRRRRRRRRRo..","..oRRRRRRRRRRo..","..orrrrrrrrrro..","..oBooooooooBo..","..oBo......oBo..","..oBo......oBo..","..ooo......ooo..","................","................"];
+const BACK=["................","................","................","................","..oooooooooooo..","..oRRRRRRRRRRo..","..orrrrrrrrrro..","..oBBBBBBBBBBo..","..oBbbbbbbbbBo..","..oBo.oBBo.oBo..","..oBo.oBBo.oBo..","..oBbbbbbbbbBo..","..oBBBBBBBBBBo..","..oBo......oBo..","..ooo......ooo..","................"];
+function mirror(c){const [m,x]=mk(c.width,c.height);x.translate(c.width,0);x.scale(-1,1);x.drawImage(c,0,0);return m}
+const chair=(st,dir)=>memo('ch'+st+dir,()=>{const pal={o:P.out,...CHAIRPAL[st]};
+  if(dir==='down')return SPR.ascii(FRONT,pal);if(dir==='up')return SPR.ascii(BACK,pal);const s=SPR.ascii(SIDE,pal);return dir==='right'?s:mirror(s)});
+
+/* ================= TABLES ================= */
+// Tables are drawn big enough for a plate in front of every seat; each table item records its top
+// (centre and half sizes, in px from the item's corner) so plates and pizzas land on the table.
+const tCheck=(w,h,candle)=>memo('tc'+w+'x'+h+candle,()=>{const [c,x]=mk(w+2,h+12);R(x,'rgba(0,0,0,.25)',3,h+8,w-2,3);R(x,P.woodDD,4,h+4,3,7);R(x,P.woodDD,w-5,h+4,3,7);
+  for(let y=1;y<h+1;y++)for(let i=1;i<w+1;i++){const a=(i>>2)&1,b=(y>>2)&1;R(x,a&&b?P.red:(a||b)?P.pink:P.cream,i,y)}
+  for(let y=h+1;y<h+6;y++)for(let i=1;i<w+1;i++)R(x,(i>>2)&1?P.redD:'#c98478',i,y);R(x,'#fff8ec',1,1,w,1);
+  const m=Math.floor(w/2);if(candle){R(x,P.cream,m,h/2-3,2,4);R(x,P.creamD,m+1,h/2-3,1,4);R(x,P.fire1,m,h/2-5,2,2);R(x,P.goldD,m-1,h/2+1,4,1)}else{R(x,'#5a8f3a',m,h/2-3,2,5);R(x,'#d8c060',m,h/2-5,2,2)}
+  return OL(c)});
+const tRound=()=>memo('tr',()=>{const [c,x]=mk(40,34);ell(x,20,30,15,3,'rgba(0,0,0,.25)');R(x,'#4a2a14',17,20,6,10);R(x,'#6e3c1a',18,20,2,10);ell(x,20,30,8,2.5,'#4a2a14');
+  ell(x,20,15,19,11,'#6e3c1a');ell(x,20,12,19,11,'#9a5a2c');ell(x,20,12,17,9,'#a8692f');
+  for(let y=3;y<23;y+=4)for(let i=2;i<39;i++)if(inE(i,y,20,12,17,9))R(x,'#9a5a2c',i,y);
+  R(x,'#efe3c8',4,10,32,4);R(x,'#d8cfb8',4,13,32,1);R(x,'#2f5f9e',4,11,32,1);                     // linen runner
+  R(x,'#b5562c',18,5,5,6);R(x,'#cf6f3e',18,5,5,1);R(x,'#7e3a1e',22,6,1,4);R(x,'#9a4422',19,4,3,1); // clay jug
+  return OL(c)});
+const tLong=()=>memo('tl',()=>{const W=72,[c,x]=mk(W+2,38);R(x,'rgba(0,0,0,.25)',3,34,W-2,3);for(const lx of [4,W-6])R(x,'#4a2a14',lx,28,3,8);
+  R(x,'#6e3c1a',1,1,W,30);R(x,'#a8692f',2,2,W-2,25);for(let y=6;y<27;y+=5)R(x,'#9a5a2c',2,y,W-2,1);for(let i=13;i<W;i+=17)R(x,'#7a4520',i,2,1,25);
+  R(x,'#5e3418',1,27,W,4);R(x,'#c48a52',2,2,W-2,1);
+  R(x,'#b5562c',34,11,5,7);R(x,'#cf6f3e',34,11,5,1);R(x,'#d8b860',22,12,7,4);R(x,'#a8883a',22,15,7,1);R(x,'#d8b860',46,12,7,4);R(x,'#a8883a',46,15,7,1);
+  return OL(c)});
+const bench=()=>memo('bn',()=>{const W=72,[c,x]=mk(W+2,12);R(x,'rgba(0,0,0,.2)',2,9,W,2);R(x,'#6e3c1a',1,1,W,6);R(x,'#9a5a2c',1,1,W,4);R(x,'#c48a52',1,1,W,1);for(const lx of [3,W/2,W-4])R(x,'#4a2a14',lx,7,2,4);return OL(c)});
+const tWhite=()=>memo('tw',()=>{const [c,x]=mk(40,34);R(x,'rgba(0,0,0,.22)',4,30,33,3);for(const lx of [4,34])R(x,'#17171c',lx,24,2,8);
+  R(x,'#9a9a94',1,3,38,22);R(x,'#f4f4f0',1,1,38,22);R(x,'#ffffff',1,1,38,1);R(x,'#d8d8d2',1,22,38,1);
+  R(x,'#2b2b33',18,8,4,7);R(x,'#3d3d47',18,8,1,7);R(x,'#3f8f3a',19,5,2,3);R(x,'#e8705a',18,4,4,2);R(x,'#ffd35a',19,4,1,1);
+  return OL(c)});
+const tGala=()=>memo('tg',()=>{const [c,x]=mk(40,38);ell(x,20,34,18,3.5,'rgba(0,0,0,.25)');
+  // a white cloth down to the floor: folds as vertical shades, a gold hem, then the top
+  for(let i=1;i<40;i++){const dx=Math.abs(i-20)/19;if(dx>1)continue;const top=12+Math.round(Math.sqrt(1-dx*dx)*9),bot=30+Math.round(Math.sqrt(1-dx*dx)*3);
+    for(let y=top;y<=bot;y++)R(x,i<5||i>35?'#d8d2c4':(i%4===0?'#dcd6ca':i%4===1?'#efebe2':'#f8f5ee'),i,y);R(x,'#e0b048',i,bot,1,1)}
+  ell(x,20,12,19,10,'#ece8de');ell(x,20,12,18,9,'#fdfbf6');ell(x,20,11,11,5,'#ffffff');
+  R(x,'#a7771f',13,8,2,5);R(x,'#fbf6ec',13,4,2,4);R(x,'#ffd35a',13,2,2,2);R(x,'#a7771f',25,8,2,5);R(x,'#fbf6ec',25,4,2,4);R(x,'#ffd35a',25,2,2,2);
+  R(x,'#9ccbe6',18,8,4,5);R(x,'#d6edf8',18,8,1,5);ell(x,20,6,3,2,'#2a6328');R(x,'#c4352a',18,5,2,2);R(x,'#e8705a',21,4,2,2);
+  return OL(c)});
+const tBistro=()=>memo('tb',()=>{const [c,x]=mk(34,28);ell(x,17,25,9,2,'rgba(0,0,0,.25)');R(x,'#a7771f',16,16,3,9);R(x,'#e0b048',16,16,1,9);ell(x,17,25,6,1.5,'#a7771f');
+  ell(x,17,11,16,9,'#c9c3b8');ell(x,17,10,16,9,'#efebe3');R(x,'#d8d2c6',6,8,9,1);R(x,'#d8d2c6',18,13,8,1);R(x,'#d8d2c6',12,5,6,1);
+  R(x,'#fbf6ec',16,3,2,5);R(x,'#ffd35a',16,1,2,2);return OL(c)});
+const sofa=(top)=>memo('sf'+top,()=>{const W=46,[c,x]=mk(W+2,22);
+  if(top){R(x,'#7e1d14',1,1,W,10);R(x,'#c4352a',2,2,W-2,8);for(let i=6;i<W;i+=8)R(x,'#8c2a20',i,4,1,4);R(x,'#e8705a',2,2,W-2,1);
+    R(x,'#a02a1e',1,11,W,8);R(x,'#c4352a',2,11,W-2,5);R(x,'#7e1d14',1,18,W,2);R(x,'#c9cfd6',1,10,W,1)}
+  else{R(x,'#a02a1e',1,1,W,6);R(x,'#c4352a',2,1,W-2,4);R(x,'#7e1d14',1,7,W,13);R(x,'#c4352a',2,8,W-2,10);for(let i=6;i<W;i+=8)R(x,'#8c2a20',i,10,1,5);R(x,'#e8705a',2,8,W-2,1);R(x,'#c9cfd6',1,19,W,1)}
+  return OL(c)});
+const tBooth=()=>memo('tbo',()=>{const [c,x]=mk(46,28);R(x,'rgba(0,0,0,.22)',4,24,40,3);R(x,'#9aa2aa',21,20,4,6);
+  R(x,'#c9cfd6',1,1,44,21);R(x,'#f2ece0',2,2,42,18);for(let i=4;i<44;i+=6)R(x,'#e8dfcc',i,6,2,1);R(x,'#ffffff',2,2,42,1);
+  R(x,'#9aa2aa',20,8,6,6);R(x,'#ffffff',21,9,4,4);R(x,'#c4352a',36,8,2,5);R(x,'#e0b048',39,9,2,4);return OL(c)});
+
+/* ================= DECOR (floor) ================= */
+const dFicus=()=>memo('df',()=>{const [c,x]=mk(20,42);R(x,'#f2f2ee',5,30,10,10);R(x,'#d8d8d2',5,38,10,2);R(x,'#ffffff',5,30,10,1);R(x,'#6e4a2a',9,16,2,14);
+  for(const [a,b,r,col] of [[10,12,7,'#2a6328'],[6,18,5,'#2a6328'],[14,17,5,'#2a6328'],[10,6,5,'#3f8f3a'],[6,12,4,'#3f8f3a'],[14,11,4,'#3f8f3a'],[8,4,2,'#7cc35a'],[13,8,2,'#7cc35a'],[5,16,2,'#7cc35a'],[15,15,2,'#7cc35a']])ell(x,a,b,r,r,col);return OL(c)});
+const dOlive=()=>memo('do',()=>{const [c,x]=mk(24,40);R(x,'#b5562c',6,28,12,10);R(x,'#cf6f3e',5,27,14,3);R(x,'#9a4422',6,36,12,2);R(x,'#e08850',5,27,14,1);
+  R(x,'#6b5a4a',11,15,2,13);R(x,'#8a7a66',10,18,1,6);R(x,'#6b5a4a',13,13,3,2);
+  const g=rng(9);ell(x,12,10,10,8,'#5f7a4a');for(let i=0;i<70;i++){const a=g()*6.28,r=Math.sqrt(g())*9;R(x,['#8aa070','#a8b890','#4e6a3e'][i%3],12+Math.round(Math.cos(a)*r),10+Math.round(Math.sin(a)*r*.8),1,1)}
+  for(let i=0;i<6;i++)R(x,'#2b2b33',4+Math.floor(g()*16),4+Math.floor(g()*12),1,1);return OL(c)});
+const dBarrel=()=>memo('db',()=>{const [c,x]=mk(18,24);R(x,'rgba(0,0,0,.25)',2,21,15,2);R(x,'#7a4520',2,7,14,15);for(let i=3;i<16;i+=3)R(x,'#6e3c1a',i,8,1,13);R(x,'#9a5a2c',3,7,3,15);
+  for(const y of [9,14,19])R(x,'#3a3a3a',2,y,14,1);ell(x,9,6,7,3,'#a8692f');ell(x,9,6,5,2,'#9a5a2c');R(x,'#c9c3b8',8,15,3,2);R(x,'#3a3a3a',9,17,1,2);return OL(c)});
+const dJukebox=()=>memo('dj',()=>{const [c,x]=mk(20,32);R(x,'rgba(0,0,0,.25)',2,29,17,2);R(x,'#7a2e6e',2,8,16,22);ell(x,10,9,8,7,'#7a2e6e');
+  const arc=['#ff5a5a','#ffb04a','#ffe95a','#6aff8a','#5ab0ff'];for(let k=0;k<5;k++){for(let i=0;i<20;i++)if(inE(i,9,10,9,7-k,6-k)&&!inE(i,9,10,9,6-k,5-k)){}ell(x,10,10,7-k*1.2,6-k*1.2,arc[k])}
+  R(x,'#2b1b14',5,13,10,6);R(x,'#ffe9a0',6,14,8,4);for(let i=6;i<14;i+=2)R(x,'#c48a52',i,15,1,2);R(x,'#c9cfd6',3,20,14,1);R(x,'#9a4a8a',4,22,12,6);for(let i=5;i<15;i+=2)R(x,'#c9cfd6',i,23,1,4);return OL(c)});
+const dAquarium=(f=0)=>memo('da'+f,()=>{const [c,x]=mk(34,30);R(x,'rgba(0,0,0,.25)',2,27,31,2);R(x,'#4a2a14',1,18,32,10);R(x,'#6e3c1a',2,19,30,8);R(x,'#9a5a2c',2,19,30,1);
+  R(x,'#2b2b33',1,1,32,18);R(x,'#2f68c8',2,3,30,15);R(x,'#5fb6e0',2,3,30,4);R(x,'#d6c08a',2,15,30,3);
+  for(const [a,h] of [[5,8],[8,5],[27,9],[24,6]]){R(x,'#2a6328',a,17-h,1,h);R(x,'#3f8f3a',a+1,18-h,1,h-2)}
+  const fx=(f*3)%20;R(x,'#ff8a1e',8+fx,9,4,2);R(x,'#ffd35a',7+fx,9,1,2);R(x,'#e8461a',26-fx,12,3,2);R(x,'#ffffff',27-fx,12,1,1);
+  R(x,'#d6edf8',14,6+f%3,1,1);R(x,'#d6edf8',15,4+(f+1)%3,1,1);R(x,'#d6edf8',2,3,30,1);return OL(c)});
+const dLamp=()=>memo('dl',()=>{const [c,x]=mk(16,40);ell(x,8,37,5,1.5,'rgba(0,0,0,.25)');R(x,'#a7771f',7,12,2,24);R(x,'#e0b048',7,12,1,24);ell(x,8,36,4,1.5,'#a7771f');
+  R(x,'#f6e6c0',3,2,10,10);R(x,'#e8d4a0',3,10,10,2);R(x,'#fff8dc',4,3,4,7);R(x,'#a7771f',3,1,10,1);return OL(c)});
+const dStatue=()=>memo('ds',()=>{const [c,x]=mk(18,42);R(x,'rgba(0,0,0,.25)',2,39,15,2);R(x,'#c9c3b8',2,30,14,10);R(x,'#ebe7df',2,30,14,2);R(x,'#ada397',2,38,14,2);
+  R(x,'#ebe7df',6,12,6,18);R(x,'#d8d2c6',10,13,2,17);R(x,'#ebe7df',4,14,2,9);R(x,'#ebe7df',12,10,2,8);R(x,'#ebe7df',12,7,2,3);ell(x,9,7,3,3.4,'#ebe7df');R(x,'#d8d2c6',9,8,2,2);
+  R(x,'#d8d2c6',6,22,6,1);R(x,'#d8d2c6',7,26,4,1);return OL(c)});
+const dFountain=(f=0)=>memo('dfo'+f,()=>{const [c,x]=mk(34,34);ell(x,17,28,16,6,'rgba(0,0,0,.2)');ell(x,17,24,16,8,'#8f857a');ell(x,17,23,16,8,'#c9c3b8');ell(x,17,23,13,6,'#2f68c8');ell(x,17,22,12,5,'#5fb6e0');
+  R(x,'#c9c3b8',15,10,4,13);R(x,'#ebe7df',15,10,1,13);ell(x,17,11,6,2.5,'#c9c3b8');ell(x,17,10,5,2,'#5fb6e0');
+  for(let k=0;k<4;k++){const yy=2+((k+f)%4);R(x,'#d6edf8',16,yy,2,1);R(x,'#d6edf8',12-k,8+k*2+(f%2),1,2);R(x,'#d6edf8',22+k,8+k*2+((f+1)%2),1,2)}R(x,'#ffffff',16,1,2,2);
+  return OL(c)});
+const dPiano=()=>memo('dp',()=>{const [c,x]=mk(50,36);R(x,'rgba(0,0,0,.25)',4,32,42,3);
+  for(let y=1;y<26;y++)for(let i=1;i<49;i++){const inBody=(i<30&&y<26)||inE(i,y,30,13,19,12);if(!inBody)continue;if(i>=30&&y<1)continue;R(x,'#1d1d24',i,y)}
+  for(let y=2;y<24;y++)for(let i=2;i<47;i++)if(((i<29)||inE(i,y,30,13,17,10))&&(i+y)%9===0)R(x,'#3d3d47',i,y);
+  R(x,'#4a4a56',3,2,26,1);R(x,'#e0b048',8,6,24,1);R(x,'#2b2b33',1,24,30,4);for(let i=2;i<30;i++)R(x,i%3===2?'#1d1d24':'#fbf9f4',i,25,1,3);
+  R(x,'#1d1d24',8,28,3,6);R(x,'#1d1d24',26,28,3,6);R(x,'#1d1d24',44,20,3,8);R(x,'#3a2014',10,31,14,3);R(x,'#5e3418',10,31,14,1);return OL(c)});
+const dRug=(kind)=>memo('dr'+kind,()=>{const [c,x]=mk(48,32);
+  if(kind==='persa'){R(x,'#7e1d14',0,0,48,32);R(x,'#e0b048',2,2,44,28);R(x,'#2f3f7e',3,3,42,26);R(x,'#a02a1e',6,6,36,20);
+    for(let i=8;i<40;i+=4)for(let y=8;y<24;y+=4)R(x,(i+y)%8?'#c4352a':'#e0b048',i,y,2,2);ell(x,24,16,8,5,'#2f3f7e');ell(x,24,16,5,3,'#e0b048');ell(x,24,16,3,1.5,'#7e1d14');
+    for(let i=0;i<48;i+=2){R(x,'#efe3c8',i,0,1,1);R(x,'#efe3c8',i,31,1,1)}}
+  else{const cols=['#3d8ee0','#e8705a','#ffe08a','#7cc35a','#ffffff','#c4352a'];for(let y=0;y<32;y+=2)R(x,cols[(y/2)%cols.length],2,y,44,2);for(let y=0;y<32;y+=3){R(x,'#efe3c8',0,y,2,1);R(x,'#efe3c8',46,y,2,1)}}
+  return c});
+const dWineRack=()=>memo('dw',()=>{const [c,x]=mk(34,40);R(x,'rgba(0,0,0,.25)',2,37,31,2);R(x,'#4a2a14',1,1,32,37);R(x,'#7a4520',2,2,30,35);
+  for(let y=4;y<36;y+=8){R(x,'#4a2a14',2,y+6,30,2);for(let i=4;i<31;i+=5){ell(x,i+1.5,y+3,2,2,(i+y)%3?'#2a5a28':'#6e1a28');R(x,'#d6edf8',i,y+2,1,1)}}
+  R(x,'#9a5a2c',2,2,30,1);return OL(c)});
+const dArcade=()=>memo('dar',()=>{const [c,x]=mk(20,34);R(x,'rgba(0,0,0,.25)',2,31,17,2);R(x,'#2f3f7e',2,1,16,31);R(x,'#3d8ee0',3,1,3,31);
+  R(x,'#ffe95a',3,2,14,4);for(let i=4;i<16;i+=3)R(x,'#c4352a',i,3,2,2);R(x,'#17171c',4,8,12,9);R(x,'#6aff8a',5,9,10,7);R(x,'#17171c',6,11,2,2);R(x,'#ff5a5a',11,13,2,2);R(x,'#ffffff',9,10,1,1);
+  R(x,'#17171c',3,18,14,4);R(x,'#ff5a5a',6,19,2,2);R(x,'#ffe95a',11,19,2,1);R(x,'#5ab0ff',14,19,2,1);R(x,'#e0b048',8,25,4,2);return OL(c)});
+
+/* ================= WALL PIECES (on the back wall) ================= */
+const wAzulejos=()=>memo('wz',()=>{const [c,x]=mk(32,24);R(x,'#2f5f9e',0,0,32,24);R(x,'#f4f6f8',2,2,28,20);
+  for(let i=2;i<30;i+=7)R(x,'#c9d4e0',i,2,1,20);for(let y=2;y<22;y+=7)R(x,'#c9d4e0',2,y,28,1);
+  R(x,'#7aa0d0',2,16,28,6);for(let i=2;i<30;i+=4)R(x,'#2f5f9e',i,17+(i%3),3,1);R(x,'#2f5f9e',12,10,10,5);R(x,'#2f5f9e',16,4,1,6);R(x,'#f4f6f8',17,5,4,4);R(x,'#2f5f9e',10,14,14,1);
+  return OL(c)});
+const wShelf=()=>memo('wsh',()=>{const [c,x]=mk(32,22);for(const y of [9,20]){R(x,'#6e3c1a',0,y,32,2);R(x,'#9a5a2c',0,y,32,1)}
+  const cols=['#2a5a28','#6e1a28','#c9a24a','#3a6ea8','#2a5a28','#b5562c'];for(let k=0;k<6;k++){const bx=2+k*5,h=k%2?7:6;R(x,cols[k],bx,9-h,3,h);R(x,cols[k],bx+1,9-h-2,1,2);R(x,'rgba(255,255,255,.4)',bx,10-h,1,h-2)}
+  for(let k=0;k<5;k++){const bx=3+k*6;R(x,cols[(k+2)%6],bx,13,4,7);R(x,cols[(k+2)%6],bx+1,11,2,2);R(x,'#efe3c8',bx,15,4,2)}return OL(c)});
+const wMirror=()=>memo('wmi',()=>{const [c,x]=mk(22,26);ell(x,11,13,10,12,'#a7771f');ell(x,11,13,9,11,'#e0b048');ell(x,11,13,7,9,'#9ccbe6');for(let k=0;k<5;k++)R(x,'#d6edf8',6+k,8+k,1,3);
+  R(x,'#e0b048',10,0,2,2);R(x,'#e0b048',9,24,4,2);return OL(c)});
+const wNeon=(f=0)=>memo('wn'+f,()=>{const [c,x]=mk(32,14);R(x,'#17171c',0,0,32,14);R(x,'#2b2b33',1,1,30,12);const on=f%8!==0,col=on?'#ff6ad5':'#7a3a6a',col2=on?'#6af2ff':'#3a6a7a';
+  const L={P:['111','101','111','100','100'],I:['1','1','1','1','1'],Z:['111','001','010','100','111'],A:['010','101','111','101','101']};let px=4;
+  for(const ch of 'PIZZA'){const g=L[ch];g.forEach((row,j)=>[...row].forEach((b,i)=>{if(b==='1')R(x,ch==='A'?col2:col,px+i,4+j,1,1)}));px+=g[0].length+1}
+  if(on){x.globalAlpha=.25;R(x,col,3,3,26,7);x.globalAlpha=1}return OL(c)});
+const wClock=()=>memo('wc',()=>{const [c,x]=mk(16,16);ell(x,8,8,7,7,'#6e3c1a');ell(x,8,8,5.6,5.6,'#fbf6ec');for(const [a,b] of [[8,3],[8,13],[3,8],[13,8]])R(x,'#2b1b14',a,b,1,1);R(x,'#2b1b14',8,5,1,4);R(x,'#2b1b14',8,8,3,1);return OL(c)});
+const wPhotos=()=>memo('wph',()=>{const [c,x]=mk(32,22);for(const [a,b,w,h] of [[1,2,12,9],[15,1,9,12],[4,13,9,8],[19,14,12,7],[26,3,5,7]]){R(x,'#2b1b14',a,b,w,h);R(x,'#d8c09a',a+1,b+1,w-2,h-2);R(x,'#8a6a4a',a+2,b+h-4,w-4,2);ell(x,a+w/2,b+h/2-1,1.5,1.8,'#6a4a32')}return OL(c)});
+
+/* ================= CATALOGUE ================= */
+// parts: sprites relative to the piece's top-left tile (z = depth baseline in px from that tile);
+// seats: chair direction and position; mask: '#' tiles that block walking; app: [students, families, tourists, gourmets]
+const TBL=(o)=>({cat:'table',...o});
+const SEAT4=(st)=>[{d:'down',x:24,y:2,st},{d:'up',x:24,y:47,st},{d:'right',x:0,y:26,st},{d:'left',x:48,y:26,st}];
+const M4=['.##.','####','####','.##.'];
+const ITEMS={
+  xadrez2:TBL({style:'tratt',price:120,app:[2,3,1,0],w:4,h:2,mask:['####','####'],parts:[{s:()=>tCheck(36,18,false),x:14,y:-2,z:32}],seats:[{d:'right',x:0,y:14,st:'tratt'},{d:'left',x:48,y:14,st:'tratt'}],top:[32,8,17,8]}),
+  xadrez4:TBL({style:'tratt',price:190,app:[2,4,1,0],w:4,h:4,mask:M4,parts:[{s:()=>tCheck(38,24,true),x:13,y:12,z:48}],seats:SEAT4('tratt'),top:[32,24,18,11]}),
+  redonda:TBL({style:'tasca',price:170,app:[1,3,3,1],w:4,h:4,mask:M4,parts:[{s:tRound,x:12,y:12,z:46}],seats:SEAT4('tasca'),top:[32,24,18,10]}),
+  corrida:TBL({style:'tasca',price:240,app:[3,4,3,0],w:5,h:4,mask:['#####','#####','#####','#####'],
+    parts:[{s:bench,x:3,y:3,z:13},{s:tLong,x:3,y:13,z:51},{s:bench,x:3,y:50,z:52}],
+    seats:[{x:12,y:-6,d:'down',bench:1},{x:32,y:-6,d:'down',bench:1},{x:52,y:-6,d:'down',bench:1},{x:12,y:38,d:'up',bench:1},{x:32,y:38,d:'up',bench:1},{x:52,y:38,d:'up',bench:1}],top:[40,26,35,12]}),
+  branca:TBL({style:'moder',price:210,app:[3,2,0,2],w:4,h:4,mask:M4,parts:[{s:tWhite,x:12,y:12,z:46}],seats:SEAT4('moder'),top:[32,24,18,11]}),
+  booth:TBL({style:'moder',price:340,app:[5,3,1,1],w:3,h:4,mask:['###','###','###','###'],
+    parts:[{s:()=>sofa(true),x:0,y:-1,z:18},{s:tBooth,x:1,y:16,z:44},{s:()=>sofa(false),x:0,y:43,z:64}],
+    seats:[{x:7,y:-1,d:'down',bench:1},{x:25,y:-1,d:'down',bench:1},{x:7,y:34,d:'up',bench:1,z:62},{x:25,y:34,d:'up',bench:1,z:62}],top:[24,27,21,10]}),
+  gala:TBL({style:'luxo',price:420,app:[-2,1,3,7],w:4,h:4,mask:M4,parts:[{s:tGala,x:12,y:12,z:48}],seats:SEAT4('luxo'),top:[32,24,18,9]}),
+  bistro:TBL({style:'luxo',price:260,app:[-1,0,2,5],w:4,h:2,mask:['####','####'],parts:[{s:tBistro,x:15,y:-2,z:32}],seats:[{d:'right',x:2,y:14,st:'luxo'},{d:'left',x:46,y:14,st:'luxo'}],top:[32,8,16,8]}),
+  vaso:{cat:'decor',style:'tratt',price:40,app:[1,2,1,1],w:1,h:1,mask:['#'],parts:[{s:()=>SPR.plant(),x:-1,y:-14,z:16}]},
+  ficus:{cat:'decor',style:'moder',price:90,app:[1,2,1,2],w:1,h:1,mask:['#'],parts:[{s:dFicus,x:-2,y:-26,z:16}]},
+  oliveira:{cat:'decor',style:'tasca',price:120,app:[0,2,4,2],w:1,h:1,mask:['#'],parts:[{s:dOlive,x:-4,y:-24,z:16}]},
+  barril:{cat:'decor',style:'tasca',price:70,app:[2,1,3,1],w:1,h:1,mask:['#'],parts:[{s:dBarrel,x:-1,y:-8,z:16}]},
+  garrafeira:{cat:'decor',style:'tasca',price:210,app:[0,1,3,4],w:2,h:1,mask:['##'],parts:[{s:dWineRack,x:-1,y:-24,z:16}]},
+  jukebox:{cat:'decor',style:'moder',price:260,app:[6,3,1,-1],w:1,h:1,mask:['#'],parts:[{s:dJukebox,x:-2,y:-16,z:16}]},
+  arcade:{cat:'decor',style:'moder',price:280,app:[7,4,0,-3],w:1,h:1,mask:['#'],parts:[{s:dArcade,x:-2,y:-18,z:16}]},
+  aquario:{cat:'decor',style:'moder',price:320,app:[2,6,2,1],w:2,h:1,mask:['##'],parts:[{s:'aquarium',x:-1,y:-14,z:16}]},
+  candeeiro:{cat:'decor',style:'luxo',price:130,app:[0,1,1,3],w:1,h:1,mask:['#'],parts:[{s:dLamp,x:0,y:-24,z:16}]},
+  estatua:{cat:'decor',style:'luxo',price:420,app:[-1,1,4,5],w:1,h:1,mask:['#'],parts:[{s:dStatue,x:-1,y:-26,z:16}]},
+  fonte:{cat:'decor',style:'luxo',price:680,app:[1,4,5,5],w:2,h:2,mask:['##','##'],parts:[{s:'fountain',x:-1,y:-2,z:32}]},
+  piano:{cat:'decor',style:'luxo',price:950,app:[-2,1,3,9],w:3,h:2,mask:['###','###'],parts:[{s:dPiano,x:-1,y:-4,z:32}]},
+  persa:{cat:'decor',style:'luxo',price:160,app:[0,1,2,3],w:3,h:2,mask:['...','...'],rug:1,parts:[{s:()=>dRug('persa'),x:0,y:0,z:-1}]},
+  trapos:{cat:'decor',style:'tasca',price:60,app:[1,2,2,0],w:3,h:2,mask:['...','...'],rug:1,parts:[{s:()=>dRug('trapos'),x:0,y:0,z:-1}]},
+  janela:{cat:'wall',style:'tratt',price:0,app:[1,1,1,1],parts:[{s:()=>SPR.windowS(0),x:-1,y:4}]},
+  quadro:{cat:'wall',style:'luxo',price:70,app:[0,1,1,2],parts:[{s:()=>SPR.painting(),x:6,y:6}]},
+  giz:{cat:'wall',style:'tratt',price:40,app:[2,2,1,0],parts:[{s:()=>SPR.chalkboard(),x:-1,y:4}]},
+  azulejos:{cat:'wall',style:'tasca',price:160,app:[0,1,5,2],parts:[{s:wAzulejos,x:0,y:3}]},
+  prateleira:{cat:'wall',style:'tasca',price:90,app:[1,1,2,2],parts:[{s:wShelf,x:0,y:5}]},
+  espelho:{cat:'wall',style:'luxo',price:230,app:[-1,1,2,4],parts:[{s:wMirror,x:5,y:2}]},
+  neon:{cat:'wall',style:'moder',price:180,app:[5,2,1,-2],parts:[{s:'neon',x:0,y:7}]},
+  relogio:{cat:'wall',style:'moder',price:50,app:[0,1,0,1],parts:[{s:wClock,x:8,y:7}]},
+  fotos:{cat:'wall',style:'tasca',price:70,app:[0,3,2,1],parts:[{s:wPhotos,x:0,y:5}]}
+};
+const ANIM={aquarium:f=>dAquarium(f%7),fountain:f=>dFountain(f%4),neon:f=>wNeon(f%24)};
+const sprOf=(s,f)=>typeof s==='string'?ANIM[s](f):s();
+const STYLE_BONUS={tasca:[2,6,12,4],tratt:[6,10,4,0],moder:[10,4,2,4],luxo:[-6,2,6,16]};
+const SEGS=[['est','#f08a3b'],['fam','#3d8ee0'],['tur','#24a067'],['gou','#8a55d0']];
+
+/* ================= ROOM STATE ================= */
+const WALL_SLOTS=6;   // the dining part of the back wall (columns 0-11) holds six pieces, two tiles each
+const PRESETS={
+  tratt:{floor:'check',wall:'cream',walls:['janela','quadro','janela','giz','prateleira','janela'],items:[['xadrez4',0,2],['xadrez4',5,2],['xadrez2',0,7],['xadrez2',0,10],['xadrez2',5,7],['xadrez2',5,10],['xadrez4',13,9],['vaso',11,2],['vaso',19,13],['vaso',9,13],['vaso',12,13]]},
+  tasca:{floor:'planks',wall:'azulejo',walls:['azulejos','janela','fotos','janela','prateleira','azulejos'],items:[['corrida',0,2],['redonda',6,2],['trapos',0,8],['redonda',0,8],['redonda',5,8],['redonda',13,9],['barril',11,2],['oliveira',10,2],['garrafeira',18,13],['barril',0,13],['oliveira',9,13]]},
+  moder:{floor:'terrazzo',wall:'modern',walls:['neon','janela','relogio','janela','quadro','janela'],items:[['booth',0,2],['booth',4,2],['branca',7,2],['branca',0,8],['branca',5,8],['branca',13,9],['jukebox',11,2],['arcade',0,13],['aquario',12,13],['ficus',9,13],['ficus',19,13]]},
+  luxo:{floor:'marble',wall:'damask',walls:['espelho','janela','quadro','janela','espelho','quadro'],items:[['persa',0,3],['gala',0,2],['gala',5,2],['bistro',0,8],['bistro',0,11],['fonte',5,9],['piano',13,11],['estatua',11,2],['candeeiro',9,2],['candeeiro',19,8],['candeeiro',12,8],['vaso',9,13]]}
+};
+let room;
+const blank=()=>({floor:'check',wall:'cream',walls:Array(WALL_SLOTS).fill(null),items:[]});
+function fromPreset(k){const p=PRESETS[k];return {floor:p.floor,wall:p.wall,walls:[...p.walls],items:p.items.map(([id,c,r])=>({id,c,r}))}}
+try{room=JSON.parse(localStorage.getItem('pm-room-draft'))}catch(_){}
+if(!room||!Array.isArray(room.items))room=fromPreset('tratt');
+const saveRoom=()=>{try{localStorage.setItem('pm-room-draft',JSON.stringify(room))}catch(_){}};
+
+const editable=(c,r)=>c>=0&&c<COLS&&r>=2&&r<=13&&!(c>=12&&r<=7);
+function occupancy(skip){const g=new Map();for(const it of room.items){if(it===skip)continue;const d=ITEMS[it.id];d.mask.forEach((row,j)=>[...row].forEach((ch,i)=>{const k=(it.r+j)*COLS+it.c+i;if(ch==='#')g.set(k,it);else if(d.rug)g.set('rug'+k,it)}))}return g}
+function fits(id,c,r,skip){const d=ITEMS[id],g=occupancy(skip);
+  for(let j=0;j<d.h;j++)for(let i=0;i<d.w;i++){const cc=c+i,rr=r+j;if(!editable(cc,rr))return false;const k=rr*COLS+cc;
+    if(d.rug){if(g.has('rug'+k))return false;continue}
+    if(d.mask[j][i]==='#'&&(g.has(k)||(cc===PICK[0]&&rr===PICK[1])||(rr===DOOR[1]&&(cc===DOOR[0]||cc===DOOR[0]+1))))return false}
+  return true}
+
+/* ================= ANALYSIS ================= */
+function analyse(){
+  const g=occupancy(),solid=k=>g.has(k);
+  // reachable floor from the door (breadth-first)
+  const seen=new Set(),q=[];for(const c of [DOOR[0],DOOR[0]+1]){const k=DOOR[1]*COLS+c;seen.add(k);q.push(k)}
+  while(q.length){const k=q.shift(),c=k%COLS,r=(k/COLS)|0;for(const [dc,dr] of [[1,0],[-1,0],[0,1],[0,-1]]){const nc=c+dc,nr=r+dr,nk=nr*COLS+nc;if(!editable(nc,nr)||seen.has(nk)||solid(nk))continue;seen.add(nk);q.push(nk)}}
+  const blocked=new Set();let seats=0,tables=0;
+  for(const it of room.items){const d=ITEMS[it.id];if(d.cat!=='table')continue;tables++;seats+=d.seats.length;
+    // a table works when a waiter can reach at least one tile right next to it
+    let ok=false;for(let j=-1;j<=d.h&&!ok;j++)for(let i=-1;i<=d.w&&!ok;i++){const inside=i>=0&&j>=0&&i<d.w&&j<d.h;if(inside&&d.mask[j][i]==='#')continue;if(seen.has((it.r+j)*COLS+it.c+i))ok=true}
+    if(!ok)blocked.add(it)}
+  const kitchenOk=[[0,1],[1,0],[-1,0]].some(([a,b])=>seen.has((PICK[1]+b)*COLS+PICK[0]+a))||seen.has(PICK[1]*COLS+PICK[0]);
+  let total=0,free=0;for(let r=2;r<=13;r++)for(let c=0;c<COLS;c++)if(editable(c,r)){total++;if(!solid(r*COLS+c))free++}
+  const freeShare=free/total;
+  // atmosphere
+  const sum=[0,0,0,0],byStyle={tasca:0,tratt:0,moder:0,luxo:0};let spent=0;
+  const addApp=(d,w=1)=>{d.app.forEach((v,i)=>sum[i]+=v*w);byStyle[d.style]+=Math.max(30,d.price);spent+=d.price};
+  addApp(FLOORS[room.floor],2);addApp(WALLS[room.wall],2);
+  for(const it of room.items)addApp(ITEMS[it.id]);for(const w of room.walls)if(w)addApp(ITEMS[w]);
+  const tot=Object.values(byStyle).reduce((a,b)=>a+b,0);const dom=Object.keys(byStyle).sort((a,b)=>byStyle[b]-byStyle[a])[0];const share=byStyle[dom]/tot;
+  const bonus=share>=.5?STYLE_BONUS[dom].map(v=>v*(share-.5)*2):[0,0,0,0];
+  const crowd=freeShare<.42?Math.round((.42-freeShare)*120):0;
+  const atm=sum.map((v,i)=>Math.max(0,Math.min(100,Math.round(20+v*.9+bonus[i]-crowd))));
+  return {blocked,kitchenOk,seats,tables,freeShare,atm,dom,share,spent,crowd};
+}
+
+/* ================= DRAWING ================= */
+const cv=document.getElementById('room'),m=cv.getContext('2d');
+const [LO,lo]=mk(RW,RH);
+let tool=null,moving=null,ghost=null,sel=null,guests=false,frame=0,people=[];
+const LOOKS={HAIR:['#2b1b10','#5a3a1e','#c9a24a','#151515','#8a3b1c','#d8d0c0','#6b6b6b'],SKIN:['#f1c7a0','#d9a477','#a8714a','#f6d6b8','#7a4d2e'],BODY:['#3d8ee0','#c0392b','#3f8f3a','#e0b048','#8a55d0','#f6eedf','#2b2b33','#e8705a']};
+function makePeople(){const g=rng(42);people=[];for(const it of room.items){const d=ITEMS[it.id];if(d.cat!=='table')continue;
+  for(const s of d.seats)if(g()<.8)people.push({it,s,look:{hair:LOOKS.HAIR[Math.floor(g()*7)],skin:LOOKS.SKIN[Math.floor(g()*5)],body:LOOKS.BODY[Math.floor(g()*8)],long:g()<.4},eat:g()<.6})}}
+function partsOf(it,f){const d=ITEMS[it.id],x0=it.c*T,y0=it.r*T,L=[];
+  for(const p of d.parts)L.push({z:y0+p.z,img:sprOf(p.s,f),x:x0+p.x,y:y0+p.y,rug:d.rug});
+  if(d.seats)for(const s of d.seats){if(!s.bench)L.push({z:y0+s.y+(s.d==='up'?17:15),img:chair(s.st,s.d),x:x0+s.x,y:y0+s.y})}
+  return L}
+function drawRoom(){
+  const c=lo;c.clearRect(0,0,RW,RH);
+  const fl=FLOORS[room.floor];
+  for(let r=2;r<14;r++)for(let col=0;col<COLS;col++)c.drawImage(col>=12&&r<=7?SPR.floorKitchen():fl.tile(col,r),col*T,r*T);
+  for(let col=0;col<COLS;col++)c.drawImage(col>=12?SPR.wallKitchen():WALLS[room.wall].tile(col),col*T,0);
+  room.walls.forEach((id,i)=>{if(!id)return;for(const p of ITEMS[id].parts)c.drawImage(sprOf(p.s,frame),i*32+p.x,p.y)});
+  c.drawImage(SPR.rack(),19*T-1,2);
+  for(let r=0;r<7;r++)c.drawImage(SPR.wallTop(),12*T-8,r*T);
+  for(let col=0;col<COLS;col++)c.drawImage(col!==DOOR[0]&&col!==DOOR[0]+1?SPR.wallTop():SPR.doorMat(),col*T,14*T);
+  c.fillStyle='#4a2a14';c.fillRect(DOOR[0]*T-3,14*T-6,3,22);c.fillRect((DOOR[0]+2)*T,14*T-6,3,22);
+  for(let col=0;col<COLS;col++){c.drawImage(SPR.sidewalk(),col*T,15*T);c.drawImage(SPR.curb(),col*T,16*T)}
+  // rugs first, then everything else sorted by depth
+  const L=[];
+  for(const it of room.items)if(it!==moving)for(const p of partsOf(it,frame))L.push(p);
+  L.push({z:4*T,img:SPR.oven(frame%2),x:13*T-1,y:4*T-43},{z:4*T,img:SPR.logs(),x:19*T,y:3*T+4});
+  L.push({z:8*T,fn:()=>{c.drawImage(SPR.counter(8),12*T-1,7*T-11);c.drawImage(SPR.register(),12*T+1,7*T-14);c.drawImage(SPR.boxes(),19*T-1,7*T-15)}});
+  L.push({z:4*T+1,img:SPR.char({body:'#f4efe4',hat:true,role:'cook',hair:'#2b1b10',skin:'#f1c7a0',dir:'down'}),x:14*T+8,y:3*T+6});
+  if(guests){
+    L.push({z:9*T,img:SPR.char({body:'#2a2a33',role:'waiter',hair:'#5a3a1e',skin:'#d9a477',dir:'down'}),x:18*T,y:8*T-6});
+    for(const p of people){const it=p.it,d=ITEMS[it.id];if(!room.items.includes(it)||it===moving)continue;const s=p.s,x0=it.c*T,y0=it.r*T;
+      const cy=s.bench?y0+s.y:y0+s.y+(s.d==='down'?-5:s.d==='up'?-9:-1),cz=s.z!==undefined?y0+s.z:y0+s.y+(s.d==='up'?(s.bench?20:16):s.bench?30:16)+.5;
+      L.push({z:cz,img:SPR.char({...p.look,dir:s.d,sit:true}),x:x0+s.x,y:cy});
+      // the plate goes on the table top, at the edge in front of the seat
+      const [tx,ty,rx,ry]=d.top,qx=s.d==='right'?tx-rx+7:s.d==='left'?tx+rx-7:(s.bench?s.x+8:tx),qy=s.d==='down'?ty-ry+6:s.d==='up'?ty+ry-6:ty;
+      const tz=Math.max(...d.parts.map(q=>q.z).filter(z=>z>20&&z<60));
+      L.push({z:y0+tz+.2,img:p.eat?SPR.pizza():SPR.plate(),x:x0+Math.round(qx)-6,y:y0+Math.round(qy)-(p.eat?6:4)})}
+  }
+  for(const p of L.filter(p=>p.rug))c.drawImage(p.img,p.x,p.y);
+  L.filter(p=>!p.rug).sort((a,b)=>a.z-b.z).forEach(p=>p.fn?p.fn():c.drawImage(p.img,p.x,p.y));
+  // ghost of the piece being placed
+  if(ghost&&tool&&ITEMS[tool].cat!=='wall'){const d=ITEMS[tool],ok=fits(tool,ghost.c,ghost.r,moving);
+    c.fillStyle=ok?'rgba(80,220,90,.28)':'rgba(230,60,40,.32)';d.mask.forEach((row,j)=>[...row].forEach((ch,i)=>{if(ch==='#'||d.rug)c.fillRect((ghost.c+i)*T,(ghost.r+j)*T,T,T)}));
+    c.globalAlpha=.75;const tmp={id:tool,c:ghost.c,r:ghost.r};const ps=partsOf(tmp,frame).sort((a,b)=>a.z-b.z);for(const p of ps)c.drawImage(p.img,p.x,p.y);c.globalAlpha=1}
+  if(tool&&ITEMS[tool].cat==='wall'){for(let i=0;i<WALL_SLOTS;i++){c.strokeStyle=ghost&&ghost.slot===i?'#ffcf4a':'rgba(255,241,210,.55)';c.lineWidth=1;c.strokeRect(i*32+1.5,3.5,29,24)}}
+}
+function blit(){
+  m.imageSmoothingEnabled=false;m.drawImage(LO,0,0,cv.width,cv.height);const k=cv.width/RW;
+  const a=analysis;
+  for(const it of a.blocked){const d=ITEMS[it.id];m.strokeStyle='#ff5a3a';m.lineWidth=Math.max(2,k);m.setLineDash([k*3,k*2]);m.strokeRect(it.c*T*k+1,it.r*T*k+1,d.w*T*k-2,d.h*T*k-2);m.setLineDash([])}
+  if(sel&&room.items.includes(sel)){const d=ITEMS[sel.id];m.strokeStyle='#120a04';m.lineWidth=Math.max(4,k*2);m.strokeRect(sel.c*T*k,sel.r*T*k,d.w*T*k,d.h*T*k);m.strokeStyle=Math.floor(performance.now()/400)%2?'#ffcf4a':'#fbe39a';m.lineWidth=Math.max(2,k);m.strokeRect(sel.c*T*k,sel.r*T*k,d.w*T*k,d.h*T*k)}
+}
+let analysis=analyse();
+function loop(now){const f=Math.floor(now/180);if(f!==frame){frame=f;drawRoom()}blit();requestAnimationFrame(loop)}
+function fit(){const dpr=Math.min(devicePixelRatio||1,3),s=Math.max(1,Math.round(cv.clientWidth*dpr/RW));cv.width=RW*s;cv.height=RH*s}
+
+/* ================= INPUT ================= */
+const tileAt=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)/r.width*RW,(e.clientY-r.top)/r.height*RH]};
+function ghostAt(x,y){if(!tool)return null;const d=ITEMS[tool];if(d.cat==='wall')return y<34&&x<12*T?{slot:Math.floor(x/32)}:null;return{c:Math.round(x/T-d.w/2),r:Math.round(y/T-d.h/2)}}
+cv.addEventListener('pointermove',e=>{const [x,y]=tileAt(e);ghost=ghostAt(x,y);drawRoom()});
+cv.addEventListener('pointerleave',()=>{ghost=null;drawRoom()});
+cv.addEventListener('pointerdown',e=>{
+  const [x,y]=tileAt(e);
+  if(tool){const g=ghostAt(x,y);if(!g)return;const d=ITEMS[tool];
+    if(d.cat==='wall'){if(g.slot>=0&&g.slot<WALL_SLOTS){room.walls[g.slot]=tool;changed()}return}
+    if(fits(tool,g.c,g.r,moving)){if(moving){moving.c=g.c;moving.r=g.r;sel=moving;moving=null;tool=null}else room.items.push({id:tool,c:g.c,r:g.r});ghost=g;changed()}
+    return}
+  // pick a piece: the one drawn in front wins (furniture before rugs)
+  const c=Math.floor(x/T),r=Math.floor(y/T);
+  if(y<34&&x<12*T){const i=Math.floor(x/32);sel=room.walls[i]?{wall:i}:null;renderSide();return}
+  const hit=room.items.filter(it=>{const d=ITEMS[it.id];return c>=it.c&&c<it.c+d.w&&r>=it.r&&r<it.r+d.h}).sort((a,b)=>(ITEMS[a.id].rug?0:1)-(ITEMS[b.id].rug?0:1)||b.r-a.r);
+  sel=hit[hit.length-1]&&!ITEMS[hit[0].id].rug?hit[0]:hit[0]||null;renderSide();
+});
+addEventListener('keydown',e=>{if(e.key==='Escape'){stopTool()}});
+cv.addEventListener('contextmenu',e=>{e.preventDefault();stopTool()});
+function stopTool(){if(moving){moving=null}tool=null;ghost=null;changed()}
+function changed(){analysis=analyse();if(guests)makePeople();saveRoom();drawRoom();renderSide();renderCat();renderTools()}
+
+/* ================= SIDE PANELS ================= */
+const $=q=>document.querySelector(q);
+const money=v=>'$'+v.toLocaleString('en-US');
+let tab='table';
+function thumb(id){const k='th'+id;return memo(k,()=>{const d=ITEMS[id],tmp={id,c:0,r:0};let ps;
+  if(d.cat==='wall')ps=d.parts.map(p=>({img:sprOf(p.s,3),x:p.x,y:p.y,z:0}));else ps=partsOf(tmp,3).sort((a,b)=>a.z-b.z);
+  if(d.seats&&d.cat==='table'){}
+  const x0=Math.min(...ps.map(p=>p.x)),y0=Math.min(...ps.map(p=>p.y)),x1=Math.max(...ps.map(p=>p.x+p.img.width)),y1=Math.max(...ps.map(p=>p.y+p.img.height));
+  const [c,x]=mk(x1-x0,y1-y0);for(const p of ps)x.drawImage(p.img,p.x-x0,p.y-y0);return c})}
+function finishThumb(kind,key){return memo('ft'+kind+key,()=>{const [c,x]=mk(32,32);if(kind==='floor'){for(let r=0;r<2;r++)for(let i=0;i<2;i++)x.drawImage(FLOORS[key].tile(i,r+2),i*16,r*16)}else{x.drawImage(WALLS[key].tile(0),0,0);x.drawImage(WALLS[key].tile(1),16,0)}return c})}
+function renderTabs(){$('#tabs').innerHTML=['table','decor','wall','floor','walls'].map(k=>`<button data-tab="${k}" aria-pressed="${tab===k}">${t('tab.'+k)}</button>`).join('');
+  $('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;renderTabs();renderCat()})}
+function card(label,price,style,on,attrs,cvs){return `<button class="it" ${attrs} aria-pressed="${on}"><span data-thumb></span><span>${label}</span><span class="row" style="gap:4px;justify-content:center"><b class="p">${price?money(price):'—'}</b><span class="chip" style="background:${STYLE_COL[style]}">${t('st.'+style)}</span></span></button>`}
+function renderCat(){
+  const el=$('#cat');let list=[];
+  if(tab==='floor'){el.innerHTML=Object.keys(FLOORS).map(k=>card(t('f.'+k),FLOORS[k].price,FLOORS[k].style,room.floor===k,`data-floor="${k}"`)).join('');list=Object.keys(FLOORS).map(k=>finishThumb('floor',k))}
+  else if(tab==='walls'){el.innerHTML=Object.keys(WALLS).map(k=>card(t('w.'+k),WALLS[k].price,WALLS[k].style,room.wall===k,`data-wall="${k}"`)).join('');list=Object.keys(WALLS).map(k=>finishThumb('wall',k))}
+  else{const ids=Object.keys(ITEMS).filter(k=>ITEMS[k].cat===tab);el.innerHTML=ids.map(k=>card(t('i.'+k)+(ITEMS[k].seats?` · ${ITEMS[k].seats.length}`:''),ITEMS[k].price,ITEMS[k].style,tool===k&&!moving,`data-item="${k}"`)).join('');list=ids.map(thumb)}
+  el.querySelectorAll('[data-thumb]').forEach((s,i)=>{const src=list[i],[c,x]=mk(src.width,src.height);x.drawImage(src,0,0);s.replaceWith(c)});
+  el.querySelectorAll('[data-item]').forEach(b=>b.onclick=()=>{const k=b.dataset.item;moving=null;tool=tool===k?null:k;sel=null;changed()});
+  el.querySelectorAll('[data-floor]').forEach(b=>b.onclick=()=>{room.floor=b.dataset.floor;changed()});
+  el.querySelectorAll('[data-wall]').forEach(b=>b.onclick=()=>{room.wall=b.dataset.wall;changed()});
+}
+function renderSide(){
+  const a=analysis,st=a.share>=.5?t('st.'+a.dom).toUpperCase()+' '+Math.round(a.share*100)+'%':t('lcdMix');
+  const warn=[];if(a.blocked.size)warn.push(t('w.blocked',a.blocked.size));if(!a.kitchenOk)warn.push(t('w.kitchen'));if(a.crowd)warn.push(t('w.crowd'));
+  $('#lcd').innerHTML=`<div><span>${t('lcdRoom')}</span><span>${t('lcdStyle')} ${st}</span></div><div class="dim"><span>${'-'.repeat(30)}</span></div>
+    <div><span>${t('lcdTables')}</span><span>${a.tables}</span></div><div><span>${t('lcdSeats')}</span><span>${a.seats}</span></div>
+    <div><span>${t('lcdFree')}</span><span>${Math.round(a.freeShare*100)}%</span></div><div><span>${t('lcdSpent')}</span><span>${money(a.spent)}</span></div>
+    ${warn.length?warn.map(w=>`<div class="warn">! ${w}</div>`).join(''):`<div class="dim"><span>${t('w.ok')}</span></div>`}`;
+  $('#segs').innerHTML=`<h3 style="grid-column:1/-1">${t('atm')}</h3>`+SEGS.map(([k,col],i)=>`<span>${t('seg.'+k)}</span><span class="bar"><b style="width:${a.atm[i]}%;background:${col}"></b></span><span class="v">${a.atm[i]}</span>`).join('');
+  const el=$('#sel');
+  if(sel&&(sel.wall!==undefined?room.walls[sel.wall]:room.items.includes(sel))){
+    const id=sel.wall!==undefined?room.walls[sel.wall]:sel.id,d=ITEMS[id],refund=Math.round(d.price*.5);
+    el.innerHTML=`<div class="selbox"><div class="row" style="justify-content:space-between"><h3>${t('i.'+id)}</h3><span class="chip" style="background:${STYLE_COL[d.style]}">${t('st.'+d.style)}</span></div>
+      ${d.seats?`<p class="sub">${t('seats',d.seats.length)}</p>`:''}<div class="row" style="margin-top:8px">${sel.wall===undefined?`<button class="btn sm" data-move>${t('move')}</button>`:''}<button class="btn sm ghost" data-sell>${t('sell',money(refund))}</button></div></div>`;
+    const mv=el.querySelector('[data-move]');if(mv)mv.onclick=()=>{moving=sel;tool=sel.id;changed()};
+    el.querySelector('[data-sell]').onclick=()=>{if(sel.wall!==undefined)room.walls[sel.wall]=null;else room.items=room.items.filter(x=>x!==sel);sel=null;changed()};
+  }else el.innerHTML='';
+  $('#hint').textContent=tool?(ITEMS[tool].cat==='wall'?t('h.wall'):t('h.place')):t('h.idle');
+}
+function renderTools(){
+  $('#tools').innerHTML=`<button class="btn sm" id="guests" aria-pressed="${guests}">${t('guests')}</button>${tool?`<button class="btn sm primary" id="stop">${t('stop')}</button>`:''}
+    <span class="lbl">${t('examples')}</span>${['tasca','tratt','moder','luxo'].map(k=>`<button class="btn sm ghost" data-preset="${k}">${t('st.'+k)}</button>`).join('')}
+    <button class="btn sm ghost" id="empty">${t('empty')}</button>`;
+  $('#guests').onclick=()=>{guests=!guests;if(guests)makePeople();changed()};
+  const s=$('#stop');if(s)s.onclick=stopTool;
+  $('#empty').onclick=()=>{room=blank();sel=null;tool=null;moving=null;changed()};
+  document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{room=fromPreset(b.dataset.preset);sel=null;tool=null;moving=null;changed()});
+}
+function texts(){document.documentElement.lang=LANG;document.title='Pizza Magna · '+t('title');document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));$('#lang').textContent=t('lang');
+  cache.forEach((v,k)=>{if(k.startsWith('th'))cache.delete(k)});renderTabs();renderCat();renderSide();renderTools()}
+$('#lang').onclick=()=>{LANG=LANG==='pt'?'en':'pt';try{localStorage.setItem('pm-lang',LANG)}catch(_){}texts()};
+
+fit();addEventListener('resize',fit);texts();drawRoom();requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -31,6 +31,7 @@ The biggest block. A first visual draft of the map is in `docs/drafts/city.html`
 - Each item has a style (rustic, modern, Portuguese tasca, luxury) that attracts certain customer groups.
 - The number of tables limits how many customers fit at once.
 - The furniture is drawn in code in `sprites.js`, like the rest of the room.
+- Draft: `docs/drafts/room.html` (standalone): four styles, 8 table sets, 14 floor pieces, 9 wall pieces, 6 floors and 5 walls; atmosphere per customer group, seats, free floor and reachability checks.
 
 ### 3. Staff
 - **Roles**: pizzaiolo, waiter, cashier, dishwasher/cleaner. Today there are only pizzaiolos, as a count.
