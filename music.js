@@ -88,7 +88,9 @@ const MUSIC = (() => {
     ctx = new AC();
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200; lp.Q.value = .4;   // lo-fi: soften the top
     master = ctx.createGain(); master.gain.value = gainFor(getVol());
-    master.connect(lp); lp.connect(ctx.destination);
+    // a limiter at the end: stacked voices at high volume used to clip (crackles)
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -10; lim.knee.value = 6; lim.ratio.value = 12; lim.attack.value = .003; lim.release.value = .2;
+    master.connect(lp); lp.connect(lim); lim.connect(ctx.destination);
     wobble = ctx.createOscillator(); wobble.frequency.value = .35;                                     // slow tape wobble
     const depth = ctx.createGain(); depth.gain.value = 6; wobble.connect(depth); wobble.start();
     wobble.depth = depth;
@@ -100,9 +102,11 @@ const MUSIC = (() => {
     if (type === 'pulse') o.setPeriodicWave(pulseWave(opts.duty || .25)); else o.type = type;
     o.frequency.value = f;
     if (opts.wobble) wobble.depth.connect(o.detune);
+    // soft edges in time order, even for very short notes (tremolo picks): out-of-order ramps were the pops
+    const att = Math.min(.012, dur / 4), rel = Math.min(.04, dur / 3);
     g.gain.setValueAtTime(0, t0);
-    g.gain.linearRampToValueAtTime(vol, t0 + .008);
-    g.gain.setValueAtTime(vol, t0 + Math.max(.01, dur - .04));
+    g.gain.linearRampToValueAtTime(vol, t0 + att);
+    g.gain.setValueAtTime(vol, t0 + dur - rel);
     g.gain.linearRampToValueAtTime(0, t0 + dur);
     o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + dur + .02);
     voices.push(o);
@@ -113,14 +117,14 @@ const MUSIC = (() => {
     if (kind === 'k') {                                  // kick: sine sweeping down
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.frequency.setValueAtTime(150, t0); o.frequency.exponentialRampToValueAtTime(45, t0 + .12);
-      g.gain.setValueAtTime(.55, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + .15);
+      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.55, t0 + .004); g.gain.exponentialRampToValueAtTime(.001, t0 + .15);
       o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + .16); voices.push(o); return;
     }
     if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * .2, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1 }
     const s = ctx.createBufferSource(), g = ctx.createGain(), hp = ctx.createBiquadFilter();
     s.buffer = noiseBuf; hp.type = 'highpass'; hp.frequency.value = kind === 'h' ? 7000 : 1800;
     const len = kind === 'h' ? .03 : .11, vol = kind === 'h' ? .08 : .22;
-    g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + len);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + .003); g.gain.exponentialRampToValueAtTime(.001, t0 + len);
     s.connect(hp); hp.connect(g); g.connect(bus); s.start(t0); s.stop(t0 + len + .01); voices.push(s);
   }
 
