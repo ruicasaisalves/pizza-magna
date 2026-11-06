@@ -1,7 +1,8 @@
 /* Pizza Magna — 8-bit / lo-fi Italian music, synthesised with Web Audio (no audio files).
    Four voices like an old console: square lead (25% duty), triangle bass, soft square harmony, noise drums,
    through a gentle low-pass filter with a slow "tape" wobble for the lo-fi feel.
-   The tunes are original compositions in the style of Neapolitan classics, the tarantella and Verdi's "La donna è mobile".
+   The tunes are original compositions in the style of Neapolitan classics, the tarantella and Verdi's "La donna è mobile",
+   plus a swaying 1950s crooner tune and a slow romantic ballad.
    Notation: one token per step (an eighth note); "-" holds the previous note, "." is silence.
    Drums: k = kick, s = snare, h = hat, . = nothing. */
 const MUSIC = (() => {
@@ -52,6 +53,18 @@ const MUSIC = (() => {
         bass: 'F2 - A2 - C3 - | C2 - E2 - G2 - | F2 - A2 - C3 - | C2 - E2 - G2 - | Bb1 - D2 - F2 - | F2 - A2 - C3 - | C2 - E2 - G2 - | F2 - - - . .',
         harm: 'C4 - - - - - | E4 - - - - - | C4 - - - - - | E4 - - - - - | D4 - - - - - | C4 - - - - - | E4 - - - - - | A3 - - - . .' },
       drums: 'k . . . h .' },
+    { id: 'luna', title: 'Luna sulla Pizza', bpm: 300, beat: 6, loops: 2, trem: false, parts: 'A',   // a swaying crooner tune, moon over the bay
+      A: {
+        lead: 'G4 - C5 - E5 - | G5 - - E5 - C5 | D5 - - - - - | . . G4 A4 B4 C5 | D5 - F5 - A5 - | G5 - - F5 - D5 | E5 - - - - - | . . E5 F5 E5 D5 | C5 - E5 - G5 - | C6 - - B5 - A5 | G5 - - E5 - C5 | A4 - - - - - | D5 - - F5 - - | E5 - - C5 - - | D5 - - B4 - - | C5 - - - . .',
+        bass: 'C3 - - G2 - - | C3 - - G2 - - | G2 - - D3 - - | G2 - - D3 - - | G2 - - D3 - - | G2 - - D3 - - | C3 - - G2 - - | C3 - - G2 - - | C3 - - G2 - - | A2 - - E3 - - | F2 - - C3 - - | F2 - - C3 - - | G2 - - D3 - - | C3 - - A2 - - | G2 - - D3 - - | C3 - - G2 - -',
+        harm: 'E4 - - - - - | E4 - - - - - | B4 - - - - - | B4 - - - - - | B4 - - - - - | B4 - - - - - | G4 - - - - - | G4 - - - - - | E4 - - - - - | E4 - - - - - | A4 - - - - - | A4 - - - - - | B4 - - - - - | G4 - - - - - | F4 - - - - - | E4 - - . . .' },
+      drums: 'k . h s . h' },
+    { id: 'bello', title: "L'Amore più Bello", bpm: 160, beat: 8, loops: 2, trem: false, parts: 'A',   // a slow romantic ballad in E minor
+      A: {
+        lead: 'E5 - - - D5 - B4 - | C5 - - - B4 - A4 - | B4 - - - G4 - E4 - | F#4 - - - - - . . | G4 - A4 - B4 - E5 - | D5 - - - C5 - B4 - | A4 - - - B4 - C5 - | B4 - - - - - . . | E5 - - - F#5 - G5 - | A5 - - - G5 - F#5 - | G5 - - - E5 - C5 - | D5 - - - - - . . | C5 - - - B4 - A4 - | B4 - - - G4 - F#4 - | E4 - - - - - - - | . . . . . . . .',
+        bass: 'E2 - B2 - E3 - B2 - | A2 - E3 - A2 - E3 - | E2 - B2 - E3 - B2 - | B1 - F#2 - B2 - F#2 - | G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | A2 - E3 - A2 - E3 - | B1 - F#2 - B2 - F#2 - | C2 - G2 - C3 - G2 - | D2 - A2 - D3 - A2 - | E2 - B2 - E3 - B2 - | B1 - F#2 - B2 - F#2 - | A2 - E3 - A2 - E3 - | B1 - F#2 - B2 - F#2 - | E2 - B2 - E3 - B2 - | E2 - - - - - - -',
+        harm: 'G4 - - - - - - - | E4 - - - - - - - | G4 - - - - - - - | D#4 - - - - - - - | B4 - - - - - - - | B4 - - - - - - - | C5 - - - - - - - | D#5 - - - - - - - | E5 - - - - - - - | F#4 - - - - - - - | G4 - - - - - - - | F#4 - - - - - - - | E4 - - - - - - - | D#4 - - - - - - - | G4 - - - - - - - | . . . . . . . .' },
+      drums: 'k . . . h . . .' },
   ];
 
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
