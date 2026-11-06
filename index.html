@@ -901,10 +901,10 @@ function drawBench(){
   if(!pz.pizza)pz.pizza=composePizza(d);
   c.drawImage(pz.pizza,PX,PY);
   if(pz.ghost)spr(c,cut?sel+'_g0':wholeKey(sel,0,curAng()),PCX+pz.ghost.x*PR,PCY+pz.ghost.y*PR,.6);
-  if(state.zoom){   // the name of the pizza being made, on a plate over the marble
-    const nm=(d.name||t('k.newname')).toUpperCase();c.font='8px Silkscreen, monospace';const hw=Math.min(BW/2-4,Math.ceil(c.measureText(nm).width/2)+8),cx=BW/2;
-    c.fillStyle='#4a260f';c.fillRect(cx-hw,6,hw*2,14);c.fillStyle='#e3b34a';c.fillRect(cx-hw+1,7,hw*2-2,12);c.fillStyle='#fbe39a';c.fillRect(cx-hw+1,7,hw*2-2,1);
-    benchText(c,nm,cx,10,'#3a2706','rgba(251,227,154,.8)');zoomBar();return}
+  if(state.zoom){   // the name of the pizza being made, dark title on the marble (like the menu cards)
+    let nm=(d.name||t('k.newname')).toUpperCase(),fs=11;c.font=`bold ${fs}px Silkscreen, monospace`;
+    while(fs>7&&c.measureText(nm).width>BW-8){fs--;c.font=`bold ${fs}px Silkscreen, monospace`}
+    c.textAlign='center';c.textBaseline='middle';c.fillStyle='#2c1a0b';c.fillText(nm,BW/2,PY/2+1);zoomBar();return}
   // right side: ingredient name plate and two bowls (whole / grated)
   const cx=BOWLS[0].x+BOWL_W/2;
   // name plate grows with the name (long names like "Salsicha italiana"), up to the bench edge
