@@ -19,7 +19,7 @@ The public site only shows the Kitchen and the Menu (sandbox mode).
 ## Missing
 
 ### 1. City and property
-The biggest block. A first visual draft of the map is in `docs/drafts/city.html` (standalone, not wired to the game).
+The biggest block. A first visual draft of the map is in `docs/drafts/city.html` (standalone, not wired to the game): 6×5 square blocks, drag to move, zoom and a minimap.
 - A pixel-art city map with neighbourhoods (university, tourist, residential, upmarket). Each has its own mix of the 4 customer groups.
 - Shops to **rent** (monthly rent, cheap to start) or **buy** (expensive, gains value, can be sold).
 - Each property has a size, a number of tables, street traffic, rent and condition (new or needing work).
