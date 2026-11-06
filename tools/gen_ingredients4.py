@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Pizza Magna — quarto lote: piri-piri, ovo, bacalhau, queijo da Serra, mel, rúcula,
-e as bases (3 massas x 4 molhos). Uso: python3 tools/gen_ingredients4.py <pasta>"""
+"""Pizza Magna: fourth batch: piri-piri, egg, salt cod, Serra da Estrela cheese, honey, rocket,
+and the bases (3 doughs x 4 sauces). Usage: python3 tools/gen_ingredients4.py <folder>"""
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -30,7 +30,7 @@ def chili(seed, W=20, H=12):
     ys, xs, cx, cy = grid(W, H)
     a = (rng.random() - .5) * .8
     u = (xs - cx) * np.cos(a) + (ys - cy) * np.sin(a); v = -(xs - cx) * np.sin(a) + (ys - cy) * np.cos(a)
-    t = (u + 8) / 15                                     # 0 no pé, 1 na ponta
+    t = (u + 8) / 15                                     # 0 at the stem, 1 at the tip
     vv = v - .9 * np.sin(t * 3)
     half = 2.6 * (1 - np.clip(t, 0, 1) ** 1.6) + .4
     body = (t >= 0) & (t <= 1) & (np.abs(vv) <= half)
@@ -41,7 +41,7 @@ def chili(seed, W=20, H=12):
     return render(mat, np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask, mask, {'stem': 'stem'})
 
 def egg(seed, W=38, H=35, k=1.38):
-    """ovo estrelado; k=1.38: o desenho original (28x26) 20% maior e depois mais 15%"""
+    """fried egg; k=1.38: the original drawing (28x26) made 20% bigger and then 15% more"""
     rng = np.random.default_rng(seed + 1400)
     ys, xs, cx, cy = grid(W, H)
     ang = np.arctan2(ys - cy, xs - cx); a, b = rng.random(2) * 6.28
@@ -62,7 +62,7 @@ def cod(seed, W=26, H=20):
     rng = np.random.default_rng(seed + 1500)
     ys, xs, cx, cy = grid(W, H)
     mask = np.zeros((H, W), bool); height = np.zeros((H, W))
-    for k in range(4):                                  # lascas em camadas (bacalhau desfaz-se em folhas)
+    for k in range(4):                                  # layered flakes (salt cod falls apart in leaves)
         bx, by = cx + (rng.random() - .5) * 10, cy + (rng.random() - .5) * 6
         a = rng.random() * 3.14
         u = (xs - bx) * np.cos(a) + (ys - by) * np.sin(a); v = -(xs - bx) * np.sin(a) + (ys - by) * np.cos(a)
@@ -73,7 +73,7 @@ def cod(seed, W=26, H=20):
     return render(mat, np.clip(shade(height, mask) * .8 + .22, 0, 1) * mask, mask, {})
 
 def serra(seed, W=26, H=22):
-    """queijo amanteigado: uma colherada cremosa que escorre, com pedaço de casca"""
+    """buttery cheese: a creamy spoonful that runs, with a piece of rind"""
     rng = np.random.default_rng(seed + 1600)
     ys, xs, cx, cy = grid(W, H)
     ang = np.arctan2(ys - cy, xs - cx); a = rng.random() * 6.28
@@ -87,7 +87,7 @@ def serra(seed, W=26, H=22):
     return render(mat, np.clip(shade(height, mask) * .8 + .25, 0, 1) * mask, mask, {'rind': 'rind'})
 
 def honey(seed, W=30, H=24):
-    """fio de mel em zigue-zague, translúcido, com brilho"""
+    """zigzag drizzle of honey, translucent, with shine"""
     rng = np.random.default_rng(seed + 1700)
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0)); px = img.load()
     pts, x, y = [], 3.0, 4 + rng.random() * 4
@@ -105,7 +105,7 @@ def honey(seed, W=30, H=24):
     return img
 
 def rocket(seed, W=24, H=16):
-    """folha de rúcula: estreita, recortada em lóbulos"""
+    """rocket leaf: narrow, cut into lobes"""
     rng = np.random.default_rng(seed + 1800)
     ys, xs, cx, cy = grid(W, H)
     a = (rng.random() - .5) * 1.4
@@ -118,8 +118,8 @@ def rocket(seed, W=24, H=16):
     mat = [['vein' if (abs(v[y, x]) < .55 and t[y, x] < .95) else 'rocket' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask, mask, {'vein': 'rocket'})
 
-# ---------------- bases: massa x molho ----------------
-DOUGH = {'Fina': .07, 'Napolitana': .13, 'Alta': .19}            # largura do bordo
+# ---------------- bases: dough x sauce ----------------
+DOUGH = {'Fina': .07, 'Napolitana': .13, 'Alta': .19}            # crust width
 SAUCE = {
     'Tomate': hexs(['#7e1a0e', '#a42514', '#c4341c', '#d84a28']),
     'Natas': hexs(['#c9b89a', '#e2d4b8', '#f2e8d4', '#fdf8ee']),
@@ -144,7 +144,7 @@ def base(D, dough, sauce, seed=0):
                 if n2[y, x] > .93: col = crust[1]
             else:
                 lit = .5 + (-dx - dy) / D * .25 + (n[y, x] - .5) * .5
-                if sauce == 'Pesto' and n2[y, x] > .82: lit += .35          # grãos de manjericão/pinhão
+                if sauce == 'Pesto' and n2[y, x] > .82: lit += .35          # basil/pine-nut grains
                 col = quant(np.clip(lit, 0, 1), sr, y, x)
             px[x, y] = col + (255,)
     return img
@@ -164,8 +164,8 @@ if __name__ == '__main__':
     BH = 3 * 130 + 40
     sheet = Image.new('RGB', (1000, 40 + ROW * len(sets) + BH + 20), (27, 20, 16))
     dr = ImageDraw.Draw(sheet)
-    dr.text((20, 10), 'Inteiro / fatiado (×6, 3 variantes)', fill=(240, 220, 180), font=fs)
-    dr.text((760, 10), 'Ralado / picado (×6)', fill=(240, 220, 180), font=fs)
+    dr.text((20, 10), 'Whole / sliced (x6, 3 variants)', fill=(240, 220, 180), font=fs)
+    dr.text((760, 10), 'Grated / chopped (x6)', fill=(240, 220, 180), font=fs)
     for i, (name, arr, gr) in enumerate(sets):
         key = name.lower().replace('\n', '_').replace(' ', '_')
         for j, im in enumerate(arr): im.save(f'{OUT}{key}_{j + 1}.png')
@@ -180,10 +180,10 @@ if __name__ == '__main__':
             bg.paste(m, ((190 - m.width) // 2, (ROW - 12 - m.height) // 2), m)
             sheet.paste(bg, (x, y)); x += 200
         if not gr:
-            dr.text((770, y + 60), 'só em fio\n(não se rala)', fill=(200, 180, 150), font=fs)
-    # bases: 3 massas x 4 molhos, a 64 px ×2
+            dr.text((770, y + 60), 'drizzle only\n(not grated)', fill=(200, 180, 150), font=fs)
+    # bases: 3 doughs x 4 sauces, at 64 px x2
     yb = 36 + ROW * len(sets) + 4
-    dr.text((20, yb), 'Bases: massa (linhas) × molho (colunas), 64 px ×2', fill=(240, 220, 180), font=fs)
+    dr.text((20, yb), 'Bases: dough (rows) x sauce (columns), 64 px x2', fill=(240, 220, 180), font=fs)
     for i, d in enumerate(DOUGH):
         dr.text((20, yb + 70 + i * 130), d, fill=(240, 220, 180), font=f)
         for j, s in enumerate(SAUCE):

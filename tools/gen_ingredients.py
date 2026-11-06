@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Esboço: 3 ingredientes em pixel detalhado (mozzarella, tomate, bacon).
-Cada pixel: material + luz (normal de um campo de altura, luz de cima-esquerda),
-quantizado numa rampa curta com dithering ordenado 4x4 (Bayer). Contorno seletivo
-(o tom mais escuro da própria rampa, não preto)."""
+"""Sketch: 3 toppings in detailed pixel art (mozzarella, tomato, bacon).
+Each pixel: material + light (normal of a height field, light from the top left),
+quantised onto a short ramp with 4x4 ordered (Bayer) dithering. Selective outline
+(the darkest tone of the ramp itself, not black)."""
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
@@ -54,7 +54,7 @@ def render(mat, light, mask, outline_ramp):
             if not mask[y, x]: continue
             m = mat[y][x]
             px[x, y] = quant(light[y, x], R[m], y, x) + (255,)
-    # contorno seletivo: píxeis da borda passam ao tom escuro da sua rampa
+    # selective outline: edge pixels take the dark tone of their ramp
     for y in range(h):
         for x in range(w):
             if not mask[y, x]: continue
@@ -66,7 +66,7 @@ def render(mat, light, mask, outline_ramp):
                 px[x, y] = ramp[0 if lit < .55 else 1] + (255,)
     return img
 
-# ---------------- TOMATE (rodela) ----------------
+# ---------------- TOMATO (slice) ----------------
 def tomato(seed, D=26):
     rng = np.random.default_rng(seed)
     c = (D - 1) / 2
@@ -88,16 +88,16 @@ def tomato(seed, D=26):
             q = rr[y, x]
             if q > .86: mat[y][x] = 'skin'; continue
             if q < .2: mat[y][x] = 'core'; continue
-            # lóbulos de sementes
+            # seed lobes
             a = (ang[y, x] - rot) % (2 * np.pi / lobes) - np.pi / lobes
             rad, tang = (q - .52) / .24, a / (np.pi / lobes * .62)
             if rad * rad + tang * tang < 1 + (n[y, x] - .5) * .5:
                 mat[y][x] = 'jelly'; height[y, x] -= .8
-            elif abs(a) < .09 and q < .86:   # septos (parede entre lóbulos)
+            elif abs(a) < .09 and q < .86:   # septa (walls between lobes)
                 mat[y][x] = 'core'
     light = shade(height, mask)
     img = render(mat, light, mask, {'jelly': 'flesh', 'core': 'flesh'})
-    # sementes: 2-3 por lóbulo, 1-2 px, claras com ponto escuro
+    # seeds: 2-3 per lobe, 1-2 px, light with a dark dot
     px = img.load()
     for k in range(lobes):
         a0 = rot + (k + .5) * 2 * np.pi / lobes
@@ -109,12 +109,12 @@ def tomato(seed, D=26):
             if 0 <= x < D and 0 <= y < D and mask[y, x]:
                 px[x, y] = (255, 246, 196, 255)
                 if x + 1 < D and mask[y, x + 1]: px[x + 1, y] = (214, 160, 70, 255)
-    # brilho especular (molhado)
+    # specular highlight (wet)
     for (x, y) in [(int(c - 5), int(c - 7)), (int(c - 4), int(c - 7)), (int(c - 6), int(c - 6))]:
         if mask[y, x]: px[x, y] = (255, 214, 196, 255)
     return img
 
-# ---------------- MOZZARELLA (pedaço derretido) ----------------
+# ---------------- MOZZARELLA (melted piece) ----------------
 def mozz(seed, W=30, H=26):
     rng = np.random.default_rng(seed + 100)
     ys, xs = np.mgrid[0:H, 0:W]
@@ -126,7 +126,7 @@ def mozz(seed, W=30, H=26):
     rr = r / edge
     n = noise(H, W, 5, rng); n2 = noise(H, W, 2, rng)
     mask = rr <= 1
-    # escorre: uma "língua" de queijo para um lado
+    # runs: a "tongue" of cheese to one side
     la = rng.random() * 6.28
     tongue = (np.cos(ang - la) > .93) & (r < 1.22)
     mask |= tongue
@@ -135,11 +135,11 @@ def mozz(seed, W=30, H=26):
     for y in range(H):
         for x in range(W):
             if mask[y, x] and height[y, x] > 2.3 and n2[y, x] > .74:
-                mat[y][x] = 'brown'          # pintas tostadas no topo
+                mat[y][x] = 'brown'          # toasted spots on top
     light = np.clip(shade(height, mask) * .8 + .28, 0, 1) * mask
     img = render(mat, light, mask, {'brown': 'mozz'})
     px = img.load()
-    # bolhas: anel claro com centro um tom abaixo
+    # bubbles: light ring with a centre one tone lower
     for _ in range(3):
         x, y = int(cx + (rng.random() - .5) * W * .45), int(cy + (rng.random() - .5) * H * .45)
         if mask[y, x]:
@@ -147,23 +147,23 @@ def mozz(seed, W=30, H=26):
             if mask[y - 1, x - 1]: px[x - 1, y - 1] = R['mozz'][5] + (255,)
     return img
 
-# ---------------- BACON (tira ondulada) ----------------
+# ---------------- BACON (wavy strip) ----------------
 def bacon(seed, W=34, H=24, ang=None):
-    """ang (radianos) fixa a orientação da tira; sem ele, sai um ângulo ao acaso pela seed."""
+    """ang (radians) fixes the strip's orientation; without it, the seed picks a random angle."""
     rng = np.random.default_rng(seed + 200)
     a0 = (rng.random() - .5) * .9
     ang = a0 if ang is None else ang
     ca, sa = np.cos(ang), np.sin(ang)
     ys, xs = np.mgrid[0:H, 0:W]
-    u = (xs - (W - 1) / 2) * ca + (ys - (H - 1) / 2) * sa       # ao longo da tira
-    v = -(xs - (W - 1) / 2) * sa + (ys - (H - 1) / 2) * ca      # através
+    u = (xs - (W - 1) / 2) * ca + (ys - (H - 1) / 2) * sa       # along the strip
+    v = -(xs - (W - 1) / 2) * sa + (ys - (H - 1) / 2) * ca      # across
     ph = rng.random() * 6.28
-    wave = 1.1 * np.sin(u * .3 + ph)                          # tira ondulada
+    wave = 1.1 * np.sin(u * .3 + ph)                          # wavy strip
     vv = v - wave
     half = 5.6 + .4 * np.sin(u * .9 + ph * 2)
-    L2 = 15.0 - (np.abs(np.sin(v * 1.1 + ph)) * 1.4)            # pontas recortadas
+    L2 = 15.0 - (np.abs(np.sin(v * 1.1 + ph)) * 1.4)            # ragged ends
     mask = (np.abs(vv) <= half) & (np.abs(u) <= L2)
-    t = (vv / half + 1) / 2                                      # 0..1 através
+    t = (vv / half + 1) / 2                                      # 0..1 across
     n = noise(H, W, 3, rng)
     height = 2.2 * np.cos(u * .42 + ph) * np.sign(np.sin(u * .42 + ph) + 1e-6) * 0 \
         + 1.3 * np.sin(u * .55 + ph) + (n - .5) * .5 + np.clip(1 - (2 * t - 1) ** 2, 0, 1) * 1.6
@@ -172,14 +172,14 @@ def bacon(seed, W=34, H=24, ang=None):
         for x in range(W):
             if not mask[y, x]: continue
             tv = t[y, x] + (n[y, x] - .5) * .14
-            if .2 < tv < .52 or .64 < tv < .9: mat[y][x] = 'meat'   # faixas de carne
+            if .2 < tv < .52 or .64 < tv < .9: mat[y][x] = 'meat'   # bands of meat
             if abs(u[y, x]) > L2[y, x] - 1.6 and mat[y][x] == 'meat': mat[y][x] = 'crisp'
     light = shade(height, mask)
     return render(mat, light, mask, {'fat': 'meat', 'crisp': 'crisp'})
 
-# ---------------- montagem da prévia ----------------
+# ---------------- preview assembly ----------------
 def drop(img):
-    """sombra de 1 px para baixo-direita, como objeto pousado"""
+    """1 px shadow down-right, like an object resting on the surface"""
     w, h = img.size
     out = Image.new('RGBA', (w + 2, h + 2), (0, 0, 0, 0))
     a = img.split()[3]
@@ -197,7 +197,7 @@ def pizza_base(D, rng):
         for x in range(D):
             dx, dy = x - c, y - c; r = np.hypot(dx, dy) / (D / 2 - .5)
             if r > 1: continue
-            if r > .86:   # bordo: um anel em relevo, luz de cima-esquerda
+            if r > .86:   # crust: a raised ring, light from the top left
                 t = (r - .86) / .14
                 lit = (np.sqrt(max(0, 1 - (2 * t - 1) ** 2)) * .6 + (-dx - dy) / D * .7 + .25 + (n[y, x] - .5) * .5)
                 col = quant(np.clip(lit, 0, 1), crust, y, x)
@@ -227,7 +227,7 @@ if __name__ == '__main__':
     for name, arr in (('tomate', toms), ('mozzarella', mozs), ('bacon', bacs)):
         for i, im in enumerate(arr): im.save(f'{OUT}{name}_{i + 1}.png')
 
-    # cena: pizza de 170 px sobre mármore, à escala de um ecrã 320x200
+    # scene: 170 px pizza on marble, at the scale of a 320x200 screen
     SW, SH = 320, 200
     scene = marble(SW, SH, rng).convert('RGBA')
     pz = pizza_base(170, rng)
@@ -252,7 +252,7 @@ if __name__ == '__main__':
     d.ellipse((4, 6, 174, 176), fill=(40, 30, 20, 90))
     scene.alpha_composite(sh, (70, 12)); scene.alpha_composite(pz, (72, 12))
 
-    # folha final: cada ingrediente ×8 numa caixa, depois as 9 variantes ×4, depois a cena ×3
+    # final sheet: each topping x8 in a box, then the 9 variants x4, then the scene x3
     K, KS = 8, 3
     W = SW * KS + 40
     sheet = Image.new('RGB', (W, 2000), (27, 20, 16))
@@ -268,7 +268,7 @@ if __name__ == '__main__':
         bg.paste(big, ((BOX - big.width) // 2, (240 - big.height) // 2), big)
         sheet.paste(bg, (x, 42))
     yv = 42 + 240 + 16
-    dr.text((20, yv), 'Variantes (×3), para a pizza não ter peças repetidas', fill=(240, 220, 180), font=fs)
+    dr.text((20, yv), 'Variants (x3), so the pizza has no repeated pieces', fill=(240, 220, 180), font=fs)
     x = 20
     for arr in (mozs, toms, bacs):
         for im in arr:
@@ -277,7 +277,7 @@ if __name__ == '__main__':
             bg.paste(m, (4, (112 - m.height) // 2), m)
             sheet.paste(bg, (x, yv + 24)); x += bg.width + 6
     y0 = yv + 24 + 112 + 24
-    dr.text((20, y0), 'Na pizza, à escala do jogo (ecrã 320×200, ampliado ×3)', fill=(240, 220, 180), font=fs)
+    dr.text((20, y0), 'On the pizza, at game scale (320x200 screen, x3)', fill=(240, 220, 180), font=fs)
     sheet.paste(scene.convert('RGB').resize((SW * KS, SH * KS), Image.NEAREST), (20, y0 + 26))
     sheet = sheet.crop((0, 0, W, y0 + 26 + SH * KS + 20))
     sheet.save(OUT + 'preview_ingredientes.png')

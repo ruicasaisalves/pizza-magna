@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-"""Pizza Magna: junta os sprites de gen_ingredients*.py num atlas para o jogo.
+"""Pizza Magna: packs the sprites from gen_ingredients*.py into an atlas for the game.
 
-Gera `assets/ingredients.js` com um PNG em data URI (assim o jogo continua a abrir
-diretamente do disco, sem servidor, e o canvas não fica "sujo" para getImageData)
-e um mapa de frames:  ATLAS = {src, frames: {chave: [x, y, w, h]}}.
+Writes `assets/ingredients.js` with a PNG as a data URI (so the game still opens
+straight from disk, with no server, and the canvas isn't "tainted" for getImageData)
+and a frame map:  ATLAS = {src, frames: {key: [x, y, w, h]}}.
 
-Chaves:
-  <id>_0..2       ingrediente inteiro/fatiado (3 variantes), com sombra
-  <id>_n          ingrediente que roda (ROTATE): uma só peça, sem sombra. O jogo roda-a
-                  em quartos de volta (sem perder píxeis) e junta a sombra depois
-  <id>_g0..2      ralado/picado (3 variantes), com sombra; o mel, o milho, os pinhões, a Nutella, o azeite, o balsâmico, a maionese, a batata palha e as natas azedas não têm
-  sauce_<id>      disco de molho, 170 px
-  crust_<id>      bordo da massa (anel), 170 px
-  marble          bancada de mármore 320x200
-  bowl            taça de cerâmica para a bancada
+Keys:
+  <id>_0..2       whole/sliced topping (3 variants), with shadow
+  <id>_n          rotating topping (ROTATE): a single piece, no shadow. The game turns it
+                  in quarter turns (without losing pixels) and adds the shadow afterwards
+  <id>_g0..2      grated/chopped (3 variants), with shadow; honey, sweetcorn, pine nuts, Nutella, olive oil, balsamic, mayonnaise, potato sticks and sour cream have none
+  sauce_<id>      sauce disc, 170 px
+  crust_<id>      dough crust (ring), 170 px
+  marble          320x200 marble bench
+  bowl            ceramic bowl for the bench
 
-Uso: python3 tools/build_atlas.py [pasta_de_prévia]
+Usage: python3 tools/build_atlas.py [preview_folder]
 """
 import base64, io, os, sys
 import numpy as np
@@ -24,7 +24,7 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 _argv = sys.argv[:]
-sys.argv = sys.argv[:1] + [os.path.join(HERE, '..', 'preview')]     # os geradores leem a pasta de saída de argv
+sys.argv = sys.argv[:1] + [os.path.join(HERE, '..', 'preview')]     # the generators read the output folder from argv
 import gen_ingredients as G
 import gen_ingredients2 as G2
 import gen_ingredients3 as G3
@@ -45,11 +45,11 @@ import gen_bases as GB
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
 
-PIZZA = 170          # diâmetro da pizza no ecrã lógico 320x200
+PIZZA = 170          # pizza diameter on the 320x200 logical screen
 ROOT = os.path.join(HERE, '..')
 
-# id do jogo -> (inteiro(seed), ralado: (rampa, tipo, n_bits), função(seed) ou None)
-# queijos ralados: um punhado maior e mais disperso (60x56), para 10 a 12 cobrirem a pizza
+# game id -> (whole(seed), grated: (ramp, kind, n_bits[, size]), function(seed) or None)
+# grated cheeses: a bigger, looser handful (60x56), so 10 to 12 cover the pizza
 BIG = {'W': 60, 'H': 56}
 
 INGS = {
@@ -148,38 +148,38 @@ INGS = {
     'grao':         (G15.chickpeas, None),
     'frankfurt':    (G16.frankfurt, G16.slices),
 }
-# peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
+# rotating pieces: a single image, lying down (the positions are counted in the game, in ING.rot)
 ROTATE = {
-    'bacon': lambda: G.bacon(1, ang=0),            # 2 posições: deitado, de pé
-    'espargos': lambda: G5.asparagus(2, ang=0),    # 4: a cabeça aponta para um lado
+    'bacon': lambda: G.bacon(1, ang=0),            # 2 positions: lying, standing
+    'espargos': lambda: G5.asparagus(2, ang=0),    # 4: the head points one way
     'camarao': lambda: G5.shrimp(1, ang=0),        # 4
-    'figo': lambda: G5.fig(2, ang=0),              # 4: o pé aponta para um lado
-    'anchovas': lambda: G6.anchovy(1, ang=0),      # 4: a cauda aponta para um lado
-    'pera': lambda: G6.pear(1, ang=0),             # 4: o pé aponta para um lado
-    'sardinha': lambda: G7.sardine(1, ang=0),      # 4: a cauda aponta para um lado
-    'polvo': lambda: G7.octopus(1, ang=0),         # 4: o tentáculo enrola para um lado
-    'alcachofra': lambda: G9.artichoke(1, ang=0),  # 4: as folhas abrem para um lado
-    'padron': lambda: G9.padron(1, ang=0),         # 4: o pé fica de um lado
-    'ameijoas': lambda: G10.clam(1, ang=0),        # 4: a dobradiça da concha fica de um lado
-    'oregaos': lambda: G10.oregano(1, ang=0),      # 4: o raminho tem pé e ponta
-    'coentros': lambda: G11.coriander(1, ang=0),   # 4: o pé fica de um lado
-    'alecrim': lambda: G12.rosemary(1, ang=0),     # 4: o raminho tem pé e ponta
-    'maca': lambda: G12.apple(1, ang=0),           # 4: casca curva de um lado, corte do caroço do outro
-    'sao_jorge': lambda: G13.sao_jorge(1, ang=0),  # 4: a cunha aponta para um lado
-    'leitao': lambda: G13.leitao(1, ang=0),        # 4: o courato fica de um lado
-    'salsa': lambda: G13.parsley(1, ang=0),        # 4: o pé fica de um lado
-    'tomilho': lambda: G14.thyme(1, ang=0),        # 4: o raminho tem pé e ponta
-    'edamame': lambda: G15.edamame(1, ang=0),      # 2: a vagem é igual de ponta a ponta
-    'mejillones': lambda: G15.mussel(1, ang=0),    # 4: o bico da concha fica de um lado
-    'brie': lambda: G15.brie(1, ang=0),            # 4: a cunha aponta para um lado
-    'frankfurt': lambda: G16.frankfurt(1, ang=0),  # 2: igual de ponta a ponta
+    'figo': lambda: G5.fig(2, ang=0),              # 4: the stem points one way
+    'anchovas': lambda: G6.anchovy(1, ang=0),      # 4: the tail points one way
+    'pera': lambda: G6.pear(1, ang=0),             # 4: the stem points one way
+    'sardinha': lambda: G7.sardine(1, ang=0),      # 4: the tail points one way
+    'polvo': lambda: G7.octopus(1, ang=0),         # 4: the tentacle curls one way
+    'alcachofra': lambda: G9.artichoke(1, ang=0),  # 4: the leaves open one way
+    'padron': lambda: G9.padron(1, ang=0),         # 4: the stem is on one side
+    'ameijoas': lambda: G10.clam(1, ang=0),        # 4: the shell hinge is on one side
+    'oregaos': lambda: G10.oregano(1, ang=0),      # 4: the sprig has a stem and a tip
+    'coentros': lambda: G11.coriander(1, ang=0),   # 4: the stem is on one side
+    'alecrim': lambda: G12.rosemary(1, ang=0),     # 4: the sprig has a stem and a tip
+    'maca': lambda: G12.apple(1, ang=0),           # 4: curved skin on one side, core cut on the other
+    'sao_jorge': lambda: G13.sao_jorge(1, ang=0),  # 4: the wedge points one way
+    'leitao': lambda: G13.leitao(1, ang=0),        # 4: the crackling is on one side
+    'salsa': lambda: G13.parsley(1, ang=0),        # 4: the stem is on one side
+    'tomilho': lambda: G14.thyme(1, ang=0),        # 4: the sprig has a stem and a tip
+    'edamame': lambda: G15.edamame(1, ang=0),      # 2: the pod is the same end to end
+    'mejillones': lambda: G15.mussel(1, ang=0),    # 4: the shell's beak is on one side
+    'brie': lambda: G15.brie(1, ang=0),            # 4: the wedge points one way
+    'frankfurt': lambda: G16.frankfurt(1, ang=0),  # 2: the same end to end
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
 
 
 def bases():
-    """Molho e bordo em separado: 4 discos + 3 anéis em vez de 12 bases inteiras."""
+    """Sauce and crust kept apart: discs + rings instead of every dough x sauce base."""
     out = {}
     D = PIZZA
     c = (D - 1) / 2
@@ -194,15 +194,15 @@ def bases():
         a = np.array(G4.base(D, name, 'Tomate', seed=3 + len(k)))
         a[r <= 1 - G4.DOUGH[name], 3] = 0
         out['crust_' + k] = Image.fromarray(a)
-    for k in GB.DOUGHS:                                       # massas novas (gen_bases.py)
+    for k in GB.DOUGHS:                                       # new doughs (gen_bases.py)
         out['crust_' + k] = GB.crust(D, k, seed=len(k))
-    for k in GB.SAUCES:                                       # molhos novos
+    for k in GB.SAUCES:                                       # new sauces
         out['sauce_' + k] = GB.sauce(D, k, seed=len(k))
     return out
 
 
 def bowl(W=58, H=40):
-    """Taça de cerâmica vista a 3/4: aro claro, interior em sombra, faixa azul."""
+    """Ceramic bowl seen in 3/4: light rim, shaded inside, blue band."""
     R.update({
         'glaze': hexs(['#8f8676', '#b7ae9c', '#d8d0bf', '#eee8db', '#fbf8f1']),
         'inside': hexs(['#a69d8c', '#c4bcaa', '#dcd5c6', '#ece6da']),
@@ -222,7 +222,7 @@ def bowl(W=58, H=40):
             if not mask[y, x]: continue
             if in_e[y, x] <= 1:
                 mat[y][x] = 'inside'
-                height[y, x] = -np.sqrt(max(0, 1 - in_e[y, x])) * 3      # côncavo: luz ao contrário
+                height[y, x] = -np.sqrt(max(0, 1 - in_e[y, x])) * 3      # concave: light reversed
             elif out_e[y, x] <= 1:
                 height[y, x] = 1.2
             else:
@@ -252,7 +252,7 @@ def sprites():
 
 
 def pack(imgs, width=512):
-    """Empacotamento simples em prateleiras, das imagens mais altas para as mais baixas."""
+    """Simple shelf packing, from the tallest images to the shortest."""
     order = sorted(imgs, key=lambda k: (-imgs[k].height, -imgs[k].width))
     x = y = shelf = 0
     frames = {}
@@ -273,7 +273,7 @@ if __name__ == '__main__':
     b64 = base64.b64encode(buf.getvalue()).decode()
     os.makedirs(os.path.join(ROOT, 'assets'), exist_ok=True)
     fr = ',\n'.join(f'  {k}:[{",".join(map(str, v))}]' for k, v in sorted(frames.items()))
-    js = ('/* Gerado por tools/build_atlas.py a partir de tools/gen_ingredients*.py. Não editar à mão. */\n'
+    js = ('/* Generated by tools/build_atlas.py from tools/gen_ingredients*.py. Do not edit by hand. */\n'
           f'const ATLAS={{pizza:{PIZZA},frames:{{\n{fr}\n}},\nsrc:"data:image/png;base64,{b64}"}};\n')
     with open(os.path.join(ROOT, 'assets', 'ingredients.js'), 'w') as f: f.write(js)
     if len(_argv) > 1:

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Pizza Magna: décimo quarto lote em pixel detalhado, que fecha a lista inicial. Emmental,
-flamengo, kebab, tomilho, pimenta, marmelada e trufa, com a forma picada pela regra de
-docs/ingredients.md. Mesmo método de gen_ingredients.py (ver tools/CLAUDE.md).
+"""Pizza Magna: fourteenth batch in detailed pixel art, closing the original list. Emmental,
+Edam, kebab, thyme, black pepper, quince paste and truffle, with the chopped form following the rule in
+docs/ingredients.md. Same method as gen_ingredients.py (see tools/CLAUDE.md).
 
-O raminho de tomilho tem frente e aceita `ang`: com ang=0 sai deitado, com a ponta para a
-direita, e o jogo roda essa imagem em quartos de volta.
-Uso: python3 tools/gen_ingredients14.py <pasta>"""
+The thyme sprig has a front and takes `ang`: with ang=0 it lies down with the tip to the
+right, and the game turns that image in quarter turns.
+Usage: python3 tools/gen_ingredients14.py <folder>"""
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -30,14 +30,14 @@ R.update({
     'trufvein': hexs(['#6a5c4c', '#8e7e6a', '#b0a08a']),
 })
 
-# ---------------- EMMENTAL (fatia com olhos grandes, que se veem através) ----------------
+# ---------------- EMMENTAL (slice with big holes you can see through) ----------------
 def emmental(seed, W=24, H=21):
     rng = np.random.default_rng(seed + 7200)
     u, v = axes(W, H, (rng.random() - .5) * .9)
     n = noise(H, W, 3, rng)
     mask = (np.abs(u) / 10) ** 4 + (np.abs(v) / 8.2) ** 4 <= 1 + (n - .5) * .2
     holes = np.zeros_like(mask); rims = np.zeros_like(mask)
-    for _ in range(4):                                        # olhos: buracos a sério na fatia
+    for _ in range(4):                                        # holes: real holes in the slice
         hu, hv, hr = rng.uniform(-6, 6), rng.uniform(-5, 5), rng.uniform(1.6, 2.6)
         d = np.hypot(u - hu, v - hv)
         holes |= d <= hr; rims |= (d > hr) & (d <= hr + 1.1)
@@ -46,7 +46,7 @@ def emmental(seed, W=24, H=21):
     mat = [['emm'] * W for _ in range(H)]
     return render(mat, np.clip(shade(height, mask) * .7 + .32, 0, 1) * mask, mask, {})
 
-# ---------------- FLAMENGO (rodela lisa com casca de cera vermelha) ----------------
+# ---------------- EDAM (smooth round slice with a red wax rind) ----------------
 def flamengo(seed, D=20):
     rng = np.random.default_rng(seed + 7300)
     ys, xs, c, _ = grid(D, D)
@@ -57,17 +57,17 @@ def flamengo(seed, D=20):
     mat = [['flamwax' if r[y, x] > .87 else 'flam' for x in range(D)] for y in range(D)]
     img = render(mat, np.clip(shade(height, mask) * .6 + .36, 0, 1) * mask, mask, {'flam': 'flam', 'flamwax': 'flamwax'})
     px = img.load()
-    for _ in range(3):                                        # olhinhos pequenos
+    for _ in range(3):                                        # tiny eyes
         x, y = int(c + (rng.random() - .5) * 9), int(c + (rng.random() - .5) * 9)
         if mask[y, x]: px[x, y] = R['flam'][1] + (255,)
     return img
 
-# ---------------- KEBAB (lascas finas cortadas do espeto) ----------------
+# ---------------- KEBAB (thin shavings cut from the spit) ----------------
 def kebab(seed, W=22, H=18):
     rng = np.random.default_rng(seed + 7400)
     ys, xs, cx, cy = grid(W, H)
     mask = np.zeros((H, W), bool); height = np.zeros((H, W)); edge = np.zeros((H, W), bool)
-    for k in range(3):                                        # três lascas sobrepostas, enroladas
+    for k in range(3):                                        # three overlapping, curled shavings
         a = rng.random() * 3.14
         ox, oy = cx + (rng.random() - .5) * 7, cy + (rng.random() - .5) * 5
         uu = (xs - ox) * np.cos(a) + (ys - oy) * np.sin(a); vv = -(xs - ox) * np.sin(a) + (ys - oy) * np.cos(a)
@@ -77,14 +77,14 @@ def kebab(seed, W=22, H=18):
         top = m & ~mask if k else m
         mask |= m
         height = np.where(m, np.sqrt(np.clip(1 - e, 0, 1)) * 1.2 + k * .3 + np.sin(uu * 1.4) * .2, height)
-        edge = np.where(m, e > .55, edge)                     # bordo tostado de cada lasca
+        edge = np.where(m, e > .55, edge)                     # toasted edge of each shaving
     mat = [['kebab'] * W for _ in range(H)]
     light = np.clip(shade(height, mask) * .8 + .24 - np.where(edge, .3, 0), 0, 1) * mask
     return render(mat, light, mask, {})
 
-# ---------------- TOMILHO (raminho lenhoso com folhinhas redondas; ponta à direita) ----------------
+# ---------------- THYME (woody sprig with tiny round leaves; tip on the right) ----------------
 def thyme(seed, L=22, ang=None):
-    """diferente dos orégãos (folhas ovais maiores) e do alecrim (agulhas): folhinhas de 1-2 px, muitas"""
+    """different from oregano (bigger oval leaves) and rosemary (needles): many 1-2 px leaves"""
     rng = np.random.default_rng(seed + 7500)
     a = (rng.random() - .5) * 1.0 if ang is None else ang
     W, H = L + 4, int(np.ceil(L * abs(np.sin(a)) + 9 * abs(np.cos(a)))) + 4
@@ -94,7 +94,7 @@ def thyme(seed, L=22, ang=None):
     stem = (np.abs(vv) <= .55) & (u >= -L / 2) & (u <= L / 2 - 1)
     leaves = np.zeros_like(stem); lh = np.zeros_like(u)
     for k, lu in enumerate(np.arange(-L / 2 + 4, L / 2 - .5, 2.4)):
-        side = 1 if k % 2 else -1                             # folhinhas alternadas, soltas umas das outras
+        side = 1 if k % 2 else -1                             # alternating leaves, apart from each other
         for sd, du in ((side, 0), (-side, 1.2)):
             off = 2.1 + rng.random() * .5
             e = ((u - lu - du) / 1.15) ** 2 + ((vv - sd * off) / 1.0) ** 2
@@ -104,7 +104,7 @@ def thyme(seed, L=22, ang=None):
     mat = [['thyme' if leaves[y, x] else 'thymestem' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .8 + .4, 0, 1) * mask, mask, {'thymestem': 'thymestem'})
 
-# ---------------- PIMENTA (grãos pretos, engelhados) ----------------
+# ---------------- BLACK PEPPER (black, wrinkled peppercorns) ----------------
 def peppercorns(seed, W=17, H=15):
     rng = np.random.default_rng(seed + 7600)
     ys, xs, cx, cy = grid(W, H)
@@ -118,7 +118,7 @@ def peppercorns(seed, W=17, H=15):
     mat = [['pepcorn'] * W for _ in range(H)]
     return render(mat, np.clip(shade(height, mask) * .9 + .2, 0, 1) * mask, mask, {})
 
-# ---------------- MARMELADA (cubo translúcido, em 3/4) ----------------
+# ---------------- QUINCE PASTE (translucent cube, in 3/4) ----------------
 def marmelada(seed, W=17, H=17):
     rng = np.random.default_rng(seed + 7700)
     sz, d = int(rng.integers(10, 12)), 4
@@ -129,14 +129,14 @@ def marmelada(seed, W=17, H=17):
     dl.polygon([(x0 + sz, y0 + d), (x0 + sz + d, y0), (x0 + sz + d, y0 + sz - 1), (x0 + sz, y0 + d + sz - 1)], fill=70)
     light = np.array(lt) / 255.0
     mask = light > 0
-    light = light + (rng.random((H, W)) - .5) * .08            # lisa e brilhante
+    light = light + (rng.random((H, W)) - .5) * .08            # smooth and glossy
     img = render([['quince'] * W for _ in range(H)], np.clip(light, 0, 1) * mask, mask, {})
     px = img.load()
-    for (x, y) in ((x0 + 2, y0 + d + 2), (x0 + 3, y0 + d + 2), (x0 + 2, y0 + d + 3)):    # reflexo na face da frente
+    for (x, y) in ((x0 + 2, y0 + d + 2), (x0 + 3, y0 + d + 2), (x0 + 2, y0 + d + 3)):    # reflection on the front face
         px[x, y] = R['quince'][4] + (255,)
     return img
 
-# ---------------- TRUFA (lâmina fina, com veios brancos em labirinto) ----------------
+# ---------------- TRUFFLE (thin shaving, with white maze-like veins) ----------------
 def truffle(seed, D=17):
     rng = np.random.default_rng(seed + 7800)
     ys, xs, c, _ = grid(D, D)
@@ -166,8 +166,8 @@ if __name__ == '__main__':
     ROW = 150
     sheet = Image.new('RGB', (1000, 40 + ROW * len(SETS)), (27, 20, 16))
     dr = ImageDraw.Draw(sheet)
-    dr.text((20, 10), 'Inteiro / fatiado (3 variantes)', fill=(240, 220, 180), font=fs)
-    dr.text((760, 10), 'Ralado / picado', fill=(240, 220, 180), font=fs)
+    dr.text((20, 10), 'Whole / sliced (3 variants)', fill=(240, 220, 180), font=fs)
+    dr.text((760, 10), 'Grated / chopped', fill=(240, 220, 180), font=fs)
     for i, (name, fn, gr) in enumerate(SETS):
         key = name.lower()
         arr = [fn(s) for s in (1, 2, 3)]

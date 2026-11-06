@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Pizza Magna: décimo primeiro lote em pixel detalhado. Prosciutto, azeite, balsâmico,
-maionese, cheddar e coentros, com a forma picada pela regra de docs/ingredients.md.
-Mesmo método de gen_ingredients.py (ver tools/CLAUDE.md).
+"""Pizza Magna: eleventh batch in detailed pixel art. Prosciutto, olive oil, balsamic,
+mayonnaise, cheddar and coriander, with the chopped form following the rule in docs/ingredients.md.
+Same method as gen_ingredients.py (see tools/CLAUDE.md).
 
-Azeite e balsâmico são fios e gotas (como o mel); a maionese espalha-se (como a Nutella).
-Nenhum dos três se pica. Os coentros têm frente (pé e folha) e aceitam `ang`.
-Uso: python3 tools/gen_ingredients11.py <pasta>"""
+Olive oil and balsamic are drizzles and drops (like honey); mayonnaise is spread (like Nutella).
+None of the three is chopped. Coriander has a front (stem and leaf) and takes `ang`.
+Usage: python3 tools/gen_ingredients11.py <folder>"""
 import os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -28,45 +28,45 @@ R.update({
     'coentstem': hexs(['#2e5a1e', '#4a8030', '#70a84c']),
 })
 
-# ---------------- PROSCIUTTO (fatia fina e drapeada, rosada, com faixa de gordura) ----------------
+# ---------------- PROSCIUTTO (thin draped slice, pink, with a band of fat) ----------------
 def prosciutto(seed, W=30, H=24):
-    """diferente do presunto: mais fino e largo, rosa-claro e quase translúcido, dobrado em pregas,
-    com uma faixa de gordura branca contínua num dos lados (o presunto é vermelho-escuro com veios)"""
+    """different from presunto: thinner and wider, light pink and almost translucent, folded in pleats,
+    with a continuous band of white fat on one side (presunto is dark red with veins)"""
     rng = np.random.default_rng(seed + 5400)
     u, v = axes(W, H, (rng.random() - .5) * 1.0)
     ph = rng.random() * 6.28
     vv = v - 1.6 * np.sin(u * .28 + ph)
     half = 7.2 + .9 * np.sin(u * .45 + ph * 2)
     n = noise(H, W, 3, rng)
-    mask = (np.abs(u) / 13) ** 4 + (np.abs(vv) / (half + (n - .5) * .6)) ** 4 <= 1       # retângulo de cantos redondos
-    folds = np.sin(u * .42 + vv * .18 + ph) * .7 + np.sin(u * .9 + ph * 3) * .15   # pregas largas e suaves
+    mask = (np.abs(u) / 13) ** 4 + (np.abs(vv) / (half + (n - .5) * .6)) ** 4 <= 1       # rectangle with round corners
+    folds = np.sin(u * .42 + vv * .18 + ph) * .7 + np.sin(u * .9 + ph * 3) * .15   # wide, soft folds
     height = folds + np.clip(1 - (vv / half) ** 2, 0, 1) * .8
-    fat = vv > half - 2.4 + (n - .5) * 1.2                     # faixa de gordura num dos lados
+    fat = vv > half - 2.4 + (n - .5) * 1.2                     # band of fat on one side
     mat = [['proscfat' if mask[y, x] and fat[y, x] else 'prosc' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .75 + .3, 0, 1) * mask, mask, {'proscfat': 'prosc'})
 
-# ---------------- fios e gotas (azeite, balsâmico) ----------------
+# ---------------- drizzles and drops (olive oil, balsamic) ----------------
 def drizzle(ramp, seed, base, W=30, H=24, thick=1, drops=3, drop_r=(1.4, 2.2)):
-    """fio que serpenteia pela pizza, com sombra por baixo e brilho por cima, e algumas gotas"""
+    """a drizzle that winds across the pizza, with shadow below and shine on top, and a few drops"""
     rng = np.random.default_rng(seed + base)
     rp = R[ramp]
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0)); px = img.load()
     x, y, a = 2.5, H / 2 + (rng.random() - .5) * 6, (rng.random() - .5) * 1.2
     pts = []
     while 1 < x < W - 2 and len(pts) < 160:
-        a += (rng.random() - .5) * .5 - (y - H / 2) * .012       # vira devagar, sem fugir da caixa
+        a += (rng.random() - .5) * .5 - (y - H / 2) * .012       # turns slowly, without leaving the box
         x += np.cos(a) * .35 + .25; y += np.sin(a) * .5
         pts.append((x, y))
     for (x, y) in pts:
         X, Y = int(round(x)), int(round(y))
         for dy in range(-thick, thick + 2):
             if 0 <= X < W and 0 <= Y + dy < H:
-                k = 0 if dy > thick - 1 else (len(rp) - 2 if dy == -thick else 2)    # sombra em baixo, brilho em cima
+                k = 0 if dy > thick - 1 else (len(rp) - 2 if dy == -thick else 2)    # shadow below, highlight on top
                 px[X, Y + dy] = rp[k] + (255,)
-    for (x, y) in pts[::23]:                                    # pontos de brilho ao longo do fio
+    for (x, y) in pts[::23]:                                    # highlight dots along the drizzle
         X, Y = int(round(x)), int(round(y)) - thick
         if 0 <= X < W and 0 <= Y < H: px[X, Y] = rp[-1] + (255,)
-    for _ in range(drops):                                      # gotas soltas
+    for _ in range(drops):                                      # loose drops
         cx, cy = rng.uniform(4, W - 4), rng.uniform(4, H - 4)
         r = rng.uniform(*drop_r)
         for yy in range(int(cy - r - 1), int(cy + r + 2)):
@@ -82,9 +82,9 @@ def drizzle(ramp, seed, base, W=30, H=24, thick=1, drops=3, drop_r=(1.4, 2.2)):
     return img
 
 def olive_oil(seed):
-    """azeite: fio fino e gotas largas, amarelo-esverdeado"""
+    """olive oil: thin drizzle and wide drops, greenish yellow"""
     img = drizzle('oil', seed, 5500, thick=1, drops=3, drop_r=(1.8, 2.8))
-    # um pouco translúcido: o corpo do azeite deixa ver a pizza; os brilhos ficam opacos
+    # slightly translucent: the oil's body shows the pizza through; the highlights stay opaque
     px = img.load(); top = R['oil'][-1]
     for y in range(img.height):
         for x in range(img.width):
@@ -93,10 +93,10 @@ def olive_oil(seed):
     return img
 
 def balsamic(seed):
-    """balsâmico: fio fino e escuro, quase preto, com muitas gotinhas"""
+    """balsamic: thin dark drizzle, almost black, with lots of little drops"""
     return drizzle('balsa', seed, 5600, thick=0, drops=6, drop_r=(1.0, 1.7))
 
-# ---------------- MAIONESE (colherada espalhada, como a Nutella) ----------------
+# ---------------- MAYONNAISE (spread spoonful, like the Nutella) ----------------
 def mayonnaise(seed, W=24, H=19):
     rng = np.random.default_rng(seed + 5700)
     ys, xs, cx, cy = grid(W, H)
@@ -110,26 +110,26 @@ def mayonnaise(seed, W=24, H=19):
     mat = [['mayo'] * W for _ in range(H)]
     return render(mat, np.clip(shade(height, mask) * .9 + .2, 0, 1) * mask, mask, {})
 
-# ---------------- CHEDDAR (fatia quadrada a derreter, cor de laranja) ----------------
+# ---------------- CHEDDAR (square slice melting, orange) ----------------
 def cheddar(seed, W=26, H=24):
     rng = np.random.default_rng(seed + 5800)
     u, v = axes(W, H, (rng.random() - .5) * 1.2)
     n = noise(H, W, 3, rng)
-    # quadrado de cantos redondos que escorre: bordos ondulados
+    # round-cornered square that runs: wavy edges
     q = np.maximum(np.abs(u), np.abs(v)) + np.clip(np.minimum(np.abs(u), np.abs(v)) - 5.5, 0, None) * .5
     mask = q <= 9.4 + (n - .5) * 1.6
     n2 = noise(H, W, 2, rng)
-    height = np.clip(1 - (q / 10) ** 2, 0, 1) ** .25 * .9 + (n2 - .5) * .15     # fatia lisa, só desce no bordo
+    height = np.clip(1 - (q / 10) ** 2, 0, 1) ** .25 * .9 + (n2 - .5) * .15     # flat slice, only drops at the edge
     mat = [['ched'] * W for _ in range(H)]
     img = render(mat, np.clip(shade(height, mask) * .6 + .38, 0, 1) * mask, mask, {})
     px = img.load()
-    for _ in range(3):                                          # bolhas de queijo derretido
+    for _ in range(3):                                          # bubbles of melted cheese
         x, y = int(W / 2 + (rng.random() - .5) * 9), int(H / 2 + (rng.random() - .5) * 8)
         if mask[y, x] and mask[y - 1, x - 1]:
             px[x, y] = R['ched'][1] + (255,); px[x - 1, y - 1] = R['ched'][4] + (255,)
     return img
 
-# ---------------- COENTROS (raminho de folhas recortadas; pé à esquerda) ----------------
+# ---------------- CORIANDER (sprig of jagged leaves; stem on the left) ----------------
 def coriander(seed, ang=None, W=24, H=22):
     rng = np.random.default_rng(seed + 5900)
     a = (rng.random() - .5) * 1.2 if ang is None else ang
@@ -137,10 +137,10 @@ def coriander(seed, ang=None, W=24, H=22):
     u, v = axes(W, H, a)
     stem = (np.abs(v - (u + 11) * .02) <= .7) & (u >= -11) & (u <= 1)
     mask = stem.copy(); height = np.where(stem, .6, 0.)
-    # três folíolos redondos e recortados no fim do pé (o do meio maior)
+    # three round jagged leaflets at the end of the stem (the middle one bigger)
     for (lu, lv, rr) in ((4.5, 0, 5.2), (0, -5.2, 3.9), (0, 5.2, 3.9)):
         d = np.hypot(u - lu, v - lv)
-        lob = rr * (1 + .14 * np.sin(np.arctan2(v - lv, u - lu) * 7 + seed))     # bordo serrilhado
+        lob = rr * (1 + .14 * np.sin(np.arctan2(v - lv, u - lu) * 7 + seed))     # serrated edge
         m = d <= lob
         mask |= m; height = np.maximum(height, np.where(m, np.sqrt(np.clip(1 - (d / lob) ** 2, 0, 1)) * 1.3, 0))
     veins = (np.abs(v) < .5) & (u > 0) | (np.abs(np.abs(v) - (u * -1.1)) < .5) & (u < 0) & (u > -4.5)
@@ -163,8 +163,8 @@ if __name__ == '__main__':
     ROW = 150
     sheet = Image.new('RGB', (1000, 40 + ROW * len(SETS)), (27, 20, 16))
     dr = ImageDraw.Draw(sheet)
-    dr.text((20, 10), 'Inteiro / fatiado (3 variantes)', fill=(240, 220, 180), font=fs)
-    dr.text((760, 10), 'Ralado / picado', fill=(240, 220, 180), font=fs)
+    dr.text((20, 10), 'Whole / sliced (3 variants)', fill=(240, 220, 180), font=fs)
+    dr.text((760, 10), 'Grated / chopped', fill=(240, 220, 180), font=fs)
     for i, (name, fn, gr) in enumerate(SETS):
         key = name.lower().replace('â', 'a')
         arr = [fn(s) for s in (1, 2, 3)]
@@ -182,6 +182,6 @@ if __name__ == '__main__':
             bg.paste(m, ((190 - m.width) // 2, (ROW - 12 - m.height) // 2), m)
             sheet.paste(bg, (x, y)); x += 200
         if not g:
-            dr.text((770, y + 60), 'não se pica', fill=(200, 180, 150), font=fs)
+            dr.text((770, y + 60), 'not chopped', fill=(200, 180, 150), font=fs)
     sheet.save(OUT + 'preview_ingredientes11.png')
     print('ok', sheet.size)

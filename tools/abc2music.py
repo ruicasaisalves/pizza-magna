@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Pizza Magna: converte uma melodia em notação ABC para o formato de music.js.
+"""Pizza Magna: converts a melody in ABC notation to the music.js format.
 
-A melodia vem tal e qual da partitura. O baixo e a harmonia saem das cifras ("C7", "Am"...):
-o baixo toca a fundamental no primeiro tempo e a quinta nos outros, e a harmonia segura a terça do acorde.
-Suporta o essencial do ABC: notas, acidentes (^ _ =) com armação de clave, oitavas (, '), durações
-(2, 3/2, /2, >), pausas (z), ligaduras (-), e ignora ornamentos ({...}, !...!, H), barras e repetições.
-As repetições e as voltas (1., 2.) resolvem-se à mão no texto antes de converter.
+The melody comes exactly as written in the sheet music. Bass and harmony come from the chord symbols ("C7", "Am"...):
+the bass plays the root on the first beat and the fifth on the others, and the harmony holds the chord's third.
+Supports the essentials of ABC: notes, accidentals (^ _ =) with key signature, octaves (, '), durations
+(2, 3/2, /2, >), rests (z), ties (-), and ignores ornaments ({...}, !...!, H), bar lines and repeats.
+Repeats and endings (1., 2.) are resolved by hand in the text before converting.
 
-Uso: from abc2music import convert; convert(abc_corpo, key='F', unit=1, beat=2, bar=6, shift=0)
-  unit: passos (colcheias) por unidade L (L:1/8 -> 1, L:1/4 -> 2)
-  beat: passos por tempo (3/4 e 4/4 -> 2, 6/8 -> 3); bar: passos por compasso (3/4 -> 6, 4/4 -> 8)
-  shift: transposição em meios-tons para a melodia; pickup: passos de anacruse antes do 1.º compasso"""
+Usage: from abc2music import convert; convert(abc_body, key='F', unit=1, beat=2, bar=6, shift=0)
+  unit: steps (eighths) per L unit (L:1/8 -> 1, L:1/4 -> 2)
+  beat: steps per beat (3/4 and 4/4 -> 2, 6/8 -> 3); bar: steps per bar (3/4 -> 6, 4/4 -> 8)
+  shift: transposition of the melody in semitones; pickup: anacrusis steps before the first bar"""
 import re
 
 NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -29,8 +29,8 @@ def chord_notes(ch):
 def convert(body, key='C', unit=1, beat=2, bar=6, shift=0, pickup=0):
     sig = KEYSIG[key]
     body = re.sub(r'%.*', '', body)
-    body = re.sub(r'\{[^}]*\}|![^!]*!|\[\d|\|\d|[()H~.]', '', body)       # ornamentos, voltas, ligaduras de expressão
-    lead = []                                                              # lead: [midi|None, passos, [[acorde, passos]...]]
+    body = re.sub(r'\{[^}]*\}|![^!]*!|\[\d|\|\d|[()H~.]', '', body)       # ornaments, endings, slurs
+    lead = []                                                              # lead: [midi|None, steps, [[chord, steps]...]]
     acc = {}; cur = None; tie = False
     tok = re.compile(r'"([^"]*)"|(\^\^|\^|__|_|=)?([A-Ga-gz])([,\']*)(\d*)(/\d*)?|(>)|(-)|(\|)')
     pending_dot = None
@@ -53,16 +53,16 @@ def convert(body, key='C', unit=1, beat=2, bar=6, shift=0, pickup=0):
             if a: acc[up + octs + letter] = {'^': 1, '^^': 2, '_': -1, '__': -2, '=': 0}[a]
             alt = acc.get(up + octs + letter, sig.get(up, 0))
             midi = base + alt + shift
-        if pending_dot is not None:                                        # a>b: a fica com 3/2, b com 1/2
+        if pending_dot is not None:                                        # a>b: a gets 3/2, b gets 1/2
             lead[pending_dot][1] *= 1.5; lead[pending_dot][2][-1][1] *= 1.5; steps *= .5; pending_dot = None
-        if tie and lead and lead[-1][0] == midi: lead[-1][1] += steps; lead[-1][2].append([cur, steps])   # nota ligada: o acorde pode mudar por baixo
+        if tie and lead and lead[-1][0] == midi: lead[-1][1] += steps; lead[-1][2].append([cur, steps])   # tied note: the chord may change underneath
         else: lead.append([midi, steps, [[cur, steps]]])
         tie = False
-    # para passos
+    # to steps
     out_l, out_c = [], []
     for midi, steps, segs in lead:
         n = int(round(steps))
-        assert abs(steps - n) < 1e-6 and n > 0, f'duração que não cabe em colcheias: {steps}'
+        assert abs(steps - n) < 1e-6 and n > 0, f'duration that does not fit in eighths: {steps}'
         out_l += [name(midi) if midi is not None else '.'] + ['-' if midi is not None else '.'] * (n - 1)
         for ch, k in segs: out_c += [ch] * int(round(k))
     bass, harm = [], []

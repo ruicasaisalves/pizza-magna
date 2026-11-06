@@ -1,11 +1,11 @@
 # Sprite generators
 
-`gen_ingredients.py` to `gen_ingredients16.py` draw the toppings in Python (numpy + PIL); `gen_bases.py` draws the doughs and sauces. `build_atlas.py` packs them into `../assets/ingredients.js`. Older generators have comments in Portuguese; write new ones in English.
+`gen_ingredients.py` to `gen_ingredients16.py` draw the toppings in Python (numpy + PIL); `gen_bases.py` draws the doughs and sauces. `build_atlas.py` packs them into `../assets/ingredients.js`. Code comments and docs are in English.
 
 ## After changing a generator
 1. `python3 tools/gen_ingredientsN.py <scratchpad>/gN` makes the preview sheet (`preview_ingredientesN.png`). **Look at it** with Read.
 2. `python3 tools/build_atlas.py` rebuilds the atlas.
-3. `node tools/test_ingredients.js <ids> <scratchpad>`, and look at `bancada.png`.
+3. `node tools/test_ingredients.js <ids> <scratchpad>`, and look at `bench.png`.
 
 The `preview/` folder is in `.gitignore`; previews go to the scratchpad.
 

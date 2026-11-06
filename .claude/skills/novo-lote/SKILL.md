@@ -5,7 +5,7 @@ description: Adds a batch of new toppings to Pizza Magna (detailed pixel sprites
 
 # New batch of toppings
 
-Reply to the user in the language they write in (usually Portuguese). Docs, commit messages and new code comments are in English; older Python generators have Portuguese comments that can stay.
+Reply to the user in the language they write in (usually Portuguese). Docs, commit messages and code comments are in English.
 
 ## 0. Branch
 
@@ -72,7 +72,7 @@ node tools/test_ingredients.js id1,id2,id3 <scratchpad>
   - a topping without a weight;
   - the wrong Rotate button.
 - It also places 2 pieces of each topping, rotates those that rotate and lists the active combos.
-- Look at `<scratchpad>/bancada.png` with Read. If a piece is missing, the spot the test chose was taken or out of bounds; it is not a game bug.
+- Look at `<scratchpad>/bench.png` with Read. If a piece is missing, the spot the test chose was taken or out of bounds; it is not a game bug.
 - To confirm a combo, add its toppings to the id list.
 
 ## 8. Commit and push
