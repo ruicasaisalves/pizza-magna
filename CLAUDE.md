@@ -21,7 +21,7 @@ Jogo de gestão de pizzarias em pixel art dos anos 90, para browser e telemóvel
 ## Regras
 - **Idioma:** o jogo é em inglês por omissão e em português quando o browser está em `pt`; nas Opções o jogador pode fixar English ou Português (`pm-lang` no `localStorage`). Todo o texto visível vem de `I18N`, com a mesma chave em `en` e em `pt`. Até agora estão migrados a cozinha e os nomes de ingredientes, massas, molhos, combos e públicos; o resto ainda está escrito em português no código, e o que se tocar migra-se.
 - **Respostas e documentação** em português de Portugal. Comentários no `index.html` em inglês; nos geradores Python, em português.
-- **Gravações:** o estado vai para `localStorage` (`massa-mestra-v1`). Campos novos precisam de um valor por omissão, para os jogos já gravados continuarem a abrir.
+- **Gravações:** o estado vai para `localStorage` (`massa-mestra-v1`); as peças gravam-se compactas (`packPieces`, 5 bytes por peça), o mesmo formato dos links de receita (`#p=`) e dos ficheiros `.pizza`. Não há limite de pizzas no menu. Campos novos precisam de um valor por omissão, para os jogos já gravados continuarem a abrir.
 - Não acrescentes dependências nem passos de build.
 
 ## Testar
