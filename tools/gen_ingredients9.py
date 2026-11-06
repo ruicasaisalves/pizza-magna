@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pizza Magna: nono lote em pixel detalhado. Parmesão, alcachofra, curgete, salsicha
-italiana, pimentos padrón e pinhões, com a forma picada pela regra de docs/ingredientes.md.
+italiana, pimentos padrón e pinhões, com a forma picada pela regra de docs/ingredients.md.
 Mesmo método de gen_ingredients.py.
 
 As peças com frente (quarto de alcachofra, padrón) aceitam `ang`: com ang=0 saem deitadas,

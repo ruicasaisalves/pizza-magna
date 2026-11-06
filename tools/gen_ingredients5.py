@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pizza Magna: quinto lote em pixel detalhado. Espargos, camarão, figo, milho, frango,
-salame, gorgonzola e alheira, com a forma picada pela regra de docs/ingredientes.md.
+salame, gorgonzola e alheira, com a forma picada pela regra de docs/ingredients.md.
 Mesmo método de gen_ingredients.py (campo de altura, luz de cima-esquerda, rampas curtas,
 dithering 4x4, contorno seletivo).
 

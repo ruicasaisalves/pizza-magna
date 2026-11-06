@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pizza Magna: décimo primeiro lote em pixel detalhado. Prosciutto, azeite, balsâmico,
-maionese, cheddar e coentros, com a forma picada pela regra de docs/ingredientes.md.
+maionese, cheddar e coentros, com a forma picada pela regra de docs/ingredients.md.
 Mesmo método de gen_ingredients.py (ver tools/CLAUDE.md).
 
 Azeite e balsâmico são fios e gotas (como o mel); a maionese espalha-se (como a Nutella).

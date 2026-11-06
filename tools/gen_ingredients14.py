@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pizza Magna: décimo quarto lote em pixel detalhado, que fecha a lista inicial. Emmental,
 flamengo, kebab, tomilho, pimenta, marmelada e trufa, com a forma picada pela regra de
-docs/ingredientes.md. Mesmo método de gen_ingredients.py (ver tools/CLAUDE.md).
+docs/ingredients.md. Mesmo método de gen_ingredients.py (ver tools/CLAUDE.md).
 
 O raminho de tomilho tem frente e aceita `ang`: com ang=0 sai deitado, com a ponta para a
 direita, e o jogo roda essa imagem em quartos de volta.

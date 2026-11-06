@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pizza Magna: sexto lote em pixel detalhado. Espinafres, tomate cherry, jalapeños,
-anchovas, ricotta e pera, com a forma picada pela regra de docs/ingredientes.md.
+anchovas, ricotta e pera, com a forma picada pela regra de docs/ingredients.md.
 Mesmo método de gen_ingredients.py.
 
 As peças com frente (anchova com cauda, meia pera com pé) aceitam `ang`: com ang=0 saem

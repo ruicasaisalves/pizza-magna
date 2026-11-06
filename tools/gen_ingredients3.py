@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pizza Magna — terceiro lote em pixel detalhado: azeitonas, cebola, pimento,
-manjericão, ananás e presunto, com a forma picada pela regra de docs/ingredientes.md.
+manjericão, ananás e presunto, com a forma picada pela regra de docs/ingredients.md.
 Uso: python3 tools/gen_ingredients3.py <pasta>"""
 import os, sys
 import numpy as np

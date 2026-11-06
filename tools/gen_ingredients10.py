@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pizza Magna: décimo lote em pixel detalhado. Nutella, banana, feta, farinheira,
-amêijoas e orégãos, com a forma picada pela regra de docs/ingredientes.md.
+amêijoas e orégãos, com a forma picada pela regra de docs/ingredients.md.
 Mesmo método de gen_ingredients.py (ver tools/CLAUDE.md).
 
 As peças com frente (amêijoa com a dobradiça da concha, raminho de orégãos) aceitam `ang`:

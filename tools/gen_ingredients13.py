@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pizza Magna: décimo terceiro lote em pixel detalhado. Queijo São Jorge, leitão, couve galega,
-salsa, chocolate e natas azedas, com a forma picada pela regra de docs/ingredientes.md.
+salsa, chocolate e natas azedas, com a forma picada pela regra de docs/ingredients.md.
 Mesmo método de gen_ingredients.py (ver tools/CLAUDE.md).
 
 As peças com frente (cunha de São Jorge, pedaço de leitão com o courato, raminho de salsa)

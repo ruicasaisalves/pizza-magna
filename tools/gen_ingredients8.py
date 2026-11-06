@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pizza Magna: oitavo lote em pixel detalhado. Burrata, lulas, beringela, morcela, nozes
-e batata, com a forma picada pela regra de docs/ingredientes.md.
+e batata, com a forma picada pela regra de docs/ingredients.md.
 Mesmo método de gen_ingredients.py. Nenhuma destas peças tem frente, por isso não rodam.
 Uso: python3 tools/gen_ingredients8.py <pasta>"""
 import os, sys

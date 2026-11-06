@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pizza Magna: sétimo lote em pixel detalhado. Queijo de cabra, alho, grelos, sardinha,
-salmão fumado e polvo, com a forma picada pela regra de docs/ingredientes.md.
+salmão fumado e polvo, com a forma picada pela regra de docs/ingredients.md.
 Mesmo método de gen_ingredients.py.
 
 As peças com frente (sardinha, tentáculo de polvo) aceitam `ang`: com ang=0 saem deitadas,

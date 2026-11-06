@@ -1,92 +1,93 @@
 ---
 name: novo-lote
-description: Acrescenta um lote de ingredientes novos ao Pizza Magna (sprites em pixel detalhado, atlas, dados do jogo, traduções, combos, documentação e teste). Usar quando o utilizador pede mais ingredientes ("faz mais 6", "acrescenta X e Y"), ou para corrigir o desenho de um ingrediente que já existe.
+description: Adds a batch of new toppings to Pizza Magna (detailed pixel sprites, atlas, game data, translations, weights, combos, docs and test). Use when the user asks for more toppings ("faz mais 6", "acrescenta X e Y", "add 6 more"), or to fix the drawing of an existing topping.
 ---
 
-# Novo lote de ingredientes
+# New batch of toppings
 
-Responde ao utilizador em português. Os comentários no código seguem a língua do ficheiro: português nos geradores, inglês no `index.html`.
+Reply to the user in the language they write in (usually Portuguese). Docs, commit messages and new code comments are in English; older Python generators have Portuguese comments that can stay.
 
-## 0. Ramo
+## 0. Branch
 
-Se o PR do ramo de trabalho já foi fundido, recomeça o ramo a partir do `main`:
-`git fetch origin main && git checkout -B <ramo> origin/main`.
+If the working branch's PR has already been merged, restart the branch from `main`:
+`git fetch origin main && git checkout -B <branch> origin/main`.
 
-## 1. Ler o método
+## 1. Read the method
 
-Lê `tools/CLAUDE.md`. Tem o método de desenho, as regras de rodar (`ING.rot` 1, 2 ou 4) e do picado, e as chaves do atlas.
+Read `tools/CLAUDE.md`. It has the drawing method, the rotation rules (`ING.rot` 1, 2 or 4), the chopped forms and the atlas keys.
 
-## 2. Escolher
+## 2. Choose
 
-- Tira os ingredientes da lista de `docs/ingredientes.md` (os que não têm ✓★), salvo se o utilizador os nomear.
-- Varia as categorias e dá prioridade aos que abrem combos planeados (secção "Ideias").
-- Decide, para cada um, se roda (1, 2 ou 4 posições) e qual é a forma picada.
+- Take toppings from `docs/ingredients.md` (those without ✓★), unless the user names them.
+- Vary the categories.
+- Decide for each one whether it rotates (1, 2 or 4 positions) and what its chopped form is.
 
-## 3. Desenhar: `tools/gen_ingredientsN.py`
+## 3. Draw: `tools/gen_ingredientsN.py`
 
-- Copia a estrutura de `tools/gen_ingredients9.py`: o mesmo cabeçalho, `R.update`, uma função por ingrediente, `SETS` e o `__main__`, que faz a folha de prévia.
-- Gera a prévia e **olha para ela** com Read antes de continuar. Se uma peça não se reconhece à primeira vista, refaz o desenho. Os erros mais comuns são:
-  - um contorno recortado que parece folha;
-  - pormenores que ficam com o mesmo tom e desaparecem;
-  - uma forma pequena demais.
+- Copy the structure of the latest generator (`tools/gen_ingredients16.py` or `15`): the same header, `R.update`, one function per topping, `SETS` and the `__main__` that makes the preview sheet.
+- Make the preview and **look at it** with Read before going on. If a piece isn't recognisable at first sight, redraw it. The most common mistakes are:
+  - a jagged outline that looks like a leaf;
+  - details in the same tone that disappear;
+  - a shape that is too small.
 
 ## 4. Atlas: `tools/build_atlas.py`
 
-1. `import gen_ingredientsN as GN`, ao lado dos outros imports.
-2. Em `INGS`: `'id': (GN.funcao, ('rampa', 'tipo', n_bits) | funcao | None)`.
-3. Se roda, acrescenta-o a `ROTATE`: `'id': lambda: GN.funcao(1, ang=0)`, com um comentário sobre o número de posições.
-4. Corre `python3 tools/build_atlas.py`. Isto regenera `assets/ingredients.js`, que nunca se edita à mão.
+1. `import gen_ingredientsN as GN`, next to the other imports.
+2. In `INGS`: `'id': (GN.function, ('ramp', 'kind', n_bits) | function | None)`. Grated cheeses use `('ramp', 'shred', 130, BIG)`.
+3. If it rotates, add it to `ROTATE`: `'id': lambda: GN.function(1, ang=0)`, with a comment on the number of positions.
+4. Run `python3 tools/build_atlas.py`. This regenerates `assets/ingredients.js`, which is never edited by hand.
 
-## 5. Jogo: `index.html`
+## 5. Game: `index.html`
 
-- Usa grep para encontrar os blocos; não leias o `index.html` inteiro.
-- **`ING`:** a entrada vai no bloco do seu pack.
-  - Formato: `id:{n:'Nome',c:custo,t:[tags],pack:'base'|'local'|'gourmet',rot:N}`. Só se põe `rot` se for maior do que 1.
+- Use grep to find the blocks; don't read the whole `index.html`.
+- **`ING`:** the entry goes in its pack's block.
+  - Format: `id:{n:'Name',c:cost,t:[tags],pack:'base'|'local'|'gourmet',rot:N}`. Only set `rot` if it is above 1.
   - **Tags:** `queijo carne peixe vegetal doce picante classico portugues gourmet`.
-  - **Packs:** `base` para o barato e comum; `local` (Mercado Local) para o português e para peixe; `gourmet` (Delicatessen) para o caro e de luxo.
-  - **Custo por porção:** 0,02 (alho) a 0,20 (burrata).
-- **`GRAMS`:** o peso em gramas de uma peça inteira (o picado pesa `GRATED_W`, 70%). O teste falha se faltar.
-- **`COMBOS`:** um combo positivo por ingrediente novo, e um choque por lote.
-  - Formato: `{id, n, req:[ids ou 's:molho'], q, seg:{estudante,familia,turista,gourmet}}`.
-  - Os choques têm `q` negativo e `quote`.
-  - Põe os positivos antes de `{id:'bitoque'` e o choque antes de `{id:'x_pestoananas'`.
-- **`I18N`:** cada ingrediente precisa de `'ing.<id>'`, e cada combo de `'combo.<id>'`, **em `en` e em `pt`**. Os choques precisam também de `'quote.<id>'` nas duas línguas.
+  - **Packs:** `base` for cheap and common; `local` (Local Market) for Portuguese and fish; `gourmet` (Delicatessen) for expensive and luxury.
+  - **Cost per portion:** 0.02 (garlic) to 0.20 (burrata).
+- **`GRAMS`:** weight in grams of one whole piece (chopped weighs `GRATED_W`, 70%; a grated cheese in `BIG_SHRED` weighs 150%). The test fails if it is missing.
+- **`COMBOS`:** one positive combo per new topping, and one clash per batch.
+  - Format: `{id, n, req:[ids or 's:sauce'], q, seg:{estudante,familia,turista,gourmet}}`.
+  - Clashes have a negative `q` and a `quote`.
+  - Put the positive ones before `{id:'bitoque'` and the clash before `{id:'x_pestoananas'`.
+- **`I18N`:** each topping needs `'ing.<id>'`, and each combo `'combo.<id>'`, **in both `en` and `pt`**. Clashes also need `'quote.<id>'` in both languages.
 
-## 6. Documentação
+## 6. Docs
 
-- `docs/ingredientes.md`: marca os novos com `✓★` e tira das "Ideias" os combos que passaram a existir.
-- `README.md`: atualiza o número de combos em "(há N por descobrir)".
+- `docs/ingredients.md`: mark the new ones with `✓★`.
+- `README.md`: update the number of combos ("95 to discover").
 
-## 7. Testar
+## 7. Test
 
 ```bash
 node tools/test_ingredients.js id1,id2,id3 <scratchpad>
 ```
 
-- O teste falha (exit 1) se houver:
-  - erros na consola;
-  - um sprite em falta;
-  - `rot` sem a imagem `_n`;
-  - traduções desiguais entre en e pt;
-  - um combo que pede um ingrediente inexistente;
-  - o botão Rodar errado.
-- Também põe 2 peças de cada ingrediente, roda as que rodam e lista os combos ativos.
-- Olha para `<scratchpad>/bancada.png` com Read. Se faltar alguma peça, é porque o sítio onde o teste a pôs está ocupado ou fora da área permitida; não é um erro do jogo.
-- Para confirmar um combo, junta os seus ingredientes à lista de ids.
+- The test fails (exit 1) if there are:
+  - console errors;
+  - a missing sprite;
+  - `rot` without the `_n` image;
+  - translations that differ between en and pt;
+  - a combo that asks for a topping that doesn't exist;
+  - a topping without a weight;
+  - the wrong Rotate button.
+- It also places 2 pieces of each topping, rotates those that rotate and lists the active combos.
+- Look at `<scratchpad>/bancada.png` with Read. If a piece is missing, the spot the test chose was taken or out of bounds; it is not a game bug.
+- To confirm a combo, add its toppings to the id list.
 
-## 8. Commit e push
+## 8. Commit and push
 
-Faz um commit por lote, com um título como "Mais 6 ingredientes: a, b, c, d, e, f". No corpo, põe:
-- o gerador;
-- os que rodam;
-- os packs;
-- os combos novos e o total.
+One commit per batch, titled like "6 more toppings: a, b, c, d, e, f". In the body put:
+- the generator;
+- which ones rotate;
+- the packs;
+- the new combos and the total.
 
-Faz push para o ramo de trabalho. Não abras PR sem o utilizador pedir.
+Push to the working branch. Don't open a PR unless the user asks.
 
-## 9. Resposta ao utilizador
+## 9. Reply to the user
 
-- Uma tabela com: ingrediente (com uma descrição curta do desenho), picado, roda, onde se compra.
-- Os combos novos e o total.
-- O que refizeste depois de ver a prévia.
-- Lembra que os preços e as preferências dos clientes são uma primeira estimativa.
+- A table with: topping (with a short description of the drawing), chopped form, rotation, where it is bought.
+- The new combos and the total.
+- What you redrew after looking at the preview.
+- Remind them that prices and customer preferences are a first estimate.
