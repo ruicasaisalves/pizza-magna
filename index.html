@@ -67,14 +67,17 @@ h3{font-size:.92rem}
 #hdr{position:sticky}
 #mute{position:absolute;z-index:6;top:8px;right:max(8px,env(safe-area-inset-right,0px));width:38px;height:38px;padding:0;display:grid;place-items:center;
   color:var(--brass-ink);background:linear-gradient(var(--brass-hi),var(--brass) 45%,var(--brass-lo));border:2px solid var(--brass-ink);border-radius:3px;box-shadow:inset 1px 1px 0 rgba(255,255,255,.6),0 3px 0 var(--wood-deep)}
-#fs{position:absolute;z-index:6;top:8px;right:calc(max(8px,env(safe-area-inset-right,0px)) + 46px);width:38px;height:38px;padding:0;display:grid;place-items:center;
+#skip{position:absolute;z-index:6;top:8px;right:calc(max(8px,env(safe-area-inset-right,0px)) + 46px);width:38px;height:38px;padding:0;display:grid;place-items:center;
+  color:var(--brass-ink);background:linear-gradient(var(--brass-hi),var(--brass) 45%,var(--brass-lo));border:2px solid var(--brass-ink);border-radius:3px;box-shadow:inset 1px 1px 0 rgba(255,255,255,.6),0 3px 0 var(--wood-deep)}
+#skip svg{width:20px;height:20px}
+#fs{position:absolute;z-index:6;top:8px;right:calc(max(8px,env(safe-area-inset-right,0px)) + 92px);width:38px;height:38px;padding:0;display:grid;place-items:center;
   color:var(--brass-ink);background:linear-gradient(var(--brass-hi),var(--brass) 45%,var(--brass-lo));border:2px solid var(--brass-ink);border-radius:3px;box-shadow:inset 1px 1px 0 rgba(255,255,255,.6),0 3px 0 var(--wood-deep)}
 #fs svg{width:20px;height:20px}
 #mute.off{background:linear-gradient(#f6ead0,#dcc699);color:var(--bad)}
 #mute svg{width:22px;height:22px}
-.hdr-in{padding-right:max(104px,env(safe-area-inset-right,0px))}
+.hdr-in{padding-right:max(150px,env(safe-area-inset-right,0px))}
 .sandbox .opt-btn{margin-left:auto}
-@media (max-width:600px){.hdr-in{padding-right:max(16px,env(safe-area-inset-right,0px))}.brand{max-width:calc(100% - 100px);margin-right:96px}.hdr-in .opt-btn,.sandbox .hdr-in .opt-btn{margin-left:auto;margin-right:calc(max(8px,env(safe-area-inset-right,0px)) - max(16px,env(safe-area-inset-right,0px)))}}   /* phone: second row, right edge lined up under the corner buttons */
+@media (max-width:600px){.hdr-in{padding-right:max(16px,env(safe-area-inset-right,0px))}.brand{max-width:calc(100% - 146px);margin-right:142px}.hdr-in .opt-btn,.sandbox .hdr-in .opt-btn{margin-left:auto;margin-right:calc(max(8px,env(safe-area-inset-right,0px)) - max(16px,env(safe-area-inset-right,0px)))}}   /* phone: second row, right edge lined up under the corner buttons */
 .opts{display:flex;flex-direction:column;gap:14px}
 .opts section{display:flex;flex-direction:column;gap:8px;border-top:2px dashed var(--line);padding-top:12px}
 .stat{background:var(--lcd-bg);border:2px solid var(--wood-deep);box-shadow:inset 0 0 0 1px #1d331a;padding:2px 8px;display:flex;flex-direction:column;min-width:0}
@@ -217,6 +220,7 @@ table.rank tr.me td{color:var(--tomato-lo);font-weight:700}
 <div id="modal" hidden><div class="box" id="mbox"></div></div>
 <div id="toast" hidden></div>
 <button id="mute" type="button" data-act="mute"></button>
+<button id="skip" type="button" data-act="musicnext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 5l9 7-9 7z"/><path d="M13 5l7 7-7 7z" opacity=".75"/><rect x="19" y="5" width="2.5" height="14"/></svg></button>
 <button id="fs" type="button" data-act="fullscreen" hidden></button>
 
 <script src="assets/ingredients.js"></script>
@@ -280,7 +284,7 @@ en:{
   'n.good':'Good amount of topping',
   'n.nocheese':'No cheese','q.nocheese':'A pizza with no cheese? Odd.',
   'n.mono':'Dull, only one topping','q.mono':'A bit boring.',
-  'n.many':'Too many toppings','q.many':'It had everything and tasted of nothing.',
+  'q.many':'It had everything and tasted of nothing.',
   'n.uneven':'Unevenly spread','q.uneven':'Half the slice was empty.',
   'n.grated':'Grated toppings spread the flavour',
   'n.combo':'Combo: {x}','n.clash':'Clash: {x}',
@@ -347,7 +351,7 @@ pt:{
   'n.good':'Boa quantidade de recheio',
   'n.nocheese':'Falta queijo','q.nocheese':'Pizza sem queijo? Estranho.',
   'n.mono':'Monótona, só um ingrediente','q.mono':'Um bocado aborrecida.',
-  'n.many':'Ingredientes a mais','q.many':'Tinha de tudo e não sabia a nada.',
+  'q.many':'Tinha de tudo e não sabia a nada.',
   'n.uneven':'Mal distribuída','q.uneven':'Metade da fatia estava vazia.',
   'n.grated':'O ralado espalha o sabor',
   'n.combo':'Combo: {x}','n.clash':'Choque: {x}',
@@ -690,7 +694,6 @@ function analyze(p){
   if(n>0&&!ids.some(i=>ING[i].t.includes('queijo'))){q-=10;note('bad','nocheese')}
   if(d===1){q-=5;note('bad','mono')}
   q+=Math.min(d,5)*2;
-  if(d>6){q-=(d-6)*4;note('bad','many')}
   if(p.pieces.length>=8){const qd=[0,0,0,0];for(const x of p.pieces)qd[(x.x>=0?1:0)+(x.y>=0?2:0)]+=x.g?1.4:1;const ratio=Math.min(...qd)/Math.max(...qd);q-=(1-ratio)*14;if(ratio<.4)note('bad','uneven');else if(grated>=4&&ratio>=.7)note('good','grated')}
   const has=k=>k.startsWith('s:')?p.sauce===k.slice(2):(cnt[k]||0)>=2;
   const combos=COMBOS.filter(c=>c.req.every(has));
@@ -768,7 +771,7 @@ function drawMini(cv,p,size){const c=fitCanvas(cv,size,size);c.clearRect(0,0,siz
 /* ================= UI: HEADER ================= */
 function starsHTML(r){let h='';for(let i=1;i<=5;i++)h+=`<i class="${r>=i-.5?'on':''}">★</i>`;return h}
 function renderHeader(){
-  const corner=[$('#fs'),$('#mute')];   // keep the corner buttons across the header rebuild
+  const corner=[$('#fs'),$('#skip'),$('#mute')];   // keep the corner buttons across the header rebuild
   const pm=clamp(state.money/GOAL_MONEY,0,1),pr=clamp(state.rep/GOAL_REP,0,1);
   $('#hdr').innerHTML=`<div class="hdr-in">
     <div class="brand" data-act="chef" role="button" tabindex="0" title="${esc(t('chef.edit'))}" style="cursor:pointer"><canvas id="logo" width="68" height="68"></canvas>Pizza Magna</div>
@@ -1570,7 +1573,8 @@ let rsT,rsW=window.innerWidth;window.addEventListener('resize',()=>{clearTimeout
 
 document.addEventListener('pm-music',e=>{const n=$('#musNow');if(n)n.textContent=t('mus.now',{x:e.detail})});
 const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/>';
-function drawMute(){const b=$('#mute'),on=MUSIC.isOn();b.classList.toggle('off',!on);b.setAttribute('aria-label',t(on?'mus.off':'mus.on'));b.title=t(on?'mus.off':'mus.on');
+function drawSkip(){const b=$('#skip');b.title=t('mus.next');b.setAttribute('aria-label',t('mus.next'))}
+function drawMute(){drawSkip();const b=$('#mute'),on=MUSIC.isOn();b.classList.toggle('off',!on);b.setAttribute('aria-label',t(on?'mus.off':'mus.on'));b.title=t(on?'mus.off':'mus.on');
   b.innerHTML=SPK+(on?'<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>':'<path d="M17 9l5 6M22 9l-5 6"/></svg>')}
 // full screen: the standard API, or the webkit one on older Safari/iPad; hidden where neither exists (iPhone)
 const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
