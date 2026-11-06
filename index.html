@@ -812,10 +812,13 @@ function pantryHTML(){
   const ings=ids.map(k=>{const v=ING[k],locked=!state.unlocked.includes(v.pack);return `<button class="ing ${state.sel===k?'on':''} ${locked?'locked':''}" data-act="ing" data-v="${k}" ${locked?`title="${esc(t('k.unlock',{x:PACKS[v.pack]}))}"`:''}><canvas data-ing="${k}" width="32" height="32"></canvas>${esc(v.n)}<small>${locked?esc(PACKS[v.pack]):eur(v.c)}</small></button>`}).join('');
   return `<span class="lbl">${t('k.ings')}</span><div class="seg cats" role="tablist">${tabs}</div><div class="ings">${ings}</div>`;
 }
+function bookHTML(){   // found combos first, newest on top; the rest stay hidden
+  const found=[...state.discovered].reverse().map(id=>COMBOS.find(c=>c.id===id)).filter(Boolean);
+  return [...found,...COMBOS.filter(c=>!state.discovered.includes(c.id))].map(c=>{const k=state.discovered.includes(c.id);const req=c.req.map(r=>r.startsWith('s:')?t('k.book.sauce',{x:SAUCES[r.slice(2)].n.toLowerCase()}):ING[r].n).join(' + ');return k?`<li><b>${c.q<0?t('k.clash'):''}${esc(c.n)}</b>${esc(req)}</li>`:`<li class="unk"><b>???</b>${t('k.book.unk',{n:c.req.length})}</li>`}).join('');}
 function kitchenHTML(){
   const d=state.draft;
   const seg=(obj,key,cur)=>Object.entries(obj).map(([k,v])=>`<button data-act="${key}" data-v="${k}" class="${cur===k?'on':''}">${esc(v.n)}<small>${v.c?eur(v.c):''}</small></button>`).join('');
-  const book=COMBOS.map(c=>{const k=state.discovered.includes(c.id);const req=c.req.map(r=>r.startsWith('s:')?t('k.book.sauce',{x:SAUCES[r.slice(2)].n.toLowerCase()}):ING[r].n).join(' + ');return k?`<li><b>${c.q<0?t('k.clash'):''}${esc(c.n)}</b>${esc(req)}</li>`:`<li class="unk"><b>???</b>${t('k.book.unk',{n:c.req.length})}</li>`}).join('');
+  const book=bookHTML();
   return `<section class="kitchen">
     <div class="bench">
       <div class="stage"><canvas id="pz" width="${BW}" height="${BH}" aria-label="${t('k.canvas')}"></canvas>
@@ -967,7 +970,7 @@ function addPiece(p){
 function updateAnalysis(){
   const el=$('#analysis');if(!el)return;
   const a=analyze(state.draft);
-  for(const id of a.combos)if(!state.discovered.includes(id)){state.discovered.push(id);const c=COMBOS.find(x=>x.id===id);toast(c.q>=0?t('k.found',{x:c.n}):t('k.foundbad',{x:c.n}));const s=document.querySelector('details.book summary');if(s)s.textContent=t('k.book',{n:state.discovered.length,t:COMBOS.length})}
+  for(const id of a.combos)if(!state.discovered.includes(id)){state.discovered.push(id);const c=COMBOS.find(x=>x.id===id);toast(c.q>=0?t('k.found',{x:c.n}):t('k.foundbad',{x:c.n}));const s=document.querySelector('details.book summary');if(s)s.textContent=t('k.book',{n:state.discovered.length,t:COMBOS.length});const ul=document.querySelector('details.book ul');if(ul)ul.innerHTML=bookHTML()}
   const qc=a.q>=70?'var(--good)':a.q>=45?'#d39b12':'var(--bad)';
   el.innerHTML=`<div class="analysis">
     <div><span class="lbl">${t('k.q')}</span><div class="qbig num" style="color:${qc}">${a.q}</div><div class="meter"><span style="width:${a.q}%;background:${qc}"></span></div></div>
