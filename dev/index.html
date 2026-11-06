@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Pizza Magna · dev</title>
+<!-- pizzamagna.xyz/dev: the full game (day, shop, contest...), not just the bench.
+     It loads the same ../index.html, so there is only one copy of the game: the page is fetched,
+     given <base href="../"> so its files resolve from the site root, and PM_DEV=true so it does not
+     force the bench-only mode the public site uses. -->
+<style>body{margin:0;background:#4c2a13;color:#e9d2a2;font:16px system-ui,sans-serif}p{padding:24px}</style>
+</head>
+<body>
+<p id="msg">Loading…</p>
+<script>
+fetch('../index.html',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.text()}).then(html=>{
+  const inject='<base href="../"><meta name="robots" content="noindex"><script>window.PM_DEV=true<\/script>';
+  html=html.replace(/<head([^>]*)>/i,m=>m+inject);
+  document.open();document.write(html);document.close();
+}).catch(e=>{document.getElementById('msg').textContent='Could not load the game ('+e.message+').'});
+</script>
+</body>
+</html>

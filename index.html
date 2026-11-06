@@ -660,8 +660,8 @@ function freshState(){
 }
 let state;
 // test bench: everything unlocked, only Kitchen and Menu, its own save (window.PM_SANDBOX or #sandbox)
-// the public site (pizzamagna.xyz / GitHub Pages) shows only the bench, never the full game
-const LIVE_BENCH=/(^|\.)pizzamagna\.xyz$|\.github\.io$/.test(location.hostname);
+// the public site (pizzamagna.xyz / GitHub Pages) shows only the bench; the full game lives at /dev (dev/index.html sets PM_DEV)
+const LIVE_BENCH=!window.PM_DEV&&/(^|\.)pizzamagna\.xyz$|\.github\.io$/.test(location.hostname);
 const SANDBOX=LIVE_BENCH||!!window.PM_SANDBOX||location.hash==='#sandbox';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
