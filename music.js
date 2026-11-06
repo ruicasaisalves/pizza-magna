@@ -55,7 +55,7 @@ const MUSIC = (() => {
   ];
 
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
-  let ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;
+  let lastIdx = -1, ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;
   const VOL = 'pm-music-vol', LEVELS = [.25, .5, 1, 1.6, 2.3];   // 1 = low ... 5 = max; 3 (the middle) is the default
   const getVol = () => { try { const v = +localStorage.getItem(VOL); return v >= 1 && v <= 5 ? v : 3 } catch (_) { return 3 } };
   const gainFor = v => .16 * LEVELS[v - 1];
@@ -163,8 +163,9 @@ const MUSIC = (() => {
     if (!init()) return;
     if (ctx.state === 'suspended') ctx.resume();
     stopAll();
-    const pool = SONGS.filter(s => s.id !== (current && current.id));
-    const song = SONGS.find(s => s.id === id) || pool[Math.floor(Math.random() * pool.length)];
+    // fixed order: each new tune is the one after the last played (it starts with the first)
+    const song = SONGS.find(s => s.id === id) || SONGS[(lastIdx + 1) % SONGS.length];
+    lastIdx = SONGS.indexOf(song);
     current = song;
     bus = ctx.createGain(); bus.connect(master);
     const endAt = ctx.currentTime + schedule(song);
