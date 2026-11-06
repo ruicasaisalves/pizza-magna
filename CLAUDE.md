@@ -22,6 +22,7 @@ Jogo de gestão de pizzarias em pixel art dos anos 90, para browser e telemóvel
 - **Idioma:** o jogo é em inglês por omissão e em português quando o browser está em `pt`; nas Opções o jogador pode fixar English ou Português (`pm-lang` no `localStorage`). Todo o texto visível vem de `I18N`, com a mesma chave em `en` e em `pt`. Até agora estão migrados a cozinha e os nomes de ingredientes, massas, molhos, combos e públicos; o resto ainda está escrito em português no código, e o que se tocar migra-se.
 - **Respostas e documentação** em português de Portugal. Comentários no `index.html` em inglês; nos geradores Python, em português.
 - **Gravações:** o estado vai para `localStorage` (`massa-mestra-v1`); as peças gravam-se compactas (`packPieces`, 5 bytes por peça), o mesmo formato dos links de receita (`#p=`) e dos ficheiros `.pizza`. Não há limite de pizzas no menu. Campos novos precisam de um valor por omissão, para os jogos já gravados continuarem a abrir.
+- **Estatísticas:** GoatCounter (`pizzamagna.goatcounter.com`). Os botões com interesse estão em `TRACK` e chegam como eventos `ev/<nome>`; um botão novo que valha a pena contar entra lá. Nunca se enviam nomes nem receitas.
 - Não acrescentes dependências nem passos de build.
 
 ## Testar
