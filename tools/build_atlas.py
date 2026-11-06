@@ -40,6 +40,7 @@ import gen_ingredients12 as G12
 import gen_ingredients13 as G13
 import gen_ingredients14 as G14
 import gen_ingredients15 as G15
+import gen_ingredients16 as G16
 import gen_bases as GB
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
@@ -142,6 +143,7 @@ INGS = {
     'brie':         (G15.brie,      ('brie', 'shred', 40)),
     'frango_tikka': (G15.tikka,     ('tikka', 'cube', 12)),
     'grao':         (G15.chickpeas, None),
+    'frankfurt':    (G16.frankfurt, G16.slices),
 }
 # peças que rodam: uma só imagem, deitada (as posições contam-se no jogo, em ING.rot)
 ROTATE = {
@@ -167,6 +169,7 @@ ROTATE = {
     'edamame': lambda: G15.edamame(1, ang=0),      # 2: a vagem é igual de ponta a ponta
     'mejillones': lambda: G15.mussel(1, ang=0),    # 4: o bico da concha fica de um lado
     'brie': lambda: G15.brie(1, ang=0),            # 4: a cunha aponta para um lado
+    'frankfurt': lambda: G16.frankfurt(1, ang=0),  # 2: igual de ponta a ponta
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
