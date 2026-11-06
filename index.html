@@ -635,8 +635,12 @@ const eur=v=>(v<0?'−':'')+'$'+Math.abs(r2(v)).toFixed(2);   // dollars everywh
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const noise=()=>(Math.random()+Math.random()+Math.random()-1.5)*1.6;
-// what a customer finds fair: a base from appeal plus the ingredients' cost (cost 1.50 for the rival / unknown)
-const fairPrice=(a,cost=1.5)=>2.5+a*.06+cost*1.8;
+// Prices: a plain thin pizza with tomato sauce and nothing on it is $5; every extra cent of cost
+// (a pricier dough or sauce, each topping) adds MARKUP times that to the suggested price.
+const BASE_PRICE=5,MARKUP=2.5,baseCost=()=>DOUGHS.fina.c+SAUCES.tomate.c;
+const costPrice=cost=>Math.max(3,r2(BASE_PRICE+(cost-baseCost())*MARKUP));
+// what a customer finds fair: the cost-based price, nudged by how much they like it (appeal 50 = neutral)
+const fairPrice=(a,cost=baseCost()+1)=>costPrice(cost)+(a-50)*.06;
 const wdName=d=>WD[(d-1)%7];
 function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=(n>>16)+amt,g=(n>>8&255)+amt,b=(n&255)+amt;return '#'+[r,g,b].map(v=>clamp(v,0,255).toString(16).padStart(2,'0')).join('')}
 function lerpCol(a,b,t){const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);const ch=s=>Math.round(((A>>s)&255)+((((B>>s)&255)-((A>>s)&255))*t));return `rgb(${ch(16)},${ch(8)},${ch(0)})`}
@@ -708,7 +712,7 @@ function analyze(p){
   return {q,cost:r2(cost),appeal,notes,combos:combos.map(c=>c.id),n,d,cnt,ids};
 }
 function segMix(){const m={estudante:.36,familia:.32,turista:.18+state.deco*.04,gourmet:.14+state.deco*.04};const t=Object.values(m).reduce((a,b)=>a+b,0);for(const k in m)m[k]/=t;return m}
-function suggestPrice(a){const m=segMix();let f=0;for(const k in m)f+=m[k]*fairPrice(a.appeal[k],a.cost);return Math.max(3,r2(f))}   // to the cent: every topping moves it
+const suggestPrice=a=>costPrice(a.cost);   // to the cent: dough, sauce and every topping move it
 const capacity=()=>Math.min(state.ovens*28,state.cooks*20);
 const expectedCustomers=()=>Math.round((20+state.rep*8)*WK_MUL[(state.day-1)%7]*(state.ads?1.45:1));
 const tagCount=(a,t)=>a.ids.filter(i=>ING[i].t.includes(t)).length;
