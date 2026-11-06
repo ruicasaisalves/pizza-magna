@@ -728,12 +728,11 @@ const pieceVar=x=>(x.v!=null?x.v:Math.floor(x.r*7))%3;
 const pieceAng=x=>(x.a!=null?x.a:pieceVar(x))%turns(x.i);
 const wholeKey=(id,v,a)=>ATLAS.frames[id+'_n']?id+'_q'+(a%turns(id)):id+'_'+v;
 const pieceKey=x=>x.g&&canGrate(x.i)?x.i+'_g'+pieceVar(x):wholeKey(x.i,pieceVar(x),pieceAng(x));
-const LAYER={brie:0,catupiry:.5,emmental:0,flamengo:0,pimenta:2.7,tomilho:2.6,trufa:2.9,sao_jorge:0,chocolate:2.5,natas_azedas:2.8,salsa:2.6,provolone:0,batata_palha:2.8,alecrim:2.6,nutella:0,maionese:.5,azeite:3,balsamico:3.1,cheddar:0,oregaos:2.6,mozzarella:0,queijo_serra:0,gorgonzola:0,ricotta:0,cabra:0,burrata:1.2,nozes:2.5,pinhoes:2.5,parmesao:2.6,espinafres:.5,manjericao:2,rucula:2,mel:3,ovo:1.5};
 /* Pizza at the logical 170 px scale: sauce, toppings, then the crust ring on top so pieces tuck under the rim. */
 function composePizza(p){
   const cv=document.createElement('canvas');cv.width=cv.height=PZ;const c=cv.getContext('2d');
   spr(c,'sauce_'+p.sauce,PR,PR);
-  [...p.pieces].map((x,k)=>({x,k,l:(LAYER[x.i]??1)-(x.g?.5:0)})).sort((a,b)=>a.l-b.l||a.k-b.k).forEach(({x})=>spr(c,pieceKey(x),PR+x.x*PR,PR+x.y*PR));
+  p.pieces.forEach(x=>spr(c,pieceKey(x),PR+x.x*PR,PR+x.y*PR));   // in the order they were put: the last one sits on top
   spr(c,'crust_'+p.dough,PR,PR);
   return cv;
 }
@@ -762,13 +761,14 @@ function renderHeader(){
 /* Ingredient groups for the pantry tabs. Tags decide most of them; herbs and extras are listed by hand. */
 const CATS=['queijo','carne','peixe','vegetal','ervas','doce','extras'];
 const HERBS=['manjericao','oregaos','alecrim','tomilho','salsa','coentros','pimenta','piripiri'];
+const FAV=['mozzarella','tomate','fiambre','bacon','frango'];   // most used on pizzas: top of their tab
 const EXTRAS=['azeite','balsamico','maionese','natas_azedas','ovo','nozes','pinhoes','batata_palha'];
 function ingCat(id){const t=ING[id].t;if(HERBS.includes(id))return 'ervas';if(EXTRAS.includes(id))return 'extras';
   for(const c of ['queijo','carne','peixe','doce','vegetal'])if(t.includes(c))return c;return 'extras'}
 function pantryHTML(){
   const cat=CATS.includes(state.cat)?state.cat:ingCat(state.sel);
   const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}">${t('cat.'+c)} <small>${Object.keys(ING).filter(k=>ingCat(k)===c).length}</small></button>`).join('');
-  const ids=Object.keys(ING).filter(k=>ingCat(k)===cat).sort((a,b)=>ING[a].n.localeCompare(ING[b].n,LANG));   // A to Z in the player's language
+  const ids=Object.keys(ING).filter(k=>ingCat(k)===cat).sort((a,b)=>(FAV.includes(b)-FAV.includes(a))||FAV.indexOf(a)-FAV.indexOf(b)||ING[a].n.localeCompare(ING[b].n,LANG));   // the classics first, then A to Z in the player's language
   const ings=ids.map(k=>{const v=ING[k],locked=!state.unlocked.includes(v.pack);return `<button class="ing ${state.sel===k?'on':''} ${locked?'locked':''}" data-act="ing" data-v="${k}" ${locked?`title="${esc(t('k.unlock',{x:PACKS[v.pack]}))}"`:''}><canvas data-ing="${k}" width="32" height="32"></canvas>${esc(v.n)}<small>${locked?esc(PACKS[v.pack]):eur(v.c)}</small></button>`}).join('');
   return `<span class="lbl">${t('k.ings')}</span><div class="seg cats" role="tablist">${tabs}</div><div class="ings">${ings}</div>`;
 }

@@ -7,7 +7,7 @@ Jogo de gestão de pizzarias em pixel art dos anos 90, para browser e telemóvel
   - `= LANGUAGE =`: `LANG` e a tabela `I18N` (en/pt)
   - `= DATA =`: `DOUGHS`, `SAUCES`, `ING`, `PACKS`, `COMBOS`, `SEG`, `THEMES` e as constantes de economia
   - `= PIZZA ANALYSIS =`: `analyze()` (qualidade, custo, apelo) e `contestScore()`
-  - `= DRAWING`: atlas, `spr()`, peças que rodam (`turned()`), `composePizza()`, `LAYER`
+  - `= DRAWING`: atlas, `spr()`, peças que rodam (`turned()`), `composePizza()` (as peças desenham-se pela ordem em que foram postas)
   - `= UI: KITCHEN =` e `-- the pizza bench`: a bancada 320×200, as taças, `addPiece()`, `rotatePiece()`
   - `= UI: DAY =`, `-- simulation`, `-- restaurant room`: o dia, os clientes e a sala em tiles
   - `= UI: SHOP =`, `= UI: CONTEST =`, `= MODALS =`

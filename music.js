@@ -55,7 +55,7 @@ const MUSIC = (() => {
   ];
 
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
-  let ctx = null, master = null, wobble = null, voices = [], timer = null, current = null, armed = false;
+  let ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;
   const VOL = 'pm-music-vol', LEVELS = [.25, .5, 1, 1.6, 2.3];   // 1 = low ... 5 = max; 3 (the middle) is the default
   const getVol = () => { try { const v = +localStorage.getItem(VOL); return v >= 1 && v <= 5 ? v : 3 } catch (_) { return 3 } };
   const gainFor = v => .16 * LEVELS[v - 1];
@@ -104,7 +104,7 @@ const MUSIC = (() => {
     g.gain.linearRampToValueAtTime(vol, t0 + .008);
     g.gain.setValueAtTime(vol, t0 + Math.max(.01, dur - .04));
     g.gain.linearRampToValueAtTime(0, t0 + dur);
-    o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + dur + .02);
+    o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + dur + .02);
     voices.push(o);
   }
 
@@ -114,14 +114,14 @@ const MUSIC = (() => {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.frequency.setValueAtTime(150, t0); o.frequency.exponentialRampToValueAtTime(45, t0 + .12);
       g.gain.setValueAtTime(.55, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + .15);
-      o.connect(g); g.connect(master); o.start(t0); o.stop(t0 + .16); voices.push(o); return;
+      o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + .16); voices.push(o); return;
     }
     if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * .2, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1 }
     const s = ctx.createBufferSource(), g = ctx.createGain(), hp = ctx.createBiquadFilter();
     s.buffer = noiseBuf; hp.type = 'highpass'; hp.frequency.value = kind === 'h' ? 7000 : 1800;
     const len = kind === 'h' ? .03 : .11, vol = kind === 'h' ? .08 : .22;
     g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + len);
-    s.connect(hp); hp.connect(g); g.connect(master); s.start(t0); s.stop(t0 + len + .01); voices.push(s);
+    s.connect(hp); hp.connect(g); g.connect(bus); s.start(t0); s.stop(t0 + len + .01); voices.push(s);
   }
 
   // schedule a whole song from now; returns its length in seconds
@@ -150,7 +150,10 @@ const MUSIC = (() => {
     return t - start;
   }
 
-  function stopAll() { clearTimeout(timer); timer = null; voices.forEach(v => { try { v.stop() } catch (_) {} }); voices = []; current = null }
+  // each song plays through its own bus: cutting the bus silences every note still scheduled, even if the
+  // audio clock was suspended (phones) and the wall-clock timer ran ahead of it
+  function stopAll() { clearTimeout(timer); timer = null; voices.forEach(v => { try { v.stop() } catch (_) {} }); voices = [];
+    if (bus) { try { bus.disconnect() } catch (_) {} bus = null } current = null }
 
   function play(id) {
     if (!init()) return;
@@ -159,9 +162,12 @@ const MUSIC = (() => {
     const pool = SONGS.filter(s => s.id !== (current && current.id));
     const song = SONGS.find(s => s.id === id) || pool[Math.floor(Math.random() * pool.length)];
     current = song;
-    const len = schedule(song);
-    // after the tune, a quiet break of 60–120 s, then another one
-    timer = setTimeout(() => { voices = []; current = null; timer = setTimeout(() => { if (prefOn()) play() }, (60 + Math.random() * 60) * 1000) }, len * 1000 + 300);
+    bus = ctx.createGain(); bus.connect(master);
+    const endAt = ctx.currentTime + schedule(song);
+    // after the tune (by the audio clock, which stops while the phone suspends sound), a quiet break of 60–120 s, then another one
+    const done = () => { if (ctx.currentTime < endAt) { timer = setTimeout(done, 2000); return }
+      stopAll(); timer = setTimeout(() => { if (prefOn() && !current) play() }, (60 + Math.random() * 60) * 1000) };
+    timer = setTimeout(done, (endAt - ctx.currentTime) * 1000 + 300);
     document.dispatchEvent(new CustomEvent('pm-music', { detail: song.title }));
   }
 
