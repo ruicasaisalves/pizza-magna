@@ -241,9 +241,11 @@ def table_check2(seed=1):
 
 CHAIR = {'tasca': ('oak', 'straw'), 'tratt': ('oak', 'red')}
 
-def chair(style='tasca', d='down'):
+def chair(style='tasca', d='down', layer=None):
     """32 x 32 chair. down = seen from the front (backrest at the top), up = from behind,
-    right = seen from the side with the backrest on the left (the sitter faces right)"""
+    right = seen from the side with the backrest on the left (the sitter faces right).
+    A chair seen from behind has the sitter between its seat and its backrest: layer='seat'
+    or layer='back' draws only one of them, so the person can go in between."""
     wood, seat = CHAIR[style]
     c = Canvas(32, 32)
     weave = (((c.xs // 2) + (c.ys // 2)) % 2) * .14 if seat == 'straw' else 0
@@ -256,7 +258,8 @@ def chair(style='tasca', d='down'):
         c.paint(c.rect(13, 6, 19, 13), wood, c.cyl_x(13, 19, .3, .8), part=4)
     elif d == 'up':
         c.cast(c.rect(6, 27, 30, 31), .35)
-        c.paint(c.rect(5, 6, 27, 12), seat, .75 + weave, part=1)
+        if layer != 'back': c.paint(c.rect(5, 6, 27, 12), seat, .75 + weave, part=1)
+        if layer == 'seat': return c
         for lx in (5, 24): c.paint(c.rect(lx, 4, lx + 3, 31), wood, c.cyl_x(lx, lx + 3, .2, .6), part=2)
         c.paint(c.rect(5, 12, 27, 16), wood, np.where(c.ys == 12, .75, .4), part=3)
         c.paint(c.rect(13, 16, 19, 24), wood, c.cyl_x(13, 19, .2, .6), part=3)
@@ -300,49 +303,68 @@ def pizza(seed=1):
         c.paint(c.ell(px, py, 1.7, 1.1), 'pepp', c.sphere(px, py, 1.7, 1.1) * .9, part=4)
     return c
 
-# ---------------- PEOPLE (seated, 32 x 40) ----------------
-def person(d='down', skin='skinA', hair='hairB', shirt='shirtB', long=False):
-    c = Canvas(32, 40)
+# ---------------- PEOPLE (seated, whole body, 32 x 48) ----------------
+# Every view puts the hips at y = 33, so a person is drawn 18 px above the chair it sits on
+# (24 px for a chair seen from behind, whose seat is further back).
+PANTS = ['jeans', 'pantsK', 'pantsB']
+RAMP.update({
+    'jeans':  hexs(['#101c34', '#1c2e52', '#2c4674', '#46649a', '#6a88bc']),
+    'pantsK': hexs(['#141418', '#24242a', '#383840', '#50505a', '#6c6c78']),
+    'pantsB': hexs(['#2a1a0c', '#46301a', '#644628', '#866238', '#a8804c']),
+    'shoe':   hexs(['#0c0808', '#1e1410', '#36261c', '#5a4030']),
+})
+def person(d='down', skin='skinA', hair='hairB', shirt='shirtB', long=False, pants='jeans'):
+    c = Canvas(32, 48)
+    stripes = lambda: ((c.xs * 2 + c.ys) % 5 == 0) * -.15
     if d in ('left', 'right'):
-        c.paint(c.rect(11, 22, 22, 40), shirt, c.cyl_x(11, 22), part=1)
-        c.paint(c.rect(14, 26, 28, 31), shirt, np.where(c.ys < 28, .7, .35), part=2)
-        c.paint(c.rect(27, 26, 31, 31), skin, .65, part=3)
-        c.paint(c.rect(14, 18, 19, 23), skin, .35, part=1)
-        head = c.ell(17, 12, 7, 8); c.paint(head, skin, .45 + c.sphere(17, 12, 7, 8) * .45, part=4)
-        c.paint(c.rect(23, 12, 25, 15), skin, .6, part=4)                    # nose
-        hm = c.ell(16, 10, 8, 7.5) & ((c.ys < 9) | (c.xs < 15))
-        if long: hm |= c.rect(9, 9, 16, 24) & c.ell(13, 15, 6, 10)
-        c.paint(hm, hair, c.sphere(16, 10, 8, 8) * .9 + ((c.xs + c.ys * 2) % 5 == 0) * -.15, part=5)
-        c.paint(c.rect(20, 12, 22, 15), 'eye', .1, part=6, noline=True)
-        c.paint(c.rect(21, 12, 22, 13), 'plate', 1, part=6, noline=True)
-        c.paint(c.rect(20, 10, 23, 11), hair, .2, part=6, noline=True)
-        c.paint(c.rect(15, 12, 17, 15), skin, .3, part=6, noline=True)        # ear
-        c.paint(c.rect(21, 17, 23, 18), 'mouth', .5, part=6, noline=True)
+        c.paint(c.rect(23, 36, 27, 46), pants, c.cyl_x(23, 27, .2, .6), part=1)          # shin down to the floor
+        c.paint(c.rect(22, 44, 30, 48) & ~c.rect(22, 44, 24, 46), 'shoe', np.where(c.ys == 44, .9, .4), part=2)
+        c.paint(c.rect(12, 31, 28, 37) | c.ell(26, 34, 2.5, 3), pants, np.where(c.ys < 33, .75, .4), part=3)   # thigh on the seat
+        c.paint(c.rect(11, 20, 22, 34) | c.ell(16.5, 21, 5.5, 2.5), shirt, c.cyl_x(11, 22), part=4)
+        c.paint(c.rect(14, 16, 19, 21), skin, .35, part=4)
+        c.paint(c.rect(14, 21, 19, 28), shirt, c.cyl_x(14, 19, .3, .75), part=5)          # upper arm
+        c.paint(c.rect(16, 25, 29, 29), shirt, np.where(c.ys < 27, .7, .35), part=6)       # forearm towards the table
+        c.paint(c.rect(28, 25, 32, 29), skin, .65, part=7)
+        head = c.ell(17, 10, 7, 8); c.paint(head, skin, .45 + c.sphere(17, 10, 7, 8) * .45, part=8)
+        c.paint(c.rect(23, 10, 25, 13), skin, .6, part=8)                                 # nose
+        hm = c.ell(16, 8, 8, 7.5) & ((c.ys < 7) | (c.xs < 15))
+        if long: hm |= c.rect(9, 7, 16, 23) & c.ell(13, 13, 6, 10)
+        c.paint(hm, hair, c.sphere(16, 8, 8, 8) * .9 + stripes(), part=9)
+        c.paint(c.rect(20, 10, 22, 13), 'eye', .1, part=10, noline=True)
+        c.paint(c.rect(21, 10, 22, 11), 'plate', 1, part=10, noline=True)
+        c.paint(c.rect(20, 8, 23, 9), hair, .2, part=10, noline=True)
+        c.paint(c.rect(15, 10, 17, 13), skin, .3, part=10, noline=True)                   # ear
+        c.paint(c.rect(21, 15, 23, 16), 'mouth', .6, part=10, noline=True)
         return flip(c) if d == 'left' else c
-    body = c.rect(7, 23, 25, 40) | c.ell(16, 25, 10, 4)
-    c.paint(body, shirt, c.cyl_x(7, 25), part=1)
+    if d == 'down':
+        for lx in (9, 18): c.paint(c.rect(lx, 38, lx + 5, 45), pants, c.cyl_x(lx, lx + 5, .25, .65), part=1)
+        for lx in (8, 17): c.paint(c.rect(lx, 44, lx + 7, 48), 'shoe', np.where(c.ys == 44, .9, .4), part=2)
+        c.paint(c.rect(8, 33, 24, 39), pants, np.where(c.ys < 35, .8, .5), part=3)        # lap
+        c.paint(c.rect(15, 33, 17, 39), pants, .3, part=3, noline=True)
+    body = c.rect(8, 20, 24, 34) | c.ell(16, 22, 9.5, 3.5)
+    c.paint(body, shirt, c.cyl_x(8, 24), part=4)
     for ax in (4, 24):
-        c.paint(c.rect(ax, 24, ax + 4, 37) | c.ell(ax + 2, 24, 2.5, 2), shirt, c.cyl_x(ax, ax + 4, .25, .7), part=2)
-    c.paint(c.rect(14, 19, 18, 24), skin, .3, part=1)
+        c.paint(c.rect(ax, 21, ax + 4, 32) | c.ell(ax + 2, 21.5, 2.5, 2), shirt, c.cyl_x(ax, ax + 4, .25, .7), part=5)
+    c.paint(c.rect(14, 16, 18, 21), skin, .3, part=4)
     if d == 'down':
-        c.paint(c.ell(16, 22.5, 3, 2.5) & (c.ys > 21), skin, .45, part=2)      # neckline
-        for ax in (4, 24): c.paint(c.rect(ax, 36, ax + 4, 40), skin, .6, part=3)
-    head = c.ell(16, 12, 7.5, 8.5); c.paint(head, skin, .45 + c.sphere(16, 12, 7.5, 8.5) * .45, part=4)
-    c.paint(c.ell(8.5, 13, 1.6, 2.4) | c.ell(23.5, 13, 1.6, 2.4), skin, .35, part=3)
+        c.paint(c.ell(16, 20, 3, 2.5) & (c.ys > 19), skin, .45, part=5)                  # neckline
+        for ax in (4, 24): c.paint(c.rect(ax, 31, ax + 4, 35), skin, .6, part=6)          # hands on the lap
+    head = c.ell(16, 10, 7.5, 8.5); c.paint(head, skin, .45 + c.sphere(16, 10, 7.5, 8.5) * .45, part=8)
+    c.paint(c.ell(8.5, 11, 1.6, 2.4) | c.ell(23.5, 11, 1.6, 2.4), skin, .35, part=7)
     if d == 'down':
-        hm = c.ell(16, 10, 8.5, 8) & ((c.ys < 8.5 + np.abs(c.xs - 16) * .25) | (np.abs(c.xs - 16) > 6))
-        if long: hm |= (c.rect(7, 8, 10, 26) | c.rect(22, 8, 25, 26))
-        c.paint(hm & (c.ys < 26), hair, c.sphere(16, 10, 8.5, 8.5) * .9 + ((c.xs * 2 + c.ys) % 5 == 0) * -.15, part=5)
+        hm = c.ell(16, 8, 8.5, 8) & ((c.ys < 6.5 + np.abs(c.xs - 16) * .25) | (np.abs(c.xs - 16) > 6))
+        if long: hm |= (c.rect(7, 6, 10, 24) | c.rect(22, 6, 25, 24))
+        c.paint(hm & (c.ys < 24), hair, c.sphere(16, 8, 8.5, 8.5) * .9 + stripes(), part=9)
         for ex in (12, 19):
-            c.paint(c.rect(ex, 13, ex + 2, 16), 'eye', .1, part=6, noline=True)
-            c.paint(c.rect(ex, 13, ex + 1, 14), 'plate', 1, part=6, noline=True)      # catch light
-            c.paint(c.rect(ex, 11, ex + 2, 12), hair, .2, part=6, noline=True)      # eyebrow
-        c.paint(c.rect(15, 18, 18, 19), 'mouth', .6, part=6, noline=True)
-        c.paint(c.rect(16, 15, 17, 17), skin, .25, part=6, noline=True)          # nose shadow
+            c.paint(c.rect(ex, 11, ex + 2, 14), 'eye', .1, part=10, noline=True)
+            c.paint(c.rect(ex, 11, ex + 1, 12), 'plate', 1, part=10, noline=True)      # catch light
+            c.paint(c.rect(ex, 9, ex + 2, 10), hair, .2, part=10, noline=True)        # eyebrow
+        c.paint(c.rect(15, 16, 18, 17), 'mouth', .6, part=10, noline=True)
+        c.paint(c.rect(16, 13, 17, 15), skin, .25, part=10, noline=True)            # nose shadow
     else:
-        hm = c.ell(16, 11, 8.5, 9.5)
-        if long: hm |= c.rect(8, 10, 24, 27) & c.ell(16, 16, 8.5, 12)
-        c.paint(hm, hair, c.sphere(16, 11, 8.5, 9.5) * .85 + ((c.xs * 2 + c.ys) % 5 == 0) * -.15, part=5)
+        hm = c.ell(16, 9, 8.5, 9.5)
+        if long: hm |= c.rect(8, 8, 24, 25) & c.ell(16, 14, 8.5, 12)
+        c.paint(hm, hair, c.sphere(16, 9, 8.5, 9.5) * .85 + stripes(), part=9)
     return c
 
 # ---------------- PREVIEW SCENE ----------------
@@ -358,21 +380,22 @@ def scene():
     # round table for four, origin (16, 64) on a 4 x 4 tile footprint
     ox, oy = 16, 70
     add(oy + 34, chair('tasca', 'down'), ox + 48, oy + 4)
-    add(oy + 35, person('down', 'skinA', 'hairY', 'shirtR', long=True), ox + 48, oy - 8)
+    add(oy + 35, person('down', 'skinA', 'hairY', 'shirtR', long=True, pants='pantsK'), ox + 48, oy + 4 - 18)
     add(oy + 84, chair('tasca', 'right'), ox + 0, oy + 52)
-    add(oy + 85, person('right', 'skinB', 'hairK', 'shirtG'), ox + 0, oy + 40)
+    add(oy + 85, person('right', 'skinB', 'hairK', 'shirtG'), ox + 0, oy + 52 - 18)
     add(oy + 84, chair('tasca', 'left'), ox + 96, oy + 52)
-    add(oy + 85, person('left', 'skinA', 'hairG', 'shirtW'), ox + 96, oy + 40)
+    add(oy + 85, person('left', 'skinA', 'hairG', 'shirtW', pants='pantsB'), ox + 96, oy + 52 - 18)
     add(oy + 92, table_round(), ox + 24, oy + 24)
     for px, py in ((64, 34), (38, 48), (90, 48), (64, 62)): add(oy + 92.5, pizza(px), ox + px - 12, oy + py - 7)
-    add(oy + 125, person('up', 'skinC', 'hairB', 'shirtP'), ox + 48, oy + 74)
-    add(oy + 126, chair('tasca', 'up'), ox + 48, oy + 94)
+    add(oy + 125, person('up', 'skinC', 'hairB', 'shirtP'), ox + 48, oy + 94 - 24)
+    add(oy + 100, chair('tasca', 'up', 'seat'), ox + 48, oy + 94)
+    add(oy + 126, chair('tasca', 'up', 'back'), ox + 48, oy + 94)
     # checked table for two, origin (184, 112)
     ox, oy = 176, 120
     add(oy + 58, chair('tratt', 'right'), ox + 0, oy + 28)
-    add(oy + 59, person('right', 'skinB', 'hairR', 'shirtY', long=True), ox + 0, oy + 16)
+    add(oy + 59, person('right', 'skinB', 'hairR', 'shirtY', long=True, pants='pantsK'), ox + 0, oy + 28 - 18)
     add(oy + 58, chair('tratt', 'left'), ox + 96, oy + 28)
-    add(oy + 59, person('left', 'skinC', 'hairK', 'shirtB'), ox + 96, oy + 16)
+    add(oy + 59, person('left', 'skinC', 'hairK', 'shirtB', pants='pantsB'), ox + 96, oy + 28 - 18)
     add(oy + 64, table_check2(), ox + 26, oy + 10)
     add(oy + 64.5, pizza(7), ox + 32, oy + 20)
     add(oy + 64.5, pizza(8), ox + 70, oy + 20)
