@@ -77,7 +77,7 @@ h3{font-size:.92rem}
 #mute svg{width:22px;height:22px}
 .hdr-in{padding-right:max(150px,env(safe-area-inset-right,0px))}
 .sandbox .opt-btn{margin-left:auto}
-@media (max-width:600px){.hdr-in{padding-right:max(16px,env(safe-area-inset-right,0px))}.brand{max-width:calc(100% - 146px);margin-right:142px}.hdr-in .opt-btn,.sandbox .hdr-in .opt-btn{margin-left:auto;margin-right:calc(max(8px,env(safe-area-inset-right,0px)) - max(16px,env(safe-area-inset-right,0px)))}}   /* phone: second row, right edge lined up under the corner buttons */
+@media (max-width:600px){.hdr-in{padding-right:max(16px,env(safe-area-inset-right,0px))}.brand{max-width:calc(100% - 146px);margin-right:142px;white-space:nowrap;font-size:clamp(.7rem,3.6vw,1.05rem);padding-left:6px;padding-right:8px}.hdr-in .opt-btn,.sandbox .hdr-in .opt-btn{margin-left:auto;margin-right:calc(max(8px,env(safe-area-inset-right,0px)) - max(16px,env(safe-area-inset-right,0px)))}}   /* phone: second row, right edge lined up under the corner buttons */
 .opts{display:flex;flex-direction:column;gap:14px}
 .opts section{display:flex;flex-direction:column;gap:8px;border-top:2px dashed var(--line);padding-top:12px}
 .stat{background:var(--lcd-bg);border:2px solid var(--wood-deep);box-shadow:inset 0 0 0 1px #1d331a;padding:2px 8px;display:flex;flex-direction:column;min-width:0}
@@ -148,7 +148,7 @@ details.book summary{cursor:pointer;font-family:var(--f-pixel);font-size:.8rem}
 .mcard h3{overflow-wrap:anywhere}
 .kv{display:grid;grid-template-columns:auto auto;justify-content:start;gap:2px 12px;font-size:.88rem;margin:6px 0}
 .kv dt{color:var(--muted)}
-.kv dd{margin:0;font-family:var(--f-lcd);font-size:1.25rem;line-height:1.05;font-variant-numeric:tabular-nums}   /* VT323: clear digits and € */
+.kv dd{margin:0;font-family:var(--f-lcd);font-size:1.25rem;line-height:1.05;font-variant-numeric:tabular-nums}   /* VT323: clear digits */
 .price{display:flex;align-items:center;gap:6px;margin:4px 0 8px}
 .price b{font-family:var(--f-lcd);font-weight:400;font-size:1.7rem;min-width:84px;text-align:center;background:var(--lcd-bg);color:var(--lcd);border:2px solid var(--wood-deep);line-height:1.1}
 .price button{width:32px;height:32px;padding:0;font-size:1rem}
@@ -619,7 +619,7 @@ const THEMES=[
   {id:'portugal',n:'Sabores de Portugal',d:'Ganha quem melhor usar ingredientes portugueses. Compra o Mercado Local ou a Delicatessen na Loja.'},
   {id:'veg',n:'Prémio Verde',d:'Só entram pizzas vegetarianas: sem carne nem peixe. Vegetais dão pontos extra.'},
   {id:'criativa',n:'Festival Criativo',d:'Combos, sobretudo os raros, e variedade de ingredientes impressionam o júri.'},
-  {id:'barata',n:'Desafio Low-Cost',d:'O custo de produção tem de ficar até 2,50 €. Quanto mais barata e boa, melhor.'}
+  {id:'barata',n:'Desafio Low-Cost',d:'O custo de produção tem de ficar até $2.50. Quanto mais barata e boa, melhor.'}
 ];
 const NPCS=['Trattoria Bella','Forno do Zé','Casa Nápoles','La Brasa','Pizza Rápida'];
 const WD=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
@@ -631,11 +631,12 @@ const DAY_SECONDS=26;
 const $=(s,r=document)=>r.querySelector(s);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const r2=v=>Math.round(v*100)/100;
-const eur=v=>(v<0?'−':'')+Math.abs(r2(v)).toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+const eur=v=>(v<0?'−':'')+'$'+Math.abs(r2(v)).toFixed(2);   // dollars everywhere, for a global audience
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const noise=()=>(Math.random()+Math.random()+Math.random()-1.5)*1.6;
-const fairPrice=a=>4+a*.09;
+// what a customer finds fair: a base from appeal plus the ingredients' cost (cost 1.50 for the rival / unknown)
+const fairPrice=(a,cost=1.5)=>2.5+a*.06+cost*1.8;
 const wdName=d=>WD[(d-1)%7];
 function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=(n>>16)+amt,g=(n>>8&255)+amt,b=(n&255)+amt;return '#'+[r,g,b].map(v=>clamp(v,0,255).toString(16).padStart(2,'0')).join('')}
 function lerpCol(a,b,t){const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);const ch=s=>Math.round(((A>>s)&255)+((((B>>s)&255)-((A>>s)&255))*t));return `rgb(${ch(16)},${ch(8)},${ch(0)})`}
@@ -707,7 +708,7 @@ function analyze(p){
   return {q,cost:r2(cost),appeal,notes,combos:combos.map(c=>c.id),n,d,cnt,ids};
 }
 function segMix(){const m={estudante:.36,familia:.32,turista:.18+state.deco*.04,gourmet:.14+state.deco*.04};const t=Object.values(m).reduce((a,b)=>a+b,0);for(const k in m)m[k]/=t;return m}
-function suggestPrice(a){const m=segMix();let f=0;for(const k in m)f+=m[k]*fairPrice(a.appeal[k]);return Math.max(3,Math.round(f*2)/2)}
+function suggestPrice(a){const m=segMix();let f=0;for(const k in m)f+=m[k]*fairPrice(a.appeal[k],a.cost);return Math.max(3,r2(f))}   // to the cent: every topping moves it
 const capacity=()=>Math.min(state.ovens*28,state.cooks*20);
 const expectedCustomers=()=>Math.round((20+state.rep*8)*WK_MUL[(state.day-1)%7]*(state.ads?1.45:1));
 const tagCount=(a,t)=>a.ids.filter(i=>ING[i].t.includes(t)).length;
@@ -720,7 +721,7 @@ function contestScore(theme,p){
     case 'portugal':return {s:a.q+tagCount(a,'portugues')*7};
     case 'veg':if(a.ids.some(i=>ING[i].t.includes('carne')||ING[i].t.includes('peixe')))return {s:0,dq:'Tem carne ou peixe'};return {s:a.q+tagCount(a,'vegetal')*3};
     case 'criativa':{const pos=a.combos.filter(id=>COMBOS.find(c=>c.id===id).q>0).length;return {s:a.q*.8+pos*9+a.d*2}}
-    case 'barata':if(a.cost>2.5)return {s:0,dq:'Custa mais de 2,50 €'};return {s:a.q+(2.5-a.cost)*15};
+    case 'barata':if(a.cost>2.5)return {s:0,dq:'Custa mais de $2.50'};return {s:a.q+(2.5-a.cost)*15};
   }
 }
 
@@ -781,7 +782,7 @@ function renderHeader(){
       <div class="stat"><span class="lbl">Caixa</span><b>${eur(state.money)}</b></div>
       <div class="stat"><span class="lbl">Reputação</span><b class="stars" aria-label="${state.rep.toFixed(1)} de 5">${starsHTML(state.rep)} ${state.rep.toFixed(1).replace('.',',')}</b></div>
     </div>
-    <div class="goal"><span>Objetivo: ${GOAL_MONEY.toLocaleString('pt-PT')} € e ${GOAL_REP}★ para abrir a 2.ª loja</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>
+    <div class="goal"><span>Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a 2.ª loja</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>
   </div>`;
   drawMini($('#logo'),state.menu[0]||state.draft,30);
   $('#hdr').append(...corner);   // corner buttons ride in the header, not over the page
@@ -952,7 +953,7 @@ function drawBench(){
     benchText(c,t(b.g?(ok?(ING[sel].t.includes('queijo')?'bench.grated':'bench.chopped'):'bench.nograte.'+noCutKind(sel)):'bench.whole'),bx,b.y+BOWL_H+3,on?'#2c1a0b':'#6c5233');
   }
   // little LCD with portions and quality
-  const a=analyze(d),lx=BOWLS[0].x-13,ly=154,lw=BOWL_W+26;   // wide enough for 'PREÇO 10,00 €'
+  const a=analyze(d),lx=BOWLS[0].x-13,ly=154,lw=BOWL_W+26;   // wide enough for 'PREÇO $10.00'
   c.fillStyle='#2a1407';c.fillRect(lx-2,ly-2,lw+4,44);c.fillStyle='#081008';c.fillRect(lx,ly,lw,40);
   c.font='8px Silkscreen, monospace';c.textBaseline='top';c.fillStyle='#8cff73';
   c.textAlign='left';c.fillText(t('bench.q'),lx+3,ly+3);c.fillText(t('bench.n'),lx+3,ly+15);c.fillText(t('bench.w'),lx+3,ly+27);
@@ -1064,14 +1065,14 @@ function simulateDay(){
     const seg=pickSeg(),ps=SEG[seg].ps,t=(i+Math.random())/N*.9;
     const deco=s.deco*(seg==='turista'||seg==='gourmet'?.6:.3)+(s.rep-2.5)*.3;
     let best=null,bu=-1e9;
-    for(const m of menuA){const ap=m.a.appeal[seg];const u=ap/10-ps*(m.p.price-fairPrice(ap))+noise()+deco;if(u>bu){bu=u;best=m}}
+    for(const m of menuA){const ap=m.a.appeal[seg];const u=ap/10-ps*(m.p.price-fairPrice(ap,m.a.cost))+noise()+deco;if(u>bu){bu=u;best=m}}
     const ra=clamp(r.q+RIVAL_BIAS[seg],0,100);const ru=ra/10-ps*(r.price-fairPrice(ra))+noise()+(r.promo?2.5:0);
     const e={t,seg};
     if(best&&bu>=Math.max(ru,TH)){
       e.target='ours';
       if(served<cap){
         served++;revenue+=best.p.price;ingCost+=best.a.cost;sales[best.p.id]=(sales[best.p.id]||0)+1;e.price=best.p.price;
-        const ap=best.a.appeal[seg],over=best.p.price-fairPrice(ap);const sat=ap+noise()*5-Math.max(0,over)*7+s.deco*2;
+        const ap=best.a.appeal[seg],over=best.p.price-fairPrice(ap,best.a.cost);const sat=ap+noise()*5-Math.max(0,over)*7+s.deco*2;
         if(sat>=62){happy++;repDelta+=.011;e.out='happy';if(Math.random()<.25)quotes.push([seg,happyQuote(seg,best.p.name)])}
         else{unhappy++;repDelta-=.03;e.out='meh';const bad=best.a.notes.find(n=>n[0]==='bad'&&n[2]);quotes.push([seg,over>1.5?`Boa, mas ${eur(best.p.price)} é caro para o que é.`:bad?bad[2]:'Comível, mas nada de especial.'])}
       }else{full++;repDelta-=.012;e.out='full';if(Math.random()<.3)quotes.push([seg,'Esperei imenso e desisti.'])}
@@ -1301,7 +1302,7 @@ function drawRoom(){
 /* ================= UI: SHOP ================= */
 const SHOP=[
   {id:'oven',n:'Forno a lenha extra',d:'+28 pizzas por dia de capacidade de forno.',cost:()=>500+state.ovens*300,ok:()=>state.ovens<3,lvl:()=>`${state.ovens}/3 fornos`,buy:()=>{state.ovens++}},
-  {id:'cook',n:'Contratar pizzaiolo',d:`+20 pizzas por dia. Salário de ${SALARY} € por dia.`,cost:()=>100,ok:()=>state.cooks<5,lvl:()=>`${state.cooks} na equipa`,buy:()=>{state.cooks++}},
+  {id:'cook',n:'Contratar pizzaiolo',d:`+20 pizzas por dia. Salário de $${SALARY} por dia.`,cost:()=>100,ok:()=>state.cooks<5,lvl:()=>`${state.cooks} na equipa`,buy:()=>{state.cooks++}},
   {id:'deco',n:'Renovar a sala',d:'Azulejos novos e luz quente: atrai turistas e gourmets e deixa os clientes mais satisfeitos.',cost:()=>[400,900,1600][state.deco],ok:()=>state.deco<3,lvl:()=>`Nível ${state.deco}/3`,buy:()=>{state.deco++}},
   {id:'ads',n:'Folhetos no bairro',d:'No próximo dia aparecem cerca de 45% mais clientes na rua.',cost:()=>120,ok:()=>!state.ads,lvl:()=>state.ads?'Ativo no próximo dia':'Efeito de 1 dia',buy:()=>{state.ads=true}},
   {id:'local',n:'Fornecedor: Mercado Local',d:'Desbloqueia chouriço, piri-piri e ovo.',cost:()=>200,ok:()=>!state.unlocked.includes('local'),lvl:()=>state.unlocked.includes('local')?'Comprado':'3 ingredientes',buy:()=>{state.unlocked.push('local')}},
@@ -1323,7 +1324,7 @@ function contestHTML(){
   const base=Math.round(Math.min(92,50+cd*1.1));
   return `<div class="stack">
     <div class="card stack"><span class="lbl">${left===0?'Hoje':left===1?'Amanhã':'Daqui a '+left+' dias'} · dia ${cd} (${wdName(cd)})</span><h2>${th.n}</h2><p class="sub" style="margin:0">${th.d}</p>
-      <dl class="kv"><dt>1.º lugar</dt><dd>600 € e +0,4★</dd><dt>2.º lugar</dt><dd>250 € e +0,2★</dd><dt>3.º lugar</dt><dd>80 € e +0,1★</dd><dt>Inscrição</dt><dd>${ENTRY_FEE} €</dd><dt>Os rivais rondam</dt><dd>${base-8} a ${base+8} pts</dd></dl>
+      <dl class="kv"><dt>1.º lugar</dt><dd>$600 e +0,4★</dd><dt>2.º lugar</dt><dd>$250 e +0,2★</dd><dt>3.º lugar</dt><dd>$80 e +0,1★</dd><dt>Inscrição</dt><dd>$${ENTRY_FEE}</dd><dt>Os rivais rondam</dt><dd>${base-8} a ${base+8} pts</dd></dl>
     </div>
     <div><h3>Escolhe a pizza a concurso</h3><p class="sub">${state.contestEntry?'Podes trocar de pizza sem pagar de novo.':'Pagas a inscrição ao escolher.'} O júri avalia ao fecho do dia ${cd}.</p></div>
     ${state.menu.length?`<div class="picks">${picks}</div>`:'<div class="empty">Precisas de pizzas no menu.</div>'}
@@ -1462,15 +1463,15 @@ function showReport(r){
 }
 function afterReport(){
   closeModal();
-  if(state.over){modal(`<h2>Falência</h2><p>As dívidas passaram dos 500 €. O banco fechou a pizzaria ao fim de ${state.day-1} dias.</p><button class="btn primary big" data-act="hardreset">Começar de novo</button>`);return}
+  if(state.over){modal(`<h2>Falência</h2><p>As dívidas passaram dos $500. O banco fechou a pizzaria ao fim de ${state.day-1} dias.</p><button class="btn primary big" data-act="hardreset">Começar de novo</button>`);return}
   if(!state.goalDone&&state.money>=GOAL_MONEY&&state.rep>=GOAL_REP){state.goalDone=true;save();modal(`<h2>Objetivo cumprido!</h2><p>Juntaste ${eur(state.money)} e ${state.rep.toFixed(1)}★ em ${state.day-1} dias. No jogo completo, aqui abririas a segunda loja noutro bairro.</p><p class="sub">Podes continuar a jogar para bater o teu recorde.</p><button class="btn primary big" data-act="close">Continuar</button>`)}
 }
-function showIntro(){modal(`<h2>Bem-vindo à Pizza Magna</h2><p style="margin:0">Tens uma pizzaria pequena na Rua das Flores e 1 000 € em caixa. Ao lado, a Pizza Rápida vende barato.</p>
+function showIntro(){modal(`<h2>Bem-vindo à Pizza Magna</h2><p style="margin:0">Tens uma pizzaria pequena na Rua das Flores e $1,000 em caixa. Ao lado, a Pizza Rápida vende barato.</p>
   <ol><li><b>Cozinha:</b> inventa pizzas. Massa, molho, quantidade, distribuição e combos contam para a qualidade.</li>
   <li><b>Menu:</b> as pizzas que quiseres. Põe preços que cada público aceite pagar.</li>
   <li><b>Abrir:</b> vê os clientes a escolher entre ti e o rival. A reputação sobe com clientes satisfeitos.</li>
   <li><b>Loja e Concursos:</b> investe em fornos, equipa e ingredientes, e ganha prémios a cada 5 dias.</li></ol>
-  <p class="sub" style="margin:0">Objetivo: ${GOAL_MONEY.toLocaleString('pt-PT')} € e ${GOAL_REP}★ para abrir a 2.ª loja.</p>
+  <p class="sub" style="margin:0">Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a 2.ª loja.</p>
   <button class="btn primary big" data-act="close">Começar</button>`)}
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 

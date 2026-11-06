@@ -19,7 +19,7 @@ Open `index.html` in a browser. No install and no server needed.
 - **Shop:** ovens, pizzaiolos, decoration, flyers and suppliers of Portuguese and gourmet ingredients.
 - **Contest:** every 5 days there is a themed contest.
 
-Goal: €4,000 and 3★ to open the second restaurant.
+Goal: $4,000 and 3★ to open the second restaurant.
 
 The public site (GitHub Pages from `main`) only shows the Kitchen and the Menu.
 
