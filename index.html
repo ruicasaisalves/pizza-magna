@@ -221,6 +221,7 @@ table.rank tr.me td{color:var(--tomato-lo);font-weight:700}
 
 <script src="assets/ingredients.js"></script>
 <script src="music.js"></script>
+<script data-goatcounter="https://pizzamagna.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script src="sprites.js"></script>
 <script>
 /* ================= LANGUAGE =================
@@ -1337,7 +1338,7 @@ function importSave(file){
   const fr=new FileReader();
   fr.onload=()=>{try{const d=JSON.parse(fr.result);const st=d&&d.game==='pizza-magna'?d.state:d;   // also accepts a bare state
       if(!st||st.v!==1||!Array.isArray(st.menu))throw 0;
-      state=unpackState(st);save();closeModal();render();toast(t('opt.imported',{c:state.chef||DEF_CHEF}))}
+      state=unpackState(st);track('save-import');save();closeModal();render();toast(t('opt.imported',{c:state.chef||DEF_CHEF}))}
     catch(_){toast(t('opt.badfile'))}};
   fr.readAsText(file);
 }
@@ -1371,9 +1372,9 @@ function showImport(){
     <textarea id="recIn" rows="3" style="width:100%" placeholder="https://www.pizzamagna.xyz/#p=…"></textarea>
     <div class="row"><button class="btn primary" data-act="recpaste">${t('rec.load')}</button><label class="btn">${t('rec.choose')}<input id="recFile" type="file" accept=".pizza,.json,application/json,text/plain" hidden></label><button class="btn ghost" data-act="close">${t('share.close')}</button></div>`)}
 async function takeRecipe(text){
-  try{const r=await readRecipe(text);state.draft={...r,editing:null};closeModal();
+  try{const r=await readRecipe(text);state.draft={...r,editing:null};closeModal();track('import-pizza');
     if(state.tab!=='cozinha')go('cozinha');else render();save();toast(t('rec.got',{x:r.name,c:r.from.c}))}
-  catch(_){toast(t('rec.bad'))}}
+  catch(_){toast(t('rec.bad'));track('import-bad')}}
 /* ================= SHARE ================= */
 /* A 1080x1350 card (portrait, fits phone feeds): the pizza in pixel art at x3, the recipe and the site. */
 const SITE='www.pizzamagna.xyz';
@@ -1451,7 +1452,16 @@ function render(){
   if(state.tab==='dia')drawRoom();
   save();
 }
-function go(tab){if(anim||(SANDBOX&&!['cozinha','menu'].includes(tab)))return;state.tab=tab;render();window.scrollTo(0,0)}
+/* Analytics (GoatCounter): page views come by themselves; these are the button events worth counting.
+   Events show up in GoatCounter as paths like "ev/save-pizza". No personal data: no names, no recipes. */
+const TRACK={zoom:a=>state.zoom?'zoom-on':'zoom-off',share:'photo-download',recshare:'recipe-share',recsend:'recipe-send',reccopy:'recipe-copy-link',
+  recfile:'recipe-file',recimport:'import-open',options:'options',chef:'change-names',savechef:'start-names',quickstart:'start-quick',
+  mute:()=>MUSIC.isOn()?'music-on':'music-mute',musictoggle:()=>MUSIC.isOn()?'music-on':'music-off',musicnext:'music-next',
+  lang:b=>'lang-'+b.dataset.v,fullscreen:'fullscreen',exportsave:'save-download',optreset:'reset',newdraft:'new-pizza',
+  clear:'clear',undo:'undo',rotate:'rotate',edit:'edit-pizza',rm:'remove-pizza',open:'open-day',buy:'shop-buy',enter:'contest-enter'};
+function track(ev,tries=0){try{if(window.goatcounter&&goatcounter.count)goatcounter.count({path:'ev/'+ev,title:ev,event:true});
+  else if(tries<20)setTimeout(()=>track(ev,tries+1),500)}catch(_){}}   // the script loads async: early events wait for it
+function go(tab){if(tab!==state.tab)track('tab-'+tab);if(anim||(SANDBOX&&!['cozinha','menu'].includes(tab)))return;state.tab=tab;render();window.scrollTo(0,0)}
 const ACT={
   dough:b=>{state.draft.dough=b.dataset.v;render()},
   sauce:b=>{state.draft.sauce=b.dataset.v;render()},
@@ -1471,6 +1481,7 @@ const ACT={
     const ex=d.editing&&state.menu.find(p=>p.id===d.editing);
     if(ex){Object.assign(ex,{name,dough:d.dough,sauce:d.sauce,pieces:d.pieces.map(x=>({...x})),...(d.from?{from:d.from}:{})});toast(t('k.updated',{x:name}))}
     else{state.menu.push({id:uid(),name,dough:d.dough,sauce:d.sauce,pieces:d.pieces.map(x=>({...x})),price:suggestPrice(a),...(d.from?{from:d.from}:{})});toast(t('k.added',{x:name,p:eur(suggestPrice(a))}))}
+    track(ex?'save-pizza-edit':'save-pizza');
     state.draft={...d,name,editing:null};save();go('menu');
   },
   pup:b=>{const p=state.menu.find(x=>x.id===b.dataset.id);p.price=Math.min(30,r2(p.price+.5));render()},
@@ -1514,6 +1525,7 @@ document.addEventListener('click',e=>{
   const t=e.target.closest('[data-tab]');if(t&&t.closest('#nav')){go(t.dataset.tab);return}
   const g=e.target.closest('[data-tab-go]');if(g){go(g.dataset.tabGo);return}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=ACT[b.dataset.act];if(f)f(b);
+  const tr=TRACK[b.dataset.act];if(tr)track(typeof tr==='function'?tr(b):tr);   // after the action, so toggles report their new state
 });
 document.addEventListener('input',e=>{if(e.target.id==='pname')state.draft.name=e.target.value;
   if(e.target.id==='chefName'||e.target.id==='shopName'){const b=$('[data-start]');if(b)b.disabled=!($('#chefName').value.trim()&&$('#shopName').value.trim())}});
@@ -1554,7 +1566,7 @@ function start(data){
   else if(!state.seenIntro){state.seenIntro=true;save();showIntro()}
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(!anim)render()});
   if(/[#&]p=/.test(location.hash)){const h=location.hash;history.replaceState(null,'',location.href.split('#')[0]+(SANDBOX&&!LIVE_BENCH&&!window.PM_SANDBOX?'#sandbox':''));
-    readRecipe(h).then(r=>{state.draft={...r,editing:null};if(state.tab!=='cozinha')state.tab='cozinha';render();save();toast(t('rec.got',{x:r.name,c:r.from.c}))}).catch(()=>toast(t('rec.bad')))}
+    readRecipe(h).then(r=>{track('open-recipe-link');state.draft={...r,editing:null};if(state.tab!=='cozinha')state.tab='cozinha';render();save();toast(t('rec.got',{x:r.name,c:r.from.c}))}).catch(()=>toast(t('rec.bad')))}
 }
 window.claude?.hot?.snapshot?.(()=>({state}));
 atlasReady.then(()=>window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{}));
