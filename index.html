@@ -833,9 +833,9 @@ function kitchenHTML(){
 
 /* ---- the pizza bench: a 320x200 logical screen, scaled by whole numbers ---- */
 // normal bench 320x200 (pizza + bowls + LCD); zoom: only the pizza, as wide as the screen, with the controls as text below
-let BW=320,BH=200,PX=12,PY=15;                         // pizza top-left on the bench
+let BW=320,BH=222,PX=12,PY=37,OY=22;   // OY: strip on top for the pizza's name                         // pizza top-left on the bench
 let PCX=PX+PR,PCY=PY+PR;
-function benchLayout(){if(state.zoom){BW=PZ+8;BH=PZ+36;PX=4;PY=32}else{BW=320;BH=200;PX=12;PY=15}PCX=PX+PR;PCY=PY+PR}   // zoom: same pizza size, a strip of marble on top for the pizza's name
+function benchLayout(){if(state.zoom){BW=PZ+8;BH=PZ+36;PX=4;PY=32;OY=32}else{BW=320;BH=222;PX=12;PY=37;OY=22}PCX=PX+PR;PCY=PY+PR}   // zoom: same pizza size, a strip of marble on top for the pizza's name
 const BOWLS=[{g:0,x:227,y:26},{g:1,x:227,y:94}];       // bowl sprite top-left (58x40)
 const BOWL_W=58,BOWL_H=40;
 let pz=null;
@@ -853,7 +853,7 @@ function setupPizzaCanvas(){
   pz={cv,c,pizza:null,ghost:null};drawDraft();
   let down=false,last=null;
   const pos=e=>{const r=cv.getBoundingClientRect();const lx=(e.clientX-r.left)/r.width*BW,ly=(e.clientY-r.top)/r.height*BH;return {lx,ly,x:(lx-PCX)/PR,y:(ly-PCY)/PR}};
-  const bowlAt=p=>!state.zoom&&BOWLS.find(b=>p.lx>=b.x-6&&p.lx<=b.x+BOWL_W+6&&p.ly>=b.y-4&&p.ly<=b.y+BOWL_H+16);
+  const bowlAt=p=>!state.zoom&&BOWLS.find(b=>p.lx>=b.x-6&&p.lx<=b.x+BOWL_W+6&&p.ly-OY>=b.y-4&&p.ly-OY<=b.y+BOWL_H+16);
   cv.oncontextmenu=e=>{e.preventDefault();const p=pos(e);if(Math.hypot(p.x,p.y)<=1)rotatePiece(p)};
   cv.onpointerdown=e=>{
     if(e.button!==0)return;
@@ -895,20 +895,22 @@ function pxRect(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,1);c.fillRect(x,
 function drawBench(){
   if(!pz)return;const c=pz.c,d=state.draft,sel=state.sel,cut=curCut();
   c.clearRect(0,0,BW,BH);
-  spr(c,'marble',BW/2,BH/2);
+  spr(c,'marble',BW/2,BH-100);if(BH>200)spr(c,'marble',BW/2,100);   // the slab is 320x200: a second copy fills a taller bench
   // pizza and its shadow on the marble
   c.fillStyle='rgba(40,30,20,.32)';c.beginPath();c.ellipse(PCX+3,PCY+4,PR+1,PR,0,0,Math.PI*2);c.fill();
   if(!pz.pizza)pz.pizza=composePizza(d);
   c.drawImage(pz.pizza,PX,PY);
   if(pz.ghost)spr(c,cut?sel+'_g0':wholeKey(sel,0,curAng()),PCX+pz.ghost.x*PR,PCY+pz.ghost.y*PR,.6);
-  if(state.zoom){   // the name of the pizza being made, dark title on the marble (like the menu cards)
+  {   // the name of the pizza being made, dark title on the marble strip on top (like the menu cards)
     // one line at full size if it fits; otherwise two lines, shrinking only if two are still not enough
     const nm=(d.name||t('k.newname')).toUpperCase(),F=f=>{c.font=`bold ${f}px Silkscreen, monospace`};
     let fs=11,lines=[nm];F(fs);
     if(c.measureText(nm).width>BW-8)for(fs=10;fs>=6;fs--){F(fs);lines=wrapLines(c,nm,BW-8);if(lines.length<=2&&lines.every(l=>c.measureText(l).width<=BW-8))break}
     lines=lines.slice(0,2);
     c.textAlign='center';c.textBaseline='middle';c.fillStyle='#2c1a0b';
-    lines.forEach((l,i)=>c.fillText(l,BW/2,PY/2+1+(i-(lines.length-1)/2)*(fs+1)));zoomBar();return}
+    lines.forEach((l,i)=>c.fillText(l,BW/2,OY/2+1+(i-(lines.length-1)/2)*(fs+1)))}
+  if(state.zoom){zoomBar();return}
+  c.save();c.translate(0,OY);   // the right column sits below the title strip
   // right side: ingredient name plate and two bowls (whole / grated)
   const cx=BOWLS[0].x+BOWL_W/2;
   // name plate grows with the name (long names like "Salsicha italiana"), up to the bench edge
@@ -928,7 +930,7 @@ function drawBench(){
   c.fillStyle='#2a1407';c.fillRect(lx-2,ly-2,lw+4,32);c.fillStyle='#081008';c.fillRect(lx,ly,lw,28);
   c.font='8px Silkscreen, monospace';c.textBaseline='top';c.fillStyle='#8cff73';
   c.textAlign='left';c.fillText(t('bench.q'),lx+3,ly+3);c.fillText(t('bench.n'),lx+3,ly+15);
-  c.textAlign='right';c.fillText(eur(suggestPrice(a)),lx+lw-3,ly+3);c.fillText(String(d.pieces.length),lx+lw-3,ly+15);   // top line: suggested price, not quality
+  c.textAlign='right';c.fillText(eur(suggestPrice(a)),lx+lw-3,ly+3);c.fillText(String(d.pieces.length),lx+lw-3,ly+15);c.restore();   // top line: suggested price, not quality
 }
 // zoom mode: ingredient name, whole/chopped and the price/pieces line as plain HTML under the pizza
 function zoomBar(){const el=$('#zbar');if(!el)return;const sel=state.sel,cut=curCut(),ok=canGrate(sel),a=analyze(state.draft);
@@ -1534,7 +1536,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=ACT[b.dataset.act];if(f)f(b);
   const tr=TRACK[b.dataset.act];if(tr)track(typeof tr==='function'?tr(b):tr);   // after the action, so toggles report their new state
 });
-document.addEventListener('input',e=>{if(e.target.id==='pname'){state.draft.name=e.target.value;if(state.zoom)drawBench()}
+document.addEventListener('input',e=>{if(e.target.id==='pname'){state.draft.name=e.target.value;drawBench()}
   if(e.target.id==='chefName'||e.target.id==='shopName'){const b=$('[data-start]');if(b)b.disabled=!($('#chefName').value.trim()&&$('#shopName').value.trim())}});
 document.addEventListener('input',e=>{if(e.target.id==='musVol'){const v=MUSIC.setVolume(+e.target.value);const x=$('#musVolTxt');if(x)x.textContent=t('mus.v'+v)}});
 document.addEventListener('change',e=>{if(e.target.id==='importFile'&&e.target.files[0])importSave(e.target.files[0]);
