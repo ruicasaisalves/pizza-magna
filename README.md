@@ -45,3 +45,4 @@ The game is in **English by default** and switches to **Portuguese** when the br
 - `docs/ingredients.md`: the topping list and how each one is cut.
 - `docs/art-packs.md`: art packs considered and the style decision.
 - `docs/ideas.md`: ideas on hold.
+- `docs/roadmap.md`: what is still missing to make a full tycoon game, and in which order.

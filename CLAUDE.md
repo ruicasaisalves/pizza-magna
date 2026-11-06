@@ -18,6 +18,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 - `docs/ingredients.md`: the topping list (✓★ = in the game) and how things are cut.
 - `docs/art-packs.md`: art packs considered and the style decision.
 - `docs/ideas.md`: ideas on hold.
+- `docs/roadmap.md`: what is still missing to make a full tycoon game, and in which order.
 
 ## Rules
 - **Language of the game:** English by default and Portuguese when the browser is in `pt`; in Options the player can fix English or Português (`pm-lang` in `localStorage`). All visible text comes from `I18N`, with the same key in `en` and `pt`. Migrated so far: the kitchen, sharing, options and the names of toppings, doughs, sauces, combos and customer groups; the rest is still written in Portuguese in the code, and whatever you touch gets migrated.
