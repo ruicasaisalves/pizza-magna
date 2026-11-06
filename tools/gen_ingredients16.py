@@ -21,7 +21,7 @@ R.update({
 })
 
 # ---------------- SALSICHA FRANKFURT (de lata: grande, lisa, pontas redondas) ----------------
-def frankfurt(seed, ang=None, L=38, T=11):
+def frankfurt(seed, ang=None, L=42, T=9):
     rng = np.random.default_rng(seed + 4800)
     a = 0 if ang is None else ang                              # roda: as variantes saem todas deitadas
     W, H = int(np.ceil(L * abs(np.cos(a)) + T * abs(np.sin(a)))) + 4, int(np.ceil(L * abs(np.sin(a)) + T * abs(np.cos(a)))) + 4

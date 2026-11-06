@@ -40,8 +40,8 @@ def chili(seed, W=20, H=12):
     mat = [['stem' if stem[y, x] and not body[y, x] else 'chili' for x in range(W)] for y in range(H)]
     return render(mat, np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask, mask, {'stem': 'stem'})
 
-def egg(seed, W=34, H=31, k=1.2):
-    """ovo estrelado; k=1.2: 20% maior do que o desenho original (28x26)"""
+def egg(seed, W=38, H=35, k=1.38):
+    """ovo estrelado; k=1.38: o desenho original (28x26) 20% maior e depois mais 15%"""
     rng = np.random.default_rng(seed + 1400)
     ys, xs, cx, cy = grid(W, H)
     ang = np.arctan2(ys - cy, xs - cx); a, b = rng.random(2) * 6.28
