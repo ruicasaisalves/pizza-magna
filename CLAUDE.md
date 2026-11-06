@@ -18,6 +18,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 - `docs/ingredients.md`: the topping list (✓★ = in the game) and how things are cut.
 - `docs/art-packs.md`: art packs considered and the style decision.
 - `docs/ideas.md`: ideas on hold.
+- `docs/roadmap.md`: what is still missing to make a full tycoon game, and in which order.
 
 ## Rules
 - **Language of the game:** English by default and Portuguese when the browser is in `pt`; in Options the player can fix English or Português (`pm-lang` in `localStorage`). All visible text comes from `I18N`, with the same key in `en` and `pt`. Migrated so far: the kitchen, sharing, options and the names of toppings, doughs, sauces, combos and customer groups; the rest is still written in Portuguese in the code, and whatever you touch gets migrated.
@@ -28,6 +29,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 
 ## Testing
 - Test mode: `index.html#sandbox` (or `window.PM_SANDBOX=true`) opens only the Kitchen and the Menu, everything unlocked and with a separate save. On the public site (`pizzamagna.xyz` and `*.github.io`, GitHub Pages from `main`) the game always opens in this mode: only the bench is live.
+- Full game online: `pizzamagna.xyz/dev`. `dev/index.html` fetches `../index.html`, adds `<base href="../">` and sets `window.PM_DEV=true`, which turns off the forced bench mode. There is only one copy of the game: never copy `index.html` into `dev/`.
 - `node tools/test_ingredients.js [id1,id2] <folder>`: checks sprites, translations, combos and weights, and places pieces on the bench.
 - For other screens, use Playwright: `require('playwright')` works without installing anything.
 

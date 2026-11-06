@@ -21,7 +21,7 @@ Open `index.html` in a browser. No install and no server needed.
 
 Goal: $4,000 and 3★ to open the second restaurant.
 
-The public site (GitHub Pages from `main`) only shows the Kitchen and the Menu.
+The public site (GitHub Pages from `main`) only shows the Kitchen and the Menu. The full game is at https://www.pizzamagna.xyz/dev (`dev/index.html` loads the same `index.html` without the bench-only mode, with its own save), and the city draft at https://www.pizzamagna.xyz/docs/drafts/city.html.
 
 ## Technology
 
@@ -45,3 +45,4 @@ The game is in **English by default** and switches to **Portuguese** when the br
 - `docs/ingredients.md`: the topping list and how each one is cut.
 - `docs/art-packs.md`: art packs considered and the style decision.
 - `docs/ideas.md`: ideas on hold.
+- `docs/roadmap.md`: what is still missing to make a full tycoon game, and in which order.
