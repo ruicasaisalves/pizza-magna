@@ -835,7 +835,7 @@ function kitchenHTML(){
 // normal bench 320x200 (pizza + bowls + LCD); zoom: only the pizza, as wide as the screen, with the controls as text below
 let BW=320,BH=200,PX=12,PY=15;                         // pizza top-left on the bench
 let PCX=PX+PR,PCY=PY+PR;
-function benchLayout(){if(state.zoom){BW=BH=PZ+8;PX=PY=4}else{BW=320;BH=200;PX=12;PY=15}PCX=PX+PR;PCY=PY+PR}
+function benchLayout(){if(state.zoom){BW=PZ+8;BH=PZ+36;PX=4;PY=32}else{BW=320;BH=200;PX=12;PY=15}PCX=PX+PR;PCY=PY+PR}   // zoom: same pizza size, a strip of marble on top for the pizza's name
 const BOWLS=[{g:0,x:227,y:26},{g:1,x:227,y:94}];       // bowl sprite top-left (58x40)
 const BOWL_W=58,BOWL_H=40;
 let pz=null;
@@ -901,7 +901,14 @@ function drawBench(){
   if(!pz.pizza)pz.pizza=composePizza(d);
   c.drawImage(pz.pizza,PX,PY);
   if(pz.ghost)spr(c,cut?sel+'_g0':wholeKey(sel,0,curAng()),PCX+pz.ghost.x*PR,PCY+pz.ghost.y*PR,.6);
-  if(state.zoom){zoomBar();return}
+  if(state.zoom){   // the name of the pizza being made, dark title on the marble (like the menu cards)
+    // one line at full size if it fits; otherwise two lines, shrinking only if two are still not enough
+    const nm=(d.name||t('k.newname')).toUpperCase(),F=f=>{c.font=`bold ${f}px Silkscreen, monospace`};
+    let fs=11,lines=[nm];F(fs);
+    if(c.measureText(nm).width>BW-8)for(fs=10;fs>=6;fs--){F(fs);lines=wrapLines(c,nm,BW-8);if(lines.length<=2&&lines.every(l=>c.measureText(l).width<=BW-8))break}
+    lines=lines.slice(0,2);
+    c.textAlign='center';c.textBaseline='middle';c.fillStyle='#2c1a0b';
+    lines.forEach((l,i)=>c.fillText(l,BW/2,PY/2+1+(i-(lines.length-1)/2)*(fs+1)));zoomBar();return}
   // right side: ingredient name plate and two bowls (whole / grated)
   const cx=BOWLS[0].x+BOWL_W/2;
   // name plate grows with the name (long names like "Salsicha italiana"), up to the bench edge
@@ -1527,7 +1534,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=ACT[b.dataset.act];if(f)f(b);
   const tr=TRACK[b.dataset.act];if(tr)track(typeof tr==='function'?tr(b):tr);   // after the action, so toggles report their new state
 });
-document.addEventListener('input',e=>{if(e.target.id==='pname')state.draft.name=e.target.value;
+document.addEventListener('input',e=>{if(e.target.id==='pname'){state.draft.name=e.target.value;if(state.zoom)drawBench()}
   if(e.target.id==='chefName'||e.target.id==='shopName'){const b=$('[data-start]');if(b)b.disabled=!($('#chefName').value.trim()&&$('#shopName').value.trim())}});
 document.addEventListener('input',e=>{if(e.target.id==='musVol'){const v=MUSIC.setVolume(+e.target.value);const x=$('#musVolTxt');if(x)x.textContent=t('mus.v'+v)}});
 document.addEventListener('change',e=>{if(e.target.id==='importFile'&&e.target.files[0])importSave(e.target.files[0]);
