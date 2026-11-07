@@ -978,6 +978,10 @@ RAMP.update({
     'suitN':     hexs(['#0a1020', '#141e36', '#22304e', '#34466c', '#4e628a']),
     'jacket':    hexs(['#060608', '#121216', '#202028', '#34343e', '#5a5a68']),
     'tie':       hexs(['#4a0808', '#7a1010', '#a81c1c', '#d03a3a']),
+    'tieB':      hexs(['#0a1a4a', '#14307a', '#2450b0', '#4a7ad8']),
+    'tieY':      hexs(['#4a3a08', '#7a6010', '#b08a1c', '#d8b03a']),
+    'suitK':     hexs(['#0c0c10', '#1a1a20', '#2a2a32', '#3e3e48', '#585864']),
+    'suitBr':    hexs(['#1e1008', '#3a2210', '#56341a', '#744a26', '#946436']),
     'skirtP':    hexs(['#2a0e2a', '#4a1a46', '#6e2a66', '#924a8a']),
     'crop':      hexs(['#a87a8a', '#d8a8b8', '#f4d0dc', '#fff0f6', '#ffffff']),
     'sneaker':   hexs(['#7a7a80', '#b8b8c0', '#e4e4ea', '#ffffff']),
@@ -1012,6 +1016,8 @@ def hair_front(c, L, back):
         hm |= side | (c.rect(HX - 10, HY, HX + 11, 27) & c.ell(HX, 17, 10.5, 11) if back else side)
     if st == 'bob':
         hm |= (c.rect(HX - 11, 6, HX - 7, 20) | c.rect(HX + 7, 6, HX + 11, 20)) | (c.rect(HX - 11, 6, HX + 11, 20) & back)
+    if st == 'bun':                                                                # neat hair pulled up into a bun
+        hm = cap & ((c.ys < 6 + (hx > 0) * 2.5) | (np.abs(hx) > 8.5)) if not back else cap
     return hm
 
 def head_front(c, skin, hair, eye, L=None, back=False):
@@ -1026,6 +1032,9 @@ def head_front(c, skin, hair, eye, L=None, back=False):
     curls = (noise(c.h, c.w, 2, rng(80)) - .5) * .5 if st == 'bouffant' else 0
     hm = hair_front(c, L, back)
     c.paint(hm, hair, np.clip(c.sphere(HX, HY - 3, HR + 1, HR + 1) * .85 + sheen + curls, 0, 1), part=9)
+    if st == 'bun':                                       # its own part, so it gets an edge against the hair
+        by = 2.5 if not back else 6
+        c.paint(c.ell(HX, by, 4.5, 3.8) & (c.ys >= 0), hair, c.sphere(HX - 1, by - 1, 4.5, 3.8) * .9, part=10)
     if back: return
     c.paint(c.rect(HX - 5, 3, HX - 2, 4) & hm, hair, 1, part=9, noline=True)            # shine on the hair
     eyes_front(c, eye)
@@ -1062,6 +1071,8 @@ def head_side(c, skin, hair, eye, L=None):
         hm |= c.rect(HX - 10, 9, HX - 3, 27) & c.ell(HX - 6, 17, 6, 11)
     elif st == 'bob':
         hm |= c.rect(HX - 10, 6, HX - 2, 20) & c.ell(HX - 3, 12, 8, 10)
+    elif st == 'bun':
+        c.paint(c.ell(HX - 9, 6, 4, 3.8), hair, c.sphere(HX - 10, 5, 4, 3.8) * .9, part=7)
     hm &= ~c.ell(HX - 2, 13, 2, 2.6)
     curls = (noise(c.h, c.w, 2, rng(80)) - .5) * .5 if st == 'bouffant' else 0
     c.paint(hm, hair, np.clip(c.sphere(HX - 2, HY - 3, HR + 1, HR + 1) * .85 + sheen + curls, 0, 1), part=9)
@@ -1079,9 +1090,9 @@ def head_side(c, skin, hair, eye, L=None):
 def chest_print(c, L, cx, cy):
     """front details of the top: suit and tie, jacket studs, a lightning bolt on a T-shirt, pearls"""
     top, ex_ = L.get('top', 'shirt'), L.get('extras', ())
-    if top == 'suit':
+    if top in ('suit', 'blazer'):
         c.paint(c.rect(cx - 2, cy, cx + 2, cy + 7) & (np.abs(c.xs + .5 - cx) < (c.ys - cy) * .5 + 1.2), 'apron', .8, part=6)
-        c.paint(c.rect(cx - 1, cy + 1, cx + 1, cy + 8), 'tie', c.cyl_x(cx - 1, cx + 1, .4, .8), part=7)
+        if top == 'suit': c.paint(c.rect(cx - 1, cy + 1, cx + 1, cy + 8), L.get('tie', 'tie'), c.cyl_x(cx - 1, cx + 1, .4, .8), part=7)
         for y in (cy + 8, cy + 11): c.paint(c.rect(cx + 3, y, cx + 4, y + 1), 'gold', .6, part=7, noline=True)
     elif top == 'leather':
         c.paint(c.rect(cx, cy, cx + 1, cy + 12), 'chrome', .7, part=6, noline=True)
@@ -1108,7 +1119,8 @@ def person(d='down', L=None):
         c.paint(c.rect(12, 30, 25 if legs != 'skirt' else 22, 36) | c.ell(24 if legs != 'skirt' else 21, 33, 2.8, 3), pants, np.where(c.ys < 32, .75, .4), part=3)
         if legs == 'shorts': c.paint(c.rect(21, 31, 25, 36), skin, .65, part=3)
         c.paint(c.ell(16, 27, 6, 7.5) & (c.ys > 19), shirt, c.sphere(15, 25, 7, 8) * .8 + .1, part=4)
-        if top == 'suit': c.paint(c.rect(19, 21, 21, 28), 'tie', .6, part=5)
+        if top == 'suit': c.paint(c.rect(19, 21, 21, 28), L.get('tie', 'tie'), .6, part=5)
+        if top == 'blazer': c.paint(c.rect(19, 21, 21, 25), 'apron', .8, part=5)
         arm = c.rect(15, 23, 25, 27) | c.ell(15, 25, 2.5, 2.5)
         c.paint(arm, shirt, np.where(c.ys < 25, .75, .4), part=5)
         if sleeve: c.paint(c.rect(19, 23, 25, 27), skin, np.where(c.ys < 25, .75, .45), part=5)
@@ -1126,7 +1138,7 @@ def person(d='down', L=None):
         if sleeve: c.paint(c.ell(ax, 27.5, 2.4, 3) & (c.ys > 25), skin, .6, part=5)
         if d == 'down': c.paint(c.ell(ax + (1 if ax < 16 else -1), 30.5, 2.3, 2), skin, .65, part=6)   # mitten hands
     if d == 'down':
-        if top not in ('suit',): c.paint(c.ell(16, 21, 2.5, 1.6) & (c.ys > 20), skin, .45, part=5)    # neckline
+        if top not in ('suit', 'blazer'): c.paint(c.ell(16, 21, 2.5, 1.6) & (c.ys > 20), skin, .45, part=5)    # neckline
         chest_print(c, L, 16, 20)
         if 'phone' in L.get('extras', ()): c.paint(c.rect(22, 26, 26, 31), 'onyx', .5, part=7); c.paint(c.rect(23, 27, 25, 30), 'neonC', .6, part=8, noline=True)
     elif top == 'leather':
@@ -1161,12 +1173,17 @@ def standing(role='waiter', skin='skinA', hair='hairB', eye='irisBr'):
 
 def look(skin, hair, shirt, long, pants, eye, **kw):
     return dict(skin=skin, hair=hair, shirt=shirt, pants=pants, eye=eye, style='long' if long else 'short', **kw)
-# customers: the first ten are everyday people, the rest are the ones who stand out
+# customers: the first PLAIN are everyday people (office workers included), the rest are the ones who stand out
+PLAIN = 13
 LOOKS = [look('skinA', 'hairY', 'shirtR', True, 'pantsK', 'irisBl'), look('skinB', 'hairK', 'shirtG', False, 'jeans', 'irisBr'),
          look('skinA', 'hairG', 'shirtW', False, 'pantsB', 'irisGr'), look('skinC', 'hairB', 'shirtP', False, 'jeans', 'irisDk'),
          look('skinB', 'hairR', 'shirtY', True, 'pantsK', 'irisGr'), look('skinC', 'hairK', 'shirtB', False, 'pantsB', 'irisBr'),
          look('skinD', 'hairB', 'shirtR', True, 'jeans', 'irisHz'), look('skinA', 'hairB', 'shirtB', False, 'pantsK', 'irisBl'),
          look('skinD', 'hairK', 'shirtW', True, 'pantsB', 'irisDk'), look('skinB', 'hairY', 'shirtP', False, 'jeans', 'irisHz'),
+         # office workers: an executive, an executive woman, a man in a brown suit
+         dict(skin='skinB', hair='hairK', eye='irisBr', shirt='suitK', pants='suitK', style='short', top='suit', tie='tieB'),
+         dict(skin='skinA', hair='hairB', eye='irisGr', shirt='suitN', pants='suitN', style='bun', top='blazer', legs='skirt'),
+         dict(skin='skinC', hair='hairK', eye='irisDk', shirt='suitBr', pants='suitBr', style='short', top='suit', tie='tieY'),
          # the old gentleman in a suit, the old lady with big hair, punks, a rock kid, an influencer, coloured hair
          dict(skin='skinA', hair='hairG', eye='irisBl', shirt='suitN', pants='suitN', style='bald', top='suit', extras=('glasses', 'moustache')),
          dict(skin='skinA', hair='hairLilac', eye='irisGr', shirt='shirtP', pants='skirtP', style='bouffant', top='cardigan', legs='skirt', extras=('glasses', 'pearls')),
@@ -1250,7 +1267,7 @@ def layout_json(imgs):
     walls = {id_: [k + ('_1' if k == 'w_neon' else ''), x, y] for id_, (k, x, y) in WALLPIECES.items()}
     kitchen = [['k_oven', 414, 42, 128, 2], ['k_logs', 606, 104, 128], ['k_counter', 382, 202, 256], ['k_register', 388, 178, 256.1],
                ['k_boxes', 606, 190, 256.2], ['cook', 456, 58, 129]]
-    return json.dumps({'items': items, 'walls': walls, 'kitchen': kitchen, 'looks': len(LOOKS), 'plain': 10}, separators=(',', ':'))
+    return json.dumps({'items': items, 'walls': walls, 'kitchen': kitchen, 'looks': len(LOOKS), 'plain': PLAIN}, separators=(',', ':'))
 
 def pack(imgs, width=1024):
     order = sorted(imgs, key=lambda k: (-imgs[k].height, -imgs[k].width))
