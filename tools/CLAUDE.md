@@ -1,6 +1,8 @@
 # Sprite generators
 
-`gen_ingredients.py` to `gen_ingredients16.py` draw the toppings in Python (numpy + PIL); `gen_bases.py` draws the doughs and sauces. `build_atlas.py` packs them into `../assets/ingredients.js`. Code comments and docs are in English.
+`gen_ingredients.py` to `gen_ingredients16.py` draw the toppings in Python (numpy + PIL); `gen_bases.py` draws the doughs and sauces. `build_atlas.py` packs them into `../assets/ingredients.js`.
+
+`gen_room.py` draws the dining room with the same method at 32 px per tile (floors, walls, chairs, tables, decor, wall pieces, kitchen, street, seated customers, waiter and cook) and writes `../assets/room.js`: the frames plus the layout of each piece (parts, chairs, sitters and table top, in px from its top-left tile). Run `python3 tools/gen_room.py <scratchpad>` and look at `room_atlas.png`; `docs/drafts/room.html` uses it. Every view of a seated person puts the hips at y = 33, so a person is drawn 18 px above its chair (24 px for a chair seen from behind). Code comments and docs are in English.
 
 ## After changing a generator
 1. `python3 tools/gen_ingredientsN.py <scratchpad>/gN` makes the preview sheet (`preview_ingredientesN.png`). **Look at it** with Read.
