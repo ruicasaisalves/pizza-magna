@@ -959,104 +959,95 @@ RAMP.update({
     'shoe':   hexs(['#0c0808', '#1e1410', '#36261c', '#5a4030']),
 })
 SKINS = {'skinA', 'skinB', 'skinC', 'skinD'}
-def face_front(c, skin, hair, eye):
-    """eyes with white, a coloured iris and a thin lid, light brows, a small smile"""
-    for ex, side in ((12, -1), (18, 1)):
-        c.paint(c.rect(ex, 10, ex + 3, 11) | c.rect(ex + (3 if side > 0 else -1), 10, ex + (4 if side > 0 else 0), 11), 'lash', .3, part=10, noline=True)
-        c.paint(c.rect(ex, 11, ex + 3, 13), 'white', .8, part=10, noline=True)
-        c.paint(c.rect(ex + 1, 11, ex + 2, 13), eye, .5, part=11, noline=True)
-        c.paint(c.rect(ex + 1, 12, ex + 2, 13), eye, .05, part=11, noline=True)
-        c.paint(c.rect(ex + 1, 11, ex + 2, 12), eye, .95, part=11, noline=True)
-        c.paint(c.rect(ex, 8, ex + 3, 9), hair, .45, part=10, noline=True)                 # eyebrow
-    c.paint(c.rect(16, 13, 17, 15), skin, .3, part=10, noline=True)                     # nose
-    c.paint(c.rect(15, 16, 18, 17), 'lip', .45, part=10, noline=True)                    # smile
-    c.paint(c.rect(14, 15, 15, 16) | c.rect(18, 15, 19, 16), 'lip', .2, part=10, noline=True)
-    c.paint(c.rect(11, 14, 12, 15) | c.rect(21, 14, 22, 15), 'lip', .9, part=10, noline=True)   # cheeks
+RAMP.update({'blush': hexs(['#d86a6a', '#f08a86', '#ffb0a8'])})
+# Kawaii (chibi) people: a big round head about as tall as the body, big glossy eyes set low on the
+# face, rosy cheeks and a tiny mouth. Head centre (16, 11), radius 10; hips at y = 33 as before.
+HX, HY, HR = 16, 11, 10
 
-def face_side(c, skin, hair, eye):
-    c.paint(c.rect(20, 9, 23, 10), 'lash', .3, part=10, noline=True)
-    c.paint(c.rect(20, 10, 23, 12), 'white', .8, part=10, noline=True)
-    c.paint(c.rect(21, 10, 22, 11), eye, .95, part=11, noline=True)
-    c.paint(c.rect(21, 11, 22, 12), eye, .05, part=11, noline=True)
-    c.paint(c.rect(20, 7, 23, 8), hair, .45, part=10, noline=True)
-    c.paint(c.rect(21, 15, 23, 16), 'lip', .45, part=10, noline=True)
-    c.paint(c.rect(22, 14, 23, 15), 'lip', .2, part=10, noline=True)
-    c.paint(c.rect(19, 13, 20, 14), 'lip', .9, part=10, noline=True)
+def head_front(c, skin, hair, eye, long=False, back=False):
+    c.paint(c.ell(HX - 10.5, 13, 1.8, 2.4) | c.ell(HX + 10.5, 13, 1.8, 2.4), skin, .5, part=7)   # ears
+    c.paint(c.ell(HX, HY, HR, HR * .95), skin, .6 + c.sphere(HX, HY, HR, HR) * .28, part=8)
+    sheen = ((c.xs + c.ys * 2) % 6 == 0) * -.12
+    if back:
+        hm = c.ell(HX, HY - .5, HR + .8, HR + .3)
+        if long: hm |= c.rect(HX - 10, HY, HX + 11, 27) & c.ell(HX, 17, 10.5, 11)
+        c.paint(hm, hair, c.sphere(HX, HY - 2, HR + 1, HR + 1) * .85 + sheen, part=9)
+        return
+    bangs = c.ys < 7.5 + 1.8 * np.abs(np.sin((c.xs - HX) * .45))                    # scalloped fringe
+    hm = c.ell(HX, HY - 1, HR + .8, HR) & (bangs | (np.abs(c.xs + .5 - HX) > 8.2))
+    if long: hm |= (c.rect(HX - 11, 9, HX - 7, 27) | c.rect(HX + 7, 9, HX + 11, 27)) & (c.ys < 27 - (np.abs(c.xs + .5 - HX) < 9) * 0)
+    c.paint(hm, hair, c.sphere(HX, HY - 3, HR + 1, HR + 1) * .85 + sheen, part=9)
+    c.paint(c.rect(HX - 5, 3, HX - 2, 4) & hm, hair, 1, part=9, noline=True)            # shine on the hair
+    for ex in (HX - 5, HX + 3):                                                    # big glossy eyes
+        e = c.rect(ex, 11, ex + 3, 16) & ~(c.rect(ex, 11, ex + 1, 12) | c.rect(ex + 2, 11, ex + 3, 12) | c.rect(ex, 15, ex + 1, 16) | c.rect(ex + 2, 15, ex + 3, 16))
+        c.paint(e, eye, np.where(c.ys >= 13, .55, .05), part=10, noline=True)
+        c.paint(c.rect(ex, 12, ex + 1, 14), 'white', 1, part=11, noline=True)          # catch lights
+        c.paint(c.rect(ex + 2, 14, ex + 3, 15), 'white', .8, part=11, noline=True)
+    c.paint(c.rect(HX - 8, 16, HX - 5, 17) | c.rect(HX + 6, 16, HX + 9, 17), 'blush', .6, part=10, noline=True)
+    c.paint(c.rect(HX - 1, 17, HX + 1, 18), 'lip', .3, part=10, noline=True)            # tiny smile
+    c.paint(c.rect(HX - 2, 16, HX - 1, 17) | c.rect(HX + 1, 16, HX + 2, 17), 'lip', .45, part=10, noline=True)
+
+def head_side(c, skin, hair, eye, long=False):
+    c.paint(c.ell(HX, HY, HR - .3, HR * .95), skin, .6 + c.sphere(HX + 1, HY, HR, HR) * .28, part=8)
+    c.paint(c.ell(HX - 2, 13, 1.8, 2.4), skin, .45, part=8)                           # ear
+    sheen = ((c.xs + c.ys * 2) % 6 == 0) * -.12
+    hm = c.ell(HX - .5, HY - 1, HR + .6, HR) & ((c.ys < 7 + (c.xs > HX + 4) * 1.5) | (c.xs < HX - 3) | ((c.xs < HX) & (c.ys < 11)))
+    hm &= ~c.ell(HX - 2, 13, 2, 2.6)
+    if long: hm |= c.rect(HX - 10, 9, HX - 3, 27) & c.ell(HX - 6, 17, 6, 11)
+    c.paint(hm, hair, c.sphere(HX - 2, HY - 3, HR + 1, HR + 1) * .85 + sheen, part=9)
+    ex = HX + 4
+    e = c.rect(ex, 11, ex + 3, 16) & ~(c.rect(ex, 11, ex + 1, 12) | c.rect(ex + 2, 11, ex + 3, 12) | c.rect(ex, 15, ex + 1, 16) | c.rect(ex + 2, 15, ex + 3, 16))
+    c.paint(e, eye, np.where(c.ys >= 13, .55, .05), part=10, noline=True)
+    c.paint(c.rect(ex, 12, ex + 1, 14), 'white', 1, part=11, noline=True)
+    c.paint(c.rect(ex + 3, 16, ex + 6, 17), 'blush', .6, part=10, noline=True)
+    c.paint(c.rect(HX + 7, 17, HX + 9, 18), 'lip', .35, part=10, noline=True)
 
 def person(d='down', skin='skinA', hair='hairB', shirt='shirtB', long=False, pants='jeans', eye='irisBr'):
     c = Canvas(32, 48)
-    stripes = lambda: ((c.xs * 2 + c.ys) % 5 == 0) * -.15
     if d in ('left', 'right'):
-        c.paint(c.rect(23, 36, 27, 46), pants, c.cyl_x(23, 27, .2, .6), part=1)          # shin down to the floor
-        c.paint(c.rect(22, 44, 30, 48) & ~c.rect(22, 44, 24, 46), 'shoe', np.where(c.ys == 44, .9, .4), part=2)
-        c.paint(c.rect(12, 31, 28, 37) | c.ell(26, 34, 2.5, 3), pants, np.where(c.ys < 33, .75, .4), part=3)   # thigh on the seat
-        c.paint(c.rect(11, 20, 22, 34) | c.ell(16.5, 21, 5.5, 2.5), shirt, c.cyl_x(11, 22), part=4)
-        c.paint(c.rect(14, 16, 19, 21), skin, .35, part=4)
-        c.paint(c.rect(14, 21, 19, 28), shirt, c.cyl_x(14, 19, .3, .75), part=5)          # upper arm
-        c.paint(c.rect(16, 25, 29, 29), shirt, np.where(c.ys < 27, .7, .35), part=6)       # forearm towards the table
-        c.paint(c.rect(28, 25, 32, 29), skin, .65, part=7)
-        head = c.ell(17, 10, 7, 8); c.paint(head, skin, .55 + c.sphere(17, 10, 7, 8) * .32, part=8)
-        c.paint(c.rect(23, 10, 25, 13), skin, .6, part=8)                                 # nose
-        hm = c.ell(16, 8, 8, 7.5) & ((c.ys < 7) | (c.xs < 15))
-        if long: hm |= c.rect(9, 7, 16, 23) & c.ell(13, 13, 6, 10)
-        c.paint(hm, hair, c.sphere(16, 8, 8, 8) * .9 + stripes(), part=9)
-        face_side(c, skin, hair, eye)
-        c.paint(c.rect(15, 10, 17, 13), skin, .3, part=10, noline=True)                   # ear
+        c.paint(c.rect(21, 35, 25, 43), pants, c.cyl_x(21, 25, .2, .6), part=1)            # shin
+        c.paint(c.ell(25, 44.5, 4.5, 2.6), 'shoe', c.sphere(25, 44, 4.5, 2.6), part=2)
+        c.paint(c.rect(12, 30, 25, 36) | c.ell(24, 33, 2.8, 3), pants, np.where(c.ys < 32, .75, .4), part=3)   # thigh
+        c.paint(c.ell(16, 27, 6, 7.5) & (c.ys > 19), shirt, c.sphere(15, 25, 7, 8) * .8 + .1, part=4)          # round body
+        c.paint(c.rect(15, 23, 25, 27) | c.ell(15, 25, 2.5, 2.5), shirt, np.where(c.ys < 25, .75, .4), part=5) # short arm
+        c.paint(c.ell(26, 25, 2.4, 2.2), skin, .65, part=6)
+        head_side(c, skin, hair, eye, long)
         return flip(c) if d == 'left' else c
     if d == 'down':
-        for lx in (9, 18): c.paint(c.rect(lx, 38, lx + 5, 45), pants, c.cyl_x(lx, lx + 5, .25, .65), part=1)
-        for lx in (8, 17): c.paint(c.rect(lx, 44, lx + 7, 48), 'shoe', np.where(c.ys == 44, .9, .4), part=2)
-        c.paint(c.rect(8, 33, 24, 39), pants, np.where(c.ys < 35, .8, .5), part=3)        # lap
-        c.paint(c.rect(15, 33, 17, 39), pants, .3, part=3, noline=True)
-    body = c.rect(8, 20, 24, 34) | c.ell(16, 22, 9.5, 3.5)
-    c.paint(body, shirt, c.cyl_x(8, 24), part=4)
-    for ax in (4, 24):
-        c.paint(c.rect(ax, 21, ax + 4, 32) | c.ell(ax + 2, 21.5, 2.5, 2), shirt, c.cyl_x(ax, ax + 4, .25, .7), part=5)
-    c.paint(c.rect(14, 16, 18, 21), skin, .3, part=4)
-    if d == 'down':
-        c.paint(c.ell(16, 20, 3, 2.5) & (c.ys > 19), skin, .45, part=5)                  # neckline
-        for ax in (4, 24): c.paint(c.rect(ax, 31, ax + 4, 35), skin, .6, part=6)          # hands on the lap
-    head = c.ell(16, 10, 7.5, 8.5); c.paint(head, skin, .55 + c.sphere(16, 10, 7.5, 8.5) * .32, part=8)
-    c.paint(c.ell(8.5, 11, 1.6, 2.4) | c.ell(23.5, 11, 1.6, 2.4), skin, .35, part=7)
-    if d == 'down':
-        hm = c.ell(16, 8, 8.5, 8) & ((c.ys < 6.5 + np.abs(c.xs - 16) * .25) | (np.abs(c.xs - 16) > 6))
-        if long: hm |= (c.rect(7, 6, 10, 24) | c.rect(22, 6, 25, 24))
-        c.paint(hm & (c.ys < 24), hair, c.sphere(16, 8, 8.5, 8.5) * .9 + stripes(), part=9)
-        face_front(c, skin, hair, eye)
-    else:
-        hm = c.ell(16, 9, 8.5, 9.5)
-        if long: hm |= c.rect(8, 8, 24, 25) & c.ell(16, 14, 8.5, 12)
-        c.paint(hm, hair, c.sphere(16, 9, 8.5, 9.5) * .85 + stripes(), part=9)
+        for lx in (11, 17): c.paint(c.rect(lx, 36, lx + 4, 43), pants, c.cyl_x(lx, lx + 4, .25, .65), part=1)
+        for cx in (12.5, 19.5): c.paint(c.ell(cx, 44.5, 3.5, 2.6), 'shoe', c.sphere(cx, 44, 3.5, 2.6), part=2)
+        c.paint(c.ell(16, 34, 7.5, 3.5), pants, np.where(c.ys < 34, .8, .5), part=3)         # lap
+    c.paint(c.ell(16, 27, 7.5, 7.5) & (c.ys > 19), shirt, c.sphere(15, 25, 8, 8) * .8 + .1, part=4)
+    for ax in (7.5, 24.5):
+        c.paint(c.ell(ax, 26, 2.6, 4.5), shirt, c.sphere(ax, 25, 2.6, 4.5) * .7 + .1, part=5)
+        if d == 'down': c.paint(c.ell(ax + (1 if ax < 16 else -1), 30.5, 2.3, 2), skin, .65, part=6)   # mitten hands
+    if d == 'down': c.paint(c.ell(16, 21, 2.5, 1.6) & (c.ys > 20), skin, .45, part=5)           # neckline
+    head_front(c, skin, hair, eye, long, back=(d == 'up'))
     return c
 
 def standing(role='waiter', skin='skinA', hair='hairB', eye='irisBr'):
     """32 x 58, standing and facing down: the waiter (white shirt, black waistcoat, long apron)
-    or the cook (white jacket and tall hat)"""
+    or the cook (white jacket and a tall puffy hat). Head at the same place as a seated person's."""
     c = Canvas(32, 58)
     pants = 'vest' if role == 'waiter' else 'pantsK'
-    for lx in (10, 17): c.paint(c.rect(lx, 38, lx + 5, 54), pants, c.cyl_x(lx, lx + 5, .25, .65), part=1)
-    for lx in (9, 17): c.paint(c.rect(lx, 53, lx + 6, 57), 'shoe', np.where(c.ys == 53, .9, .4), part=2)
-    shirt = 'apron'
-    c.paint(c.rect(8, 20, 24, 40) | c.ell(16, 22, 9.5, 3.5), shirt, c.cyl_x(8, 24), part=3)
-    for ax in (4, 24):
-        c.paint(c.rect(ax, 21, ax + 4, 36) | c.ell(ax + 2, 21.5, 2.5, 2), shirt, c.cyl_x(ax, ax + 4, .3, .75), part=4)
-        c.paint(c.rect(ax, 35, ax + 4, 39), skin, .6, part=5)
+    for lx in (11, 17): c.paint(c.rect(lx, 38, lx + 4, 52), pants, c.cyl_x(lx, lx + 4, .25, .65), part=1)
+    for cx in (12.5, 19.5): c.paint(c.ell(cx, 53.5, 3.5, 2.6), 'shoe', c.sphere(cx, 53, 3.5, 2.6), part=2)
+    c.paint((c.ell(16, 29, 8, 10) & (c.ys > 19)) | c.rect(9, 29, 23, 40), 'apron', c.cyl_x(8, 24), part=3)
     if role == 'waiter':
-        c.paint((c.rect(8, 21, 13, 36) | c.rect(19, 21, 24, 36)), 'vest', c.cyl_x(8, 24, .2, .5), part=4)
-        c.paint(c.rect(9, 34, 23, 50), 'apron', .7 - (c.ys > 46) * .2 + ((c.xs % 5) == 0) * -.1, part=6)
-        c.paint(c.rect(14, 20, 18, 22), 'red', .6, part=6)
+        c.paint((c.rect(9, 21, 13, 34) | c.rect(19, 21, 23, 34)) & c.ell(16, 29, 8, 10), 'vest', c.cyl_x(8, 24, .2, .5), part=4)
+        c.paint(c.rect(10, 32, 22, 46), 'apron', .7 - (c.ys > 42) * .2 + ((c.xs % 5) == 0) * -.1, part=5)
+        c.paint(c.rect(14, 20, 18, 22), 'red', .6, part=5)
     else:
-        for y in (24, 29, 34): c.paint(c.rect(15, y, 17, y + 2), 'chrome', .5, part=4)
-        c.paint(c.rect(9, 36, 23, 44), 'red', .55 + ((c.xs + c.ys) % 4 < 2) * .2, part=6)   # checked trousers' apron
-    c.paint(c.rect(14, 16, 18, 21), skin, .3, part=3)
-    c.paint(c.ell(16, 10, 7.5, 8.5), skin, .55 + c.sphere(16, 10, 7.5, 8.5) * .32, part=7)
-    hm = c.ell(16, 8, 8.5, 8) & ((c.ys < 6.5 + np.abs(c.xs - 16) * .25) | (np.abs(c.xs - 16) > 6))
-    c.paint(hm & (c.ys < 18), hair, c.sphere(16, 8, 8.5, 8.5) * .9, part=8)
+        for y in (24, 28, 32): c.paint(c.rect(15, y, 17, y + 2), 'chrome', .5, part=4)
+        c.paint(c.rect(10, 36, 22, 44), 'red', .55 + ((c.xs + c.ys) % 4 < 2) * .2, part=5)
+    for ax in (7, 25):
+        c.paint(c.ell(ax, 28, 2.6, 6), 'apron', c.sphere(ax, 27, 2.6, 6) * .7 + .15, part=4)
+        c.paint(c.ell(ax, 34.5, 2.3, 2), skin, .65, part=6)
+    head_front(c, skin, hair, eye)
     if role == 'cook':
-        hat = c.rect(9, -1, 23, 6) | c.ell(16, 0, 9, 5)
-        c.paint(hat & (c.ys >= 0), 'apron', .7 + c.sphere(16, 0, 9, 5) * .2, part=9)
-        c.paint(c.rect(8, 4, 24, 7), 'apron', .55, part=9)
-    face_front(c, skin, hair, eye)
+        hat = (c.ell(16, 0, 10, 5) | c.rect(8, 0, 24, 6)) & (c.ys >= 0)
+        c.paint(hat, 'apron', .65 + c.sphere(16, 0, 10, 6) * .3, part=12)
+        c.paint(c.rect(7, 4, 25, 7), 'apron', .5, part=12)
     return c
 
 # customers: skin, hair, shirt, long hair, trousers, eyes
@@ -1084,12 +1075,13 @@ LAYOUT = {
     'branca':  {'parts': [['t_white', 24, 22, 86]], 'seats': seat4('moder', 86), 'top': [64, 45, 37, 20]},
     'gala':    {'parts': [['t_gala', 24, 20, 94]], 'seats': seat4('luxo', 94), 'top': [64, 44, 36, 18]},
     'bistro':  {'parts': [['t_bistro', 32, 12, 64]], 'seats': seat2('luxo', 64), 'top': [64, 30, 28, 14]},
-    'corrida': {'parts': [['bench', 6, 12, 34], ['t_long', 6, 30, 106], ['bench', 6, 96, 110]],
-                'seats': [{'d': 'down', 'p': [x, -17, 36]} for x in (24, 64, 104)] + [{'d': 'up', 'p': [x, 67, 116]} for x in (24, 64, 104)],
-                'top': [80, 57, 70, 24]},
-    'booth':   {'parts': [['sofa_top', 2, 0, 40], ['t_booth', 4, 40, 94], ['sofa_back', 2, 84, 128]],
-                'seats': [{'d': 'down', 'p': [x, -7, 42]} for x in (14, 50)] + [{'d': 'up', 'p': [x, 57, 100]} for x in (14, 50)],
-                'top': [48, 60, 42, 18]},
+    # the table top starts right below the sitters' hips, so their legs are under the table
+    'corrida': {'parts': [['bench', 6, 14, 30], ['t_long', 6, 20, 96], ['bench', 6, 98, 120]],
+                'seats': [{'d': 'down', 'p': [x, -13, 32]} for x in (24, 64, 104)] + [{'d': 'up', 'p': [x, 69, 126]} for x in (24, 64, 104)],
+                'top': [80, 47, 70, 24]},
+    'booth':   {'parts': [['sofa_top', 2, 0, 40], ['t_booth', 4, 24, 78], ['sofa_back', 2, 74, 118]],
+                'seats': [{'d': 'down', 'p': [x, -7, 42]} for x in (14, 50)] + [{'d': 'up', 'p': [x, 45, 100]} for x in (14, 50)],
+                'top': [48, 44, 42, 18]},
 }
 DECOR = {   # key, footprint w, h, frames
     'vaso': ('d_plant', 1, 1, 1), 'ficus': ('d_ficus', 1, 1, 1), 'oliveira': ('d_olive', 1, 1, 1), 'barril': ('d_barrel', 1, 1, 1),
