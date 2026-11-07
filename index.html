@@ -78,6 +78,17 @@ h3{font-size:.92rem}
 .hdr-in{padding-right:max(150px,env(safe-area-inset-right,0px))}
 .sandbox .opt-btn{margin-left:auto}
 @media (max-width:600px){.hdr-in{padding-right:max(16px,env(safe-area-inset-right,0px))}.brand{max-width:calc(100% - 146px);margin-right:142px;white-space:nowrap;font-size:clamp(.7rem,3.6vw,1.05rem);padding-left:6px;padding-right:8px}.hdr-in .opt-btn,.sandbox .hdr-in .opt-btn{margin-left:auto;margin-right:calc(max(8px,env(safe-area-inset-right,0px)) - max(16px,env(safe-area-inset-right,0px)))}}   /* phone: second row, right edge lined up under the corner buttons */
+/* phone version (html.phone, set by PHONE): one header row, pizza icon as the brand, Options as an icon next to the corner buttons */
+html.phone .hdr-in{padding-right:max(16px,env(safe-area-inset-right,0px))}
+html.phone .brand{max-width:none;margin-right:0;padding:4px}
+html.phone .brand-t,html.phone .opt-btn span{display:none}
+html.phone .hdr-in .opt-btn{position:absolute;z-index:6;top:8px;right:calc(max(8px,env(safe-area-inset-right,0px)) + 138px);width:38px;height:38px;padding:0;margin:0;justify-content:center}
+html.phone.nofs .hdr-in .opt-btn{right:calc(max(8px,env(safe-area-inset-right,0px)) + 92px)}
+html.phone .opt-btn svg{width:20px;height:20px}
+html.phone .stats{flex-basis:100%;margin-left:0}
+html.phone #view{padding-top:8px}
+html.phone .kitchen,html.phone .bench{gap:8px}
+html.phone .stage{gap:6px}
 .opts{display:flex;flex-direction:column;gap:14px}
 .opts section{display:flex;flex-direction:column;gap:8px;border-top:2px dashed var(--line);padding-top:12px}
 .stat{background:var(--lcd-bg);border:2px solid var(--wood-deep);box-shadow:inset 0 0 0 1px #1d331a;padding:2px 8px;display:flex;flex-direction:column;min-width:0}
@@ -106,9 +117,24 @@ h3{font-size:.92rem}
 .pantry .cats button small{opacity:.6}
 @media (min-width:1000px){.pantry{max-height:516px;overflow:auto}}
 .stage #zbar{display:grid;gap:6px;justify-items:center;width:100%}
+.zrow{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
 .zname{font-family:Silkscreen,monospace;color:#fff1d2;text-shadow:1px 1px 0 var(--wood-deep)}
 .zcut{display:flex;gap:6px}
-.zlcd{font-family:Silkscreen,monospace;background:#081008;color:#8cff73;border:2px solid var(--wood-deep);padding:4px 12px;display:flex;gap:6px 14px;flex-wrap:wrap;justify-content:center}
+.ibtn{width:40px;height:40px;padding:0;display:inline-grid;place-items:center}
+.ibtn svg{width:22px;height:22px}
+.stage .ibtn canvas{width:32px;height:32px;box-shadow:none;cursor:inherit}
+.zlcd{font-family:Silkscreen,monospace;background:#081008;color:#8cff73;border:2px solid var(--wood-deep);padding:3px 12px;display:flex;align-items:baseline;gap:4px 14px;flex-wrap:wrap;justify-content:center;text-shadow:0 0 5px rgba(140,255,115,.4)}
+.zlcd b{font-size:1.35rem;font-weight:400;line-height:1.1}
+.zlcd span{color:#6fd65a;font-size:.8rem}
+/* mini pantry (phone): a row of category pictures and a strip of topping pictures, two rows high, scrolling sideways */
+.pantry.mini{padding:6px;display:flex;flex-direction:column;gap:6px}
+.mcats{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.mcats button{border:2px solid var(--line);background:#fbf3df;border-radius:2px;padding:2px 0;display:grid;place-items:center}
+.mcats button.on{background:var(--wood);border-color:var(--wood-deep)}
+.mcats canvas{width:32px;height:32px}
+.mings{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,50px);grid-auto-columns:50px;gap:4px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:2px}
+.mings .ing{padding:0;justify-content:center}
+.mings .ing canvas{width:40px;height:40px}
 .stage .hint{color:#fff4dc;font-size:.85rem;text-shadow:1px 1px 0 var(--wood-deep);text-align:center}
 .tools{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 .field{display:flex;flex-direction:column;gap:6px}
@@ -662,7 +688,11 @@ let state;
 // test bench: everything unlocked, only Kitchen and Menu, its own save (window.PM_SANDBOX or #sandbox)
 // the public site (pizzamagna.xyz / GitHub Pages) shows only the bench; the full game lives at /dev (dev/index.html sets PM_DEV)
 const LIVE_BENCH=!window.PM_DEV&&/(^|\.)pizzamagna\.xyz$|\.github\.io$/.test(location.hostname);
-const SANDBOX=LIVE_BENCH||!!window.PM_SANDBOX||location.hash==='#sandbox';
+const SANDBOX=LIVE_BENCH||!!window.PM_SANDBOX||/^#sandbox(&|$)/.test(location.hash);
+// phone: a finger is the main input and the screen is small; #phone (or #sandbox&phone) forces it for testing on a PC
+const PHONE=/[#&]phone(&|$)/.test(location.hash)||(matchMedia('(pointer: coarse)').matches&&Math.min(screen.width,screen.height)<600);
+document.documentElement.classList.toggle('phone',PHONE);
+const MINI_PANTRY=PHONE&&!LIVE_BENCH;   // the picture-only pantry: on trial in the full game (/dev) and locally, not yet on the public bench
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -779,7 +809,7 @@ function renderHeader(){
   const corner=[$('#fs'),$('#skip'),$('#mute')];   // keep the corner buttons across the header rebuild
   const pm=clamp(state.money/GOAL_MONEY,0,1),pr=clamp(state.rep/GOAL_REP,0,1);
   $('#hdr').innerHTML=`<div class="hdr-in">
-    <div class="brand" data-act="chef" role="button" tabindex="0" title="${esc(t('chef.edit'))}" style="cursor:pointer"><canvas id="logo" width="68" height="68"></canvas>Pizza Magna</div>
+    <div class="brand" data-act="chef" role="button" tabindex="0" title="${esc(t('chef.edit'))}" style="cursor:pointer" aria-label="${esc(t('chef.edit'))}"><canvas id="logo" width="68" height="68"></canvas><span class="brand-t">Pizza Magna</span></div>
     <button class="btn sm opt-btn" data-act="options" aria-label="${esc(t('opt.title'))}" title="${esc(t('opt.title'))}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>${t('opt.title')}</span></button>
     <div class="stats">
       <div class="stat"><span class="lbl">Dia</span><b>${state.day} · ${wdName(state.day)}</b></div>
@@ -816,16 +846,38 @@ const FAV=['mozzarella','tomate','fiambre','bacon','frango'];   // most used on 
 const EXTRAS=['azeite','balsamico','maionese','natas_azedas','ovo','nozes','pinhoes','batata_palha'];
 function ingCat(id){const t=ING[id].t;if(HERBS.includes(id))return 'ervas';if(EXTRAS.includes(id))return 'extras';
   for(const c of ['queijo','carne','peixe','doce','vegetal'])if(t.includes(c))return c;return 'extras'}
+const CAT_ICON={queijo:'cheddar',carne:'pepperoni',peixe:'sardinha',vegetal:'cogumelos',ervas:'manjericao',doce:'banana',extras:'ovo'};
 function pantryHTML(){
   const cat=CATS.includes(state.cat)?state.cat:ingCat(state.sel);
+  if(MINI_PANTRY)return miniPantryHTML(cat);
   const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}">${t('cat.'+c)} <small>${Object.keys(ING).filter(k=>ingCat(k)===c).length}</small></button>`).join('');
   const ids=Object.keys(ING).filter(k=>ingCat(k)===cat).sort((a,b)=>(FAV.includes(b)-FAV.includes(a))||FAV.indexOf(a)-FAV.indexOf(b)||ING[a].n.localeCompare(ING[b].n,LANG));   // the classics first, then A to Z in the player's language
   const ings=ids.map(k=>{const v=ING[k],locked=!state.unlocked.includes(v.pack);return `<button class="ing ${state.sel===k?'on':''} ${locked?'locked':''}" data-act="ing" data-v="${k}" ${locked?`title="${esc(t('k.unlock',{x:PACKS[v.pack]}))}"`:''}><canvas data-ing="${k}" width="32" height="32"></canvas>${esc(v.n)}<small>${locked?esc(PACKS[v.pack]):eur(v.c)}</small></button>`}).join('');
   return `<span class="lbl">${t('k.ings')}</span><div class="seg cats" role="tablist">${tabs}</div><div class="ings">${ings}</div>`;
 }
+// phone: pictures only, so a child can pick everything on the first screen; names stay in tooltips and for screen readers
+function miniPantryHTML(cat){
+  const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}" role="tab" aria-selected="${c===cat}" aria-label="${esc(t('cat.'+c))}" title="${esc(t('cat.'+c))}"><canvas data-ing="${CAT_ICON[c]}" width="32" height="32"></canvas></button>`).join('');
+  const ids=Object.keys(ING).filter(k=>ingCat(k)===cat).sort((a,b)=>(FAV.includes(b)-FAV.includes(a))||FAV.indexOf(a)-FAV.indexOf(b)||ING[a].n.localeCompare(ING[b].n,LANG));
+  const ings=ids.map(k=>{const v=ING[k],locked=!state.unlocked.includes(v.pack),lbl=locked?t('k.unlock',{x:PACKS[v.pack]}):`${v.n} · ${eur(v.c)}`;
+    return `<button class="ing ${state.sel===k?'on':''} ${locked?'locked':''}" data-act="ing" data-v="${k}" aria-label="${esc(v.n)}" title="${esc(lbl)}"><canvas data-ing="${k}" width="32" height="32"></canvas></button>`}).join('');
+  return `<div class="mcats" role="tablist">${tabs}</div><div class="mings">${ings}</div>`;
+}
 function bookHTML(){   // found combos first, newest on top; the rest stay hidden
   const found=[...state.discovered].reverse().map(id=>COMBOS.find(c=>c.id===id)).filter(Boolean);
   return [...found,...COMBOS.filter(c=>!state.discovered.includes(c.id))].map(c=>{const k=state.discovered.includes(c.id);const req=c.req.map(r=>r.startsWith('s:')?t('k.book.sauce',{x:SAUCES[r.slice(2)].n.toLowerCase()}):ING[r].n).join(' + ');return k?`<li><b>${c.q<0?t('k.clash'):''}${esc(c.n)}</b>${esc(req)}</li>`:`<li class="unk"><b>???</b>${t('k.book.unk',{n:c.req.length})}</li>`}).join('');}
+/* Small line icons: bench tools (phone) and the cut buttons of the zoom bar */
+const ICO={
+  zoomin:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M8 10.5h5M10.5 8v5"/>',
+  zoomout:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M8 10.5h5"/>',
+  rotate:'<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/>',
+  undo:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',
+  clear:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  chop:'<path d="M10.5 11C10 6 14 2.5 20.5 3 19 7 16.5 10 13 12.2zM13.5 13C14 18 10 21.5 3.5 21 5 17 7.5 14 11 11.8z" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="2.6" fill="none" stroke-width="1.6"/>',   // a two-blade chopper, like a propeller seen from above
+  grate:'<path d="M9 3h6M8.5 6h7l2.5 15H6z"/><path d="M10 10h1M13 10h1M9.5 13.5h1M12.5 13.5h1M10 17h1M13 17h1"/>'};
+const icon=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
+// a bench tool: text on a PC, an icon on a phone (the text goes in the tooltip and for screen readers)
+const toolBtn=(act,label,ic,extra='')=>PHONE?`<button class="btn sm ibtn" data-act="${act}" aria-label="${esc(label)}" ${extra.includes('title=')?'':`title="${esc(label)}"`} ${extra}>${icon(ic)}</button>`:`<button class="btn sm" data-act="${act}" ${extra}>${esc(label)}</button>`;
 function kitchenHTML(){
   const d=state.draft;
   const seg=(obj,key,cur)=>Object.entries(obj).map(([k,v])=>`<button data-act="${key}" data-v="${k}" class="${cur===k?'on':''}">${esc(v.n)}<small>${v.c?eur(v.c):''}</small></button>`).join('');
@@ -835,13 +887,13 @@ function kitchenHTML(){
       <div class="stage"><canvas id="pz" width="${BW}" height="${BH}" aria-label="${t('k.canvas')}"></canvas>
         ${state.zoom?'<div id="zbar"></div>':`<div class="hint">${t('k.hint')}</div>`}
         <div class="tools">
-          <button class="btn sm" data-act="zoom" aria-pressed="${!!state.zoom}">${t(state.zoom?'k.unzoom':'k.zoom')}</button>
-          <button class="btn sm" data-act="rotate" ${canRotate(state.sel)?'':'hidden'} title="${esc(t('k.rotatetip'))}">${esc(t('k.rotate',{x:ING[state.sel].n}))}</button>
-          <button class="btn sm" data-act="undo">${t('k.undo')}</button>
-          <button class="btn sm" data-act="clear">${t('k.clear')}</button>
+          ${toolBtn('zoom',t(state.zoom?'k.unzoom':'k.zoom'),state.zoom?'zoomout':'zoomin',`aria-pressed="${!!state.zoom}"`)}
+          ${toolBtn('rotate',t('k.rotate',{x:ING[state.sel].n}),'rotate',`${canRotate(state.sel)?'':'hidden'} title="${esc(t('k.rotatetip'))}"`)}
+          ${toolBtn('undo',t('k.undo'),'undo')}
+          ${toolBtn('clear',t('k.clear'),'clear')}
         </div>
       </div>
-      <div class="card pantry">${pantryHTML()}</div>
+      <div class="card pantry${MINI_PANTRY?' mini':''}">${pantryHTML()}</div>
     </div>
     <div class="grid2">
       <div class="stack">
@@ -966,9 +1018,20 @@ function drawBench(){
 // zoom mode: ingredient name, whole/chopped and the price/pieces line as plain HTML under the pizza
 function zoomBar(){const el=$('#zbar');if(!el)return;const sel=state.sel,cut=curCut(),ok=canGrate(sel),a=analyze(state.draft);
   const cutL=t(ok?(ING[sel].t.includes('queijo')?'bench.grated':'bench.chopped'):'bench.nograte.'+noCutKind(sel));
-  el.innerHTML=`<div class="zname">${esc(ING[sel].n)}</div>
-    <div class="zcut"><button class="btn sm ${cut?'ghost':'primary'}" data-act="cut" data-v="0">${t('bench.whole')}</button><button class="btn sm ${cut?'primary':'ghost'}" data-act="cut" data-v="1" ${ok?'':'disabled'}>${cutL}</button></div>
-    <div class="zlcd"><span>${t('bench.q')} ${eur(suggestPrice(a))}</span><span>${t('bench.n')} ${state.draft.pieces.length}</span><span>${t('bench.w')} ${fmtG(pizzaGrams(state.draft))}</span></div>`}
+  // one row: the name, then whole (the piece itself) and chopped/grated (a blade or a grater); toppings that can't be cut show only the name
+  const cutB=ok?`<div class="zcut"><button class="btn sm ibtn ${cut?'ghost':'primary'}" data-act="cut" data-v="0" aria-pressed="${!cut}" aria-label="${esc(t('bench.whole'))}" title="${esc(t('bench.whole'))}"><canvas id="zwhole" width="32" height="32"></canvas></button><button class="btn sm ibtn ${cut?'primary':'ghost'}" data-act="cut" data-v="1" aria-pressed="${!!cut}" aria-label="${esc(cutL)}" title="${esc(cutL)}">${icon(ING[sel].t.includes('queijo')?'grate':'chop')}</button></div>`:'';
+  // price is what matters most: big and with no label; pieces and weight small beside it
+  el.innerHTML=`<div class="zrow"><div class="zname">${esc(ING[sel].n)}</div>${cutB}</div>
+    <div class="zlcd" title="${esc(t('bench.q'))}"><b>${eur(suggestPrice(a))}</b><span>${state.draft.pieces.length} ${t('bench.n')} · ${fmtG(pizzaGrams(state.draft))}</span></div>`;
+  const zw=$('#zwhole');if(zw){const c=zw.getContext('2d');c.imageSmoothingEnabled=false;spr(c,wholeKey(sel,0,canRotate(sel)?curAng():0),16,16)}}
+// phone + zoom + mini pantry: shrink the pizza until the toppings strip ends above the bottom bar, so nothing needs scrolling
+function fitBench(){
+  const pe=$('.pantry.mini');if(!PHONE||!state.zoom||!pz||!pe)return;
+  const cv=pz.cv,over=pe.getBoundingClientRect().bottom+window.scrollY-(window.innerHeight-$('#nav').offsetHeight-6);
+  if(over<=0)return;
+  const h=Math.max(cv.offsetHeight-over,Math.min(cv.offsetHeight,240));   // never smaller than 240 px: then a little scrolling is better
+  cv.style.height=h+'px';cv.style.width=h*BW/BH+'px';
+}
 function drawDraft(){if(!pz)return;pz.pizza=null;drawBench()}
 function addPiece(p){
   if(Math.hypot(p.x,p.y)>.8)return false;
@@ -1487,7 +1550,7 @@ function render(){
   $('#view').innerHTML=V[state.tab]();
   document.querySelectorAll('#nav button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===state.tab);b.disabled=!!anim&&b.dataset.tab!=='dia'});
   pz=null;room=null;
-  if(state.tab==='cozinha'){setupPizzaCanvas();drawIngIcons();updateAnalysis()}
+  if(state.tab==='cozinha'){setupPizzaCanvas();drawIngIcons();updateAnalysis();fitBench()}
   if(state.tab==='menu'||state.tab==='concurso')drawMinis();
   if(state.tab==='dia')drawRoom();
   save();
@@ -1506,7 +1569,7 @@ const ACT={
   dough:b=>{state.draft.dough=b.dataset.v;render()},
   sauce:b=>{state.draft.sauce=b.dataset.v;render()},
   cat:b=>{state.cat=b.dataset.v;const pe=$('.pantry');if(pe){pe.innerHTML=pantryHTML();drawIngIcons()}save()},
-  ing:b=>{const k=b.dataset.v;if(!state.unlocked.includes(ING[k].pack)){toast(t('k.locked',{i:ING[k].n,p:PACKS[ING[k].pack]}));return}state.sel=k;document.querySelectorAll('.ing').forEach(x=>x.classList.toggle('on',x.dataset.v===k));const rb=$('[data-act="rotate"]');if(rb){rb.hidden=!canRotate(k);rb.textContent=t('k.rotate',{x:ING[k].n})}drawBench()},
+  ing:b=>{const k=b.dataset.v;if(!state.unlocked.includes(ING[k].pack)){toast(t('k.locked',{i:ING[k].n,p:PACKS[ING[k].pack]}));return}state.sel=k;document.querySelectorAll('.ing').forEach(x=>x.classList.toggle('on',x.dataset.v===k));const rb=$('[data-act="rotate"]');if(rb){rb.hidden=!canRotate(k);const l=t('k.rotate',{x:ING[k].n});if(PHONE){rb.title=l;rb.setAttribute('aria-label',l)}else rb.textContent=l}drawBench()},
   rotate:()=>rotatePiece(null),
   zoom:()=>{state.zoom=!state.zoom;save();render()},
   cut:b=>setCut(+b.dataset.v),
@@ -1584,7 +1647,7 @@ function drawMute(){drawSkip();const b=$('#mute'),on=MUSIC.isOn();b.classList.to
 // full screen: the standard API, or the webkit one on older Safari/iPad; hidden where neither exists (iPhone)
 const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
 const fsCan=()=>!!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
-function drawFs(){const b=$('#fs');if(!fsCan()){b.hidden=true;return}b.hidden=false;const on=!!fsEl();const lbl=t(on?'fs.exit':'fs.enter');b.title=lbl;b.setAttribute('aria-label',lbl);
+function drawFs(){const b=$('#fs');document.documentElement.classList.toggle('nofs',!fsCan());if(!fsCan()){b.hidden=true;return}b.hidden=false;const on=!!fsEl();const lbl=t(on?'fs.exit':'fs.enter');b.title=lbl;b.setAttribute('aria-label',lbl);
   b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(on?'<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>':'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>')+'</svg>'}
 function toggleFs(){const d=document,el=d.documentElement;
   if(fsEl())(d.exitFullscreen||d.webkitExitFullscreen).call(d);
@@ -1596,6 +1659,7 @@ function start(data){
   document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n)});   // static labels (nav)
   state=(data&&data.state)||load()||freshState();
   if(state.over){state=freshState();state.seenIntro=true}
+  if(PHONE&&state.zoom==null)state.zoom=true;   // phones start on the big pizza; the player can still leave zoom
   if(SANDBOX){
     state.unlocked=['base',...Object.keys(PACKS)];state.seenIntro=true;if(!['cozinha','menu'].includes(state.tab))state.tab='cozinha';
     document.querySelectorAll('#nav button').forEach(b=>{if(!['cozinha','menu'].includes(b.dataset.tab))b.hidden=true});
