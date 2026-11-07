@@ -252,8 +252,8 @@ const cv=document.getElementById('room'),m=cv.getContext('2d');
 const [LO,lo]=mk(RW,RH);
 let tool=null,moving=null,ghost=null,sel=null,guests=false,frame=0,people=[];
 function makePeople(){const g=rng(42);people=[];for(const it of room.items){const d=ITEMS[it.id];if(d.cat!=='table')continue;
-  // about one customer in five is one of the characters who stand out (punks, the old couple, the influencer...)
-  for(const s of d.seats)if(g()<.8)people.push({it,s,look:g()<.2?LAY.plain+Math.floor(g()*(LAY.looks-LAY.plain)):Math.floor(g()*LAY.plain),eat:g()<.6})}}
+  // every look is equally likely, the characters who stand out included
+  for(const s of d.seats)if(g()<.8)people.push({it,s,look:Math.floor(g()*LAY.looks),eat:g()<.6})}}
 // sprites of a piece: its parts, then the chairs of its seats (a chair seen from behind comes in two layers)
 function partsOf(it,f){const d=ITEMS[it.id],x0=it.c*T,y0=it.r*T,L=[];
   for(const [k,x,y,z,n] of d.parts)L.push({z:y0+z,img:spr(frameKey(k,n||1,f)),x:x0+x,y:y0+y,rug:d.rug});
