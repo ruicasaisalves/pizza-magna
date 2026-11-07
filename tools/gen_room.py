@@ -959,7 +959,9 @@ RAMP.update({
     'shoe':   hexs(['#0c0808', '#1e1410', '#36261c', '#5a4030']),
 })
 SKINS = {'skinA', 'skinB', 'skinC', 'skinD'}
-RAMP.update({'blush': hexs(['#d86a6a', '#f08a86', '#ffb0a8'])})
+# a blush close to each skin tone, so it reads as warm cheeks and not as a pink stroke
+BLUSH = {'skinA': '#f0aa9a', 'skinB': '#d8947c', 'skinC': '#8e5a46', 'skinD': '#c8866e'}
+for k, v in BLUSH.items(): RAMP['blush' + k] = hexs([v])
 # Kawaii (chibi) people: a big round head about as tall as the body, big glossy eyes set low on the
 # face, rosy cheeks and a tiny mouth. Head centre (16, 11), radius 10; hips at y = 33 as before.
 HX, HY, HR = 16, 11, 10
@@ -983,9 +985,8 @@ def head_front(c, skin, hair, eye, long=False, back=False):
         c.paint(e, eye, np.where(c.ys >= 13, .55, .05), part=10, noline=True)
         c.paint(c.rect(ex, 12, ex + 1, 14), 'white', 1, part=11, noline=True)          # catch lights
         c.paint(c.rect(ex + 2, 14, ex + 3, 15), 'white', .8, part=11, noline=True)
-    c.paint(c.rect(HX - 8, 16, HX - 5, 17) | c.rect(HX + 6, 16, HX + 9, 17), 'blush', .6, part=10, noline=True)
-    c.paint(c.rect(HX - 1, 17, HX + 1, 18), 'lip', .3, part=10, noline=True)            # tiny smile
-    c.paint(c.rect(HX - 2, 16, HX - 1, 17) | c.rect(HX + 1, 16, HX + 2, 17), 'lip', .45, part=10, noline=True)
+    c.paint(c.rect(HX - 7, 16, HX - 5, 17) | c.rect(HX + 5, 16, HX + 7, 17), 'blush' + skin, 0, part=10, noline=True)
+    c.paint(c.rect(HX - 1, 17, HX + 1, 18), skin, .05, part=10, noline=True)              # tiny mouth, a darker skin tone
 
 def head_side(c, skin, hair, eye, long=False):
     c.paint(c.ell(HX, HY, HR - .3, HR * .95), skin, .6 + c.sphere(HX + 1, HY, HR, HR) * .28, part=8)
@@ -999,8 +1000,8 @@ def head_side(c, skin, hair, eye, long=False):
     e = c.rect(ex, 11, ex + 3, 16) & ~(c.rect(ex, 11, ex + 1, 12) | c.rect(ex + 2, 11, ex + 3, 12) | c.rect(ex, 15, ex + 1, 16) | c.rect(ex + 2, 15, ex + 3, 16))
     c.paint(e, eye, np.where(c.ys >= 13, .55, .05), part=10, noline=True)
     c.paint(c.rect(ex, 12, ex + 1, 14), 'white', 1, part=11, noline=True)
-    c.paint(c.rect(ex + 3, 16, ex + 6, 17), 'blush', .6, part=10, noline=True)
-    c.paint(c.rect(HX + 7, 17, HX + 9, 18), 'lip', .35, part=10, noline=True)
+    c.paint(c.rect(ex, 16, ex + 2, 17), 'blush' + skin, 0, part=10, noline=True)
+    c.paint(c.rect(HX + 6, 17, HX + 7, 18), skin, .05, part=10, noline=True)
 
 def person(d='down', skin='skinA', hair='hairB', shirt='shirtB', long=False, pants='jeans', eye='irisBr'):
     c = Canvas(32, 48)
