@@ -110,7 +110,7 @@ class Canvas:
                         out[y, x] = SHADOW + (int(min(1, a) * 150),)
                     continue
                 ramp = RAMP[s.mat[y, x]]; k = len(ramp)
-                v = np.clip(s.lit[y, x] * (k - 1) + BAYER[y % 4, x % 4] * (.35 if s.mat[y, x] in SOFT else .9), 0, k - 1)
+                v = np.clip(s.lit[y, x] * (k - 1) + BAYER[y % 4, x % 4] * (.12 if s.mat[y, x] in SKINS else .35 if s.mat[y, x] in SOFT else .9), 0, k - 1)
                 col = ramp[int(round(v))]
                 if not s.noline[y, x]:
                     edge = False; front = False
@@ -160,6 +160,15 @@ RAMP.update({
     'box':     hexs(['#8a7450', '#b09a72', '#d0bc94', '#e8d8b4', '#f8eed6']),
     'skinD':   hexs(['#5a3420', '#8a5434', '#b47a52', '#d8a074', '#f0c49c']),
 })
+RAMP.update({
+    'irisBr': hexs(['#2a1408', '#5a3416', '#8a5a2e']), 'irisBl': hexs(['#14284a', '#2e5a96', '#6a9ad0']),
+    'irisGr': hexs(['#14301a', '#2e6a3a', '#62a06a']), 'irisHz': hexs(['#3a2a10', '#7a6028', '#b09a50']),
+    'irisDk': hexs(['#120a06', '#2e1c10', '#4e3420']),
+    'lash':   hexs(['#1a0e08', '#3a2418', '#5a3a28']),
+    'lip':    hexs(['#7a2a24', '#b04a40', '#d87a6a', '#f0a898']),
+    'white':  hexs(['#c8c4bc', '#eeeae4', '#ffffff']),
+})
+SKINS = {'skinA', 'skinB', 'skinC', 'skinD'}
 SOFT |= {'formica', 'chrome', 'marbleW', 'lacquer', 'water', 'skinD', 'apron', 'lamp', 'tileW'}
 
 def pnoise(h, w, cell, g):
@@ -949,7 +958,32 @@ RAMP.update({
     'pantsB': hexs(['#2a1a0c', '#46301a', '#644628', '#866238', '#a8804c']),
     'shoe':   hexs(['#0c0808', '#1e1410', '#36261c', '#5a4030']),
 })
-def person(d='down', skin='skinA', hair='hairB', shirt='shirtB', long=False, pants='jeans'):
+SKINS = {'skinA', 'skinB', 'skinC', 'skinD'}
+def face_front(c, skin, hair, eye):
+    """eyes with white, a coloured iris and a thin lid, light brows, a small smile"""
+    for ex, side in ((12, -1), (18, 1)):
+        c.paint(c.rect(ex, 10, ex + 3, 11) | c.rect(ex + (3 if side > 0 else -1), 10, ex + (4 if side > 0 else 0), 11), 'lash', .3, part=10, noline=True)
+        c.paint(c.rect(ex, 11, ex + 3, 13), 'white', .8, part=10, noline=True)
+        c.paint(c.rect(ex + 1, 11, ex + 2, 13), eye, .5, part=11, noline=True)
+        c.paint(c.rect(ex + 1, 12, ex + 2, 13), eye, .05, part=11, noline=True)
+        c.paint(c.rect(ex + 1, 11, ex + 2, 12), eye, .95, part=11, noline=True)
+        c.paint(c.rect(ex, 8, ex + 3, 9), hair, .45, part=10, noline=True)                 # eyebrow
+    c.paint(c.rect(16, 13, 17, 15), skin, .3, part=10, noline=True)                     # nose
+    c.paint(c.rect(15, 16, 18, 17), 'lip', .45, part=10, noline=True)                    # smile
+    c.paint(c.rect(14, 15, 15, 16) | c.rect(18, 15, 19, 16), 'lip', .2, part=10, noline=True)
+    c.paint(c.rect(11, 14, 12, 15) | c.rect(21, 14, 22, 15), 'lip', .9, part=10, noline=True)   # cheeks
+
+def face_side(c, skin, hair, eye):
+    c.paint(c.rect(20, 9, 23, 10), 'lash', .3, part=10, noline=True)
+    c.paint(c.rect(20, 10, 23, 12), 'white', .8, part=10, noline=True)
+    c.paint(c.rect(21, 10, 22, 11), eye, .95, part=11, noline=True)
+    c.paint(c.rect(21, 11, 22, 12), eye, .05, part=11, noline=True)
+    c.paint(c.rect(20, 7, 23, 8), hair, .45, part=10, noline=True)
+    c.paint(c.rect(21, 15, 23, 16), 'lip', .45, part=10, noline=True)
+    c.paint(c.rect(22, 14, 23, 15), 'lip', .2, part=10, noline=True)
+    c.paint(c.rect(19, 13, 20, 14), 'lip', .9, part=10, noline=True)
+
+def person(d='down', skin='skinA', hair='hairB', shirt='shirtB', long=False, pants='jeans', eye='irisBr'):
     c = Canvas(32, 48)
     stripes = lambda: ((c.xs * 2 + c.ys) % 5 == 0) * -.15
     if d in ('left', 'right'):
@@ -961,16 +995,13 @@ def person(d='down', skin='skinA', hair='hairB', shirt='shirtB', long=False, pan
         c.paint(c.rect(14, 21, 19, 28), shirt, c.cyl_x(14, 19, .3, .75), part=5)          # upper arm
         c.paint(c.rect(16, 25, 29, 29), shirt, np.where(c.ys < 27, .7, .35), part=6)       # forearm towards the table
         c.paint(c.rect(28, 25, 32, 29), skin, .65, part=7)
-        head = c.ell(17, 10, 7, 8); c.paint(head, skin, .45 + c.sphere(17, 10, 7, 8) * .45, part=8)
+        head = c.ell(17, 10, 7, 8); c.paint(head, skin, .55 + c.sphere(17, 10, 7, 8) * .32, part=8)
         c.paint(c.rect(23, 10, 25, 13), skin, .6, part=8)                                 # nose
         hm = c.ell(16, 8, 8, 7.5) & ((c.ys < 7) | (c.xs < 15))
         if long: hm |= c.rect(9, 7, 16, 23) & c.ell(13, 13, 6, 10)
         c.paint(hm, hair, c.sphere(16, 8, 8, 8) * .9 + stripes(), part=9)
-        c.paint(c.rect(20, 10, 22, 13), 'eye', .1, part=10, noline=True)
-        c.paint(c.rect(21, 10, 22, 11), 'plate', 1, part=10, noline=True)
-        c.paint(c.rect(20, 8, 23, 9), hair, .2, part=10, noline=True)
+        face_side(c, skin, hair, eye)
         c.paint(c.rect(15, 10, 17, 13), skin, .3, part=10, noline=True)                   # ear
-        c.paint(c.rect(21, 15, 23, 16), 'mouth', .6, part=10, noline=True)
         return flip(c) if d == 'left' else c
     if d == 'down':
         for lx in (9, 18): c.paint(c.rect(lx, 38, lx + 5, 45), pants, c.cyl_x(lx, lx + 5, .25, .65), part=1)
@@ -985,25 +1016,20 @@ def person(d='down', skin='skinA', hair='hairB', shirt='shirtB', long=False, pan
     if d == 'down':
         c.paint(c.ell(16, 20, 3, 2.5) & (c.ys > 19), skin, .45, part=5)                  # neckline
         for ax in (4, 24): c.paint(c.rect(ax, 31, ax + 4, 35), skin, .6, part=6)          # hands on the lap
-    head = c.ell(16, 10, 7.5, 8.5); c.paint(head, skin, .45 + c.sphere(16, 10, 7.5, 8.5) * .45, part=8)
+    head = c.ell(16, 10, 7.5, 8.5); c.paint(head, skin, .55 + c.sphere(16, 10, 7.5, 8.5) * .32, part=8)
     c.paint(c.ell(8.5, 11, 1.6, 2.4) | c.ell(23.5, 11, 1.6, 2.4), skin, .35, part=7)
     if d == 'down':
         hm = c.ell(16, 8, 8.5, 8) & ((c.ys < 6.5 + np.abs(c.xs - 16) * .25) | (np.abs(c.xs - 16) > 6))
         if long: hm |= (c.rect(7, 6, 10, 24) | c.rect(22, 6, 25, 24))
         c.paint(hm & (c.ys < 24), hair, c.sphere(16, 8, 8.5, 8.5) * .9 + stripes(), part=9)
-        for ex in (12, 19):
-            c.paint(c.rect(ex, 11, ex + 2, 14), 'eye', .1, part=10, noline=True)
-            c.paint(c.rect(ex, 11, ex + 1, 12), 'plate', 1, part=10, noline=True)      # catch light
-            c.paint(c.rect(ex, 9, ex + 2, 10), hair, .2, part=10, noline=True)        # eyebrow
-        c.paint(c.rect(15, 16, 18, 17), 'mouth', .6, part=10, noline=True)
-        c.paint(c.rect(16, 13, 17, 15), skin, .25, part=10, noline=True)            # nose shadow
+        face_front(c, skin, hair, eye)
     else:
         hm = c.ell(16, 9, 8.5, 9.5)
         if long: hm |= c.rect(8, 8, 24, 25) & c.ell(16, 14, 8.5, 12)
         c.paint(hm, hair, c.sphere(16, 9, 8.5, 9.5) * .85 + stripes(), part=9)
     return c
 
-def standing(role='waiter', skin='skinA', hair='hairB'):
+def standing(role='waiter', skin='skinA', hair='hairB', eye='irisBr'):
     """32 x 58, standing and facing down: the waiter (white shirt, black waistcoat, long apron)
     or the cook (white jacket and tall hat)"""
     c = Canvas(32, 58)
@@ -1023,25 +1049,22 @@ def standing(role='waiter', skin='skinA', hair='hairB'):
         for y in (24, 29, 34): c.paint(c.rect(15, y, 17, y + 2), 'chrome', .5, part=4)
         c.paint(c.rect(9, 36, 23, 44), 'red', .55 + ((c.xs + c.ys) % 4 < 2) * .2, part=6)   # checked trousers' apron
     c.paint(c.rect(14, 16, 18, 21), skin, .3, part=3)
-    c.paint(c.ell(16, 10, 7.5, 8.5), skin, .45 + c.sphere(16, 10, 7.5, 8.5) * .45, part=7)
+    c.paint(c.ell(16, 10, 7.5, 8.5), skin, .55 + c.sphere(16, 10, 7.5, 8.5) * .32, part=7)
     hm = c.ell(16, 8, 8.5, 8) & ((c.ys < 6.5 + np.abs(c.xs - 16) * .25) | (np.abs(c.xs - 16) > 6))
     c.paint(hm & (c.ys < 18), hair, c.sphere(16, 8, 8.5, 8.5) * .9, part=8)
     if role == 'cook':
         hat = c.rect(9, -1, 23, 6) | c.ell(16, 0, 9, 5)
         c.paint(hat & (c.ys >= 0), 'apron', .7 + c.sphere(16, 0, 9, 5) * .2, part=9)
         c.paint(c.rect(8, 4, 24, 7), 'apron', .55, part=9)
-    for ex in (12, 19):
-        c.paint(c.rect(ex, 11, ex + 2, 14), 'eye', .1, part=10, noline=True)
-        c.paint(c.rect(ex, 11, ex + 1, 12), 'plate', 1, part=10, noline=True)
-    c.paint(c.rect(15, 16, 18, 17), 'mouth', .6, part=10, noline=True)
+    face_front(c, skin, hair, eye)
     return c
 
-# customers: skin, hair, shirt, long hair, trousers
-LOOKS = [('skinA', 'hairY', 'shirtR', True, 'pantsK'), ('skinB', 'hairK', 'shirtG', False, 'jeans'),
-         ('skinA', 'hairG', 'shirtW', False, 'pantsB'), ('skinC', 'hairB', 'shirtP', False, 'jeans'),
-         ('skinB', 'hairR', 'shirtY', True, 'pantsK'), ('skinC', 'hairK', 'shirtB', False, 'pantsB'),
-         ('skinD', 'hairB', 'shirtR', True, 'jeans'), ('skinA', 'hairB', 'shirtB', False, 'pantsK'),
-         ('skinD', 'hairK', 'shirtW', True, 'pantsB'), ('skinB', 'hairY', 'shirtP', False, 'jeans')]
+# customers: skin, hair, shirt, long hair, trousers, eyes
+LOOKS = [('skinA', 'hairY', 'shirtR', True, 'pantsK', 'irisBl'), ('skinB', 'hairK', 'shirtG', False, 'jeans', 'irisBr'),
+         ('skinA', 'hairG', 'shirtW', False, 'pantsB', 'irisGr'), ('skinC', 'hairB', 'shirtP', False, 'jeans', 'irisDk'),
+         ('skinB', 'hairR', 'shirtY', True, 'pantsK', 'irisGr'), ('skinC', 'hairK', 'shirtB', False, 'pantsB', 'irisBr'),
+         ('skinD', 'hairB', 'shirtR', True, 'jeans', 'irisHz'), ('skinA', 'hairB', 'shirtB', False, 'pantsK', 'irisBl'),
+         ('skinD', 'hairK', 'shirtW', True, 'pantsB', 'irisDk'), ('skinB', 'hairY', 'shirtP', False, 'jeans', 'irisHz')]
 
 # ======================= LAYOUT OF EACH PIECE (px from its top-left tile, 32 px tiles) =======================
 # parts: [key, x, y, z, frames]; z is the depth baseline (bigger = in front).
@@ -1099,9 +1122,9 @@ def sprites():
     put('w_neon_0', w_neon(0)); put('w_neon_1', w_neon(1))
     put('k_oven_0', oven(0)); put('k_oven_1', oven(1)); put('k_counter', counter(8)); put('k_register', register())
     put('k_boxes', boxes()); put('k_logs', logs()); put('k_rack', rack())
-    put('waiter', standing('waiter', 'skinB', 'hairB')); put('cook', standing('cook', 'skinA', 'hairK'))
-    for i, (sk, hr, sh, lg, pa) in enumerate(LOOKS):
-        for d in ('down', 'up', 'right', 'left'): put(f'p{i}_{d}', person(d, sk, hr, sh, lg, pa))
+    put('waiter', standing('waiter', 'skinB', 'hairB', 'irisBr')); put('cook', standing('cook', 'skinA', 'hairK', 'irisGr'))
+    for i, (sk, hr, sh, lg, pa, ey) in enumerate(LOOKS):
+        for d in ('down', 'up', 'right', 'left'): put(f'p{i}_{d}', person(d, sk, hr, sh, lg, pa, ey))
     return out
 
 def layout_json(imgs):
