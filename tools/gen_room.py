@@ -963,67 +963,175 @@ SKINS = {'skinA', 'skinB', 'skinC', 'skinD'}
 BLUSH = {'skinA': '#f0aa9a', 'skinB': '#d8947c', 'skinC': '#8e5a46', 'skinD': '#c8866e'}
 for k, v in BLUSH.items(): RAMP['blush' + k] = hexs([v])
 # Kawaii (chibi) people: a big round head about as tall as the body, big glossy eyes set low on the
-# face, rosy cheeks and a tiny mouth. Head centre (16, 11), radius 10; hips at y = 33 as before.
+# face, warm cheeks and a tiny mouth. Head centre (16, 11), radius 10; hips at y = 33 as before.
+# A look is a dict: skin, hair (ramp), eye, shirt, pants, plus optional
+#   style: short | long | mohawk | bouffant | bald | quiff | bob
+#   top:   shirt | suit | leather | tee | cardigan | crop
+#   legs:  pants | shorts | skirt
+#   extras: glasses, moustache, pearls, piercing, phone
 HX, HY, HR = 16, 11, 10
+RAMP.update({
+    'hairPink':  hexs(['#8a2a5a', '#c84a88', '#f07ab4', '#ffaad2', '#ffd8ec']),
+    'hairBlue':  hexs(['#0e2a6a', '#1e4ab0', '#3a78e8', '#70aaff', '#b0d4ff']),
+    'hairGreen': hexs(['#0e4a1e', '#1a7a2a', '#2eb840', '#6ae070', '#b0ffb0']),
+    'hairLilac': hexs(['#6a5a7a', '#9a8aaa', '#c4b8d2', '#e4dcee', '#f8f4fc']),
+    'suitN':     hexs(['#0a1020', '#141e36', '#22304e', '#34466c', '#4e628a']),
+    'jacket':    hexs(['#060608', '#121216', '#202028', '#34343e', '#5a5a68']),
+    'tie':       hexs(['#4a0808', '#7a1010', '#a81c1c', '#d03a3a']),
+    'skirtP':    hexs(['#2a0e2a', '#4a1a46', '#6e2a66', '#924a8a']),
+    'crop':      hexs(['#a87a8a', '#d8a8b8', '#f4d0dc', '#fff0f6', '#ffffff']),
+    'sneaker':   hexs(['#7a7a80', '#b8b8c0', '#e4e4ea', '#ffffff']),
+})
 
-def head_front(c, skin, hair, eye, long=False, back=False):
-    c.paint(c.ell(HX - 10.5, 13, 1.8, 2.4) | c.ell(HX + 10.5, 13, 1.8, 2.4), skin, .5, part=7)   # ears
-    c.paint(c.ell(HX, HY, HR, HR * .95), skin, .6 + c.sphere(HX, HY, HR, HR) * .28, part=8)
-    sheen = ((c.xs + c.ys * 2) % 6 == 0) * -.12
-    if back:
-        hm = c.ell(HX, HY - .5, HR + .8, HR + .3)
-        if long: hm |= c.rect(HX - 10, HY, HX + 11, 27) & c.ell(HX, 17, 10.5, 11)
-        c.paint(hm, hair, c.sphere(HX, HY - 2, HR + 1, HR + 1) * .85 + sheen, part=9)
-        return
-    bangs = c.ys < 7.5 + 1.8 * np.abs(np.sin((c.xs - HX) * .45))                    # scalloped fringe
-    hm = c.ell(HX, HY - 1, HR + .8, HR) & (bangs | (np.abs(c.xs + .5 - HX) > 8.2))
-    if long: hm |= (c.rect(HX - 11, 9, HX - 7, 27) | c.rect(HX + 7, 9, HX + 11, 27)) & (c.ys < 27 - (np.abs(c.xs + .5 - HX) < 9) * 0)
-    c.paint(hm, hair, c.sphere(HX, HY - 3, HR + 1, HR + 1) * .85 + sheen, part=9)
-    c.paint(c.rect(HX - 5, 3, HX - 2, 4) & hm, hair, 1, part=9, noline=True)            # shine on the hair
+def eyes_front(c, eye):
     for ex in (HX - 5, HX + 3):                                                    # big glossy eyes
         e = c.rect(ex, 11, ex + 3, 16) & ~(c.rect(ex, 11, ex + 1, 12) | c.rect(ex + 2, 11, ex + 3, 12) | c.rect(ex, 15, ex + 1, 16) | c.rect(ex + 2, 15, ex + 3, 16))
         c.paint(e, eye, np.where(c.ys >= 13, .55, .05), part=10, noline=True)
         c.paint(c.rect(ex, 12, ex + 1, 14), 'white', 1, part=11, noline=True)          # catch lights
         c.paint(c.rect(ex + 2, 14, ex + 3, 15), 'white', .8, part=11, noline=True)
-    c.paint(c.rect(HX - 7, 16, HX - 5, 17) | c.rect(HX + 5, 16, HX + 7, 17), 'blush' + skin, 0, part=10, noline=True)
-    c.paint(c.rect(HX - 1, 17, HX + 1, 18), skin, .05, part=10, noline=True)              # tiny mouth, a darker skin tone
 
-def head_side(c, skin, hair, eye, long=False):
+def hair_front(c, L, back):
+    """the hair mask for a head seen from the front (or the back), by style"""
+    st, hx = L.get('style', 'short'), c.xs + .5 - HX
+    cap = c.ell(HX, HY - 1, HR + .8, HR)
+    bangs = c.ys < 7.5 + 1.8 * np.abs(np.sin((c.xs - HX) * .45))
+    if st == 'mohawk':
+        saw = 2.5 * np.abs((c.xs % 3) - 1)                                        # spiky top edge
+        return (np.abs(hx) < 3.2) & (c.ys >= saw) & (c.ys < (14 if back else 9))
+    if st == 'bald':
+        return cap & (c.ys > 11) & (c.ys < 17) if back else cap & (np.abs(hx) > 7) & (c.ys > 7) & (c.ys < 15)
+    if st == 'bouffant':
+        big = c.ell(HX, HY - 2.5, HR + 4, HR + 2) & (c.ys >= 0)
+        return big if back else big & ~(c.ell(HX, HY + 4, 8.5, 8) & (c.ys > 7))
+    if st == 'quiff':
+        crest = (c.ys >= 0) & (c.ys < 6) & (np.abs(hx) < 8) & (c.ys >= 2.5 - 2.5 * np.cos(hx * .9) - 1)
+        return (cap & (c.ys < 7 if not back else c.ys < 99)) | crest
+    hm = cap if back else cap & (bangs | (np.abs(hx) > 8.2))
+    if st == 'long':
+        side = (c.rect(HX - 11, 9, HX - 7, 27) | c.rect(HX + 7, 9, HX + 11, 27))
+        hm |= side | (c.rect(HX - 10, HY, HX + 11, 27) & c.ell(HX, 17, 10.5, 11) if back else side)
+    if st == 'bob':
+        hm |= (c.rect(HX - 11, 6, HX - 7, 20) | c.rect(HX + 7, 6, HX + 11, 20)) | (c.rect(HX - 11, 6, HX + 11, 20) & back)
+    return hm
+
+def head_front(c, skin, hair, eye, L=None, back=False):
+    L = L or {}; st = L.get('style', 'short'); ex_ = L.get('extras', ())
+    c.paint(c.ell(HX - 10.5, 13, 1.8, 2.4) | c.ell(HX + 10.5, 13, 1.8, 2.4), skin, .5, part=7)   # ears
+    c.paint(c.ell(HX, HY, HR, HR * .95), skin, .6 + c.sphere(HX, HY, HR, HR) * .28, part=8)
+    if st == 'mohawk':                                                             # shaved sides
+        c.paint(c.ell(HX, HY - 1, HR + .3, HR - .3) & (c.ys < (16 if back else 7.5)), skin, .3, part=8)
+    if st == 'bald' and not back:
+        c.paint(c.rect(HX - 4, 2, HX, 4) & c.ell(HX, HY, HR, HR), skin, 1, part=8, noline=True)   # shiny head
+    sheen = ((c.xs + c.ys * 2) % 6 == 0) * -.12
+    curls = (noise(c.h, c.w, 2, rng(80)) - .5) * .5 if st == 'bouffant' else 0
+    hm = hair_front(c, L, back)
+    c.paint(hm, hair, np.clip(c.sphere(HX, HY - 3, HR + 1, HR + 1) * .85 + sheen + curls, 0, 1), part=9)
+    if back: return
+    c.paint(c.rect(HX - 5, 3, HX - 2, 4) & hm, hair, 1, part=9, noline=True)            # shine on the hair
+    eyes_front(c, eye)
+    c.paint(c.rect(HX - 7, 16, HX - 5, 17) | c.rect(HX + 5, 16, HX + 7, 17), 'blush' + skin, 0, part=10, noline=True)
+    if 'moustache' in ex_:
+        c.paint(c.rect(HX - 3, 16, HX + 3, 18) & ~c.rect(HX - 1, 17, HX + 1, 18), hair, .6, part=11, noline=True)
+    else:
+        c.paint(c.rect(HX - 1, 17, HX + 1, 18), skin, .05, part=10, noline=True)          # tiny mouth, a darker skin tone
+    if 'glasses' in ex_:
+        for ex in (HX - 6, HX + 2):
+            ring = c.rect(ex, 10, ex + 5, 17) & ~c.rect(ex + 1, 11, ex + 4, 16)
+            c.paint(ring, 'gold', .6, part=12, noline=True)
+        c.paint(c.rect(HX - 1, 12, HX + 2, 13), 'gold', .6, part=12, noline=True)
+    if 'piercing' in ex_: c.paint(c.rect(HX + 10, 14, HX + 11, 16), 'chrome', .9, part=12, noline=True)
+
+def head_side(c, skin, hair, eye, L=None):
+    L = L or {}; st = L.get('style', 'short'); ex_ = L.get('extras', ())
     c.paint(c.ell(HX, HY, HR - .3, HR * .95), skin, .6 + c.sphere(HX + 1, HY, HR, HR) * .28, part=8)
     c.paint(c.ell(HX - 2, 13, 1.8, 2.4), skin, .45, part=8)                           # ear
     sheen = ((c.xs + c.ys * 2) % 6 == 0) * -.12
-    hm = c.ell(HX - .5, HY - 1, HR + .6, HR) & ((c.ys < 7 + (c.xs > HX + 4) * 1.5) | (c.xs < HX - 3) | ((c.xs < HX) & (c.ys < 11)))
+    cap = c.ell(HX - .5, HY - 1, HR + .6, HR)
+    hm = cap & ((c.ys < 7 + (c.xs > HX + 4) * 1.5) | (c.xs < HX - 3) | ((c.xs < HX) & (c.ys < 11)))
+    if st == 'mohawk':
+        c.paint(cap & (c.ys < 9) & ~c.ell(HX - 2, 13, 2, 2.6), skin, .3, part=8)
+        hm = (c.xs > HX - 9) & (c.xs < HX + 6) & (c.ys >= 2.6 * np.abs((c.xs % 4) - 2) - 1.5) & (c.ys < 7) & (c.ys >= 0)
+    elif st == 'bald':
+        hm = cap & (c.xs < HX - 3) & (c.ys > 7) & (c.ys < 16)
+        c.paint(c.rect(HX, 2, HX + 4, 4) & cap, skin, 1, part=8, noline=True)
+    elif st == 'bouffant':
+        hm = (c.ell(HX - 2, HY - 3, HR + 3.5, HR + 1.5) & (c.ys >= 0)) & ~(c.ell(HX + 3, HY + 3, 7, 8) & (c.ys > 6))
+    elif st == 'quiff':
+        hm |= (c.ys >= 0) & (c.ys < 5) & (c.xs > HX - 6) & (c.xs < HX + 9) & (c.ys >= (c.xs - HX) * -.4 + 1)
+    elif st == 'long':
+        hm |= c.rect(HX - 10, 9, HX - 3, 27) & c.ell(HX - 6, 17, 6, 11)
+    elif st == 'bob':
+        hm |= c.rect(HX - 10, 6, HX - 2, 20) & c.ell(HX - 3, 12, 8, 10)
     hm &= ~c.ell(HX - 2, 13, 2, 2.6)
-    if long: hm |= c.rect(HX - 10, 9, HX - 3, 27) & c.ell(HX - 6, 17, 6, 11)
-    c.paint(hm, hair, c.sphere(HX - 2, HY - 3, HR + 1, HR + 1) * .85 + sheen, part=9)
+    curls = (noise(c.h, c.w, 2, rng(80)) - .5) * .5 if st == 'bouffant' else 0
+    c.paint(hm, hair, np.clip(c.sphere(HX - 2, HY - 3, HR + 1, HR + 1) * .85 + sheen + curls, 0, 1), part=9)
     ex = HX + 4
     e = c.rect(ex, 11, ex + 3, 16) & ~(c.rect(ex, 11, ex + 1, 12) | c.rect(ex + 2, 11, ex + 3, 12) | c.rect(ex, 15, ex + 1, 16) | c.rect(ex + 2, 15, ex + 3, 16))
     c.paint(e, eye, np.where(c.ys >= 13, .55, .05), part=10, noline=True)
     c.paint(c.rect(ex, 12, ex + 1, 14), 'white', 1, part=11, noline=True)
     c.paint(c.rect(ex, 16, ex + 2, 17), 'blush' + skin, 0, part=10, noline=True)
-    c.paint(c.rect(HX + 6, 17, HX + 7, 18), skin, .05, part=10, noline=True)
+    if 'moustache' in ex_: c.paint(c.rect(HX + 4, 16, HX + 8, 18), hair, .6, part=11, noline=True)
+    else: c.paint(c.rect(HX + 6, 17, HX + 7, 18), skin, .05, part=10, noline=True)
+    if 'glasses' in ex_:
+        c.paint((c.rect(ex - 1, 10, ex + 4, 17) & ~c.rect(ex, 11, ex + 3, 16)) | c.rect(HX - 1, 12, ex - 1, 13), 'gold', .6, part=12, noline=True)
+    if 'piercing' in ex_: c.paint(c.rect(HX - 2, 15, HX - 1, 17), 'chrome', .9, part=12, noline=True)
 
-def person(d='down', skin='skinA', hair='hairB', shirt='shirtB', long=False, pants='jeans', eye='irisBr'):
+def chest_print(c, L, cx, cy):
+    """front details of the top: suit and tie, jacket studs, a lightning bolt on a T-shirt, pearls"""
+    top, ex_ = L.get('top', 'shirt'), L.get('extras', ())
+    if top == 'suit':
+        c.paint(c.rect(cx - 2, cy, cx + 2, cy + 7) & (np.abs(c.xs + .5 - cx) < (c.ys - cy) * .5 + 1.2), 'apron', .8, part=6)
+        c.paint(c.rect(cx - 1, cy + 1, cx + 1, cy + 8), 'tie', c.cyl_x(cx - 1, cx + 1, .4, .8), part=7)
+        for y in (cy + 8, cy + 11): c.paint(c.rect(cx + 3, y, cx + 4, y + 1), 'gold', .6, part=7, noline=True)
+    elif top == 'leather':
+        c.paint(c.rect(cx, cy, cx + 1, cy + 12), 'chrome', .7, part=6, noline=True)
+        for x in (cx - 6, cx - 4, cx + 4, cx + 6): c.paint(c.rect(x, cy + 1, x + 1, cy + 2), 'chrome', 1, part=6, noline=True)
+    elif top == 'tee':
+        bolt = [(1, 0), (0, 1), (1, 1), (0, 2), (1, 2), (2, 2), (1, 3), (2, 3), (1, 4)]
+        for dx, dy in bolt: c.paint(c.rect(cx - 1 + dx, cy + 3 + dy, cx + dx, cy + 4 + dy), 'gold', .85, part=6, noline=True)
+    elif top == 'crop':
+        c.paint(c.rect(cx - 6, cy + 9, cx + 6, cy + 12) & c.ell(cx, cy + 6, 7.5, 7.5), L['skin'], .6, part=6)   # bare waist
+    if 'pearls' in ex_:
+        for k in range(-3, 4):
+            c.paint(c.rect(cx + k * 2, cy + 1 + abs(k) * -.0 + (3 - abs(k)) * .7, cx + k * 2 + 1, cy + 2 + (3 - abs(k)) * .7), 'plate', .95, part=7, noline=True)
+
+def person(d='down', L=None):
+    L = dict(L or {}); skin, hair, eye, shirt, pants = L['skin'], L['hair'], L['eye'], L['shirt'], L['pants']
+    top, legs = L.get('top', 'shirt'), L.get('legs', 'pants')
+    shin_mat = skin if legs in ('shorts', 'skirt') else pants
+    shoe = 'sneaker' if legs == 'shorts' else 'shoe'
+    sleeve = top in ('tee', 'crop')
     c = Canvas(32, 48)
     if d in ('left', 'right'):
-        c.paint(c.rect(21, 35, 25, 43), pants, c.cyl_x(21, 25, .2, .6), part=1)            # shin
-        c.paint(c.ell(25, 44.5, 4.5, 2.6), 'shoe', c.sphere(25, 44, 4.5, 2.6), part=2)
-        c.paint(c.rect(12, 30, 25, 36) | c.ell(24, 33, 2.8, 3), pants, np.where(c.ys < 32, .75, .4), part=3)   # thigh
-        c.paint(c.ell(16, 27, 6, 7.5) & (c.ys > 19), shirt, c.sphere(15, 25, 7, 8) * .8 + .1, part=4)          # round body
-        c.paint(c.rect(15, 23, 25, 27) | c.ell(15, 25, 2.5, 2.5), shirt, np.where(c.ys < 25, .75, .4), part=5) # short arm
+        c.paint(c.rect(21, 35, 25, 43), shin_mat, c.cyl_x(21, 25, .2, .6) + (.15 if shin_mat == skin else 0), part=1)
+        c.paint(c.ell(25, 44.5, 4.5, 2.6), shoe, c.sphere(25, 44, 4.5, 2.6), part=2)
+        c.paint(c.rect(12, 30, 25 if legs != 'skirt' else 22, 36) | c.ell(24 if legs != 'skirt' else 21, 33, 2.8, 3), pants, np.where(c.ys < 32, .75, .4), part=3)
+        if legs == 'shorts': c.paint(c.rect(21, 31, 25, 36), skin, .65, part=3)
+        c.paint(c.ell(16, 27, 6, 7.5) & (c.ys > 19), shirt, c.sphere(15, 25, 7, 8) * .8 + .1, part=4)
+        if top == 'suit': c.paint(c.rect(19, 21, 21, 28), 'tie', .6, part=5)
+        arm = c.rect(15, 23, 25, 27) | c.ell(15, 25, 2.5, 2.5)
+        c.paint(arm, shirt, np.where(c.ys < 25, .75, .4), part=5)
+        if sleeve: c.paint(c.rect(19, 23, 25, 27), skin, np.where(c.ys < 25, .75, .45), part=5)
         c.paint(c.ell(26, 25, 2.4, 2.2), skin, .65, part=6)
-        head_side(c, skin, hair, eye, long)
+        if 'phone' in L.get('extras', ()): c.paint(c.rect(25, 19, 28, 25), 'onyx', .5, part=7)
+        head_side(c, skin, hair, eye, L)
         return flip(c) if d == 'left' else c
     if d == 'down':
-        for lx in (11, 17): c.paint(c.rect(lx, 36, lx + 4, 43), pants, c.cyl_x(lx, lx + 4, .25, .65), part=1)
-        for cx in (12.5, 19.5): c.paint(c.ell(cx, 44.5, 3.5, 2.6), 'shoe', c.sphere(cx, 44, 3.5, 2.6), part=2)
-        c.paint(c.ell(16, 34, 7.5, 3.5), pants, np.where(c.ys < 34, .8, .5), part=3)         # lap
+        for lx in (11, 17): c.paint(c.rect(lx, 36, lx + 4, 43), shin_mat, c.cyl_x(lx, lx + 4, .25, .65) + (.15 if shin_mat == skin else 0), part=1)
+        for cx in (12.5, 19.5): c.paint(c.ell(cx, 44.5, 3.5, 2.6), shoe, c.sphere(cx, 44, 3.5, 2.6), part=2)
+        c.paint(c.ell(16, 34, 7.5 if legs != 'skirt' else 8.5, 3.5 if legs != 'skirt' else 4.5), pants, np.where(c.ys < 34, .8, .5), part=3)
     c.paint(c.ell(16, 27, 7.5, 7.5) & (c.ys > 19), shirt, c.sphere(15, 25, 8, 8) * .8 + .1, part=4)
     for ax in (7.5, 24.5):
         c.paint(c.ell(ax, 26, 2.6, 4.5), shirt, c.sphere(ax, 25, 2.6, 4.5) * .7 + .1, part=5)
+        if sleeve: c.paint(c.ell(ax, 27.5, 2.4, 3) & (c.ys > 25), skin, .6, part=5)
         if d == 'down': c.paint(c.ell(ax + (1 if ax < 16 else -1), 30.5, 2.3, 2), skin, .65, part=6)   # mitten hands
-    if d == 'down': c.paint(c.ell(16, 21, 2.5, 1.6) & (c.ys > 20), skin, .45, part=5)           # neckline
-    head_front(c, skin, hair, eye, long, back=(d == 'up'))
+    if d == 'down':
+        if top not in ('suit',): c.paint(c.ell(16, 21, 2.5, 1.6) & (c.ys > 20), skin, .45, part=5)    # neckline
+        chest_print(c, L, 16, 20)
+        if 'phone' in L.get('extras', ()): c.paint(c.rect(22, 26, 26, 31), 'onyx', .5, part=7); c.paint(c.rect(23, 27, 25, 30), 'neonC', .6, part=8, noline=True)
+    elif top == 'leather':
+        c.paint(c.ell(16, 26, 3, 3), 'chrome', .5, part=6, noline=True)                    # a badge on the back
+    head_front(c, skin, hair, eye, L, back=(d == 'up'))
     return c
 
 def standing(role='waiter', skin='skinA', hair='hairB', eye='irisBr'):
@@ -1051,12 +1159,23 @@ def standing(role='waiter', skin='skinA', hair='hairB', eye='irisBr'):
         c.paint(c.rect(7, 4, 25, 7), 'apron', .5, part=12)
     return c
 
-# customers: skin, hair, shirt, long hair, trousers, eyes
-LOOKS = [('skinA', 'hairY', 'shirtR', True, 'pantsK', 'irisBl'), ('skinB', 'hairK', 'shirtG', False, 'jeans', 'irisBr'),
-         ('skinA', 'hairG', 'shirtW', False, 'pantsB', 'irisGr'), ('skinC', 'hairB', 'shirtP', False, 'jeans', 'irisDk'),
-         ('skinB', 'hairR', 'shirtY', True, 'pantsK', 'irisGr'), ('skinC', 'hairK', 'shirtB', False, 'pantsB', 'irisBr'),
-         ('skinD', 'hairB', 'shirtR', True, 'jeans', 'irisHz'), ('skinA', 'hairB', 'shirtB', False, 'pantsK', 'irisBl'),
-         ('skinD', 'hairK', 'shirtW', True, 'pantsB', 'irisDk'), ('skinB', 'hairY', 'shirtP', False, 'jeans', 'irisHz')]
+def look(skin, hair, shirt, long, pants, eye, **kw):
+    return dict(skin=skin, hair=hair, shirt=shirt, pants=pants, eye=eye, style='long' if long else 'short', **kw)
+# customers: the first ten are everyday people, the rest are the ones who stand out
+LOOKS = [look('skinA', 'hairY', 'shirtR', True, 'pantsK', 'irisBl'), look('skinB', 'hairK', 'shirtG', False, 'jeans', 'irisBr'),
+         look('skinA', 'hairG', 'shirtW', False, 'pantsB', 'irisGr'), look('skinC', 'hairB', 'shirtP', False, 'jeans', 'irisDk'),
+         look('skinB', 'hairR', 'shirtY', True, 'pantsK', 'irisGr'), look('skinC', 'hairK', 'shirtB', False, 'pantsB', 'irisBr'),
+         look('skinD', 'hairB', 'shirtR', True, 'jeans', 'irisHz'), look('skinA', 'hairB', 'shirtB', False, 'pantsK', 'irisBl'),
+         look('skinD', 'hairK', 'shirtW', True, 'pantsB', 'irisDk'), look('skinB', 'hairY', 'shirtP', False, 'jeans', 'irisHz'),
+         # the old gentleman in a suit, the old lady with big hair, punks, a rock kid, an influencer, coloured hair
+         dict(skin='skinA', hair='hairG', eye='irisBl', shirt='suitN', pants='suitN', style='bald', top='suit', extras=('glasses', 'moustache')),
+         dict(skin='skinA', hair='hairLilac', eye='irisGr', shirt='shirtP', pants='skirtP', style='bouffant', top='cardigan', legs='skirt', extras=('glasses', 'pearls')),
+         dict(skin='skinA', hair='hairGreen', eye='irisBr', shirt='jacket', pants='jeans', style='mohawk', top='leather', extras=('piercing',)),
+         dict(skin='skinB', hair='hairB', eye='irisBr', shirt='vest', pants='jeans', style='short', top='tee', legs='shorts'),
+         dict(skin='skinA', hair='hairPink', eye='irisBl', shirt='crop', pants='jeans', style='long', top='crop', extras=('phone',)),
+         dict(skin='skinC', hair='hairBlue', eye='irisDk', shirt='jacket', pants='pantsK', style='mohawk', top='leather', extras=('piercing',)),
+         dict(skin='skinD', hair='hairBlue', eye='irisHz', shirt='shirtY', pants='jeans', style='quiff', top='tee'),
+         dict(skin='skinB', hair='hairGreen', eye='irisGr', shirt='shirtB', pants='pantsB', style='bob')]
 
 # ======================= LAYOUT OF EACH PIECE (px from its top-left tile, 32 px tiles) =======================
 # parts: [key, x, y, z, frames]; z is the depth baseline (bigger = in front).
@@ -1116,8 +1235,8 @@ def sprites():
     put('k_oven_0', oven(0)); put('k_oven_1', oven(1)); put('k_counter', counter(8)); put('k_register', register())
     put('k_boxes', boxes()); put('k_logs', logs()); put('k_rack', rack())
     put('waiter', standing('waiter', 'skinB', 'hairB', 'irisBr')); put('cook', standing('cook', 'skinA', 'hairK', 'irisGr'))
-    for i, (sk, hr, sh, lg, pa, ey) in enumerate(LOOKS):
-        for d in ('down', 'up', 'right', 'left'): put(f'p{i}_{d}', person(d, sk, hr, sh, lg, pa, ey))
+    for i, L in enumerate(LOOKS):
+        for d in ('down', 'up', 'right', 'left'): put(f'p{i}_{d}', person(d, L))
     return out
 
 def layout_json(imgs):
@@ -1131,7 +1250,7 @@ def layout_json(imgs):
     walls = {id_: [k + ('_1' if k == 'w_neon' else ''), x, y] for id_, (k, x, y) in WALLPIECES.items()}
     kitchen = [['k_oven', 414, 42, 128, 2], ['k_logs', 606, 104, 128], ['k_counter', 382, 202, 256], ['k_register', 388, 178, 256.1],
                ['k_boxes', 606, 190, 256.2], ['cook', 456, 58, 129]]
-    return json.dumps({'items': items, 'walls': walls, 'kitchen': kitchen, 'looks': len(LOOKS)}, separators=(',', ':'))
+    return json.dumps({'items': items, 'walls': walls, 'kitchen': kitchen, 'looks': len(LOOKS), 'plain': 10}, separators=(',', ':'))
 
 def pack(imgs, width=1024):
     order = sorted(imgs, key=lambda k: (-imgs[k].height, -imgs[k].width))
