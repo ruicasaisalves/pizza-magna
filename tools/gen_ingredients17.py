@@ -28,7 +28,7 @@ R.update({
     'lobdark': hexs(['#2e0804', '#56120a', '#7a1e10']),                           # joints and eyes
     'surimi': hexs(['#c8b8a6', '#e4d8ca', '#f6eee4', '#fffaf4']),                 # white flesh
     'surred': hexs(['#8e200e', '#c43c1c', '#e8603a', '#fa8c62']),                 # orange-red skin
-    'ribglz': hexs(['#2e0e06', '#4e1a0c', '#742c14', '#9a4420', '#c06432']),       # BBQ glaze
+    'ribglz': hexs(['#2a0804', '#521208', '#7e2210', '#a83a1c', '#d8704a']),       # BBQ glaze: deep red-brown, glossy
     'bone': hexs(['#8e7c62', '#b8a888', '#dcd0b6', '#f4ecdc']),
 })
 
@@ -150,27 +150,32 @@ def lobster_chunks(seed, W=30, H=26):
     return img
 
 # ---------------- RIBS (one glazed rib, bone to the right) ----------------
-def rib(seed, ang=None, L=40, T=12):
+def rib(seed, ang=None, L=42, T=13):
+    """one rib on an arc (as a rib bends round the body): glossy red-brown glaze, the white bone
+    sticking out at the end and following the arc"""
     a = 0 if ang is None else ang
-    W, H = turn(L + 4, T + 6, ang)
+    SAG = 6                                                      # how far the middle rises above the ends
+    W, H = turn(L + 4, T + SAG + 6, ang)
     u, v = axes(W, H, a)
     rng = np.random.default_rng(seed + 5300)
     n = noise(H, W, 3, rng)
-    bend = .9 * ((u / (L / 2)) ** 2 - .5)                        # a gentle curve, like a real rib
-    vv = v - bend
-    meat_len = L - 9
-    mu = u + 4.5                                                 # the meat sits left of centre
-    edge = 1 + (n - .5) * .25
-    meat = (np.abs(mu) <= meat_len / 2) & (np.abs(vv) <= (T / 2) * edge * np.sqrt(np.clip(1 - (np.abs(mu) / (meat_len / 2 + .5)) ** 6, 0, 1)))
-    bone = (u > meat_len / 2 - 6) & (u <= L / 2) & (np.abs(vv) <= 2.2)
-    knob = np.hypot(u - (L / 2 - 1.5), vv) <= 3                  # the bone end
-    bonem = (bone | knob) & ~meat
+    vv = v + (SAG / 2) - SAG * (u / (L / 2)) ** 2                # bend: an arc, middle up, ends down
+    meat_len = L - 10
+    mu = u + 5                                                   # the meat sits left of centre
+    edge = 1 + (n - .5) * .2
+    taper = np.sqrt(np.clip(1 - (np.abs(mu) / (meat_len / 2 + .5)) ** 6, 0, 1))
+    meat = (np.abs(mu) <= meat_len / 2) & (np.abs(vv) <= (T / 2) * edge * taper)
+    inner = np.zeros_like(meat)
+    bone = (u > meat_len / 2 - 7) & (u <= L / 2) & (np.abs(vv) <= 2.3)
+    knob = np.hypot(u - (L / 2 - 1.8), vv) <= 3.1          # the bone end
+    bonem = ((bone | knob) & ~meat) | inner
     mask = meat | bonem
-    height = np.where(meat, np.sqrt(np.clip(1 - (vv / (T / 2 + .1)) ** 2, 0, 1)) * 3.5 + (n - .5) * 1.4, 0)
-    height = np.where(bonem, 1.6 * np.sqrt(np.clip(1 - (vv / 3) ** 2, 0, 1)), height)
-    char = meat & (n > .68)                                      # charred spots on the glaze
+    height = np.where(meat, np.sqrt(np.clip(1 - (vv / (T / 2 + .1)) ** 2, 0, 1)) * 4 + (n - .5) * 1.2, 0)
+    height = np.where(bonem & ~meat, 1.6 * np.sqrt(np.clip(1 - (vv / 3) ** 2, 0, 1)), height)
+    char = meat & ~inner & (n > .72)                             # charred spots on the glaze
+    shine = meat & ~inner & (np.abs(vv + T * .18) < 1.1) & (np.abs(mu) < meat_len / 2 - 4) & (n < .6)   # wet glaze highlight
     mat = [['bone' if bonem[y, x] else 'ribglz' for x in range(W)] for y in range(H)]
-    light = np.clip(shade(height, mask) * .9 + .15 - np.where(char, .25, 0), 0, 1) * mask
+    light = np.clip(shade(height, mask) * .85 + .15 - np.where(char, .25, 0) + np.where(shine, .45, 0), 0, 1) * mask
     return render(mat, light, mask, {'bone': 'bone', 'ribglz': 'ribglz'})
 
 def rib_cubes(seed):
