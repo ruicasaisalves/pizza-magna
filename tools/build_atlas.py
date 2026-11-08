@@ -42,6 +42,7 @@ import gen_ingredients14 as G14
 import gen_ingredients15 as G15
 import gen_ingredients16 as G16
 import gen_ingredients17 as G17
+import gen_ingredients18 as G18
 import gen_bases as GB
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
@@ -54,7 +55,7 @@ ROOT = os.path.join(HERE, '..')
 BIG = {'W': 60, 'H': 56}
 
 INGS = {
-    'mozzarella':   (G.mozz,        ('mozz', 'shred', 130, BIG)),
+    'mozzarella':   (G.mozz,        G18.mozz_layer),             # grated: a thick white layer (60x56, like BIG)
     'queijo_serra': (G4.serra,      ('serra', 'flake', 40)),
     'fiambre':      (G2.ham,        ('ham', 'cube', 12)),
     'pepperoni':    (G2.pepperoni,  ('pep', 'cube', 11)),
@@ -152,6 +153,8 @@ INGS = {
     'lagosta':      (G17.lobster,   G17.lobster_chunks),
     'ribs':         (G17.rib,       G17.rib_cubes),
 }
+# chopped forms that lie flat (melted cheese): no drop shadow, so handfuls side by side make one even surface
+NO_DROP = {'mozzarella'}
 # rotating pieces: a single image, lying down (the positions are counted in the game, in ING.rot)
 ROTATE = {
     'bacon': lambda: G.bacon(1, ang=0),            # 2 positions: lying, standing
@@ -250,7 +253,8 @@ def sprites():
         if gr:
             for j in range(3):
                 sd = 40 + j * 17 + len(k)
-                out[f'{k}_g{j}'] = drop(gr(sd) if callable(gr) else G2.grated(gr[0], sd, gr[1], n_bits=gr[2], **(gr[3] if len(gr) > 3 else {})))
+                im = gr(sd) if callable(gr) else G2.grated(gr[0], sd, gr[1], n_bits=gr[2], **(gr[3] if len(gr) > 3 else {}))
+                out[f'{k}_g{j}'] = im if k in NO_DROP else drop(im)
     out.update(bases())
     out['marble'] = G.marble(320, 200, np.random.default_rng(5)).convert('RGBA')
     out['bowl'] = bowl()
