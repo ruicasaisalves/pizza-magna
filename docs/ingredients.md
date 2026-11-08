@@ -9,7 +9,7 @@
 **Fish and seafood:** ✓★ Tuna (atum) · ✓★ Salt cod (bacalhau) · ✓★ Anchovies (anchovas) · ✓★ Prawns (camarao) · ✓★ Sardine (sardinha) · ✓★ Smoked salmon (salmao) · ✓★ Octopus (polvo) · ✓★ Clams (ameijoas) · ✓★ Squid (lulas) · ✓★ Lobster, whole or chopped (lagosta)
 **Vegetables:** ✓★ Mushrooms (cogumelos) · ✓★ Onion (cebola) · ✓★ Pepper (pimento) · ✓★ Olives (azeitonas) · ✓★ Rocket (rucula) · ✓★ Tomato (tomate) · ✓★ Cherry tomato · ✓★ Sweetcorn (milho) · ✓★ Spinach (espinafres) · ✓★ Asparagus (espargos) · ✓★ Artichoke (alcachofra) · ✓★ Aubergine (beringela) · ✓★ Courgette (curgete) · ✓★ Jalapeños · ✓★ Red onion (cebola_roxa) · ✓★ Garlic (alho) · ✓★ Padrón peppers · ✓★ Turnip greens (grelos) · ✓★ Kale (couve_galega) · ✓★ Potato (batata)
 **Herbs and spices:** ✓★ Basil (manjericao) · ✓★ Piri-piri · ✓★ Oregano (oregaos) · ✓★ Rosemary (alecrim) · ✓★ Thyme (tomilho) · ✓★ Coriander (coentros) · ✓★ Parsley (salsa) · ✓★ Black pepper (pimenta)
-**Fruit and sweets:** ✓★ Pineapple (ananas) · ✓★ Honey (mel) · ✓★ Fig (figo) · ✓★ Pear (pera) · ✓★ Apple (maca) · ✓★ Quince paste (marmelada) · ✓★ Walnuts (nozes) · ✓★ Pine nuts (pinhoes) · ✓★ Chocolate · ✓★ Nutella · ✓★ Banana
+**Fruit and sweets:** ✓★ Pineapple (ananas) · ✓★ Honey (mel) · ✓★ Fig (figo) · ✓★ Pear (pera) · ✓★ Apple (maca) · ✓★ Quince paste (marmelada) · ✓★ Walnuts (nozes) · ✓★ Pine nuts (pinhoes) · ✓★ Chocolate · ✓★ Nutella · ✓★ Banana · ✓★ Blackberry (amora) · ✓★ Blueberry (mirtilo) · ✓★ Raspberry (framboesa)
 **Finishing touches:** ✓★ Egg (ovo) · ✓★ Olive oil (azeite) · ✓★ Balsamic · ✓★ Grated truffle (trufa) · ✓★ Sour cream (natas_azedas) · ✓★ Mayonnaise (maionese) · ✓★ Potato sticks (batata_palha)
 
 ## How things are cut

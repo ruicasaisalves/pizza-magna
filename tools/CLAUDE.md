@@ -1,6 +1,6 @@
 # Sprite generators
 
-`gen_ingredients.py` to `gen_ingredients18.py` draw the toppings in Python (numpy + PIL); `gen_bases.py` draws the doughs and sauces. `build_atlas.py` packs them into `../assets/ingredients.js`.
+`gen_ingredients.py` to `gen_ingredients19.py` draw the toppings in Python (numpy + PIL); `gen_bases.py` draws the doughs and sauces. `build_atlas.py` packs them into `../assets/ingredients.js`.
 
 `gen_room.py` draws the dining room with the same method at 32 px per tile (floors, walls, chairs, tables, decor, wall pieces, kitchen, street, seated customers, waiter and cook) and writes `../assets/room.js`: the frames plus the layout of each piece (parts, chairs, sitters and table top, in px from its top-left tile). Run `python3 tools/gen_room.py <scratchpad>` and look at `room_atlas.png`; `docs/drafts/room.html` uses it. Every view of a seated person puts the hips at y = 33, so a person is drawn 18 px above its chair (24 px for a chair seen from behind). Code comments and docs are in English.
 
@@ -21,7 +21,7 @@ The `preview/` folder is in `.gitignore`; previews go to the scratchpad.
   - `erode` makes layers from the edge;
   - `noise` gives texture;
   - `drop` makes the 2 px shadow, applied by `build_atlas.py`.
-- **Variants:** 3 per topping, with seeds 1, 2 and 3. Each function uses `np.random.default_rng(seed + base)` with its own base. Batch 18 reaches `+5500`; carry on from there.
+- **Variants:** 3 per topping, with seeds 1, 2 and 3. Each function uses `np.random.default_rng(seed + base)` with its own base. Batch 19 reaches `+6200`; carry on from there.
 
 ## Rotation (`ING.rot` in the game)
 It is always the **same image** turned in quarter turns by the game, without losing pixels; the shadow is computed afterwards.
