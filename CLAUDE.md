@@ -10,6 +10,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
   - `= DRAWING`: atlas, `spr()`, rotating pieces (`turned()`), `composePizza()` (pieces are drawn in the order they were placed)
   - `= UI: KITCHEN =` and `-- the pizza bench`: the bench (320 wide, with a title strip on top; zoom mode), the bowls, `addPiece()`, `rotatePiece()`, `GRAMS` and `portion()` (weights)
   - `= UI: DAY =`, `-- simulation`, `-- restaurant room`: the day, the customers and the tiled room (32 px tiles, art and piece layouts from `assets/room.js`)
+  - `-- room design` (state.room: pieces, seats, atmosphere per customer group, `roomAnalyse()`), `= UI: ROOM EDITOR =` (Shop › Decorate the room)
   - `= UI: SHOP =`, `= UI: CONTEST =`, `= MODALS =`, `= RECIPES: LINK, FILE, IMPORT =`, `= SHARE =`
   - `= RENDER + EVENTS =`: `render()` and the button actions (`ACT`), plus `TRACK` (analytics events)
 - `music.js`: 8-bit / lo-fi Italian music, synthesised with Web Audio (no sound files). Each tune is text: one note per eighth, `-` holds, `.` is silence. Lead, bass and harmony must have the same number of steps per part. Tunes play in a fixed order ("Next song" in Options). The public-domain classics come from ABC sheet music (abcnotation.com), converted with `tools/abc2music.py`. The on/off preference lives in `localStorage` (`pm-music`), apart from the save.

@@ -27,9 +27,10 @@ The biggest block. A first visual draft of the map is in `docs/drafts/city.html`
 - Bank: loans with interest, to afford the first purchase.
 
 ### 2. Room decoration
-- Replace the 0–3 renovation level with a **room editor**: buy and place tables, chairs, counter, plants, pictures, floor, walls and lighting.
-- Each item has a style (rustic, modern, Portuguese tasca, luxury) that attracts certain customer groups.
-- The number of tables limits how many customers fit at once.
+- **Done (first version):** Shop › Decorate the room is the room editor from the draft, in the game. Furniture is bought and placed on the tile grid, sold back for half. The room is saved (`state.room`; old saves rebuilt from the old 0–3 level).
+- **Seats count:** customers come in a lunch and a dinner rush; each one holds a seat while eating, and with no seat free for a moment they leave ("no table"), which costs reputation. Tables a waiter can't reach don't count.
+- **Atmosphere counts:** each piece's appeal per customer group, a style bonus when the room is mostly one style, and a penalty when it is crowded, shift the customer mix, their choice and their satisfaction.
+- Still to do: lighting, a counter you can move, a second room size per property, animated pieces in the editor.
 - The furniture comes from the room atlas `assets/room.js` (made by `tools/gen_room.py`), like the rest of the room.
 - Draft: `docs/drafts/room.html` (standalone): four styles, 8 table sets, 14 floor pieces, 9 wall pieces, 6 floors and 5 walls; atmosphere per customer group, seats, free floor and reachability checks.
 
