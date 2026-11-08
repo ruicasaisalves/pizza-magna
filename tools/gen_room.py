@@ -1171,6 +1171,50 @@ def standing(role='waiter', skin='skinA', hair='hairB', eye='irisBr'):
         c.paint(c.rect(7, 4, 25, 7), 'apron', .5, part=12)
     return c
 
+def walker(d='down', L=None, f=0):
+    """32 x 58, a customer standing or walking (f=1: mid-step), in their own clothes and hair, facing
+    d (down, up, right, left). Same frame and head place as the waiter, so heads line up."""
+    L = dict(L or {}); skin, hair, eye, shirt, pants = L['skin'], L['hair'], L['eye'], L['shirt'], L['pants']
+    top, legs = L.get('top', 'shirt'), L.get('legs', 'pants')
+    shin = skin if legs in ('shorts', 'skirt') else pants
+    shoe = 'sneaker' if legs == 'shorts' else 'shoe'
+    sleeve = top in ('tee', 'crop')
+    c = Canvas(32, 58)
+    if d in ('left', 'right'):
+        for k, lx in enumerate((11, 18) if f else (14, 14)):                     # back leg, then front leg
+            c.paint(c.rect(lx, 40, lx + 4, 52), shin, c.cyl_x(lx, lx + 4, .2 + k * .1, .6 + k * .1) + (.1 if shin == skin else 0), part=1 + k)
+            c.paint(c.ell(lx + 3, 53.5, 4, 2.4), shoe, c.sphere(lx + 3, 53, 4, 2.4), part=2 + k)
+        hips = c.rect(11, 36, 22, 45) if legs == 'skirt' else c.rect(12, 36, 21, 42)
+        c.paint(hips, pants, np.where(c.ys < 38, .75, .45), part=4)
+        c.paint((c.ell(16, 29, 6.5, 10) & (c.ys > 19)) | c.rect(10, 29, 22, 38), shirt, c.sphere(15, 27, 7, 10) * .8 + .1, part=5)
+        sw = 2 if f else 0                                                     # the arm swings with the step
+        c.paint(c.ell(16 + sw, 29, 2.4, 6), shirt, c.sphere(16 + sw, 28, 2.4, 6) * .7 + .15, part=6)
+        if sleeve: c.paint(c.ell(16 + sw, 31, 2.2, 3) & (c.ys > 28), skin, .6, part=6)
+        c.paint(c.ell(16 + sw * 1.5, 35.5, 2.2, 2), skin, .65, part=7)
+        head_side(c, skin, hair, eye, L)
+        return flip(c) if d == 'left' else c
+    for k, lx in enumerate((11, 17)):                                          # mid-step: one foot a little up
+        y1 = 52 - (2 if f and k == (0 if d == 'down' else 1) else 0)
+        c.paint(c.rect(lx, 40, lx + 4, y1), shin, c.cyl_x(lx, lx + 4, .25, .65) + (.1 if shin == skin else 0), part=1)
+        c.paint(c.ell(lx + 1.5, y1 + 1.5, 3.5, 2.6), shoe, c.sphere(lx + 1.5, y1 + 1, 3.5, 2.6), part=2)
+    hips = c.rect(8, 36, 24, 46) if legs == 'skirt' else c.rect(10, 36, 22, 42)
+    c.paint(hips, pants, np.where(c.ys < 38, .8, .5), part=3)
+    c.paint((c.ell(16, 29, 8, 10) & (c.ys > 19)) | c.rect(9, 29, 23, 38), shirt, c.sphere(15, 25, 8, 10) * .8 + .1, part=4)
+    if d == 'down' and top == 'suit': c.paint(c.rect(15, 21, 17, 30), L.get('tie', 'tie'), .6, part=5)
+    for ax in (7, 25):
+        sw = (1 if (ax < 16) == (f == 1) else -1) if f else 0
+        c.paint(c.ell(ax, 28 + sw, 2.6, 6), shirt, c.sphere(ax, 27 + sw, 2.6, 6) * .7 + .1, part=5)
+        if sleeve: c.paint(c.ell(ax, 30 + sw, 2.4, 3) & (c.ys > 27 + sw), skin, .6, part=5)
+        c.paint(c.ell(ax, 34.5 + sw, 2.3, 2), skin, .65, part=6)
+    if d == 'down':
+        if top not in ('suit', 'blazer'): c.paint(c.ell(16, 21, 2.5, 1.6) & (c.ys > 20), skin, .45, part=5)
+        chest_print(c, L, 16, 20)
+        if 'phone' in L.get('extras', ()): c.paint(c.rect(22, 30, 26, 35), 'onyx', .5, part=7)
+    elif top == 'leather':
+        c.paint(c.ell(16, 27, 3, 3), 'chrome', .5, part=6, noline=True)
+    head_front(c, skin, hair, eye, L, back=(d == 'up'))
+    return c
+
 def look(skin, hair, shirt, long, pants, eye, **kw):
     return dict(skin=skin, hair=hair, shirt=shirt, pants=pants, eye=eye, style='long' if long else 'short', **kw)
 # customers: the first PLAIN are everyday people (office workers included), the rest are the ones who stand out
@@ -1253,7 +1297,9 @@ def sprites():
     put('k_boxes', boxes()); put('k_logs', logs()); put('k_rack', rack())
     put('waiter', standing('waiter', 'skinB', 'hairB', 'irisBr')); put('cook', standing('cook', 'skinA', 'hairK', 'irisGr'))
     for i, L in enumerate(LOOKS):
-        for d in ('down', 'up', 'right', 'left'): put(f'p{i}_{d}', person(d, L))
+        for d in ('down', 'up', 'right', 'left'):
+            put(f'p{i}_{d}', person(d, L))                       # seated
+            for f in (0, 1): put(f'w{i}_{d}_{f}', walker(d, L, f))   # standing / walking
     return out
 
 def layout_json(imgs):

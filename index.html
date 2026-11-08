@@ -1365,9 +1365,10 @@ function rtile(c,key,x0,y0,x1,y1){const im=rspr(key);c.save();c.beginPath();c.re
 // the look grows with the shop's decoration level: more tables (buildMap), plants, pictures, then luxury tables
 const roomTable=()=>state.deco>=3?'bistro':'xadrez2';
 const roomWalls=()=>[state.deco>=2?'quadro':null,'janela',state.deco>=2?'quadro':null,'janela','giz',state.deco>=1?'prateleira':null];
-// a person: one of the 21 customer looks (or the waiter / cook), feet on the bottom of its tile; walking bobs a pixel
+// a person on foot, feet on the bottom of its tile: customers in their own look (w<look>_<dir>_<step>, the step
+// frame alternates while walking); the waiter and cook have one standing frame and bob a little instead
 function drawChar(c,a,key){
-  const im=rspr(key),bob=a.walking&&Math.floor(a.ph)%2?2:0;
+  const im=rspr(key),bob=!key.startsWith('w')&&a.walking&&Math.floor(a.ph)%2?2:0;
   c.drawImage(im,Math.round(a.x),Math.round(a.y)+T-im.height-bob);
 }
 function drawRoom(){
@@ -1402,8 +1403,8 @@ function drawRoom(){
   for(const [pc,pr] of map.plants){const [k,x,y,z]=L_.items.vaso.parts[0];add(pr*T+z,rspr(k),pc*T+x,pr*T+y)}
   const person=(a,key)=>L.push({z:a.y+T,draw:()=>drawChar(c,a,key)});
   for(const k of sc.cooks)person(k,'cook');
-  for(const w of sc.waiters){person(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)-20)}
-  if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;person(p,`p${p.rlook||0}_${p.dir}`)}
+  for(const w of sc.waiters){person(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2)}   // held in both hands, in front
+  if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;person(p,`w${p.rlook||0}_${p.dir}_${p.walking?Math.floor(p.ph)%2:0}`)}   // standing or walking; seated ones are drawn at their table
   L.sort((a,b)=>a.z-b.z).forEach(d=>d.draw?d.draw():c.drawImage(d.img,d.x,d.y));
   if(t>.55){c.fillStyle=`rgba(30,22,70,${Math.min(.3,(t-.55)*.9)})`;c.fillRect(0,0,RW,RH)}
   // blit + overlay text
