@@ -939,7 +939,7 @@ function kitchenHTML(){
       <div class="stack">
         <div class="card stack">
           <div class="row" style="justify-content:space-between"><h2>${d.editing?t('k.title.edit'):t('k.title.new')}</h2><button class="btn sm ghost" data-act="newdraft">${t('k.fresh')}</button></div>
-          <div class="field"><label class="lbl" for="pname">${t('k.name')}</label><input id="pname" maxlength="28" value="${esc(d.name)}" placeholder="${esc(t('k.newname'))}">${d.from?`<span class="sub">${esc(t('rec.from',{c:d.from.c,s:d.from.s}))}</span>`:''}</div>
+          <div class="field"><label class="lbl" for="pname">${t('k.name')}</label><input id="pname" maxlength="28" value="${esc(d.name)}" placeholder="${esc(t('k.newname'))}">${d.from&&authorOf(d)===d.from?`<span class="sub">${esc(t('rec.from',{c:d.from.c,s:d.from.s}))}</span>`:''}</div>
           <div class="field"><span class="lbl">${t('k.dough')}</span><div class="seg">${seg(DOUGHS,'dough',d.dough)}</div></div>
           <div class="field"><span class="lbl">${t('k.sauce')}</span><div class="seg">${seg(SAUCES,'sauce',d.sauce)}</div></div>
         </div>
@@ -1441,7 +1441,13 @@ function contestHTML(){
 /* ================= CHEF ================= */
 /* The player's chef name and pizzeria name, asked at the start; they sign the share card. */
 const DEF_CHEF='Mario',DEF_SHOP='Pizzeria Magna';   // suggested names, already filled in
-const chefLine=()=>state.chef?t('chef.by',{c:state.chef,s:state.shop||t('chef.defshop',{c:state.chef})}):'';
+const meNow=()=>({c:state.chef||DEF_CHEF,s:state.shop||t('chef.defshop',{c:state.chef||DEF_CHEF})});
+/* Who signs a pizza: whoever first saved it (or the chef of an imported recipe), even if the names in Options
+   change later, until the recipe itself changes (dough, sauce or pieces); then it is whoever changed it.
+   p.from = {c: chef, s: pizzeria}; p.fromSig = the recipe as it was when signed. */
+const pizzaSig=p=>p.dough+'|'+p.sauce+'|'+packPieces(p.pieces);
+const authorOf=p=>p.from&&(!p.fromSig||p.fromSig===pizzaSig(p))?p.from:meNow();
+const chefLine=p=>{const a=authorOf(p);return t('chef.by',{c:a.c,s:a.s})};
 function showChef(){const filled=!!(state.chef&&state.shop);modal(`<h2>${t('chef.title')}</h2><p class="sub" style="margin:0">${t('chef.lead')}</p>
   <div class="field"><label class="lbl" for="chefName">${t('chef.name')}</label><input id="chefName" maxlength="24" value="${esc(state.chef||'')}" placeholder="${DEF_CHEF}"></div>
   <div class="field"><label class="lbl" for="shopName">${t('chef.shop')}</label><input id="shopName" maxlength="28" value="${esc(state.shop||'')}" placeholder="${DEF_SHOP}"></div>
@@ -1517,7 +1523,7 @@ function importSave(file){
    deflated when the browser can, then base64url. "1…" = deflated, "0…" = plain. In a link: …/#p=<code>. */
 async function zip(bytes,mode){const st=new Blob([bytes]).stream().pipeThrough(mode?new CompressionStream('deflate-raw'):new DecompressionStream('deflate-raw'));return new Uint8Array(await new Response(st).arrayBuffer())}
 async function recipeCode(p,name){
-  const from=p.from||{c:state.chef||DEF_CHEF,s:state.shop||t('chef.defshop',{c:state.chef||DEF_CHEF})};   // the original author stays
+  const from=authorOf(p);   // the author stays until someone changes the recipe
   const raw=new TextEncoder().encode(JSON.stringify({n:name,d:p.dough,s:p.sauce,c:from.c,h:from.s,p:packPieces(p.pieces)}));
   if(window.CompressionStream)try{return '1'+b64u.enc(await zip(raw,1))}catch(_){}
   return '0'+b64u.enc(raw)}
@@ -1542,7 +1548,7 @@ function showImport(){
     <textarea id="recIn" rows="3" style="width:100%" placeholder="https://www.pizzamagna.xyz/#p=…"></textarea>
     <div class="row"><button class="btn primary" data-act="recpaste">${t('rec.load')}</button><label class="btn">${t('rec.choose')}<input id="recFile" type="file" accept=".pizza,.json,application/json,text/plain" hidden></label><button class="btn ghost" data-act="close">${t('share.close')}</button></div>`)}
 async function takeRecipe(text){
-  try{const r=await readRecipe(text);state.draft={...r,editing:null};closeModal();track('import-pizza');
+  try{const r=await readRecipe(text);state.draft={...r,fromSig:pizzaSig(r),editing:null};closeModal();track('import-pizza');
     if(state.tab!=='cozinha')go('cozinha');else render();save();toast(t('rec.got',{x:r.name,c:r.from.c}))}
   catch(_){toast(t('rec.bad'));track('import-bad')}}
 /* ================= SHARE ================= */
@@ -1564,7 +1570,7 @@ function shareCard(p,name){
   c.fillText(DOUGHS[p.dough].n+' · '+SAUCES[p.sauce].n,W/2,900);
   c.fillStyle='#2c1a0b';c.font='38px "Pixelify Sans", sans-serif';
   wrapLines(c,recipeIngs(p).join(' · '),W-200).slice(0,3).forEach((l,i)=>c.fillText(l,W/2,970+i*50));
-  const by=chefLine();if(by){c.fillStyle='#7a4520';c.font='bold 36px "Pixelify Sans", sans-serif';c.fillText(by,W/2,1138)}
+  const by=chefLine(p);if(by){c.fillStyle='#7a4520';c.font='bold 36px "Pixelify Sans", sans-serif';c.fillText(by,W/2,1138)}
   c.fillStyle='#c4352a';c.fillRect(60,H-170,W-120,110);c.fillStyle='#fff1d2';c.font='bold 40px Silkscreen, monospace';c.fillText(SITE.toUpperCase(),W/2,H-100);
   return cv;
 }
@@ -1653,14 +1659,15 @@ const ACT={
     if(d.pieces.length<3){toast(t('k.needmore'));return}
     const a=analyze(d);
     const ex=d.editing&&state.menu.find(p=>p.id===d.editing);
-    if(ex){Object.assign(ex,{name,dough:d.dough,sauce:d.sauce,pieces:d.pieces.map(x=>({...x})),...(d.from?{from:d.from}:{})});toast(t('k.updated',{x:name}))}
-    else{state.menu.push({id:uid(),name,dough:d.dough,sauce:d.sauce,pieces:d.pieces.map(x=>({...x})),price:suggestPrice(a),...(d.from?{from:d.from}:{})});toast(t('k.added',{x:name,p:eur(suggestPrice(a))}))}
+    const sign={from:{...authorOf(d)},fromSig:pizzaSig(d)};   // unchanged: the same author; changed: whoever changed it
+    if(ex){Object.assign(ex,{name,dough:d.dough,sauce:d.sauce,pieces:d.pieces.map(x=>({...x})),...sign});toast(t('k.updated',{x:name}))}
+    else{state.menu.push({id:uid(),name,dough:d.dough,sauce:d.sauce,pieces:d.pieces.map(x=>({...x})),price:suggestPrice(a),...sign});toast(t('k.added',{x:name,p:eur(suggestPrice(a))}))}
     track(ex?'save-pizza-edit':'save-pizza');
-    state.draft={...d,name,editing:null,saved:true};save();go('menu');setTimeout(maybeAskInstall,2800);   // after the 'added to the menu' toast is gone
+    state.draft={name:t('k.newname'),dough:'napo',sauce:'tomate',pieces:[],editing:null};cleared=null;save();go('menu');   // saved: next time the bench starts a new pizzasetTimeout(maybeAskInstall,2800);   // after the 'added to the menu' toast is gone
   },
   pup:b=>{const p=state.menu.find(x=>x.id===b.dataset.id);p.price=Math.min(30,r2(p.price+.5));render()},
   pdn:b=>{const p=state.menu.find(x=>x.id===b.dataset.id);p.price=Math.max(1,r2(p.price-.5));render()},
-  edit:b=>{const p=state.menu.find(x=>x.id===b.dataset.id);state.draft={name:p.name,dough:p.dough,sauce:p.sauce,pieces:p.pieces.map(x=>({...x})),from:p.from,editing:p.id};go('cozinha')},
+  edit:b=>{const p=state.menu.find(x=>x.id===b.dataset.id);state.draft={name:p.name,dough:p.dough,sauce:p.sauce,pieces:p.pieces.map(x=>({...x})),from:p.from,fromSig:p.fromSig,editing:p.id};go('cozinha')},
   rm:b=>{if(!b.dataset.armed){b.dataset.armed='1';b.textContent=t('menu.confirm');setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=t('menu.remove')}},3000);return}state.menu=state.menu.filter(p=>p.id!==b.dataset.id);if(state.contestEntry===b.dataset.id)state.contestEntry=null;render()},
   open:()=>startDay(),
   speed:b=>{if(anim){anim.speed=+b.dataset.v;$('#dayctl').innerHTML=runCtlHTML()}},
@@ -1732,6 +1739,7 @@ function start(data){
   document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n)});   // static labels (nav)
   state=(data&&data.state)||load()||freshState();
   if(state.over){state=freshState();state.seenIntro=true}
+  for(const p of state.menu){if(!p.from&&state.chef)p.from=meNow();if(p.from&&!p.fromSig)p.fromSig=pizzaSig(p)}   // old saves: sign the menu as it is now
   if(PHONE&&state.zoom==null)state.zoom=true;   // phones start on the big pizza; the player can still leave zoom
   if(SANDBOX){
     state.unlocked=['base',...Object.keys(PACKS)];state.seenIntro=true;if(!['cozinha','menu'].includes(state.tab))state.tab='cozinha';
@@ -1744,7 +1752,7 @@ function start(data){
   else if(!state.seenIntro){state.seenIntro=true;save();showIntro()}
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(!anim)render()});
   if(/[#&]p=/.test(location.hash)){const h=location.hash;history.replaceState(null,'',location.href.split('#')[0]+(SANDBOX&&!LIVE_BENCH&&!window.PM_SANDBOX?'#sandbox':''));
-    readRecipe(h).then(r=>{track('open-recipe-link');state.draft={...r,editing:null};if(state.tab!=='cozinha')state.tab='cozinha';render();save();toast(t('rec.got',{x:r.name,c:r.from.c}))}).catch(()=>toast(t('rec.bad')))}
+    readRecipe(h).then(r=>{track('open-recipe-link');state.draft={...r,fromSig:pizzaSig(r),editing:null};if(state.tab!=='cozinha')state.tab='cozinha';render();save();toast(t('rec.got',{x:r.name,c:r.from.c}))}).catch(()=>toast(t('rec.bad')))}
 }
 window.claude?.hot?.snapshot?.(()=>({state}));
 atlasReady.then(()=>window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{}));
