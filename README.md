@@ -12,7 +12,7 @@ Open `index.html` in a browser. No install and no server needed.
   - Each topping goes on whole or grated/chopped. Grated pieces cost and weigh less per portion and spread the flavour; grated cheese comes as a big loose handful, so 10–12 cover a pizza.
   - Some pieces rotate in quarter turns, always the same image turned. Round pieces don't rotate; symmetric ones like bacon have 2 positions (lying, standing); pieces with a front, like a bunch of asparagus, have 4. Rotate with a right-click on the piece or with the **Rotate** button (phone), which turns the last piece placed or the next one.
   - **Zoom** shows only the pizza, as wide as the screen, with the controls as text below (made for phones).
-  - Quality depends on amount, spread and combos (95 to discover). The bench shows the suggested price, the number of pieces and the pizza's weight (up to 300 pieces).
+  - Quality depends on amount, spread and combos (99 to discover). The bench shows the suggested price, the number of pieces and the pizza's weight (up to 300 pieces).
 - **Menu:** as many pizzas as you like, with adjustable prices.
 - **Sharing:** "Download photo" saves a picture card of the pizza. "Share recipe" makes a link (`#p=…`) or a `.pizza` file with every piece in place, signed by the original chef; "Import pizza" opens one.
 - **Open:** watch the dining room from above. Customers (students, families, tourists, gourmets) choose between you and Pizza Rápida, the rival.
