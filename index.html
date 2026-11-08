@@ -3,6 +3,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pizza Magna</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#4a260f">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Pixelify+Sans:wght@400;600;700&display=swap">
@@ -60,7 +64,7 @@ h3{font-size:.92rem}
 #hdr{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:linear-gradient(var(--wood-hi),var(--wood) 30%,var(--wood-lo));border-bottom:4px solid var(--wood-deep);box-shadow:0 4px 0 rgba(0,0,0,.25)}
 .hdr-in{max-width:1040px;margin:0 auto;padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
 .brand{display:flex;align-items:center;gap:8px;font-family:var(--f-pixel);font-weight:700;font-size:1.05rem;color:var(--brass-ink);background:linear-gradient(var(--brass-hi),var(--brass) 50%,var(--brass-lo));border:2px solid var(--brass-ink);padding:4px 12px 4px 6px;box-shadow:inset 1px 1px 0 rgba(255,255,255,.6),0 2px 0 var(--wood-deep)}
-.brand canvas{width:30px;height:30px}
+.brand .logo{width:32px;height:32px;image-rendering:pixelated;display:block}   /* the game's icon, drawn 32 px (tools/gen_icon.py) */
 .stats{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
 .opt-btn{display:inline-flex;align-items:center;gap:6px;order:3}
 /* mute: fixed in the top-right corner, above every screen and dialog */
@@ -839,7 +843,7 @@ function renderHeader(){
   const corner=[$('#fs'),$('#skip'),$('#mute')];   // keep the corner buttons across the header rebuild
   const pm=clamp(state.money/GOAL_MONEY,0,1),pr=clamp(state.rep/GOAL_REP,0,1);
   $('#hdr').innerHTML=`<div class="hdr-in">
-    <div class="brand" data-act="chef" role="button" tabindex="0" title="${esc(t('chef.edit'))}" style="cursor:pointer" aria-label="${esc(t('chef.edit'))}"><canvas id="logo" width="68" height="68"></canvas><span class="brand-t">Pizza Magna</span></div>
+    <div class="brand" data-act="chef" role="button" tabindex="0" title="${esc(t('chef.edit'))}" style="cursor:pointer" aria-label="${esc(t('chef.edit'))}"><img class="logo" src="assets/icon-32.png" width="32" height="32" alt=""><span class="brand-t">Pizza Magna</span></div>
     <button class="btn sm opt-btn" data-act="options" aria-label="${esc(t('opt.title'))}" title="${esc(t('opt.title'))}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>${t('opt.title')}</span></button>
     ${PHONE&&state.tab==='cozinha'?'':`<div class="stats">
       <div class="stat"><span class="lbl">Dia</span><b>${state.day} · ${wdName(state.day)}</b></div>
@@ -848,7 +852,6 @@ function renderHeader(){
     </div>
     <div class="goal"><span>Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a 2.ª loja</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>`}
   </div>`;
-  drawMini($('#logo'),state.menu[0]||state.draft,30);
   $('#hdr').append(...corner);   // corner buttons ride in the header, not over the page
 }
 

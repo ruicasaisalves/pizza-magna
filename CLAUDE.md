@@ -16,6 +16,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 - `music.js`: 8-bit / lo-fi Italian music, synthesised with Web Audio (no sound files). Each tune is text: one note per eighth, `-` holds, `.` is silence. Lead, bass and harmony must have the same number of steps per part. Tunes play in a fixed order ("Next song" in Options). The public-domain classics come from ABC sheet music (abcnotation.com), converted with `tools/abc2music.py`. The on/off preference lives in `localStorage` (`pm-music`), apart from the save.
 - `assets/ingredients.js`: the toppings atlas. **It is generated** by `tools/build_atlas.py`; never edit it by hand. See `tools/CLAUDE.md`.
 - `assets/room.js`: the dining room atlas at 32 px tiles (furniture, decor, kitchen, people) with the layout of each piece. **Generated** by `tools/gen_room.py`; never edit it by hand. Used by `docs/drafts/room.html`; the game's room still uses `sprites.js`.
+- `assets/icon-*.png` and `manifest.webmanifest`: the game's icon (a pizza slice) for the browser tab, the header button, the phone home screen and a future app. **Generated** by `tools/gen_icon.py`: 32 px drawn pixel by pixel; 180/192/512 cut from a real game pizza.
 - `docs/ingredients.md`: the topping list (✓★ = in the game) and how things are cut.
 - `docs/art-packs.md`: art packs considered and the style decision.
 - `docs/ideas.md`: ideas on hold.
