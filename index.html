@@ -981,6 +981,7 @@ function setupPizzaCanvas(){
 }
 function setCut(g){
   if(g&&!canGrate(state.sel)){toast(t('k.nograte.'+noCutKind(state.sel),{x:ING[state.sel].n}));return}
+  if(!g&&!curCut()&&canRotate(state.sel)){rotatePiece();return}   // tapping whole again (its picture or bowl) turns the next piece
   state.cut=g?'g':'w';drawBench();save();
 }
 const curAng=()=>((state.rot||{})[state.sel]||0)%turns(state.sel);
@@ -988,7 +989,7 @@ const curAng=()=>((state.rot||{})[state.sel]||0)%turns(state.sel);
 function rotatePiece(){
   const id=state.sel;
   if(!canRotate(id)){toast(t('k.norotate',{x:ING[id].n}));return false}
-  state.rot={...state.rot,[id]:(curAng()+1)%turns(id)};drawBench();save();return true;
+  state.rot={...state.rot,[id]:(curAng()+1)%turns(id)};drawBench();drawIngIcons();save();return true;
 }
 // why an ingredient has no chopped form: it is drizzled, it is spread, or it is already small
 const noCutKind=id=>['nutella','maionese','natas_azedas','catupiry'].includes(id)?'spread':['milho','pinhoes','batata_palha','grao'].includes(id)?'small':'drizzle';
@@ -1078,7 +1079,8 @@ function updateAnalysis(){
   </div>`;
   save();
 }
-function drawIngIcons(){document.querySelectorAll('canvas[data-ing]').forEach(cv=>{const c=cv.getContext('2d');c.clearRect(0,0,32,32);sprFit(c,wholeKey(cv.dataset.ing,0,0),16,16,31)})}
+// a topping's picture in the pantry shows it turned the way the next piece will go (category pictures stay still)
+function drawIngIcons(){document.querySelectorAll('canvas[data-ing]').forEach(cv=>{const id=cv.dataset.ing,c=cv.getContext('2d');c.clearRect(0,0,32,32);sprFit(c,wholeKey(id,0,cv.closest('.ing')?(state.rot||{})[id]||0:0),16,16,31)})}
 
 /* ================= UI: MENU ================= */
 function menuHTML(){
@@ -1592,7 +1594,7 @@ const ACT={
   dough:b=>{state.draft.dough=b.dataset.v;render()},
   sauce:b=>{state.draft.sauce=b.dataset.v;render()},
   cat:b=>{state.cat=b.dataset.v;const pe=$('.pantry');if(pe){pe.innerHTML=pantryHTML();drawIngIcons()}save()},
-  ing:b=>{const k=b.dataset.v;if(!state.unlocked.includes(ING[k].pack)){toast(t('k.locked',{i:ING[k].n,p:PACKS[ING[k].pack]}));return}if(k!==state.sel)state.cut='w';/* a new topping starts whole */state.sel=k;document.querySelectorAll('.ing').forEach(x=>x.classList.toggle('on',x.dataset.v===k));const rb=$('[data-act="rotate"]');if(rb){rb.hidden=!canRotate(k);const l=t('k.rotate',{x:ING[k].n});if(PHONE){rb.title=l;rb.setAttribute('aria-label',l)}else rb.textContent=l}drawBench()},
+  ing:b=>{const k=b.dataset.v;if(!state.unlocked.includes(ING[k].pack)){toast(t('k.locked',{i:ING[k].n,p:PACKS[ING[k].pack]}));return}if(k===state.sel&&!curCut()&&canRotate(k)){rotatePiece();return}/* tapping the chosen topping again turns the next piece */if(k!==state.sel)state.cut='w';/* a new topping starts whole */state.sel=k;document.querySelectorAll('.ing').forEach(x=>x.classList.toggle('on',x.dataset.v===k));const rb=$('[data-act="rotate"]');if(rb){rb.hidden=!canRotate(k);const l=t('k.rotate',{x:ING[k].n});if(PHONE){rb.title=l;rb.setAttribute('aria-label',l)}else rb.textContent=l}drawBench()},
   rotate:()=>rotatePiece(),
   zoom:()=>{state.zoom=!state.zoom;save();render()},
   cut:b=>setCut(+b.dataset.v),
