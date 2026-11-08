@@ -276,7 +276,7 @@ en:{
   'ing.espinafres':'Spinach','ing.tomate_cherry':'Cherry tomato','ing.jalapenos':'Jalapeños','ing.anchovas':'Anchovies','ing.ricotta':'Ricotta','ing.pera':'Pear',
   'ing.cabra':'Goat’s cheese','ing.alho':'Garlic','ing.grelos':'Turnip greens','ing.sardinha':'Sardine','ing.salmao':'Smoked salmon','ing.polvo':'Octopus',
   'ing.burrata':'Burrata','ing.lulas':'Squid','ing.beringela':'Aubergine','ing.morcela':'Morcela','ing.nozes':'Walnuts','ing.batata':'Potato',
-  'ing.parmesao':'Parmesan','ing.alcachofra':'Artichoke','ing.curgete':'Courgette','ing.salsicha':'Italian sausage','ing.frankfurt':'Frankfurter','combo.cachorro':'Hot Dog','combo.x_frankfurttrufa':'Canned Sausage & Truffle','quote.x_frankfurttrufa':'Truffle on a canned sausage? What a waste.','ing.padron':'Padrón peppers','ing.pinhoes':'Pine nuts',
+  'ing.parmesao':'Parmesan','ing.alcachofra':'Artichoke','ing.curgete':'Courgette','ing.salsicha':'Italian sausage','ing.frankfurt':'Frankfurter','ing.vaca':'Beef','ing.ribs':'Ribs','ing.lagosta':'Lobster','combo.bife':'Portuguese Steak','combo.thermidor':'Lobster Thermidor','combo.ribsbbq':'BBQ Ribs','combo.x_lagostanutella':'Lobster & Nutella','quote.x_lagostanutella':'Lobster with Nutella? That’s a crime.','combo.cachorro':'Hot Dog','combo.x_frankfurttrufa':'Canned Sausage & Truffle','quote.x_frankfurttrufa':'Truffle on a canned sausage? What a waste.','ing.padron':'Padrón peppers','ing.pinhoes':'Pine nuts',
   'ing.nutella':'Nutella','ing.banana':'Banana','ing.feta':'Feta','ing.farinheira':'Farinheira','ing.ameijoas':'Clams','ing.oregaos':'Oregano',
   'ing.prosciutto':'Prosciutto','ing.azeite':'Olive oil','ing.balsamico':'Balsamic','ing.maionese':'Mayonnaise','ing.cheddar':'Cheddar','ing.coentros':'Coriander',
   'ing.provolone':'Provolone','ing.carne_picada':'Minced beef','ing.cebola_roxa':'Red onion','ing.alecrim':'Rosemary','ing.maca':'Apple','ing.batata_palha':'Straw potatoes',
@@ -343,7 +343,7 @@ pt:{
   'ing.espinafres':'Espinafres','ing.tomate_cherry':'Tomate cherry','ing.jalapenos':'Jalapeños','ing.anchovas':'Anchovas','ing.ricotta':'Ricotta','ing.pera':'Pera',
   'ing.cabra':'Queijo de cabra','ing.alho':'Alho','ing.grelos':'Grelos','ing.sardinha':'Sardinha','ing.salmao':'Salmão fumado','ing.polvo':'Polvo',
   'ing.burrata':'Burrata','ing.lulas':'Lulas','ing.beringela':'Beringela','ing.morcela':'Morcela','ing.nozes':'Nozes','ing.batata':'Batata',
-  'ing.parmesao':'Parmesão','ing.alcachofra':'Alcachofra','ing.curgete':'Curgete','ing.salsicha':'Salsicha italiana','ing.frankfurt':'Salsicha Frankfurt','combo.cachorro':'Cachorro-Quente','combo.x_frankfurttrufa':'Salsicha de Lata com Trufa','quote.x_frankfurttrufa':'Trufa numa salsicha de lata? Que desperdício.','ing.padron':'Pimentos padrón','ing.pinhoes':'Pinhões',
+  'ing.parmesao':'Parmesão','ing.alcachofra':'Alcachofra','ing.curgete':'Curgete','ing.salsicha':'Salsicha italiana','ing.frankfurt':'Salsicha Frankfurt','ing.vaca':'Carne de vaca','ing.ribs':'Ribs','ing.lagosta':'Lagosta','combo.bife':'Bife à Portuguesa','combo.thermidor':'Lagosta Thermidor','combo.ribsbbq':'Ribs BBQ','combo.x_lagostanutella':'Lagosta com Nutella','quote.x_lagostanutella':'Lagosta com Nutella? Isso é crime.','combo.cachorro':'Cachorro-Quente','combo.x_frankfurttrufa':'Salsicha de Lata com Trufa','quote.x_frankfurttrufa':'Trufa numa salsicha de lata? Que desperdício.','ing.padron':'Pimentos padrón','ing.pinhoes':'Pinhões',
   'ing.nutella':'Nutella','ing.banana':'Banana','ing.feta':'Feta','ing.farinheira':'Farinheira','ing.ameijoas':'Amêijoas','ing.oregaos':'Orégãos',
   'ing.prosciutto':'Prosciutto','ing.azeite':'Azeite','ing.balsamico':'Balsâmico','ing.maionese':'Maionese','ing.cheddar':'Cheddar','ing.coentros':'Coentros',
   'ing.provolone':'Provolone','ing.carne_picada':'Carne picada','ing.cebola_roxa':'Cebola roxa','ing.alecrim':'Alecrim','ing.maca':'Maçã','ing.batata_palha':'Batata palha',
@@ -450,6 +450,8 @@ const ING={
   curgete:{n:'Curgete',c:.04,t:['vegetal'],pack:'base'},
   salsicha:{n:'Salsicha italiana',c:.09,t:['carne'],pack:'base'},
   frankfurt:{n:'Salsicha Frankfurt',c:.07,t:['carne','classico'],pack:'base',rot:2},
+  vaca:{n:'Carne de vaca',c:.12,t:['carne','classico'],pack:'base'},
+  ribs:{n:'Ribs',c:.12,t:['carne'],pack:'base',rot:4},
   nutella:{n:'Nutella',c:.10,t:['doce'],pack:'base'},
   banana:{n:'Banana',c:.04,t:['doce'],pack:'base'},
   feta:{n:'Feta',c:.10,t:['queijo'],pack:'base'},
@@ -519,7 +521,8 @@ const ING={
   trufa:{n:'Trufa',c:.28,t:['gourmet'],pack:'gourmet'},
   char_siu:{n:'Char siu',c:.14,t:['carne','doce'],pack:'gourmet'},
   catupiry:{n:'Catupiry',c:.12,t:['queijo'],pack:'gourmet'},
-  brie:{n:'Brie',c:.15,t:['queijo','gourmet'],pack:'gourmet',rot:4}
+  brie:{n:'Brie',c:.15,t:['queijo','gourmet'],pack:'gourmet',rot:4},
+  lagosta:{n:'Lagosta',c:.20,t:['peixe','gourmet'],pack:'gourmet',rot:4}
 };
 const PACKS={local:'Mercado Local',gourmet:'Delicatessen'};
 const COMBOS=[
@@ -601,6 +604,9 @@ const COMBOS=[
   {id:'tartufata',n:'Tartufata',req:['s:trufa','cogumelos'],q:12,seg:{gourmet:8}},
   {id:'pimentosfeta',n:'Pimentos e Feta',req:['s:pimentos','feta'],q:10,seg:{gourmet:4,turista:3}},
   {id:'cachorro',n:'Cachorro-Quente',req:['frankfurt','milho','batata_palha'],q:10,seg:{estudante:7,familia:6}},
+  {id:'bife',n:'Bife à Portuguesa',req:['vaca','ovo','alho'],q:9,seg:{familia:6,turista:4}},
+  {id:'thermidor',n:'Lagosta Thermidor',req:['lagosta','s:natas','parmesao'],q:12,seg:{gourmet:10,turista:5}},
+  {id:'ribsbbq',n:'Ribs BBQ',req:['ribs','s:barbecue','cebola_roxa'],q:9,seg:{estudante:6,familia:5}},
   {id:'bitoque',n:'Bitoque',req:['fiambre','ovo'],q:7,seg:{familia:6,estudante:3}},
   {id:'x_ananasbac',n:'Ananás com Bacalhau',req:['ananas','bacalhau'],q:-22,seg:{},quote:'Ananás com bacalhau? Nunca mais.'},
   {id:'x_melatum',n:'Mel com Atum',req:['mel','atum'],q:-18,seg:{},quote:'O mel e o atum não se falam.'},
@@ -617,6 +623,7 @@ const COMBOS=[
   {id:'x_trufaananas',n:'Ananás com Trufa',req:['trufa','ananas'],q:-16,seg:{},quote:'Trufa com ananás? Um crime.'},
   {id:'x_brieteriyaki',n:'Brie com Teriyaki',req:['brie','frango_teriyaki'],q:-12,seg:{},quote:'Brie com teriyaki? Não se entendem.'},
   {id:'x_frankfurttrufa',n:'Salsicha de Lata com Trufa',req:['frankfurt','trufa'],q:-9,seg:{},quote:'Trufa numa salsicha de lata? Que desperdício.'},
+  {id:'x_lagostanutella',n:'Lagosta com Nutella',req:['lagosta','nutella'],q:-12,seg:{},quote:'Lagosta com Nutella? Isso é crime.'},
   {id:'x_pestoananas',n:'Pesto com Ananás',req:['s:pesto','ananas'],q:-10,seg:{},quote:'Pesto e ananás? Não.'}
 ];
 const SEG={
@@ -780,13 +787,21 @@ function turned(id,q){
   const [oc,o]=mk(w+2,h+2);o.drawImage(shc,2,2);o.drawImage(rc,0,0);
   turnedCache.set(key,oc);return oc;
 }
-function spr(c,key,x,y,alpha){
-  if(!ATL.ok)return;let src;
+function sprSrc(key){
   const m=/^(.+)_q(\d)$/.exec(key);
-  if(m){const cv=turned(m[1],+m[2]);src=[cv,0,0,cv.width,cv.height]}
-  else{const f=ATLAS.frames[key];if(!f)return;src=[ATL.img,...f]}
+  if(m){const cv=turned(m[1],+m[2]);return [cv,0,0,cv.width,cv.height]}
+  const f=ATLAS.frames[key];return f?[ATL.img,...f]:null;
+}
+function spr(c,key,x,y,alpha){
+  if(!ATL.ok)return;const src=sprSrc(key);if(!src)return;
   const [img,sx,sy,w,h]=src;
   if(alpha!=null)c.globalAlpha=alpha;c.drawImage(img,sx,sy,w,h,Math.round(x-w/2),Math.round(y-h/2),w,h);c.globalAlpha=1;
+}
+// icons and bowls: a piece bigger than the box (the whole lobster) is shrunk to fit; the rest keep their pixels
+function sprFit(c,key,x,y,box){
+  if(!ATL.ok)return;const src=sprSrc(key);if(!src)return;
+  const [img,sx,sy,w,h]=src,k=Math.min(1,box/Math.max(w,h));if(k===1)return spr(c,key,x,y);
+  c.save();c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(img,sx,sy,w,h,Math.round(x-w*k/2),Math.round(y-h*k/2),w*k,h*k);c.restore();
 }
 const canGrate=id=>!!ATLAS.frames[id+'_g0'];
 const turns=id=>ATLAS.frames[id+'_n']?(ING[id].rot||1):1;
@@ -831,9 +846,11 @@ function renderHeader(){
 const GRATED_W=.7;
 // grated cheese comes as a big, loose handful (bigger sprite): one handful is 1.5 portions, so 10-12 cover a pizza
 const BIG_SHRED=new Set(['mozzarella','burrata','parmesao','cheddar','provolone','sao_jorge','emmental','flamengo','brie']),SHRED_W=1.5;
-const portion=x=>x.g?(BIG_SHRED.has(x.i)?SHRED_W:GRATED_W):1;
+// a whole lobster is one big piece that covers the pizza: it counts as 8 portions (cost, weight, how full the pizza is)
+const WHOLE_W={lagosta:8},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
+const portion=x=>x.g?(BIG_SHRED.has(x.i)?SHRED_W:GRATED_W):(WHOLE_W[x.i]||1);
 const GRAMS={mozzarella:8,fiambre:12,pepperoni:4,cogumelos:8,azeitonas:4,pimento:8,cebola:6,ananas:12,manjericao:1,atum:10,bacon:10,tomate:18,milho:4,frango:12,
-  salame:5,espinafres:3,tomate_cherry:10,jalapenos:3,alho:3,beringela:12,batata:12,curgete:10,salsicha:10,frankfurt:28,nutella:15,banana:10,feta:10,oregaos:.5,
+  salame:5,espinafres:3,tomate_cherry:10,jalapenos:3,alho:3,beringela:12,batata:12,curgete:10,salsicha:10,frankfurt:28,vaca:12,ribs:30,lagosta:40,nutella:15,banana:10,feta:10,oregaos:.5,
   azeite:5,maionese:10,cheddar:12,provolone:12,carne_picada:10,cebola_roxa:6,batata_palha:3,salsa:.5,chocolate:6,emmental:12,kebab:12,tomilho:.5,pimenta:.3,
   tofu:10,edamame:5,frango_teriyaki:12,calabresa:6,frango_tikka:12,grao:4,parmesao:5,chourico:5,piripiri:1,alheira:12,anchovas:4,grelos:6,sardinha:20,polvo:12,
   lulas:10,morcela:10,padron:8,farinheira:12,ameijoas:6,coentros:.5,alecrim:.5,maca:10,sao_jorge:12,leitao:15,couve_galega:5,flamengo:12,marmelada:12,
@@ -984,7 +1001,7 @@ function drawBench(){
   c.fillStyle='rgba(40,30,20,.32)';c.beginPath();c.ellipse(PCX+3,PCY+4,PR+1,PR,0,0,Math.PI*2);c.fill();
   if(!pz.pizza)pz.pizza=composePizza(d);
   c.drawImage(pz.pizza,PX,PY);
-  if(pz.ghost)spr(c,cut?sel+'_g0':wholeKey(sel,0,curAng()),PCX+pz.ghost.x*PR,PCY+pz.ghost.y*PR,.6);
+  if(pz.ghost){const mid=CENTRED.has(sel)&&!cut;spr(c,cut?sel+'_g0':wholeKey(sel,0,curAng()),PCX+(mid?0:pz.ghost.x)*PR,PCY+(mid?0:pz.ghost.y)*PR,.6)}
   {   // the name of the pizza being made, dark title on the marble strip on top (like the menu cards)
     // one line at full size if it fits; otherwise two lines, shrinking only if two are still not enough
     const nm=(d.name||t('k.newname')).toUpperCase(),F=f=>{c.font=`bold ${f}px Silkscreen, monospace`};
@@ -1006,7 +1023,7 @@ function drawBench(){
     const on=b.g===cut,ok=!b.g||canGrate(sel),bx=b.x+BOWL_W/2,by=b.y+13;
     if(on){pxRect(c,b.x-5,b.y-4,BOWL_W+10,BOWL_H+18,'#3a2706');pxRect(c,b.x-4,b.y-3,BOWL_W+8,BOWL_H+16,'#e3b34a');pxRect(c,b.x-3,b.y-2,BOWL_W+6,BOWL_H+14,'#94661a')}
     spr(c,'bowl',bx,b.y+BOWL_H/2);
-    if(ok){if(!b.g&&canRotate(sel))spr(c,wholeKey(sel,0,curAng()),bx,by+1);else if(b.g&&BIG_SHRED.has(sel)){c.save();c.beginPath();c.ellipse(bx,by+1,26,13,0,0,Math.PI*2);c.clip();spr(c,sel+'_g0',bx,by+2);c.restore()}   // the big cheese handful, kept inside the bowl
+    if(ok){if(!b.g&&canRotate(sel))sprFit(c,wholeKey(sel,0,curAng()),bx,by+1,44);else if(b.g&&BIG_SHRED.has(sel)){c.save();c.beginPath();c.ellipse(bx,by+1,26,13,0,0,Math.PI*2);c.clip();spr(c,sel+'_g0',bx,by+2);c.restore()}   // the big cheese handful, kept inside the bowl
     else{const k=b.g?v=>sel+'_g'+v:v=>sel+'_'+v;spr(c,k(1),bx-9,by-1);spr(c,k(2),bx+9,by);spr(c,k(0),bx,by+2)}}
     benchText(c,t(b.g?(ok?(ING[sel].t.includes('queijo')?'bench.grated':'bench.chopped'):'bench.nograte.'+noCutKind(sel)):'bench.whole'),bx,b.y+BOWL_H+3,on?'#2c1a0b':'#6c5233');
   }
@@ -1025,14 +1042,16 @@ function zoomBar(){const el=$('#zbar');if(!el)return;const sel=state.sel,cut=cur
   // price is what matters most: big and with no label; pieces and weight small beside it
   el.innerHTML=`<div class="zrow"><div class="zname">${esc(ING[sel].n)}</div>${cutB}</div>
     <div class="zlcd" title="${esc(t('bench.q'))}"><b>${eur(suggestPrice(a))}</b><span>${state.draft.pieces.length} ${t('bench.n')} · ${fmtG(pizzaGrams(state.draft))}</span></div>`;
-  const zw=$('#zwhole');if(zw){const c=zw.getContext('2d');c.imageSmoothingEnabled=false;spr(c,wholeKey(sel,0,canRotate(sel)?curAng():0),16,16)}}
+  const zw=$('#zwhole');if(zw){const c=zw.getContext('2d');c.imageSmoothingEnabled=false;sprFit(c,wholeKey(sel,0,canRotate(sel)?curAng():0),16,16,31)}}
 let cleared=null;   // the pizza the bin just cleared: undo on an empty bench brings it back (same draft only)
 function drawDraft(){if(!pz)return;pz.pizza=null;drawBench()}
 function addPiece(p){
   if(Math.hypot(p.x,p.y)>.8)return false;
   if(!state.unlocked.includes(ING[state.sel].pack)){toast(t('k.locked',{i:ING[state.sel].n,p:PACKS[ING[state.sel].pack]}));return false}
   if(state.draft.pieces.length>=300){toast(t('k.full'));return false}   // demo limit
-  const piece={i:state.sel,x:+p.x.toFixed(3),y:+p.y.toFixed(3),r:+(Math.random()*6.28).toFixed(2),v:Math.floor(Math.random()*3)};
+  const mid=CENTRED.has(state.sel)&&!curCut(),ps=state.draft.pieces,lp=ps[ps.length-1];
+  if(mid&&lp&&lp.i===state.sel&&!lp.g)return false;   // a drag would pile lobsters up: one at a time
+  const piece={i:state.sel,x:mid?0:+p.x.toFixed(3),y:mid?0:+p.y.toFixed(3),r:+(Math.random()*6.28).toFixed(2),v:Math.floor(Math.random()*3)};
   if(curCut())piece.g=1;else if(canRotate(state.sel))piece.a=curAng();
   state.draft.pieces.push(piece);
   drawDraft();updateAnalysis();return true;
@@ -1050,7 +1069,7 @@ function updateAnalysis(){
   </div>`;
   save();
 }
-function drawIngIcons(){document.querySelectorAll('canvas[data-ing]').forEach(cv=>{const c=cv.getContext('2d');c.clearRect(0,0,32,32);spr(c,wholeKey(cv.dataset.ing,0,0),16,16)})}
+function drawIngIcons(){document.querySelectorAll('canvas[data-ing]').forEach(cv=>{const c=cv.getContext('2d');c.clearRect(0,0,32,32);sprFit(c,wholeKey(cv.dataset.ing,0,0),16,16,31)})}
 
 /* ================= UI: MENU ================= */
 function menuHTML(){

@@ -41,6 +41,7 @@ import gen_ingredients13 as G13
 import gen_ingredients14 as G14
 import gen_ingredients15 as G15
 import gen_ingredients16 as G16
+import gen_ingredients17 as G17
 import gen_bases as GB
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
@@ -147,6 +148,9 @@ INGS = {
     'frango_tikka': (G15.tikka,     ('tikka', 'cube', 12)),
     'grao':         (G15.chickpeas, None),
     'frankfurt':    (G16.frankfurt, G16.slices),
+    'vaca':         (G17.beef,      G17.beef_cubes),
+    'lagosta':      (G17.lobster,   G17.lobster_chunks),
+    'ribs':         (G17.rib,       G17.rib_cubes),
 }
 # rotating pieces: a single image, lying down (the positions are counted in the game, in ING.rot)
 ROTATE = {
@@ -173,6 +177,8 @@ ROTATE = {
     'mejillones': lambda: G15.mussel(1, ang=0),    # 4: the shell's beak is on one side
     'brie': lambda: G15.brie(1, ang=0),            # 4: the wedge points one way
     'frankfurt': lambda: G16.frankfurt(1, ang=0),  # 2: the same end to end
+    'lagosta': lambda: G17.lobster(1, ang=0),      # 4: claws one way, tail the other
+    'ribs': lambda: G17.rib(1, ang=0),             # 4: the bone sticks out at one end
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
