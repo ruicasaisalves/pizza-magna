@@ -30,7 +30,7 @@ https://limezu.itch.io/moderninteriors
 ## Open questions
 - Try the free version of Modern Interiors: sitting, eating, carrying a tray, cooking.
 - Read the Mana Seed User License, if the Mana Seed option goes ahead.
-- Everything pizza-specific (ovens, pizzas, toppings, boxes, menu) is still drawn by us in `sprites.js`, at the same scale and palette as the chosen pack.
+- Everything pizza-specific (ovens, pizzas, toppings, boxes, menu) is drawn by us (now in `tools/gen_room.py`, which makes `assets/room.js`), at the same scale and palette as the chosen pack.
 
 ---
 

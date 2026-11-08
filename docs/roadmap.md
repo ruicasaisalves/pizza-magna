@@ -30,7 +30,7 @@ The biggest block. A first visual draft of the map is in `docs/drafts/city.html`
 - Replace the 0–3 renovation level with a **room editor**: buy and place tables, chairs, counter, plants, pictures, floor, walls and lighting.
 - Each item has a style (rustic, modern, Portuguese tasca, luxury) that attracts certain customer groups.
 - The number of tables limits how many customers fit at once.
-- The furniture is drawn in code in `sprites.js`, like the rest of the room.
+- The furniture comes from the room atlas `assets/room.js` (made by `tools/gen_room.py`), like the rest of the room.
 - Draft: `docs/drafts/room.html` (standalone): four styles, 8 table sets, 14 floor pieces, 9 wall pieces, 6 floors and 5 walls; atmosphere per customer group, seats, free floor and reachability checks.
 
 ### 3. Staff
