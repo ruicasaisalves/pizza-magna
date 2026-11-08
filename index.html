@@ -846,8 +846,9 @@ function renderHeader(){
 const GRATED_W=.7;
 // grated cheese comes as a big, loose handful (bigger sprite): one handful is 1.5 portions, so 10-12 cover a pizza
 const BIG_SHRED=new Set(['mozzarella','burrata','parmesao','cheddar','provolone','sao_jorge','emmental','flamengo','brie']),SHRED_W=1.5;
-// a whole lobster is one big piece that covers the pizza: it counts as 8 portions (cost, weight, how full the pizza is)
-const WHOLE_W={lagosta:8},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
+// big whole pieces count as several portions (cost, weight, how full the pizza is): a whole lobster covers the pizza (8),
+// a whole beef slice is four ordinary slices (4)
+const WHOLE_W={lagosta:8,vaca:4},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
 const portion=x=>x.g?(BIG_SHRED.has(x.i)?SHRED_W:GRATED_W):(WHOLE_W[x.i]||1);
 const GRAMS={mozzarella:8,fiambre:12,pepperoni:4,cogumelos:8,azeitonas:4,pimento:8,cebola:6,ananas:12,manjericao:1,atum:10,bacon:10,tomate:18,milho:4,frango:12,
   salame:5,espinafres:3,tomate_cherry:10,jalapenos:3,alho:3,beringela:12,batata:12,curgete:10,salsicha:10,frankfurt:28,vaca:12,ribs:30,lagosta:40,nutella:15,banana:10,feta:10,oregaos:.5,

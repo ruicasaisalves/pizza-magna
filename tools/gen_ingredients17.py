@@ -2,14 +2,14 @@
 """Pizza Magna: seventeenth batch. Beef, lobster and ribs. Same method as
 gen_ingredients.py (see tools/CLAUDE.md).
 
-- Beef (carne de vaca): a thin seared slice, pink in the middle with a brown crust.
-  Doesn't rotate. Chopped: browned cubes.
+- Beef (carne de vaca): a big seared slice (four slices' worth), pink in the middle
+  with a brown crust. Doesn't rotate. Chopped: one ordinary slice.
 - Lobster (lagosta): one whole cooked lobster, big enough to fill the sauce disc
   (inside the crust). Rotates with 4 positions (claws one way, tail the other);
   with ang=0 the claws point right. In the game it always lands in the middle.
   Chopped: big seafood-stick chunks, white flesh with a red-orange top.
 - Ribs (entrecosto): one glazed pork rib with the bone sticking out at one end.
-  Rotates with 4 positions; with ang=0 the bone points right. Chopped: glazed cubes.
+  Rotates with 4 positions; with ang=0 the bone points right. Chopped: a third of the rib, bone on the cut face.
 Usage: python3 tools/gen_ingredients17.py <folder>"""
 import os, sys
 import numpy as np
@@ -37,25 +37,27 @@ def turn(W, H, ang):
     if ang is not None and abs(np.sin(ang)) > .5: return H, W
     return W, H
 
-# ---------------- BEEF (thin seared slice) ----------------
-def beef(seed, W=26, H=20):
+# ---------------- BEEF (a big seared slice; chopped = one small slice) ----------------
+def beef_slice(seed, k=1):
+    """a seared slice, pink in the middle with a brown crust; k scales it (2 = the whole piece)"""
     rng = np.random.default_rng(seed + 5000)
     a = rng.random() * 3.14
+    W, H = int(26 * k), int(20 * k)
     u, v = axes(W, H, a)
-    n = noise(H, W, 3, rng)
+    n = noise(H, W, 3 + k, rng)
     edge = 1 + (n - .5) * .22
-    d = np.hypot(u / 11.5, v / 7.5) / edge
+    d = np.hypot(u / (11.5 * k), v / (7.5 * k)) / edge
     mask = d <= 1
     rim = mask & ~erode(erode(mask))
-    height = np.clip(1 - d ** 2, 0, 1) * 1.3 + (noise(H, W, 2, rng) - .5) * .5   # a slice with folds
-    grain = ((u * .9 + v * .4 + n * 3) % 3.2) < .7                                # fibres across the slice
+    if k > 1: rim |= mask & ~erode(erode(erode(mask)))
+    height = np.clip(1 - d ** 2, 0, 1) * 1.3 * k + (noise(H, W, 2 + k, rng) - .5) * .5 * k   # a slice with folds
+    grain = ((u * .9 + v * .4 + n * 3 * k) % (3.2 * k)) < .7 * k                            # fibres across the slice
     mat = [['steak' if rim[y, x] or (grain[y, x] and n[y, x] > .7) else 'steakin' for x in range(W)] for y in range(H)]
     light = np.clip(shade(height, mask) * .8 + .2 - np.where(grain & ~rim, .12, 0), 0, 1) * mask
     return render(mat, light, mask, {'steakin': 'steak'})
 
-def beef_cubes(seed):
-    from gen_ingredients2 import grated
-    return grated('steak', seed, 'cube', n_bits=12)
+def beef(seed): return beef_slice(seed, 2)               # whole: as big as four slices
+def beef_cubes(seed): return beef_slice(seed % 3 + 1)    # chopped: one ordinary slice
 
 # ---------------- LOBSTER (whole, claws to the right) ----------------
 LOB_W, LOB_H = 140, 112
@@ -150,9 +152,9 @@ def lobster_chunks(seed, W=30, H=26):
     return img
 
 # ---------------- RIBS (one glazed rib, bone to the right) ----------------
-def rib(seed, ang=None, L=42, T=13):
+def rib(seed, ang=None, L=38, T=13):
     """one rib on an arc (as a rib bends round the body): glossy red-brown glaze, the white bone
-    sticking out at the end and following the arc"""
+    sticking out a little at the end and following the arc"""
     a = 0 if ang is None else ang
     SAG = 6                                                      # how far the middle rises above the ends
     W, H = turn(L + 4, T + SAG + 6, ang)
@@ -160,27 +162,39 @@ def rib(seed, ang=None, L=42, T=13):
     rng = np.random.default_rng(seed + 5300)
     n = noise(H, W, 3, rng)
     vv = v + (SAG / 2) - SAG * (u / (L / 2)) ** 2                # bend: an arc, middle up, ends down
-    meat_len = L - 10
-    mu = u + 5                                                   # the meat sits left of centre
+    meat_len = L - 6
+    mu = u + 3                                                   # the meat sits left of centre
     edge = 1 + (n - .5) * .2
     taper = np.sqrt(np.clip(1 - (np.abs(mu) / (meat_len / 2 + .5)) ** 6, 0, 1))
     meat = (np.abs(mu) <= meat_len / 2) & (np.abs(vv) <= (T / 2) * edge * taper)
-    inner = np.zeros_like(meat)
-    bone = (u > meat_len / 2 - 7) & (u <= L / 2) & (np.abs(vv) <= 2.3)
-    knob = np.hypot(u - (L / 2 - 1.8), vv) <= 3.1          # the bone end
-    bonem = ((bone | knob) & ~meat) | inner
+    bone = (u > meat_len / 2 - 6) & (u <= L / 2) & (np.abs(vv) <= 2.3)
+    knob = np.hypot(u - (L / 2 - 1.8), vv) <= 3.1                # the bone end
+    bonem = (bone | knob) & ~meat
     mask = meat | bonem
     height = np.where(meat, np.sqrt(np.clip(1 - (vv / (T / 2 + .1)) ** 2, 0, 1)) * 4 + (n - .5) * 1.2, 0)
-    height = np.where(bonem & ~meat, 1.6 * np.sqrt(np.clip(1 - (vv / 3) ** 2, 0, 1)), height)
-    char = meat & ~inner & (n > .72)                             # charred spots on the glaze
-    shine = meat & ~inner & (np.abs(vv + T * .18) < 1.1) & (np.abs(mu) < meat_len / 2 - 4) & (n < .6)   # wet glaze highlight
+    height = np.where(bonem, 1.6 * np.sqrt(np.clip(1 - (vv / 3) ** 2, 0, 1)), height)
+    char = meat & (n > .72)                                      # charred spots on the glaze
+    shine = meat & (np.abs(vv + T * .18) < 1.1) & (np.abs(mu) < meat_len / 2 - 4) & (n < .6)   # wet glaze highlight
     mat = [['bone' if bonem[y, x] else 'ribglz' for x in range(W)] for y in range(H)]
     light = np.clip(shade(height, mask) * .85 + .15 - np.where(char, .25, 0) + np.where(shine, .45, 0), 0, 1) * mask
     return render(mat, light, mask, {'bone': 'bone', 'ribglz': 'ribglz'})
 
-def rib_cubes(seed):
-    from gen_ingredients2 import grated
-    return grated('ribglz', seed, 'cube', n_bits=12)
+def rib_cubes(seed, D=17):
+    """chopped: one rib cut in three, a glazed chunk with the white bone showing on the cut face"""
+    rng = np.random.default_rng(seed + 5400)
+    a = rng.random() * 6.28
+    u, v = axes(D, D, a)
+    n = noise(D, D, 3, rng)
+    l, t = 5.5, 6.5                                              # a third of the rib's meat long, the rib's width across
+    e = (np.abs(u) / l) ** 4 + (np.abs(v) / (t * (1 + (n - .5) * .2))) ** 2
+    mask = e <= 1
+    cut = mask & (u > l - 1.6)                                   # the cut face, a bit paler
+    bonem = mask & (u > l - 2.6) & (np.abs(v) <= 2)              # the bone in cross-section
+    height = np.clip(1 - np.abs(v / t) ** 2, 0, 1) * 3.5 + (n - .5) * 1
+    shine = mask & ~cut & (np.abs(v + t * .4) < 1) & (n < .6)
+    mat = [['bone' if bonem[y, x] else 'ribglz' for x in range(D)] for y in range(D)]
+    light = np.clip(shade(height, mask) * .85 + .15 + np.where(shine, .4, 0) + np.where(cut & ~bonem, .15, 0), 0, 1) * mask
+    return render(mat, light, mask, {'bone': 'bone', 'ribglz': 'ribglz'})
 
 SETS = [('Carne de vaca', beef, beef_cubes), ('Lagosta', lobster, lobster_chunks), ('Ribs', rib, rib_cubes)]
 
@@ -190,11 +204,11 @@ if __name__ == '__main__':
     fs = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 15)
     # the lobster on its own: drawn on a sauce-sized disc to check it fits inside the crust
     ROW = 200
-    sheet = Image.new('RGB', (1000, 40 + ROW * 2 + 380), (27, 20, 16)); dr = ImageDraw.Draw(sheet)
+    sheet = Image.new("RGB", (1240, 40 + ROW * 2 + 380), (27, 20, 16)); dr = ImageDraw.Draw(sheet)
     dr.text((20, 10), 'Whole (the 1st lies down) / chopped', fill=(240, 220, 180), font=fs)
     y = 36
     for name, fn, gr in (SETS[0], SETS[2]):
-        arr = [fn(1, ang=0) if fn is rib else fn(1), fn(2), fn(3), gr(41)]
+        arr = [fn(1, ang=0) if fn is rib else fn(1), fn(2), fn(3), gr(41), gr(58)] if fn is rib else [fn(1), fn(2), gr(41), gr(58)]
         x = 20
         for im in arr:
             d = drop(im); K = 4
