@@ -27,8 +27,8 @@ R.update({
 
 def olive(seed, D=16):
     ys, xs, c, _ = grid(D, D)
-    sq = [1, .86, 1.1][seed % 3]
-    r = np.hypot((xs - c) * sq, (ys - c) / sq) / (D / 2 - .3 - (seed % 2))
+    sq = .88 if seed % 2 else 1 / .88                     # every variant the same oval and size: lying (1, 3) or standing (2)
+    r = np.hypot((xs - c) * sq, (ys - c) / sq) / (D / 2 - .3)
     mask = (r <= 1) & (r >= .38)
     height = np.clip(1 - ((r - .7) / .32) ** 2, 0, 1) * 1.8
     mat = [['olive'] * D for _ in range(D)]

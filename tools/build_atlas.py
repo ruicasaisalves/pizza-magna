@@ -43,6 +43,7 @@ import gen_ingredients15 as G15
 import gen_ingredients16 as G16
 import gen_ingredients17 as G17
 import gen_ingredients18 as G18
+import gen_ingredients19 as G19
 import gen_bases as GB
 sys.argv = _argv
 from gen_ingredients import R, hexs, noise, shade, render, drop
@@ -152,6 +153,9 @@ INGS = {
     'vaca':         (G17.beef,      G17.beef_cubes),
     'lagosta':      (G17.lobster,   G17.lobster_chunks),
     'ribs':         (G17.rib,       G17.rib_cubes),
+    'amora':        (G19.blackberry, G19.blackberry_halves),
+    'mirtilo':      (G19.blueberry, G19.blueberry_halves),
+    'framboesa':    (G19.raspberry, G19.raspberry_halves),
 }
 # chopped forms that lie flat (melted cheese): no drop shadow, so handfuls side by side make one even surface
 NO_DROP = {'mozzarella'}
