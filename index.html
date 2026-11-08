@@ -123,9 +123,11 @@ html.phone .stage{gap:6px}
 .ibtn{width:40px;height:40px;padding:0;display:inline-grid;place-items:center}
 .ibtn svg{width:22px;height:22px}
 .stage .ibtn canvas{width:32px;height:32px;box-shadow:none;cursor:inherit}
-.zlcd{font-family:Silkscreen,monospace;background:#081008;color:#8cff73;border:2px solid var(--wood-deep);padding:3px 12px;display:flex;align-items:baseline;gap:4px 14px;flex-wrap:wrap;justify-content:center;text-shadow:0 0 5px rgba(140,255,115,.4)}
-.zlcd b{font-size:1.35rem;font-weight:400;line-height:1.1}
-.zlcd span{color:#6fd65a;font-size:.8rem}
+.zlcd{font-family:Silkscreen,monospace;font-size:.85rem;background:radial-gradient(ellipse at 30% 20%,#f4f2ec,#dedad0);color:#1f4f8f;border:2px solid var(--wood-deep);box-shadow:inset 1px 1px 0 #fff;padding:5px 12px;display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap;justify-content:center}
+/* phone tools: zoom, rotate and undo in the middle; the bin alone in the right corner, away from undo */
+.tools.ptools{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
+.ptools .tc{grid-column:2;display:flex;gap:6px}
+.ptools .tr{grid-column:3;justify-self:end}
 /* mini pantry (phone): a row of category pictures and a strip of topping pictures, two rows high, scrolling sideways */
 .pantry.mini{padding:6px;display:flex;flex-direction:column;gap:6px}
 .mcats{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
@@ -692,7 +694,7 @@ const SANDBOX=LIVE_BENCH||!!window.PM_SANDBOX||/^#sandbox(&|$)/.test(location.ha
 // phone: a finger is the main input and the screen is small; #phone (or #sandbox&phone) forces it for testing on a PC
 const PHONE=/[#&]phone(&|$)/.test(location.hash)||(matchMedia('(pointer: coarse)').matches&&Math.min(screen.width,screen.height)<600);
 document.documentElement.classList.toggle('phone',PHONE);
-const MINI_PANTRY=PHONE&&!LIVE_BENCH;   // the picture-only pantry: on trial in the full game (/dev) and locally, not yet on the public bench
+const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -811,12 +813,12 @@ function renderHeader(){
   $('#hdr').innerHTML=`<div class="hdr-in">
     <div class="brand" data-act="chef" role="button" tabindex="0" title="${esc(t('chef.edit'))}" style="cursor:pointer" aria-label="${esc(t('chef.edit'))}"><canvas id="logo" width="68" height="68"></canvas><span class="brand-t">Pizza Magna</span></div>
     <button class="btn sm opt-btn" data-act="options" aria-label="${esc(t('opt.title'))}" title="${esc(t('opt.title'))}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>${t('opt.title')}</span></button>
-    <div class="stats">
+    ${PHONE&&state.tab==='cozinha'?'':`<div class="stats">
       <div class="stat"><span class="lbl">Dia</span><b>${state.day} · ${wdName(state.day)}</b></div>
       <div class="stat"><span class="lbl">Caixa</span><b>${eur(state.money)}</b></div>
       <div class="stat"><span class="lbl">Reputação</span><b class="stars" aria-label="${state.rep.toFixed(1)} de 5">${starsHTML(state.rep)} ${state.rep.toFixed(1).replace('.',',')}</b></div>
     </div>
-    <div class="goal"><span>Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a 2.ª loja</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>
+    <div class="goal"><span>Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a 2.ª loja</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>`}
   </div>`;
   drawMini($('#logo'),state.menu[0]||state.draft,30);
   $('#hdr').append(...corner);   // corner buttons ride in the header, not over the page
@@ -886,11 +888,11 @@ function kitchenHTML(){
     <div class="bench">
       <div class="stage"><canvas id="pz" width="${BW}" height="${BH}" aria-label="${t('k.canvas')}"></canvas>
         ${state.zoom?'<div id="zbar"></div>':`<div class="hint">${t('k.hint')}</div>`}
-        <div class="tools">
+        <div class="tools${PHONE?' ptools':''}">${PHONE?'<div class="tc">':''}
           ${toolBtn('zoom',t(state.zoom?'k.unzoom':'k.zoom'),state.zoom?'zoomout':'zoomin',`aria-pressed="${!!state.zoom}"`)}
           ${toolBtn('rotate',t('k.rotate',{x:ING[state.sel].n}),'rotate',`${canRotate(state.sel)?'':'hidden'} title="${esc(t('k.rotatetip'))}"`)}
-          ${toolBtn('undo',t('k.undo'),'undo')}
-          ${toolBtn('clear',t('k.clear'),'clear')}
+          ${toolBtn('undo',t('k.undo'),'undo')}${PHONE?'</div><div class="tr">':''}
+          ${toolBtn('clear',t('k.clear'),'clear')}${PHONE?'</div>':''}
         </div>
       </div>
       <div class="card pantry${MINI_PANTRY?' mini':''}">${pantryHTML()}</div>
@@ -1024,14 +1026,7 @@ function zoomBar(){const el=$('#zbar');if(!el)return;const sel=state.sel,cut=cur
   el.innerHTML=`<div class="zrow"><div class="zname">${esc(ING[sel].n)}</div>${cutB}</div>
     <div class="zlcd" title="${esc(t('bench.q'))}"><b>${eur(suggestPrice(a))}</b><span>${state.draft.pieces.length} ${t('bench.n')} · ${fmtG(pizzaGrams(state.draft))}</span></div>`;
   const zw=$('#zwhole');if(zw){const c=zw.getContext('2d');c.imageSmoothingEnabled=false;spr(c,wholeKey(sel,0,canRotate(sel)?curAng():0),16,16)}}
-// phone + zoom + mini pantry: shrink the pizza until the toppings strip ends above the bottom bar, so nothing needs scrolling
-function fitBench(){
-  const pe=$('.pantry.mini');if(!PHONE||!state.zoom||!pz||!pe)return;
-  const cv=pz.cv,over=pe.getBoundingClientRect().bottom+window.scrollY-(window.innerHeight-$('#nav').offsetHeight-6);
-  if(over<=0)return;
-  const h=Math.max(cv.offsetHeight-over,Math.min(cv.offsetHeight,240));   // never smaller than 240 px: then a little scrolling is better
-  cv.style.height=h+'px';cv.style.width=h*BW/BH+'px';
-}
+let cleared=null;   // the pizza the bin just cleared: undo on an empty bench brings it back (same draft only)
 function drawDraft(){if(!pz)return;pz.pizza=null;drawBench()}
 function addPiece(p){
   if(Math.hypot(p.x,p.y)>.8)return false;
@@ -1550,7 +1545,7 @@ function render(){
   $('#view').innerHTML=V[state.tab]();
   document.querySelectorAll('#nav button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===state.tab);b.disabled=!!anim&&b.dataset.tab!=='dia'});
   pz=null;room=null;
-  if(state.tab==='cozinha'){setupPizzaCanvas();drawIngIcons();updateAnalysis();fitBench()}
+  if(state.tab==='cozinha'){setupPizzaCanvas();drawIngIcons();updateAnalysis()}
   if(state.tab==='menu'||state.tab==='concurso')drawMinis();
   if(state.tab==='dia')drawRoom();
   save();
@@ -1573,8 +1568,8 @@ const ACT={
   rotate:()=>rotatePiece(null),
   zoom:()=>{state.zoom=!state.zoom;save();render()},
   cut:b=>setCut(+b.dataset.v),
-  undo:()=>{state.draft.pieces.pop();drawDraft();updateAnalysis()},
-  clear:()=>{state.draft.pieces=[];drawDraft();updateAnalysis()},
+  undo:()=>{const d=state.draft;if(!d.pieces.length&&cleared&&cleared.d===d){d.pieces=cleared.ps;cleared=null}else d.pieces.pop();drawDraft();updateAnalysis()},
+  clear:()=>{const d=state.draft;if(d.pieces.length)cleared={d,ps:d.pieces};d.pieces=[];drawDraft();updateAnalysis()},
   newdraft:()=>{state.draft={name:t('k.newname'),dough:'napo',sauce:'tomate',pieces:[],editing:null};render()},
   savepizza:()=>{
     const d=state.draft,name=($('#pname').value||'').trim();
