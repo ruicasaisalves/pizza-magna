@@ -230,6 +230,19 @@ table.rank tr.me td{color:var(--tomato-lo);font-weight:700}
 #nav button.go{background:linear-gradient(var(--tomato-hi),var(--tomato) 45%,var(--tomato-lo));color:#fff1d2;border-color:#3a0c06}
 #nav button.go.on{background:linear-gradient(var(--tomato-lo),var(--tomato))}
 
+/* Pantry (Shop > Pantry) and the demand curve in the Menu */
+.stockrows{display:grid;gap:8px}
+.srow{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:4px 10px;align-items:center;background:#fbf3df;border:2px solid var(--line);padding:6px 8px;color:var(--ink)}
+.srow canvas{width:36px;height:36px;image-rendering:pixelated}
+.srow .nm{font-size:.9rem;line-height:1.15}.srow .nm small{display:block;color:var(--muted);font-size:.75rem}
+.srow .bx{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;grid-column:2/-1}
+.srow.low{border-color:var(--bad)}.srow.mid{border-color:#d39b12}
+.modepick{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.modepick button{all:unset;cursor:pointer;border:2px solid var(--line);background:#fbf3df;color:var(--ink);padding:10px;display:flex;flex-direction:column;gap:4px}
+.modepick button b{font-family:var(--f-pixel);font-size:.8rem}.modepick button span{font-size:.82rem;color:var(--muted)}
+.modepick button[aria-pressed=true]{border-color:var(--tomato);box-shadow:0 0 0 2px var(--tomato)}
+.dcurve{width:100%;height:84px;display:block;margin-top:6px;background:#fbf3df;border:1px solid var(--line)}
+.dctext{font-size:.8rem;color:var(--muted);display:block;margin-top:3px}
 /* Room editor (Shop > Decorate the room) */
 .roomed{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;align-items:start}
 @media (min-width:1000px){.roomed{grid-template-columns:minmax(0,1fr) 360px}}
@@ -359,7 +372,7 @@ en:{
   'k.empty':'Empty pizza. Start with the cheese.','k.needname':'Give the pizza a name.','k.needmore':'Add a few toppings first.',
   'k.updated':'{x} updated.','k.added':'{x} is on the menu at {p}.',
   'k.newname':'New pizza','k.rotate':'Rotate {x}','k.rotatetip':'Turns the next piece you put down. With a mouse, right-click the pizza to turn it.','k.norotate':'{x} doesn’t need turning.',
-  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte.drizzle':'DRIZZLE','bench.nograte.spread':'SPREAD','bench.nograte.small':'SMALL','bench.q':'PRICE','bench.c':'COST','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','chef.title':'Welcome, chef!','chef.lead':'What should we call you? Your name signs every pizza you share.','chef.name':'Chef’s name','chef.shop':'Pizzeria name','chef.defshop':'Pizzeria {c}','chef.save':'Start cooking','chef.need':'Fill in the chef’s name and the pizzeria’s name.','chef.or':'or','chef.quick':'Quick start','chef.hello':'Saved. Good luck, chef {c}!','fs.enter':'Full screen','fs.exit':'Leave full screen','fs.no':'This browser does not allow full screen here.','lang.title':'Language','lang.auto':'Automatic (browser)','lang.en':'English','lang.pt':'Português','mus.title':'Music','mus.vol':'Volume','mus.v1':'Low','mus.v2':'Quiet','mus.v3':'Medium','mus.v4':'Loud','mus.v5':'Max','mus.on':'Turn music on','mus.off':'Turn music off','mus.next':'Next song','mus.now':'Now playing: {x}','mus.waiting':'On. A tune plays every now and then.','mus.offlead':'Off.','opt.title':'Options','opt.names':'Chef and pizzeria','opt.savenames':'Save names','opt.saves':'Saved game','opt.auto':'Your progress is saved in this browser after every change. Last saved: {w}.','opt.export':'Download save','opt.import':'Import save','opt.exported':'Save file downloaded.','opt.imported':'Save imported. Welcome back, chef {c}!','opt.badfile':'That file is not a Pizza Magna save.','opt.reset':'Reset progress','opt.resetlead':'Starts again from day 1 with the starter menu. Your chef and pizzeria names stay.','opt.sure':'Sure? Click again to reset','opt.wasreset':'Progress reset.','chef.edit':'Change chef and pizzeria','chef.by':'Made by {c} · {s}','share.btn':'Download photo','share.saved':'Photo downloaded: {f}','share.manual':'Downloads are blocked here. Right-click the photo (or press and hold on a phone) and choose “Save image”.','share.close':'Close',"rm.title":"Decorate the room","rm.back":"← Shop","rm.shop":"Furniture shop","rm.lead":"Buy furniture and place it. Tables give seats; everything sets the atmosphere for each kind of customer. You have {m}.","rm.tab.table":"Tables","rm.tab.decor":"Decor","rm.tab.wall":"On the wall","rm.tab.floor":"Floor","rm.tab.walls":"Walls","rm.st.tasca":"Tasca","rm.st.tratt":"Trattoria","rm.st.moder":"Modern","rm.st.luxo":"Luxury","rm.stop":"Stop placing","rm.move":"Move","rm.sell":"Sell (+{x})","rm.seats":"{n} seats","rm.seat1":"seats","rm.h.idle":"Pick something in the shop and tap the room to place it. Tap a piece to move or sell it.","rm.h.place":"Tap the room to place it (green = fits). Tap again to place another.","rm.h.wall":"Tap a spot on the back wall.","rm.lcd.room":"ROOM","rm.lcd.style":"STYLE","rm.lcd.mix":"MIXED","rm.lcd.tables":"TABLES","rm.lcd.seats":"SEATS","rm.lcd.free":"FREE FLOOR","rm.lcd.spent":"FURNISHED","rm.lcd.cash":"CASH","rm.atm":"Atmosphere for each customer","rm.w.blocked":"{n} table(s) cannot be reached from the door: they don’t count.","rm.w.kitchen":"The waiters cannot reach the kitchen counter.","rm.w.crowd":"The room is crowded: customers feel squeezed.","rm.w.ok":"Every table can be reached.","rm.nomoney":"Not enough money for that.","rm.loading":"Loading the room…","rm.noseats":"There are no tables the customers can reach. Add tables in Shop › Decorate the room.","rm.card":"Tables, chairs, plants, pictures, floor and walls. More seats serve more people at the lunch and dinner rush; the style brings in the customers who like it.","rm.i.xadrez2":"Small checked table","rm.i.xadrez4":"Big checked table","rm.i.redonda":"Round wooden table","rm.i.corrida":"Long table with benches","rm.i.branca":"White square table","rm.i.booth":"Leather booth","rm.i.gala":"Gala table","rm.i.bistro":"Marble bistro table","rm.i.vaso":"Potted plant","rm.i.ficus":"Tall ficus","rm.i.oliveira":"Olive tree in a pot","rm.i.barril":"Wine barrel","rm.i.jukebox":"Jukebox","rm.i.aquario":"Aquarium","rm.i.candeeiro":"Floor lamp","rm.i.estatua":"Marble statue","rm.i.fonte":"Fountain","rm.i.piano":"Grand piano","rm.i.persa":"Persian rug","rm.i.trapos":"Rag rug","rm.i.garrafeira":"Wine rack","rm.i.arcade":"Arcade machine","rm.i.janela":"Window","rm.i.quadro":"Painting","rm.i.giz":"Chalkboard menu","rm.i.azulejos":"Tile panel","rm.i.prateleira":"Bottle shelf","rm.i.espelho":"Gilded mirror","rm.i.neon":"Neon sign","rm.i.relogio":"Clock","rm.i.fotos":"Old photographs","rm.f.check":"Red and cream check","rm.f.planks":"Wooden boards","rm.f.hydraulic":"Patterned tiles","rm.f.terrazzo":"Terrazzo","rm.f.marble":"Marble","rm.f.terracotta":"Terracotta","rm.w.cream":"Cream and wood","rm.w.azulejo":"Blue tiles","rm.w.brick":"Bare brick","rm.w.modern":"White and oak","rm.w.damask":"Green damask",'inst.title':'Install the game','inst.lead':'Play from your home screen, full screen, like an app. It also works offline.','inst.btn':'Install','inst.later':'Not now','inst.ask':'Enjoying it? Install Pizza Magna on your phone.','inst.ios':'In Safari, tap Share (the square with an arrow) and then “Add to Home Screen”.','inst.done':'Installed. Look for Pizza Magna on your home screen.','share.make':'Make yours at','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES','bench.w':'WEIGHT','rec.btn':"Share recipe",'rec.title':"Share the recipe",'rec.lead':"Anyone who opens this link gets “{x}” on their bench, piece by piece, signed with the original chef.",'rec.send':"Send…",'rec.copy':"Copy link",'rec.file':"Download .pizza file",'rec.copied':"Link copied.",'rec.selfcopy':"Select the link and copy it.",'rec.sendtxt':"Try my pizza “{x}” on Pizza Magna",'rec.filed':"Recipe downloaded: {f}",'rec.import':"Import pizza",'rec.implead':"Paste a recipe link or code, or choose a .pizza file.",'rec.load':"Put it on the bench",'rec.choose':"Choose file",'rec.got':"“{x}” by chef {c} is on the bench. Save it to add it to the menu.",'rec.bad':"That is not a Pizza Magna recipe.",'rec.from':"Recipe by {c} · {s}",
+  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte.drizzle':'DRIZZLE','bench.nograte.spread':'SPREAD','bench.nograte.small':'SMALL','bench.q':'PRICE','bench.c':'COST','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','chef.title':'Welcome, chef!','chef.lead':'What should we call you? Your name signs every pizza you share.','chef.name':'Chef’s name','chef.shop':'Pizzeria name','chef.defshop':'Pizzeria {c}','chef.save':'Start cooking','chef.need':'Fill in the chef’s name and the pizzeria’s name.','chef.or':'or','chef.quick':'Quick start','chef.hello':'Saved. Good luck, chef {c}!','fs.enter':'Full screen','fs.exit':'Leave full screen','fs.no':'This browser does not allow full screen here.','lang.title':'Language','lang.auto':'Automatic (browser)','lang.en':'English','lang.pt':'Português','mus.title':'Music','mus.vol':'Volume','mus.v1':'Low','mus.v2':'Quiet','mus.v3':'Medium','mus.v4':'Loud','mus.v5':'Max','mus.on':'Turn music on','mus.off':'Turn music off','mus.next':'Next song','mus.now':'Now playing: {x}','mus.waiting':'On. A tune plays every now and then.','mus.offlead':'Off.','opt.title':'Options','opt.names':'Chef and pizzeria','opt.savenames':'Save names','opt.saves':'Saved game','opt.auto':'Your progress is saved in this browser after every change. Last saved: {w}.','opt.export':'Download save','opt.import':'Import save','opt.exported':'Save file downloaded.','opt.imported':'Save imported. Welcome back, chef {c}!','opt.badfile':'That file is not a Pizza Magna save.','opt.reset':'Reset progress','opt.resetlead':'Starts again from day 1 with the starter menu. Your chef and pizzeria names stay.','opt.sure':'Sure? Click again to reset','opt.wasreset':'Progress reset.','chef.edit':'Change chef and pizzeria','chef.by':'Made by {c} · {s}','share.btn':'Download photo','share.saved':'Photo downloaded: {f}','share.manual':'Downloads are blocked here. Right-click the photo (or press and hold on a phone) and choose “Save image”.','share.close':'Close',"st.ask.title":"The pantry won’t last today","st.ask.lead":"Some pizzas on the menu will run out of toppings, and customers who want them will leave.","st.ask.auto":"Let the manager buy","st.ask.go":"Open anyway","st.title":"Pantry","st.card":"The toppings you keep. The manager buys what is missing (25% dearer, never runs out), or buy it yourself: cheaper the more days at once, nothing spoils.","st.lead":"Plan: about {n} pizzas a day, split like yesterday’s sales. Nothing spoils.","st.mode":"Who buys the toppings?","st.auto":"The manager","st.autod":"Buys whatever is missing during the day, 25% dearer. Nothing ever runs out.","st.manual":"I do","st.manuald":"Cheaper: −15% for 3 days at once, −25% for 7. But a pizza whose toppings run out can’t be sold.","st.fill":"Fill everything for {d} days","st.buy":"+{d} d","st.have":"In stock","st.days":"≈ {d} days","st.none":"none","st.kg":"{x}/kg","st.empty":"Your menu has no toppings yet.","st.extra":"Not in the menu any more","st.soldout":"Sold out","st.bought":"Bought: {x}.","st.rep.manager":"of which the manager bought {x}","st.rep.pantry":"of which {x} from the pantry (already paid)","st.tip.soldout":"Tip: toppings ran out. Fill the pantry (Shop › Pantry) or let the manager buy.","st.low":"Pantry: some pizzas will run out today. Shop › Pantry.","menu.dc":"At this price: about {n} a day, {x} profit a day. Best near {b}.","menu.dc.lbl":"Profit a day by price","rm.title":"Decorate the room","rm.back":"← Shop","rm.shop":"Furniture shop","rm.lead":"Buy furniture and place it. Tables give seats; everything sets the atmosphere for each kind of customer. You have {m}.","rm.tab.table":"Tables","rm.tab.decor":"Decor","rm.tab.wall":"On the wall","rm.tab.floor":"Floor","rm.tab.walls":"Walls","rm.st.tasca":"Tasca","rm.st.tratt":"Trattoria","rm.st.moder":"Modern","rm.st.luxo":"Luxury","rm.stop":"Stop placing","rm.move":"Move","rm.sell":"Sell (+{x})","rm.seats":"{n} seats","rm.seat1":"seats","rm.h.idle":"Pick something in the shop and tap the room to place it. Tap a piece to move or sell it.","rm.h.place":"Tap the room to place it (green = fits). Tap again to place another.","rm.h.wall":"Tap a spot on the back wall.","rm.lcd.room":"ROOM","rm.lcd.style":"STYLE","rm.lcd.mix":"MIXED","rm.lcd.tables":"TABLES","rm.lcd.seats":"SEATS","rm.lcd.free":"FREE FLOOR","rm.lcd.spent":"FURNISHED","rm.lcd.cash":"CASH","rm.atm":"Atmosphere for each customer","rm.w.blocked":"{n} table(s) cannot be reached from the door: they don’t count.","rm.w.kitchen":"The waiters cannot reach the kitchen counter.","rm.w.crowd":"The room is crowded: customers feel squeezed.","rm.w.ok":"Every table can be reached.","rm.nomoney":"Not enough money for that.","rm.loading":"Loading the room…","rm.noseats":"There are no tables the customers can reach. Add tables in Shop › Decorate the room.","rm.card":"Tables, chairs, plants, pictures, floor and walls. More seats serve more people at the lunch and dinner rush; the style brings in the customers who like it.","rm.i.xadrez2":"Small checked table","rm.i.xadrez4":"Big checked table","rm.i.redonda":"Round wooden table","rm.i.corrida":"Long table with benches","rm.i.branca":"White square table","rm.i.booth":"Leather booth","rm.i.gala":"Gala table","rm.i.bistro":"Marble bistro table","rm.i.vaso":"Potted plant","rm.i.ficus":"Tall ficus","rm.i.oliveira":"Olive tree in a pot","rm.i.barril":"Wine barrel","rm.i.jukebox":"Jukebox","rm.i.aquario":"Aquarium","rm.i.candeeiro":"Floor lamp","rm.i.estatua":"Marble statue","rm.i.fonte":"Fountain","rm.i.piano":"Grand piano","rm.i.persa":"Persian rug","rm.i.trapos":"Rag rug","rm.i.garrafeira":"Wine rack","rm.i.arcade":"Arcade machine","rm.i.janela":"Window","rm.i.quadro":"Painting","rm.i.giz":"Chalkboard menu","rm.i.azulejos":"Tile panel","rm.i.prateleira":"Bottle shelf","rm.i.espelho":"Gilded mirror","rm.i.neon":"Neon sign","rm.i.relogio":"Clock","rm.i.fotos":"Old photographs","rm.f.check":"Red and cream check","rm.f.planks":"Wooden boards","rm.f.hydraulic":"Patterned tiles","rm.f.terrazzo":"Terrazzo","rm.f.marble":"Marble","rm.f.terracotta":"Terracotta","rm.w.cream":"Cream and wood","rm.w.azulejo":"Blue tiles","rm.w.brick":"Bare brick","rm.w.modern":"White and oak","rm.w.damask":"Green damask",'inst.title':'Install the game','inst.lead':'Play from your home screen, full screen, like an app. It also works offline.','inst.btn':'Install','inst.later':'Not now','inst.ask':'Enjoying it? Install Pizza Magna on your phone.','inst.ios':'In Safari, tap Share (the square with an arrow) and then “Add to Home Screen”.','inst.done':'Installed. Look for Pizza Magna on your home screen.','share.make':'Make yours at','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES','bench.w':'WEIGHT','rec.btn':"Share recipe",'rec.title':"Share the recipe",'rec.lead':"Anyone who opens this link gets “{x}” on their bench, piece by piece, signed with the original chef.",'rec.send':"Send…",'rec.copy':"Copy link",'rec.file':"Download .pizza file",'rec.copied':"Link copied.",'rec.selfcopy':"Select the link and copy it.",'rec.sendtxt':"Try my pizza “{x}” on Pizza Magna",'rec.filed':"Recipe downloaded: {f}",'rec.import':"Import pizza",'rec.implead':"Paste a recipe link or code, or choose a .pizza file.",'rec.load':"Put it on the bench",'rec.choose':"Choose file",'rec.got':"“{x}” by chef {c} is on the bench. Save it to add it to the menu.",'rec.bad':"That is not a Pizza Magna recipe.",'rec.from':"Recipe by {c} · {s}",
   'menu.house':'House menu','menu.lead':'Adjust the prices. The fair price depends on quality and on who comes in: gourmets pay more, students count every cent.','menu.empty':'The menu is empty. Create a pizza in the Kitchen to open the doors.','menu.gokitchen':'Go to the Kitchen',
   'menu.cost':'Cost','menu.margin':'Margin','menu.fair':'Fair price','menu.sold':'Sold yesterday','menu.edit':'Edit recipe','menu.remove':'Remove','menu.confirm':'Confirm removal','menu.new':'+ Create new pizza ({n})','k.unsaved.title':'Pizza not saved','k.unsaved.lead':'You haven’t saved “{x}” to the menu yet. Start a new pizza anyway?','k.unsaved.new':'Create new','k.unsaved.keep':'Continue','menu.pdn':'Lower price','menu.pup':'Raise price'
 },
@@ -426,7 +439,7 @@ pt:{
   'k.empty':'Pizza vazia. Começa pelo queijo.','k.needname':'Dá um nome à pizza.','k.needmore':'Põe pelo menos alguns ingredientes.',
   'k.updated':'{x} atualizada.','k.added':'{x} entrou no menu por {p}.',
   'k.newname':'Nova pizza','k.rotate':'Rodar {x}','k.rotatetip':'Roda a próxima peça que puseres. Com o rato, clica com o botão direito na pizza para a rodar.','k.norotate':'{x} não precisa de rodar.',
-  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte.drizzle':'EM FIO','bench.nograte.spread':'ESPALHA-SE','bench.nograte.small':'JÁ É MIÚDO','bench.q':'PREÇO','bench.c':'CUSTO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','chef.title':'Bem-vindo, chef!','chef.lead':'Como te chamas? O teu nome assina todas as pizzas que partilhares.','chef.name':'Nome do chef','chef.shop':'Nome da pizzaria','chef.defshop':'Pizzaria {c}','chef.save':'Começar a cozinhar','chef.need':'Preenche o nome do chef e o da pizzaria.','chef.or':'ou','chef.quick':'Começo rápido','chef.hello':'Guardado. Bom trabalho, chef {c}!','fs.enter':'Ecrã inteiro','fs.exit':'Sair do ecrã inteiro','fs.no':'Este browser não deixa usar o ecrã inteiro aqui.','lang.title':'Língua','lang.auto':'Automática (do browser)','lang.en':'English','lang.pt':'Português','mus.title':'Música','mus.vol':'Volume','mus.v1':'Baixo','mus.v2':'Suave','mus.v3':'Médio','mus.v4':'Alto','mus.v5':'Máximo','mus.on':'Ligar a música','mus.off':'Desligar a música','mus.next':'Próxima música','mus.now':'A tocar: {x}','mus.waiting':'Ligada. De vez em quando toca uma música.','mus.offlead':'Desligada.','opt.title':'Opções','opt.names':'Chef e pizzaria','opt.savenames':'Guardar nomes','opt.saves':'Jogo guardado','opt.auto':'O progresso fica guardado neste browser a cada alteração. Última gravação: {w}.','opt.export':'Descarregar gravação','opt.import':'Importar gravação','opt.exported':'Ficheiro de gravação descarregado.','opt.imported':'Gravação importada. Bem-vindo de volta, chef {c}!','opt.badfile':'Esse ficheiro não é uma gravação do Pizza Magna.','opt.reset':'Recomeçar o progresso','opt.resetlead':'Volta ao dia 1, com o menu inicial. Os nomes do chef e da pizzaria ficam.','opt.sure':'Tens a certeza? Carrega outra vez','opt.wasreset':'Progresso recomeçado.','chef.edit':'Mudar chef e pizzaria','chef.by':'Feita por {c} · {s}','share.btn':'Descarregar foto','share.saved':'Foto descarregada: {f}','share.manual':'Aqui as transferências estão bloqueadas. Carrega com o botão direito na foto (ou mantém o dedo, no telemóvel) e escolhe “Guardar imagem”.','share.close':'Fechar',"rm.title":"Decorar a sala","rm.back":"← Loja","rm.shop":"Loja de mobília","rm.lead":"Compra mobília e põe-na na sala. As mesas dão lugares; tudo conta para o ambiente de cada tipo de cliente. Tens {m}.","rm.tab.table":"Mesas","rm.tab.decor":"Decoração","rm.tab.wall":"Na parede","rm.tab.floor":"Chão","rm.tab.walls":"Paredes","rm.st.tasca":"Tasca","rm.st.tratt":"Trattoria","rm.st.moder":"Moderno","rm.st.luxo":"Luxo","rm.stop":"Parar","rm.move":"Mudar de sítio","rm.sell":"Vender (+{x})","rm.seats":"{n} lugares","rm.seat1":"lugares","rm.h.idle":"Escolhe uma peça na loja e toca na sala para a pôr. Toca numa peça para a mudar de sítio ou vender.","rm.h.place":"Toca na sala para a pôr (verde = cabe). Toca outra vez para pôr mais uma.","rm.h.wall":"Toca num lugar da parede do fundo.","rm.lcd.room":"SALA","rm.lcd.style":"ESTILO","rm.lcd.mix":"MISTO","rm.lcd.tables":"MESAS","rm.lcd.seats":"LUGARES","rm.lcd.free":"CHÃO LIVRE","rm.lcd.spent":"INVESTIDO","rm.lcd.cash":"CAIXA","rm.atm":"Ambiente para cada cliente","rm.w.blocked":"{n} mesa(s) sem acesso a partir da porta: não contam.","rm.w.kitchen":"Os empregados não chegam ao balcão da cozinha.","rm.w.crowd":"A sala está apinhada: os clientes sentem-se apertados.","rm.w.ok":"Todas as mesas têm acesso.","rm.nomoney":"Não tens dinheiro para isso.","rm.loading":"A carregar a sala…","rm.noseats":"Não há mesas a que os clientes cheguem. Põe mesas em Loja › Decorar a sala.","rm.card":"Mesas, cadeiras, plantas, quadros, chão e paredes. Mais lugares servem mais gente à hora de almoço e de jantar; o estilo atrai os clientes que gostam dele.","rm.i.xadrez2":"Mesa aos quadrados pequena","rm.i.xadrez4":"Mesa aos quadrados grande","rm.i.redonda":"Mesa redonda de madeira","rm.i.corrida":"Mesa corrida com bancos","rm.i.branca":"Mesa quadrada branca","rm.i.booth":"Cabine de cabedal","rm.i.gala":"Mesa de gala","rm.i.bistro":"Mesa de mármore","rm.i.vaso":"Vaso com planta","rm.i.ficus":"Fícus alto","rm.i.oliveira":"Oliveira em vaso","rm.i.barril":"Pipa de vinho","rm.i.jukebox":"Jukebox","rm.i.aquario":"Aquário","rm.i.candeeiro":"Candeeiro de pé","rm.i.estatua":"Estátua de mármore","rm.i.fonte":"Fonte","rm.i.piano":"Piano de cauda","rm.i.persa":"Tapete persa","rm.i.trapos":"Tapete de trapos","rm.i.garrafeira":"Garrafeira","rm.i.arcade":"Máquina de jogos","rm.i.janela":"Janela","rm.i.quadro":"Quadro","rm.i.giz":"Ardósia com o menu","rm.i.azulejos":"Painel de azulejos","rm.i.prateleira":"Prateleira de garrafas","rm.i.espelho":"Espelho dourado","rm.i.neon":"Néon","rm.i.relogio":"Relógio","rm.i.fotos":"Fotografias antigas","rm.f.check":"Xadrez vermelho e creme","rm.f.planks":"Soalho de madeira","rm.f.hydraulic":"Mosaico hidráulico","rm.f.terrazzo":"Marmorite","rm.f.marble":"Mármore","rm.f.terracotta":"Tijoleira","rm.w.cream":"Creme e madeira","rm.w.azulejo":"Azulejo azul","rm.w.brick":"Tijolo à vista","rm.w.modern":"Branco e carvalho","rm.w.damask":"Damasco verde",'inst.title':'Instalar o jogo','inst.lead':'Joga a partir do ecrã principal, em ecrã inteiro, como uma app. Também funciona sem internet.','inst.btn':'Instalar','inst.later':'Agora não','inst.ask':'Gostas? Instala o Pizza Magna no telemóvel.','inst.ios':'No Safari, toca em Partilhar (o quadrado com uma seta) e depois em “Adicionar ao ecrã principal”.','inst.done':'Instalado. Procura o Pizza Magna no ecrã principal.','share.make':'Faz a tua em','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS','bench.w':'PESO','rec.btn':"Partilhar receita",'rec.title':"Partilhar a receita",'rec.lead':"Quem abrir este link recebe “{x}” na bancada, peça a peça, assinada pelo chef original.",'rec.send':"Enviar…",'rec.copy':"Copiar link",'rec.file':"Descarregar ficheiro .pizza",'rec.copied':"Link copiado.",'rec.selfcopy':"Seleciona o link e copia-o.",'rec.sendtxt':"Experimenta a minha pizza “{x}” no Pizza Magna",'rec.filed':"Receita descarregada: {f}",'rec.import':"Importar pizza",'rec.implead':"Cola um link ou código de receita, ou escolhe um ficheiro .pizza.",'rec.load':"Pôr na bancada",'rec.choose':"Escolher ficheiro",'rec.got':"“{x}”, do chef {c}, está na bancada. Guarda-a para a pôr no menu.",'rec.bad':"Isso não é uma receita do Pizza Magna.",'rec.from':"Receita de {c} · {s}",
+  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte.drizzle':'EM FIO','bench.nograte.spread':'ESPALHA-SE','bench.nograte.small':'JÁ É MIÚDO','bench.q':'PREÇO','bench.c':'CUSTO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','chef.title':'Bem-vindo, chef!','chef.lead':'Como te chamas? O teu nome assina todas as pizzas que partilhares.','chef.name':'Nome do chef','chef.shop':'Nome da pizzaria','chef.defshop':'Pizzaria {c}','chef.save':'Começar a cozinhar','chef.need':'Preenche o nome do chef e o da pizzaria.','chef.or':'ou','chef.quick':'Começo rápido','chef.hello':'Guardado. Bom trabalho, chef {c}!','fs.enter':'Ecrã inteiro','fs.exit':'Sair do ecrã inteiro','fs.no':'Este browser não deixa usar o ecrã inteiro aqui.','lang.title':'Língua','lang.auto':'Automática (do browser)','lang.en':'English','lang.pt':'Português','mus.title':'Música','mus.vol':'Volume','mus.v1':'Baixo','mus.v2':'Suave','mus.v3':'Médio','mus.v4':'Alto','mus.v5':'Máximo','mus.on':'Ligar a música','mus.off':'Desligar a música','mus.next':'Próxima música','mus.now':'A tocar: {x}','mus.waiting':'Ligada. De vez em quando toca uma música.','mus.offlead':'Desligada.','opt.title':'Opções','opt.names':'Chef e pizzaria','opt.savenames':'Guardar nomes','opt.saves':'Jogo guardado','opt.auto':'O progresso fica guardado neste browser a cada alteração. Última gravação: {w}.','opt.export':'Descarregar gravação','opt.import':'Importar gravação','opt.exported':'Ficheiro de gravação descarregado.','opt.imported':'Gravação importada. Bem-vindo de volta, chef {c}!','opt.badfile':'Esse ficheiro não é uma gravação do Pizza Magna.','opt.reset':'Recomeçar o progresso','opt.resetlead':'Volta ao dia 1, com o menu inicial. Os nomes do chef e da pizzaria ficam.','opt.sure':'Tens a certeza? Carrega outra vez','opt.wasreset':'Progresso recomeçado.','chef.edit':'Mudar chef e pizzaria','chef.by':'Feita por {c} · {s}','share.btn':'Descarregar foto','share.saved':'Foto descarregada: {f}','share.manual':'Aqui as transferências estão bloqueadas. Carrega com o botão direito na foto (ou mantém o dedo, no telemóvel) e escolhe “Guardar imagem”.','share.close':'Fechar',"st.ask.title":"A despensa não chega para hoje","st.ask.lead":"Algumas pizzas do menu vão ficar sem ingredientes e quem as quiser vai-se embora.","st.ask.auto":"O gerente compra","st.ask.go":"Abrir na mesma","st.title":"Despensa","st.card":"Os ingredientes que tens guardados. O gerente compra o que falta (25% mais caro, nunca falta), ou compras tu: mais barato quantos mais dias de uma vez, nada se estraga.","st.lead":"Plano: cerca de {n} pizzas por dia, repartidas como as vendas de ontem. Nada se estraga.","st.mode":"Quem compra os ingredientes?","st.auto":"O gerente","st.autod":"Compra o que faltar durante o dia, 25% mais caro. Nunca falta nada.","st.manual":"Eu","st.manuald":"Mais barato: −15% para 3 dias de uma vez, −25% para 7. Mas uma pizza cujos ingredientes acabem não se vende.","st.fill":"Encher tudo para {d} dias","st.buy":"+{d} d","st.have":"Em stock","st.days":"≈ {d} dias","st.none":"nada","st.kg":"{x}/kg","st.empty":"O teu menu ainda não tem ingredientes.","st.extra":"Já não está no menu","st.soldout":"Esgotado","st.bought":"Comprado: {x}.","st.rep.manager":"dos quais o gerente comprou {x}","st.rep.pantry":"dos quais {x} da despensa (já pagos)","st.tip.soldout":"Dica: acabaram ingredientes. Enche a despensa (Loja › Despensa) ou deixa o gerente comprar.","st.low":"Despensa: algumas pizzas vão esgotar hoje. Loja › Despensa.","menu.dc":"A este preço: cerca de {n} por dia, {x} de lucro por dia. O melhor ronda {b}.","menu.dc.lbl":"Lucro por dia conforme o preço","rm.title":"Decorar a sala","rm.back":"← Loja","rm.shop":"Loja de mobília","rm.lead":"Compra mobília e põe-na na sala. As mesas dão lugares; tudo conta para o ambiente de cada tipo de cliente. Tens {m}.","rm.tab.table":"Mesas","rm.tab.decor":"Decoração","rm.tab.wall":"Na parede","rm.tab.floor":"Chão","rm.tab.walls":"Paredes","rm.st.tasca":"Tasca","rm.st.tratt":"Trattoria","rm.st.moder":"Moderno","rm.st.luxo":"Luxo","rm.stop":"Parar","rm.move":"Mudar de sítio","rm.sell":"Vender (+{x})","rm.seats":"{n} lugares","rm.seat1":"lugares","rm.h.idle":"Escolhe uma peça na loja e toca na sala para a pôr. Toca numa peça para a mudar de sítio ou vender.","rm.h.place":"Toca na sala para a pôr (verde = cabe). Toca outra vez para pôr mais uma.","rm.h.wall":"Toca num lugar da parede do fundo.","rm.lcd.room":"SALA","rm.lcd.style":"ESTILO","rm.lcd.mix":"MISTO","rm.lcd.tables":"MESAS","rm.lcd.seats":"LUGARES","rm.lcd.free":"CHÃO LIVRE","rm.lcd.spent":"INVESTIDO","rm.lcd.cash":"CAIXA","rm.atm":"Ambiente para cada cliente","rm.w.blocked":"{n} mesa(s) sem acesso a partir da porta: não contam.","rm.w.kitchen":"Os empregados não chegam ao balcão da cozinha.","rm.w.crowd":"A sala está apinhada: os clientes sentem-se apertados.","rm.w.ok":"Todas as mesas têm acesso.","rm.nomoney":"Não tens dinheiro para isso.","rm.loading":"A carregar a sala…","rm.noseats":"Não há mesas a que os clientes cheguem. Põe mesas em Loja › Decorar a sala.","rm.card":"Mesas, cadeiras, plantas, quadros, chão e paredes. Mais lugares servem mais gente à hora de almoço e de jantar; o estilo atrai os clientes que gostam dele.","rm.i.xadrez2":"Mesa aos quadrados pequena","rm.i.xadrez4":"Mesa aos quadrados grande","rm.i.redonda":"Mesa redonda de madeira","rm.i.corrida":"Mesa corrida com bancos","rm.i.branca":"Mesa quadrada branca","rm.i.booth":"Cabine de cabedal","rm.i.gala":"Mesa de gala","rm.i.bistro":"Mesa de mármore","rm.i.vaso":"Vaso com planta","rm.i.ficus":"Fícus alto","rm.i.oliveira":"Oliveira em vaso","rm.i.barril":"Pipa de vinho","rm.i.jukebox":"Jukebox","rm.i.aquario":"Aquário","rm.i.candeeiro":"Candeeiro de pé","rm.i.estatua":"Estátua de mármore","rm.i.fonte":"Fonte","rm.i.piano":"Piano de cauda","rm.i.persa":"Tapete persa","rm.i.trapos":"Tapete de trapos","rm.i.garrafeira":"Garrafeira","rm.i.arcade":"Máquina de jogos","rm.i.janela":"Janela","rm.i.quadro":"Quadro","rm.i.giz":"Ardósia com o menu","rm.i.azulejos":"Painel de azulejos","rm.i.prateleira":"Prateleira de garrafas","rm.i.espelho":"Espelho dourado","rm.i.neon":"Néon","rm.i.relogio":"Relógio","rm.i.fotos":"Fotografias antigas","rm.f.check":"Xadrez vermelho e creme","rm.f.planks":"Soalho de madeira","rm.f.hydraulic":"Mosaico hidráulico","rm.f.terrazzo":"Marmorite","rm.f.marble":"Mármore","rm.f.terracotta":"Tijoleira","rm.w.cream":"Creme e madeira","rm.w.azulejo":"Azulejo azul","rm.w.brick":"Tijolo à vista","rm.w.modern":"Branco e carvalho","rm.w.damask":"Damasco verde",'inst.title':'Instalar o jogo','inst.lead':'Joga a partir do ecrã principal, em ecrã inteiro, como uma app. Também funciona sem internet.','inst.btn':'Instalar','inst.later':'Agora não','inst.ask':'Gostas? Instala o Pizza Magna no telemóvel.','inst.ios':'No Safari, toca em Partilhar (o quadrado com uma seta) e depois em “Adicionar ao ecrã principal”.','inst.done':'Instalado. Procura o Pizza Magna no ecrã principal.','share.make':'Faz a tua em','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS','bench.w':'PESO','rec.btn':"Partilhar receita",'rec.title':"Partilhar a receita",'rec.lead':"Quem abrir este link recebe “{x}” na bancada, peça a peça, assinada pelo chef original.",'rec.send':"Enviar…",'rec.copy':"Copiar link",'rec.file':"Descarregar ficheiro .pizza",'rec.copied':"Link copiado.",'rec.selfcopy':"Seleciona o link e copia-o.",'rec.sendtxt':"Experimenta a minha pizza “{x}” no Pizza Magna",'rec.filed':"Receita descarregada: {f}",'rec.import':"Importar pizza",'rec.implead':"Cola um link ou código de receita, ou escolhe um ficheiro .pizza.",'rec.load':"Pôr na bancada",'rec.choose':"Escolher ficheiro",'rec.got':"“{x}”, do chef {c}, está na bancada. Guarda-a para a pôr no menu.",'rec.bad':"Isso não é uma receita do Pizza Magna.",'rec.from':"Receita de {c} · {s}",
   'menu.house':'Menu da casa','menu.lead':'Ajusta os preços. O preço justo depende da qualidade e de quem entra: gourmets pagam mais, estudantes contam cada cêntimo.','menu.empty':'O menu está vazio. Cria uma pizza na Cozinha para poderes abrir portas.','menu.gokitchen':'Ir para a Cozinha',
   'menu.cost':'Custo','menu.margin':'Margem','menu.fair':'Preço justo','menu.sold':'Vendidas ontem','menu.edit':'Editar receita','menu.remove':'Remover','menu.confirm':'Confirmar remoção','menu.new':'+ Criar nova pizza ({n})','k.unsaved.title':'Pizza por guardar','k.unsaved.lead':'Ainda não guardaste a pizza anterior, “{x}”, no menu. Criar uma nova na mesma?','k.unsaved.new':'Criar nova','k.unsaved.keep':'Continuar','menu.pdn':'Baixar preço','menu.pup':'Subir preço'
 }};
@@ -723,7 +736,7 @@ function spread(id,n,rad=.72,seed=0){const out=[];for(let k=0;k<n;k++){const a=(
 /* ================= STATE ================= */
 function freshState(){
   return {
-    v:1,tab:'cozinha',day:1,money:1000,rep:1,ovens:1,cooks:1,deco:0,room:starterRoom(0),ads:false,unlocked:['base'],
+    v:1,tab:'cozinha',day:1,money:1000,rep:1,ovens:1,cooks:1,deco:0,room:starterRoom(0),stock:{},stockMode:'auto',ads:false,unlocked:['base'],
     menu:[{id:'p1',name:'Margherita da Casa',dough:'napo',sauce:'tomate',pieces:[...spread('mozzarella',11,.74,0),...spread('manjericao',6,.62,3)],price:9}],
     draft:{name:'',dough:'napo',sauce:'tomate',pieces:[],editing:null},   // the kitchen starts with an empty pizza
     sel:'fiambre',cut:'w',rot:{},rival:{name:'Pizza Rápida',q:52,price:7,promo:false},
@@ -1124,6 +1137,7 @@ function menuHTML(){
     <canvas data-pz="${p.id}"></canvas>
     <div><h3>${esc(p.name)}</h3><span class="sub">${DOUGHS[p.dough].n} · ${SAUCES[p.sauce].n}</span>
       <div class="price"><button data-act="pdn" data-id="${p.id}" aria-label="${t('menu.pdn')}">−</button><b>${eur(p.price)}</b><button data-act="pup" data-id="${p.id}" aria-label="${t('menu.pup')}">+</button></div>
+      <canvas class="dcurve" data-dc="${p.id}" aria-label="${esc(t('menu.dc.lbl'))}"></canvas><span class="dctext" data-dct="${p.id}"></span>
       <dl class="kv"><dt>${t('k.q')}</dt><dd>${a.q}/100</dd><dt>${t('menu.cost')}</dt><dd>${eur(a.cost)}</dd><dt>${t('menu.margin')}</dt><dd style="color:${margin>0?'var(--good)':'var(--bad)'}">${eur(margin)}</dd><dt>${t('menu.fair')}</dt><dd>${eur(suggestPrice(a))}</dd><dt>${t('menu.sold')}</dt><dd>${sold}</dd></dl>
       <div class="row"><button class="btn sm" data-act="edit" data-id="${p.id}">${t('menu.edit')}</button><button class="btn sm" data-act="share" data-id="${p.id}">${t('share.btn')}</button><button class="btn sm" data-act="recshare" data-id="${p.id}">${t('rec.btn')}</button><button class="btn sm danger" data-act="rm" data-id="${p.id}">${t('menu.remove')}</button></div>
     </div></div>`}).join('')}
@@ -1145,6 +1159,7 @@ function dayHTML(){
     <div class="legend">${Object.values(SEG).map(s=>`<span style="--c:${s.col}">${s.n}</span>`).join('')}</div>
     <div class="grid2">
       <div class="card"><h3>Notícias do bairro</h3><ul class="news">${state.news.slice(0,5).map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>
+      ${state.stockMode==='manual'&&state.menu.some(p=>Object.keys(pizzaNeeds(p)).some(id=>stockDays(id)<1))?`<div class="card"><h3>Aviso do gerente</h3><p class="sub">${t('st.low')}</p></div>`:''}
       ${roomA().seats*3<expectedCustomers()?'<div class="card"><h3>Aviso do gerente</h3><p class="sub">Poucos lugares: à hora de almoço e de jantar vai haver quem não encontre mesa. Mais mesas em Loja › Decorar a sala.</p></div>':''}
       ${capacity()<expectedCustomers()*.6?'<div class="card"><h3>Aviso do gerente</h3><p class="sub">Vai haver fila: hoje esperam-se mais clientes do que a cozinha aguenta. Um pizzaiolo ou forno extra ajuda (Loja).</p></div>':''}
     </div>
@@ -1183,43 +1198,69 @@ function lcdText(){
 const runCtlHTML=()=>[1,2,4].map(v=>`<button class="btn ${anim&&anim.speed===v?'primary':''}" data-act="speed" data-v="${v}">×${v}</button>`).join('')+`<button class="btn ghost" data-act="skip">Saltar para o fecho</button>`;
 
 /* ---- simulation ---- */
+/* ---- stock: toppings bought by weight and kept in the pantry (nothing spoils). The dough and the sauce are
+   always there, paid pizza by pizza. With the manager (stockMode 'auto') whatever is missing is bought on the
+   spot at MANAGER_MARKUP; buying it yourself is cheaper the more days you buy at once, but a pizza whose
+   toppings ran out can't be made that day. state.stock[id] = {g: grams, v: what they cost}. ---- */
+const MANAGER_MARKUP=1.25,BULK={1:0,3:.15,7:.25};
+const gramPrice=id=>ING[id].c/(GRAMS[id]||10);   // $ per gram, the cost per portion spread over its weight
+function pizzaNeeds(p){const n={};for(const x of p.pieces)n[x.i]=(n[x.i]||0)+pieceGrams(x);return n}
+const baseCostOf=p=>DOUGHS[p.dough].c+SAUCES[p.sauce].c;
+// how many pizzas a day to plan for, and how they split over the menu (yesterday's sales, or an even split)
+function salesPlan(){const tot=Object.values(state.lastSales||{}).reduce((a,b)=>a+b,0),E=tot||Math.min(capacity(),Math.max(20,roomA().seats*2.4));
+  return state.menu.map(p=>({p,n:tot?(state.lastSales[p.id]||0)*E/tot:E/Math.max(1,state.menu.length)}))}
+function dailyNeed(){const need={};for(const {p,n} of salesPlan())for(const [id,g] of Object.entries(pizzaNeeds(p)))need[id]=(need[id]||0)+g*n;return need}
+const stockDays=id=>{const d=dailyNeed()[id];return d?((state.stock[id]||{}).g||0)/d:Infinity};
+function buyStock(id,grams,days){const g=Math.ceil(grams/10)*10;if(g<=0)return 0;const cost=r2(g*gramPrice(id)*(1-(BULK[days]||0)));
+  const st=state.stock[id]||(state.stock[id]={g:0,v:0});st.g+=g;st.v=r2(st.v+cost);return cost}
+
 function simulateDay(){
-  const s=state,menuA=s.menu.map(p=>({p,a:analyze(p)})),mix=segMix(),cap=capacity(),r=s.rival;
+  const s=state,menuA=s.menu.map(p=>({p,a:analyze(p),need:pizzaNeeds(p),base:baseCostOf(p)})),mix=segMix(),cap=capacity(),r=s.rival;
   const N=expectedCustomers();const TH=4.2,REGULARS=.45;const events=[];
   // the room: seats at the tables a waiter can reach, and how much each group likes it
   const RM=roomA(),atm=RM.atm,EAT=.18,WAIT=.04,seatFree=Array(RM.seats).fill(0);let noseat=0;
+  // the pantry for today (a copy: the day is applied in finishDay)
+  const manual=s.stockMode==='manual',stock={};for(const [id,st] of Object.entries(s.stock||{}))stock[id]={g:st.g,v:st.v};
+  const canMake=m=>{if(!manual)return true;for(const id in m.need)if(((stock[id]||{}).g||0)<m.need[id]-1e-6)return false;return true};
+  let paidBefore=0,bought=0;   // toppings taken from the pantry (already paid) / bought on the spot by the manager
+  const useStock=m=>{let v=0;for(const id in m.need){const st=stock[id],want=m.need[id],have=st?Math.min(st.g,want):0;
+    if(have>0){const val=st.v*have/st.g;st.v-=val;st.g-=have;v+=val;paidBefore+=val}
+    if(want-have>1e-6){const b=(want-have)*gramPrice(id)*MANAGER_MARKUP;v+=b;bought+=b}}return v};
   // customers come in two rushes, lunch and dinner, and a few in between
   const g=()=>(Math.random()+Math.random()+Math.random()-1.5)*2;
   const arrivals=Array.from({length:N},()=>{const x=Math.random();return clamp(x<.45?.27+g()*.06:x<.9?.66+g()*.07:Math.random()*.9,.02,.9)}).sort((a,b)=>a-b);
-  let served=0,toRival=0,full=0,passed=0,revenue=0,ingCost=0,repDelta=0,happy=0,unhappy=0;const sales={},quotes=[];
+  let served=0,toRival=0,full=0,nostock=0,passed=0,revenue=0,ingCost=0,repDelta=0,happy=0,unhappy=0;const sales={},quotes=[];
   const pickSeg=()=>{let x=Math.random();for(const k in mix){x-=mix[k];if(x<=0)return k}return 'familia'};
   for(let i=0;i<N;i++){
     const seg=pickSeg(),ps=SEG[seg].ps,t=arrivals[i];
     const deco=(atm[seg]-35)/25+(s.rep-2.5)*.3;   // the room's atmosphere for this group, and the reputation
-    let best=null,bu=-1e9;
-    for(const m of menuA){const ap=m.a.appeal[seg];const u=ap/10-ps*(m.p.price-fairPrice(ap,m.a.cost))+noise()+deco;if(u>bu){bu=u;best=m}}
+    const opts=menuA.map(m=>{const ap=m.a.appeal[seg];return {m,u:ap/10-ps*(m.p.price-fairPrice(ap,m.a.cost))+noise()+deco}}).sort((a,b)=>b.u-a.u);
+    const best=opts.length?opts[0].m:null,bu=opts.length?opts[0].u:-1e9;
     const ra=clamp(r.q+RIVAL_BIAS[seg],0,100);const ru=ra/10-ps*(r.price-fairPrice(ra))+noise()+(r.promo?1.5:0);
     const e={t,seg};
     // regulars: about half the street knows you and comes back unless the pizza is poor or overpriced,
     // whatever the rival does; this keeps a beginner's day steady (stable profit on the starter room)
-    const regular=Math.random()<REGULARS;
-    if(best&&(regular?bu>=TH-2.5:bu>=Math.max(ru,TH))){
+    const regular=Math.random()<REGULARS,bar=regular?TH-2.5:Math.max(ru,TH);
+    if(best&&bu>=bar){
       e.target='ours';
+      const pk=opts.find(o=>o.u>=bar&&canMake(o.m)),m=pk&&pk.m;   // their favourite, or the next one they'd still have
       let k=-1;for(let j=0;j<seatFree.length;j++)if(k<0||seatFree[j]<seatFree[k])k=j;   // the seat that frees up first
-      if(served<cap&&(k<0||seatFree[k]>t+WAIT)){noseat++;repDelta-=.012;e.out='noseat';if(Math.random()<.3)quotes.push([seg,'Não havia mesa livre e fui-me embora.'])}
+      if(!m){nostock++;repDelta-=.006;e.out='nostock';if(Math.random()<.3)quotes.push([seg,'Acabou a pizza que eu queria.'])}
+      else if(served<cap&&(k<0||seatFree[k]>t+WAIT)){noseat++;repDelta-=.012;e.out='noseat';if(Math.random()<.3)quotes.push([seg,'Não havia mesa livre e fui-me embora.'])}
       else if(served<cap){
         seatFree[k]=Math.max(t,seatFree[k])+EAT;
-        served++;revenue+=best.p.price;ingCost+=best.a.cost;sales[best.p.id]=(sales[best.p.id]||0)+1;e.price=best.p.price;
-        const ap=best.a.appeal[seg],over=best.p.price-fairPrice(ap,best.a.cost);const sat=ap+noise()*5-Math.max(0,over)*7+(atm[seg]-35)/7;
-        if(sat>=62){happy++;repDelta+=.008;e.out='happy';if(Math.random()<.25)quotes.push([seg,happyQuote(seg,best.p.name)])}
-        else{unhappy++;repDelta-=.03;e.out='meh';const bad=best.a.notes.find(n=>n[0]==='bad'&&n[2]);quotes.push([seg,over>1.5?`Boa, mas ${eur(best.p.price)} é caro para o que é.`:bad?bad[2]:'Comível, mas nada de especial.'])}
+        served++;revenue+=m.p.price;ingCost+=m.base+useStock(m);sales[m.p.id]=(sales[m.p.id]||0)+1;e.price=m.p.price;
+        const ap=m.a.appeal[seg],over=m.p.price-fairPrice(ap,m.a.cost);const sat=ap+noise()*5-Math.max(0,over)*7+(atm[seg]-35)/7;
+        if(sat>=62){happy++;repDelta+=.008;e.out='happy';if(Math.random()<.25)quotes.push([seg,happyQuote(seg,m.p.name)])}
+        else{unhappy++;repDelta-=.03;e.out='meh';const bad=m.a.notes.find(n=>n[0]==='bad'&&n[2]);quotes.push([seg,over>1.5?`Boa, mas ${eur(m.p.price)} é caro para o que é.`:bad?bad[2]:'Comível, mas nada de especial.'])}
       }else{full++;repDelta-=.012;e.out='full';if(Math.random()<.3)quotes.push([seg,'Esperei imenso e desisti.'])}
     }else if(ru>=TH){e.target='rival';toRival++;if(best&&Math.random()<.12)quotes.push([seg,r.promo?`Hoje a ${r.name} faz 2 por 1, não resisti.`:best.p.price>r.price+1.5?`A ${r.name} é mais barata.`:`Prefiro o sabor da ${r.name}.`])}
     else{e.target='none';passed++}
     events.push(e);
   }
   events.sort((a,b)=>a.t-b.t);
-  return {events,served,toRival,full,noseat,seats:RM.seats,passed,revenue:r2(revenue),ingCost:r2(ingCost),repDelta,happy,unhappy,sales,quotes,N,cap};
+  for(const id in stock)if(stock[id].g<.5)delete stock[id];
+  return {events,served,toRival,full,noseat,nostock,seats:RM.seats,passed,revenue:r2(revenue),ingCost:r2(ingCost),paidBefore:r2(paidBefore),bought:r2(bought),stockAfter:stock,repDelta,happy,unhappy,sales,quotes,N,cap};
 }
 function happyQuote(seg,name){const q={estudante:[`A ${name} encheu-me a barriga por um bom preço.`,`Volto amanhã com a malta!`],familia:[`Os miúdos adoraram a ${name}.`,`Boa pizza, bom ambiente.`],turista:[`Best pizza in Lisbon! A ${name} é incrível.`,`Muito autêntico, adorei.`],gourmet:[`A ${name} tem equilíbrio de sabores notável.`,`Massa bem trabalhada. Recomendo.`]}[seg];return q[Math.floor(Math.random()*q.length)]}
 
@@ -1237,7 +1278,8 @@ function resolveContest(){
 function finishDay(res){
   const s=state,r=s.rival,sal=s.cooks*SALARY;
   const profit=r2(res.revenue-res.ingCost-RENT-sal);
-  s.money=r2(s.money+profit);const repBefore=s.rep;s.rep=clamp(s.rep+clamp(res.repDelta,-.4,.25),0,5);
+  s.money=r2(s.money+profit+(res.paidBefore||0));   // toppings from the pantry were paid when bought
+  if(res.stockAfter)s.stock=res.stockAfter;const repBefore=s.rep;s.rep=clamp(s.rep+clamp(res.repDelta,-.4,.25),0,5);
   s.lastSales=res.sales;
   let contest=null;if(s.day%5===0){if(s.contestEntry)contest=resolveContest();s.contestEntry=null}
   s.ads=false;const news=[];
@@ -1381,11 +1423,13 @@ function makeScene(){
   return {map,seats:map.seats,waiters,cooks};
 }
 let anim=null,room=null,idleScene=null;
-function startDay(){
+function startDay(force){
   if(!state.menu.length){toast('Precisas de pelo menos uma pizza no menu.');return}
   if(!roomArt()){toast(t('rm.loading'));return}
   const RM=roomA();if(!RM.seats){toast(t('rm.noseats'));return}if(!RM.kitchenOk){toast(t('rm.w.kitchen'));return}
-  const res=simulateDay();
+  if(!force&&state.stockMode==='manual'&&state.menu.some(p=>Object.keys(pizzaNeeds(p)).some(id=>stockDays(id)<1))){   // the pantry won't last the day: ask
+    modal(`<h2>${t('st.ask.title')}</h2><p style="margin:0">${t('st.ask.lead')}</p><div class="row"><button class="btn primary" data-act="openfill">${t('st.fill',{d:3})}</button><button class="btn" data-act="openauto">${t('st.ask.auto')}</button><button class="btn ghost" data-act="openanyway">${t('st.ask.go')}</button></div>`);return}
+  closeModal();const res=simulateDay();
   anim={res,t:0,speed:1,next:0,people:[],bubbles:[],jobs:[],cnt:{served:0,rival:0,left:0,rev:0},last:0,lcdT:0,...makeScene()};
   render();requestAnimationFrame(loop);
 }
@@ -1423,7 +1467,7 @@ function step(dt){
     switch(p.st){
       case 'street':if(moveAlong(p,dt,p.v)){
         if(p.e.target==='ours'){
-          if(p.e.out==='full'||p.e.out==='noseat'){anim.cnt.left++;bubble(p.x+16,p.y-36,p.e.out==='full'?'FILA!':'SEM MESA!','#ff6a4a');p.st='leave';p.path=[{x:p.x<RW/2?-T:RW+T,y:p.y}]}
+          if(p.e.out==='full'||p.e.out==='noseat'||p.e.out==='nostock'){anim.cnt.left++;bubble(p.x+16,p.y-36,p.e.out==='full'?'FILA!':p.e.out==='noseat'?'SEM MESA!':'ESGOTADO!','#ff6a4a');p.st='leave';p.path=[{x:p.x<RW/2?-T:RW+T,y:p.y}]}
           else{p.st='queue';p.spot=null}
         }else{if(p.e.target==='rival'){anim.cnt.rival++;if(Math.random()<.5)bubble(RW-60,p.y-36,'→ RIVAL','#ffb04a')}p.gone=true}
       }break;
@@ -1634,6 +1678,53 @@ function drawEditor(){
   if(sel&&sel.wall!==undefined){m.strokeStyle='#ffcf4a';m.lineWidth=2;m.strokeRect(sel.wall*64*k+2,6*k,60*k,52*k)}
 }
 
+/* ================= UI: PANTRY ================= */
+function stockHTML(){
+  const need=dailyNeed(),plan=Math.round(salesPlan().reduce((a,b)=>a+b.n,0)),manual=state.stockMode==='manual';
+  const ids=[...new Set([...Object.keys(need),...Object.keys(state.stock)])].sort((a,b)=>(need[b]?1:0)-(need[a]?1:0)||ING[a].n.localeCompare(ING[b].n,LANG));
+  const fillCost=d=>r2(Object.keys(need).reduce((t_,id)=>{const g=Math.max(0,need[id]*d-((state.stock[id]||{}).g||0));return t_+Math.ceil(g/10)*10*gramPrice(id)*(1-BULK[d])},0));
+  const rows=ids.map(id=>{const d=need[id]||0,have=(state.stock[id]||{}).g||0,days=d?have/d:Infinity,cls=d&&days<1?'low':d&&days<3?'mid':'';
+    const btns=d?[1,3,7].map(n=>`<button class="btn sm" data-act="stockbuy" data-id="${id}" data-days="${n}">${t('st.buy',{d:n})} · ${eur(r2(Math.ceil(d*n/10)*10*gramPrice(id)*(1-BULK[n])))}</button>`).join(''):'';
+    return `<div class="srow ${cls}"><canvas data-ing="${id}" width="32" height="32"></canvas><div class="nm">${esc(ING[id].n)}<small>${t('st.have')}: ${have?fmtG(Math.round(have)):t('st.none')}${d?' · '+t('st.days',{d:days>99?'99+':(Math.floor(days*10)/10).toString().replace('.',LANG==='pt'?',':'.')}):' · '+t('st.extra')} · ${t('st.kg',{x:eur(gramPrice(id)*1000)})}</small></div><span></span><div class="bx">${btns}</div></div>`}).join('');
+  return `<div class="stack"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>${t('st.title')}</h2><p class="sub" style="color:var(--on-wood)">${t('st.lead',{n:plan})}</p></div><button class="btn ghost" data-tab-go="loja">${t('rm.back')}</button></div>
+  <div class="card"><div><h3>${t('st.mode')}</h3><div class="modepick" style="margin-top:8px">
+    <button data-act="stockmode" data-v="auto" aria-pressed="${!manual}"><b>${t('st.auto')}</b><span>${t('st.autod')}</span></button>
+    <button data-act="stockmode" data-v="manual" aria-pressed="${manual}"><b>${t('st.manual')}</b><span>${t('st.manuald')}</span></button></div></div></div>
+  ${ids.length?`<div class="row">${[3,7].map(d=>`<button class="btn ${d===3?'primary':''}" data-act="stockfill" data-days="${d}">${t('st.fill',{d})} · ${eur(fillCost(d))}</button>`).join('')}</div>
+  <div class="stockrows">${rows}</div>`:`<div class="empty">${t('st.empty')}</div>`}</div>`;
+}
+
+/* ================= DEMAND CURVE (Menu) ================= */
+/* The day's choice model run on a fixed sample of customers, moving only this pizza's price: how many would
+   pick it, and the profit a day, capped by what the kitchen and the seats can serve. */
+function demandCurve(p){
+  const menuA=state.menu.map(q=>({p:q,a:analyze(q)})),me=menuA.find(m=>m.p===p),mix=segMix(),atm=roomA().atm,rv=state.rival,N=expectedCustomers(),TH=4.2,REG=.45;
+  let sd=12345;const rnd=()=>{sd=sd+0x6D2B79F5|0;let x=Math.imul(sd^sd>>>15,1|sd);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296};
+  const nz=()=>(rnd()+rnd()+rnd()-1.5)*1.6,cust=[];
+  for(let i=0;i<300;i++){let x=rnd(),seg='familia';for(const k in mix){x-=mix[k];if(x<=0){seg=k;break}}cust.push({seg,n:menuA.map(nz),rn:nz(),reg:rnd()<REG})}
+  const cap=Math.min(capacity(),roomA().seats*2.6);   // what the kitchen and the seats can serve in a day
+  const lo=Math.max(1,r2(me.a.cost)),hi=Math.max(lo+3,suggestPrice(me.a)*2),pts=[];
+  for(let k=0;k<=30;k++){const price=lo+(hi-lo)*k/30;let n=0;
+    for(const c of cust){const ps=SEG[c.seg].ps,deco=(atm[c.seg]-35)/25+(state.rep-2.5)*.3;let bu=-1e9,bm=null;
+      menuA.forEach((m,j)=>{const pr=m===me?price:m.p.price,ap=m.a.appeal[c.seg],u=ap/10-ps*(pr-fairPrice(ap,m.a.cost))+c.n[j]+deco;if(u>bu){bu=u;bm=m}});
+      const ra=clamp(rv.q+RIVAL_BIAS[c.seg],0,100),ru=ra/10-ps*(rv.price-fairPrice(ra))+c.rn;
+      if(bm===me&&bu>=(c.reg?TH-2.5:Math.max(ru,TH)))n++}
+    const units=Math.min(n/300*N,cap);pts.push({price,units,profit:units*(price-me.a.cost)})}
+  return pts;
+}
+function drawCurves(){
+  document.querySelectorAll('canvas[data-dc]').forEach(cv=>{const p=state.menu.find(x=>x.id===cv.dataset.dc);if(!p)return;
+    const pts=demandCurve(p),W=Math.max(160,cv.parentElement.clientWidth||240),H=84,c=fitCanvas(cv,W,H),cost=analyze(p).cost;
+    const lo=pts[0].price,hi=pts[pts.length-1].price,mx=Math.max(1,...pts.map(q=>q.profit)),X=v=>4+(v-lo)/(hi-lo)*(W-8),Y=v=>H-14-Math.max(0,v)/mx*(H-24);
+    c.clearRect(0,0,W,H);c.fillStyle='rgba(46,123,44,.18)';c.beginPath();c.moveTo(X(lo),Y(0));pts.forEach(q=>c.lineTo(X(q.price),Y(q.profit)));c.lineTo(X(hi),Y(0));c.fill();
+    c.strokeStyle='#2e7b2c';c.lineWidth=2;c.beginPath();pts.forEach((q,i)=>i?c.lineTo(X(q.price),Y(q.profit)):c.moveTo(X(q.price),Y(q.profit)));c.stroke();
+    const best=pts.reduce((a,b)=>b.profit>a.profit?b:a),cur=pts.reduce((a,b)=>Math.abs(b.price-p.price)<Math.abs(a.price-p.price)?b:a);
+    c.setLineDash([3,3]);c.strokeStyle='#6c5233';c.beginPath();c.moveTo(X(best.price),4);c.lineTo(X(best.price),H-14);c.stroke();c.setLineDash([]);
+    const px=X(clamp(p.price,lo,hi));c.strokeStyle='#c4352a';c.lineWidth=2;c.beginPath();c.moveTo(px,2);c.lineTo(px,H-14);c.stroke();
+    c.fillStyle='#6c5233';c.font='11px "Pixelify Sans", sans-serif';c.textBaseline='bottom';c.textAlign='left';c.fillText(eur(lo),2,H-1);c.textAlign='right';c.fillText(eur(hi),W-2,H-1);
+    const tx=document.querySelector(`[data-dct="${p.id}"]`);if(tx)tx.textContent=t('menu.dc',{n:Math.round(cur.units),x:eur(Math.round(cur.profit)).replace('.00',''),b:eur(Math.round(best.price*2)/2)});
+  })}
+
 /* ================= UI: SHOP ================= */
 const SHOP=[
   {id:'oven',n:'Forno a lenha extra',d:`+${OVEN_CAP} pizzas por dia de capacidade de forno.`,cost:()=>500+state.ovens*300,ok:()=>state.ovens<3,lvl:()=>`${state.ovens}/3 fornos`,buy:()=>{state.ovens++}},
@@ -1644,7 +1735,7 @@ const SHOP=[
 ];
 function shopHTML(){
   return `<div class="stack"><div><h2>Loja</h2><p class="sub">Investe na pizzaria. Tens ${eur(state.money)} em caixa.</p></div>
-  <div class="shop"><div class="card"><div class="row" style="justify-content:space-between"><h3>${t('rm.title')}</h3><span class="tag">${t('rm.seats',{n:roomA().seats})}</span></div><p class="sub">${t('rm.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="sala">${t('rm.title')}</button></div></div>${SHOP.map(it=>{const c=it.cost();const ok=it.ok();return `<div class="card"><div class="row" style="justify-content:space-between"><h3>${it.n}</h3><span class="tag">${it.lvl()}</span></div><p class="sub">${it.d}</p>
+  <div class="shop"><div class="card"><div class="row" style="justify-content:space-between"><h3>${t('st.title')}</h3><span class="tag">${t(state.stockMode==='manual'?'st.manual':'st.auto')}</span></div><p class="sub">${t('st.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="stock">${t('st.title')}</button></div></div><div class="card"><div class="row" style="justify-content:space-between"><h3>${t('rm.title')}</h3><span class="tag">${t('rm.seats',{n:roomA().seats})}</span></div><p class="sub">${t('rm.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="sala">${t('rm.title')}</button></div></div>${SHOP.map(it=>{const c=it.cost();const ok=it.ok();return `<div class="card"><div class="row" style="justify-content:space-between"><h3>${it.n}</h3><span class="tag">${it.lvl()}</span></div><p class="sub">${it.d}</p>
     <div class="foot"><b class="num">${ok?eur(c):''}</b><div class="row">${it.id==='cook'&&state.cooks>1?'<button class="btn sm ghost" data-act="fire">Dispensar um</button>':''}<button class="btn ${ok?'primary':''}" data-act="buy" data-id="${it.id}" ${ok&&state.money>=c?'':'disabled'}>${ok?'Comprar':'Feito'}</button></div></div></div>`}).join('')}
   </div>
   <div class="card"><h3>Em breve</h3><p class="sub">Mapa da cidade com bairros diferentes, segunda loja, entregas ao domicílio e mais concorrentes. Ficam para a próxima versão do protótipo.</p></div>
@@ -1821,13 +1912,13 @@ function closeModal(){$('#modal').hidden=true}
 function showReport(r){
   const c=r.contest;
   modal(`<span class="lbl">Fecho do dia ${r.day} · ${wdName(r.day)}</span><h2>${r.profit>=0?'Dia com lucro':'Dia no vermelho'}: ${eur(r.profit)}</h2>
-  <div class="pl"><span>Clientes servidos</span><span>${r.served} de ${r.N} na rua</span><span>Foram à ${esc(state.rival.name)}</span><span>${r.toRival}</span><span>Desistiram na fila</span><span>${r.full}</span><span>Sem mesa livre</span><span>${r.noseat||0}</span><span>Satisfeitos / desiludidos</span><span>${r.happy} / ${r.unhappy}</span></div>
-  <div class="pl"><span>Vendas</span><span>${eur(r.revenue)}</span><span>Ingredientes</span><span>${eur(-r.ingCost)}</span><span>Renda</span><span>${eur(-RENT)}</span><span>Salários</span><span>${eur(-r.sal)}</span><span class="tot">Resultado</span><span class="tot" style="color:${r.profit>=0?'var(--good)':'var(--bad)'}">${eur(r.profit)}</span></div>
+  <div class="pl"><span>Clientes servidos</span><span>${r.served} de ${r.N} na rua</span><span>Foram à ${esc(state.rival.name)}</span><span>${r.toRival}</span><span>Desistiram na fila</span><span>${r.full}</span><span>Sem mesa livre</span><span>${r.noseat||0}</span>${r.nostock?`<span>${t('st.soldout')}</span><span>${r.nostock}</span>`:''}<span>Satisfeitos / desiludidos</span><span>${r.happy} / ${r.unhappy}</span></div>
+  <div class="pl"><span>Vendas</span><span>${eur(r.revenue)}</span><span>Ingredientes</span><span>${eur(-r.ingCost)}</span>${r.bought?`<span class="sub">${t('st.rep.manager',{x:eur(r.bought)})}</span><span></span>`:''}${r.paidBefore?`<span class="sub">${t('st.rep.pantry',{x:eur(r.paidBefore)})}</span><span></span>`:''}<span>Renda</span><span>${eur(-RENT)}</span><span>Salários</span><span>${eur(-r.sal)}</span><span class="tot">Resultado</span><span class="tot" style="color:${r.profit>=0?'var(--good)':'var(--bad)'}">${eur(r.profit)}</span></div>
   <p style="margin:0">Reputação: ${r.repBefore.toFixed(2).replace('.',',')} → <b>${r.repAfter.toFixed(2).replace('.',',')}</b>★</p>
   ${state.menu.length?`<div class="pl">${state.menu.map(p=>`<span>${esc(p.name)}</span><span>${r.sales[p.id]||0} vendidas</span>`).join('')}</div>`:''}
   ${r.quotes.map(([s,q])=>`<div class="quote"><small>${SEG[s].n}</small>“${esc(q)}”</div>`).join('')}
   ${c?`<h3>${c.th.n}: ${c.pos}.º lugar${c.prize?' · +'+eur(c.prize):''}</h3>${c.dq?`<p class="sub">Desclassificada: ${c.dq}.</p>`:''}<table class="rank">${c.rows.map((x,i)=>`<tr class="${x.me?'me':''}"><td>${i+1}. ${esc(x.n)}</td><td>${x.s}</td></tr>`).join('')}</table>`:''}
-  ${(r.noseat||0)>3?'<p class="sub">Dica: faltaram lugares à hora de almoço e de jantar. Compra mais mesas em Loja › Decorar a sala.</p>':r.full>3?'<p class="sub">Dica: perdeste clientes na fila. Contrata um pizzaiolo ou compra um forno.</p>':r.toRival>r.served?'<p class="sub">Dica: a concorrência ganhou hoje. Revê preços ou melhora as receitas.</p>':''}
+  ${(r.nostock||0)>3?`<p class="sub">${t('st.tip.soldout')}</p>`:(r.noseat||0)>3?'<p class="sub">Dica: faltaram lugares à hora de almoço e de jantar. Compra mais mesas em Loja › Decorar a sala.</p>':r.full>3?'<p class="sub">Dica: perdeste clientes na fila. Contrata um pizzaiolo ou compra um forno.</p>':r.toRival>r.served?'<p class="sub">Dica: a concorrência ganhou hoje. Revê preços ou melhora as receitas.</p>':''}
   <button class="btn primary big" data-act="closereport">Continuar</button>`);
 }
 function afterReport(){
@@ -1847,15 +1938,17 @@ let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;
 /* ================= RENDER + EVENTS ================= */
 function render(){
   renderHeader();
-  const V={cozinha:kitchenHTML,menu:menuHTML,dia:dayHTML,loja:shopHTML,concurso:contestHTML,sala:roomEdHTML};
+  const V={cozinha:kitchenHTML,menu:menuHTML,dia:dayHTML,loja:shopHTML,concurso:contestHTML,sala:roomEdHTML,stock:stockHTML};
   if(anim)state.tab='dia';
   $('#view').innerHTML=V[state.tab]();
-  document.querySelectorAll('#nav button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===state.tab||(state.tab==='sala'&&b.dataset.tab==='loja'));b.disabled=!!anim&&b.dataset.tab!=='dia'});
+  document.querySelectorAll('#nav button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===state.tab||((state.tab==='sala'||state.tab==='stock')&&b.dataset.tab==='loja'));b.disabled=!!anim&&b.dataset.tab!=='dia'});
   pz=null;room=null;
   if(state.tab==='cozinha'){setupPizzaCanvas();drawIngIcons();updateAnalysis()}
   if(state.tab==='menu'||state.tab==='concurso')drawMinis();
+  if(state.tab==='menu')drawCurves();
   if(state.tab==='dia')drawRoom();
   if(state.tab==='sala')setupRoomEditor();
+  if(state.tab==='stock')drawIngIcons();
   save();
 }
 /* Analytics (GoatCounter): page views come by themselves; these are the button events worth counting.
@@ -1863,7 +1956,7 @@ function render(){
 const TRACK={zoom:a=>state.zoom?'zoom-on':'zoom-off',share:'photo-download',recshare:'recipe-share',recsend:'recipe-send',reccopy:'recipe-copy-link',
   recfile:'recipe-file',recimport:'import-open',options:'options',chef:'change-names',savechef:'start-names',quickstart:'start-quick',
   mute:()=>MUSIC.isOn()?'music-on':'music-mute',musictoggle:()=>MUSIC.isOn()?'music-on':'music-off',musicnext:'music-next',
-  lang:b=>'lang-'+b.dataset.v,fullscreen:'fullscreen',exportsave:'save-download',optreset:'reset',newdraft:'new-pizza',install:'install',instlater:'install-later',
+  lang:b=>'lang-'+b.dataset.v,fullscreen:'fullscreen',exportsave:'save-download',optreset:'reset',newdraft:'new-pizza',stockmode:b=>'stock-'+b.dataset.v,stockfill:'stock-fill',install:'install',instlater:'install-later',
   clear:'clear',undo:'undo',rotate:'rotate',edit:'edit-pizza',rm:'remove-pizza',open:'open-day',buy:'shop-buy',enter:'contest-enter'};
 function track(ev,tries=0){try{if(window.goatcounter&&goatcounter.count)goatcounter.count({path:'ev/'+ev,title:ev,event:true});
   else if(tries<20)setTimeout(()=>track(ev,tries+1),500)}catch(_){}}   // the script loads async: early events wait for it
@@ -1899,7 +1992,7 @@ const ACT={
   pdn:b=>{const p=state.menu.find(x=>x.id===b.dataset.id);p.price=Math.max(1,r2(p.price-.5));render()},
   edit:b=>{const p=state.menu.find(x=>x.id===b.dataset.id);state.draft={name:p.name,dough:p.dough,sauce:p.sauce,pieces:p.pieces.map(x=>({...x})),from:p.from,fromSig:p.fromSig,editing:p.id};go('cozinha')},
   rm:b=>{if(!b.dataset.armed){b.dataset.armed='1';b.textContent=t('menu.confirm');setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=t('menu.remove')}},3000);return}state.menu=state.menu.filter(p=>p.id!==b.dataset.id);if(state.contestEntry===b.dataset.id)state.contestEntry=null;render()},
-  open:()=>startDay(),
+  open:()=>startDay(false),
   speed:b=>{if(anim){anim.speed=+b.dataset.v;$('#dayctl').innerHTML=runCtlHTML()}},
   skip:()=>{if(!anim)return;let guard=0;while(!anim.done&&guard++<20000)step(.1);endAnim()},
   buy:b=>{const it=SHOP.find(x=>x.id===b.dataset.id);const c=it.cost();if(!it.ok()||state.money<c)return;state.money=r2(state.money-c);it.buy();toast(`${it.n}: feito.`);render()},
@@ -1931,6 +2024,15 @@ const ACT={
     state.chef=c;state.shop=sh;save();closeModal();toast(t('chef.hello',{c}));
     if(!state.seenIntro){state.seenIntro=true;save();showIntro()}},
   close:()=>closeModal(),
+  stockmode:b=>{state.stockMode=b.dataset.v;render()},
+  openfill:()=>{closeModal();ACT.stockfill({dataset:{days:3}});startDay(false)},   // asks again only if the money didn't stretch
+  openauto:()=>{state.stockMode='auto';startDay(true)},
+  openanyway:()=>startDay(true),
+  stockbuy:b=>{const id=b.dataset.id,d=+b.dataset.days,need=dailyNeed()[id]||0,price=r2(Math.ceil(need*d/10)*10*gramPrice(id)*(1-BULK[d]));
+    if(state.money<price){toast(t('rm.nomoney'));return}state.money=r2(state.money-buyStock(id,need*d,d));toast(t('st.bought',{x:eur(price)}));render()},
+  stockfill:b=>{const d=+b.dataset.days,need=dailyNeed();let cost=0;const plan=Object.keys(need).map(id=>[id,Math.max(0,need[id]*d-((state.stock[id]||{}).g||0))]);
+    const total=r2(plan.reduce((a,[id,g])=>a+Math.ceil(g/10)*10*gramPrice(id)*(1-BULK[d]),0));if(state.money<total){toast(t('rm.nomoney'));return}
+    for(const [id,g] of plan)cost+=buyStock(id,g,d);state.money=r2(state.money-cost);toast(t('st.bought',{x:eur(cost)}));render()},
   install:()=>installGame(),
   instlater:()=>{try{localStorage.setItem('pm-install-asked','1')}catch(_){}hideInstallAsk()}
 };
@@ -1969,7 +2071,8 @@ function start(data){
   document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n)});   // static labels (nav)
   state=(data&&data.state)||load()||freshState();
   if(state.over){state=freshState();state.seenIntro=true}
-  if(!state.room||!Array.isArray(state.room.items))state.room=starterRoom(state.deco||0);   // old saves: the room from the old decoration level
+  if(!state.room||!Array.isArray(state.room.items))state.room=starterRoom(state.deco||0);
+  if(!state.stock)state.stock={};if(!state.stockMode)state.stockMode='auto';   // old saves: the manager buys, nothing in the pantry   // old saves: the room from the old decoration level
   for(const p of state.menu){if(!p.from&&state.chef)p.from=meNow();if(p.from&&!p.fromSig)p.fromSig=pizzaSig(p)}   // old saves: sign the menu as it is now
   if(PHONE&&state.zoom==null)state.zoom=true;   // phones start on the big pizza; the player can still leave zoom
   if(SANDBOX){

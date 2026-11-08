@@ -13,10 +13,10 @@ Open `index.html` in a browser. No install and no server needed.
   - Some pieces rotate in quarter turns, always the same image turned. Round pieces don't rotate; symmetric ones like bacon have 2 positions (lying, standing); pieces with a front, like a bunch of asparagus, have 4. Rotate with a right-click on the piece or with the **Rotate** button (phone), which turns the last piece placed or the next one.
   - **Zoom** shows only the pizza, as wide as the screen, with the controls as text below (made for phones).
   - Quality depends on amount, spread and combos (104 to discover). The bench shows the suggested price, the number of pieces and the pizza's weight (up to 300 pieces).
-- **Menu:** as many pizzas as you like, with adjustable prices.
+- **Menu:** as many pizzas as you like, with adjustable prices; under each price a chart of the profit a day by price, with the best price marked.
 - **Sharing:** "Download photo" saves a picture card of the pizza. "Share recipe" makes a link (`#p=…`) or a `.pizza` file with every piece in place, signed by the original chef; "Import pizza" opens one.
 - **Open:** watch the dining room from above. Customers (students, families, tourists, gourmets) choose between you and Pizza Rápida, the rival.
-- **Shop:** ovens, pizzaiolos, flyers and suppliers of Portuguese and gourmet ingredients, and **Decorate the room**: buy and place tables, decor, wall pieces, floor and walls. Tables give the seats for the lunch and dinner rush; each style draws the customers who like it.
+- **Shop:** ovens, pizzaiolos, flyers and suppliers of Portuguese and gourmet ingredients, and **Decorate the room**: buy and place tables, decor, wall pieces, floor and walls. Tables give the seats for the lunch and dinner rush; each style draws the customers who like it. **Pantry**: the manager buys the toppings (25% dearer, never runs out) or you buy them by the day, cheaper in bulk; nothing spoils.
 - **Contest:** every 5 days there is a themed contest.
 
 Goal: $4,000 and 3★ to open the second restaurant.
