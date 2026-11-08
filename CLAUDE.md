@@ -17,6 +17,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 - `assets/ingredients.js`: the toppings atlas. **It is generated** by `tools/build_atlas.py`; never edit it by hand. See `tools/CLAUDE.md`.
 - `assets/room.js`: the dining room atlas at 32 px tiles (furniture, decor, kitchen, people) with the layout of each piece. **Generated** by `tools/gen_room.py`; never edit it by hand. Used by `docs/drafts/room.html`; the game's room still uses `sprites.js`.
 - `assets/icon-*.png` and `manifest.webmanifest`: the game's icon (a pizza slice) for the browser tab, the header button, the phone home screen and a future app. **Generated** by `tools/gen_icon.py`: 32 px drawn pixel by pixel; 180/192/512 cut from a real game pizza.
+- `sw.js`: service worker (network first, keeps the last copy for offline play); registered only over http(s). Installing the game: `= INSTALL =` in `index.html` (Options section, and a one-time invitation on phones after the first pizza saved; `pm-install-asked` in `localStorage`).
 - `docs/ingredients.md`: the topping list (✓★ = in the game) and how things are cut.
 - `docs/art-packs.md`: art packs considered and the style decision.
 - `docs/ideas.md`: ideas on hold.
