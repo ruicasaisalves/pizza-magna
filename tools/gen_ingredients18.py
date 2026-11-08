@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Pizza Magna: eighteenth batch, a redraw. Grated mozzarella as a thick white layer.
+"""Pizza Magna: eighteenth batch, a redraw. Whiter grated mozzarella.
 
-The old handful was loose beige strands with sauce showing between them, so a pizza
-covered in mozzarella still looked red and stripy. Now each handful is a dense pile
-of white strands on a white bed (the strands show, the sauce doesn't), with strands
-poking out a little at the edge: handfuls side by side make an even white surface, good to draw on
-(a heart of ham, a face...). It lies flat, so the atlas gives it no drop shadow
-(NO_DROP in build_atlas.py). Same method as gen_ingredients.py (see tools/CLAUDE.md).
+The handful keeps the original loose strands (grated() 'shred', 60x56), but the
+strands are near white with a soft grey shadow instead of beige with a brown one,
+and there are more of them (250 instead of 130). Handfuls piled together make a
+white layer to draw on (a heart of ham...). It lies flat, so the atlas gives it no
+drop shadow (NO_DROP in build_atlas.py). Same method as gen_ingredients.py.
 Usage: python3 tools/gen_ingredients18.py <folder>"""
 import os, sys
 import numpy as np
@@ -17,49 +16,14 @@ from gen_ingredients import R, hexs, render, shade, noise
 OUT = (sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '..', 'preview')) + '/'
 
 R.update({
-    'mozzw': hexs(['#b8ad94', '#ddd6c4', '#efebe0', '#f9f7f1', '#ffffff']),     # melted fresh mozzarella, near white
-    'mozzsh': hexs(['#a89a7c', '#c9bea6']),                                      # strand shadows: past the edge / on the bed
+    'mozzw': hexs(['#c4b9a2', '#e2dccd', '#f4f1e9', '#fcfbf7', '#ffffff']),     # [0] the soft shadow under a strand, then near-white strands
 })
 
 def mozz_layer(seed, W=60, H=56):
-    """a dense pile of grated strands on a white bed: the strands show (light top, thin shadow),
-    the sauce doesn't show through, and the edge is strands poking out a little, not loose bits"""
-    rng = np.random.default_rng(seed + 5500)
-    ys, xs = np.mgrid[0:H, 0:W]
-    cx, cy = (W - 1) / 2, (H - 1) / 2
-    # the bed: a few overlapping round lumps, with a ragged edge
-    blob = np.zeros((H, W))
-    for _ in range(8):
-        a, d = rng.random() * 6.28, rng.random() * 8
-        r = rng.uniform(10, 13)
-        bx, by = cx + np.cos(a) * d, cy + np.sin(a) * d * .9
-        blob = np.maximum(blob, 1 - np.hypot(xs - bx, ys - by) / r)
-    n = noise(H, W, 4, rng)
-    bed = (blob > .05) & (blob + (n - .5) * .3 > .14)        # no islands away from the handful
-    img = Image.new('RGBA', (W, H), (0, 0, 0, 0)); px = img.load()
-    ramp = R['mozzw']
-    for y in range(H):                                       # the bed itself is in shade: it is what lies under the strands
-        for x in range(W):
-            if bed[y, x]: px[x, y] = R['mozzsh'][1] + (255,)
-    # strands: many short ones, each lit on top with a 1 px shadow under it; later ones lie on earlier ones
-    near = np.argwhere(bed)
-    for k in range(300):
-        y0, x0 = near[rng.integers(len(near))] + rng.uniform(-.5, .5, 2)
-        L, ang = int(rng.integers(4, 8)), rng.random() * 3.14
-        pts = [(int(round(x0 + np.cos(ang) * t)), int(round(y0 + np.sin(ang) * t * .7))) for t in range(L)]
-        for x, y in pts:                                     # shadow first (may hang just past the bed)
-            if 0 <= x < W and 0 <= y + 1 < H: px[x, y + 1] = R['mozzsh'][0 if not bed[min(H - 1, y + 1), x] else 1] + (255,)
-        for t, (x, y) in enumerate(pts):
-            if 0 <= x < W and 0 <= y < H:
-                px[x, y] = ramp[4 if t in (1, 2) else 3] + (255,)          # bright in the middle of the strand
-    # round off the edge: a lone pixel sticking out on its own is dropped
-    a = np.array(img)[:, :, 3] > 0
-    for y in range(H):
-        for x in range(W):
-            if a[y, x] and not bed[y, x]:
-                nb = sum(a[y + dy, x + dx] for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)) if 0 <= y + dy < H and 0 <= x + dx < W)
-                if nb == 0: px[x, y] = (0, 0, 0, 0)
-    return img
+    """the original grated handful (loose strands, same shape and size), but white strands with
+    soft grey shadows and more of them, so handfuls piled together make a white layer"""
+    from gen_ingredients2 import grated
+    return grated('mozzw', seed, 'shred', W=W, H=H, n_bits=250)
 
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)

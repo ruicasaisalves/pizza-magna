@@ -39,7 +39,7 @@ The function takes `ang`. With `ang=0` the piece lies down with its front to the
 - Things already small, or only drizzled → none.
 - To mix colours, pass a function `f(seed)` (see `gorgonzola_crumbs`).
 - Grated cheeses use a big loose handful: in `build_atlas.py`, `('ramp', 'shred', 130, BIG)` with `BIG = {'W': 60, 'H': 56}`. In the game they are listed in `BIG_SHRED` (one handful = 1.5 portions).
-- Grated mozzarella is a dense pile of white strands on a white bed instead (`gen_ingredients18.py`), with no drop shadow (`NO_DROP` in `build_atlas.py`), so handfuls side by side make an even surface to draw on.
+- Grated mozzarella uses the same strands with a near-white ramp and 250 bits (`gen_ingredients18.py`), with no drop shadow (`NO_DROP` in `build_atlas.py`), so handfuls side by side make an even surface to draw on.
 
 ## Atlas keys
 - `<id>_0..2`: whole.
