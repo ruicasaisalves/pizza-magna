@@ -11,7 +11,7 @@
    - the English and Portuguese translations have the same keys, and every topping and combo is named in both;
    - combos only ask for toppings and sauces that exist;
    - every topping has a weight in GRAMS;
-   - for the given ids: places 2 pieces of each on the bench, rotates those that rotate,
+   - for the given ids: places 2 pieces of each on the bench, turns the next piece of those that rotate (placed ones must not turn),
      and lists the combos triggered. Saves the bench to <folder>/bench.png. */
 const {chromium} = require('playwright');
 const path = require('path');
@@ -75,7 +75,13 @@ const path = require('path');
       const canRot = await p.evaluate(id => canRotate(id), id);
       const btnHidden = await p.$eval('[data-act="rotate"]', e => e.hidden);
       if (canRot === btnHidden) report.problems.push(id + ': the Rotate button should be ' + (canRot ? 'visible' : 'hidden'));
-      if (canRot) { await p.click('[data-act="rotate"]'); rotated[id] = await p.evaluate(() => state.draft.pieces.at(-1).a) }
+      if (canRot) {   // Rotate turns the next piece only: the last one put down must stay as it was
+        const before = await p.evaluate(() => state.draft.pieces.at(-1).a);
+        await p.click('[data-act="rotate"]');
+        const [after, next] = await p.evaluate(id => [state.draft.pieces.at(-1).a, curAng()], id);
+        if (after !== before) report.problems.push(id + ': Rotate turned a piece already on the pizza');
+        rotated[id] = next;
+      }
     }
     const a = await p.evaluate(() => { const a = analyze(state.draft); return {q: a.q, combos: a.combos, pieces: state.draft.pieces.length} });
     Object.assign(report, {pieces: a.pieces, quality: a.q, active_combos: a.combos, rotated});
