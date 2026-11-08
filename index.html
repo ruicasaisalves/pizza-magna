@@ -120,7 +120,7 @@ html.phone .stage{gap:6px}
 .zrow{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
 .zname{font-family:Silkscreen,monospace;color:#fff1d2;text-shadow:1px 1px 0 var(--wood-deep)}
 .zcut{display:flex;gap:6px}
-.ibtn{width:40px;height:40px;padding:0;display:inline-grid;place-items:center}
+.btn.ibtn{width:40px;height:40px;padding:0;display:inline-grid;place-items:center}   /* .btn.sm padding would squeeze the icon */
 .ibtn svg{width:22px;height:22px}
 .stage .ibtn canvas{width:32px;height:32px;box-shadow:none;cursor:inherit}
 .zlcd{font-family:Silkscreen,monospace;font-size:.85rem;background:radial-gradient(ellipse at 30% 20%,#f4f2ec,#dedad0);color:#1f4f8f;border:2px solid var(--wood-deep);box-shadow:inset 1px 1px 0 #fff;padding:5px 12px;display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap;justify-content:center}
@@ -814,7 +814,9 @@ const pieceKey=x=>x.g&&canGrate(x.i)?x.i+'_g'+pieceVar(x):wholeKey(x.i,pieceVar(
 function composePizza(p){
   const cv=document.createElement('canvas');cv.width=cv.height=PZ;const c=cv.getContext('2d');
   spr(c,'sauce_'+p.sauce,PR,PR);
+  c.save();circ(c,PR,PR,PR-1);c.clip();   // big pieces (a lobster, cheese slices) never poke out past the crust
   p.pieces.forEach(x=>spr(c,pieceKey(x),PR+x.x*PR,PR+x.y*PR));   // in the order they were put: the last one sits on top
+  c.restore();
   spr(c,'crust_'+p.dough,PR,PR);
   return cv;
 }
@@ -847,8 +849,8 @@ const GRATED_W=.7;
 // grated cheese comes as a big, loose handful (bigger sprite): one handful is 1.5 portions, so 10-12 cover a pizza
 const BIG_SHRED=new Set(['mozzarella','burrata','parmesao','cheddar','provolone','sao_jorge','emmental','flamengo','brie']),SHRED_W=1.5;
 // big whole pieces count as several portions (cost, weight, how full the pizza is): a whole lobster covers the pizza (8),
-// a whole beef slice is four ordinary slices (4)
-const WHOLE_W={lagosta:8,vaca:4},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
+// a whole beef slice is four ordinary slices (4), a supermarket slice of flamengo is two portions (2)
+const WHOLE_W={lagosta:8,vaca:4,flamengo:2},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
 const portion=x=>x.g?(BIG_SHRED.has(x.i)?SHRED_W:GRATED_W):(WHOLE_W[x.i]||1);
 const GRAMS={mozzarella:8,fiambre:12,pepperoni:4,cogumelos:8,azeitonas:4,pimento:8,cebola:6,ananas:12,manjericao:1,atum:10,bacon:10,tomate:18,milho:4,frango:12,
   salame:5,espinafres:3,tomate_cherry:10,jalapenos:3,alho:3,beringela:12,batata:12,curgete:10,salsicha:10,frankfurt:28,vaca:12,ribs:30,lagosta:40,nutella:15,banana:10,feta:10,oregaos:.5,
@@ -1026,6 +1028,7 @@ function drawBench(){
     if(on){pxRect(c,b.x-5,b.y-4,BOWL_W+10,BOWL_H+18,'#3a2706');pxRect(c,b.x-4,b.y-3,BOWL_W+8,BOWL_H+16,'#e3b34a');pxRect(c,b.x-3,b.y-2,BOWL_W+6,BOWL_H+14,'#94661a')}
     spr(c,'bowl',bx,b.y+BOWL_H/2);
     if(ok){if(!b.g&&canRotate(sel))sprFit(c,wholeKey(sel,0,curAng()),bx,by+1,44);else if(b.g&&BIG_SHRED.has(sel)){c.save();c.beginPath();c.ellipse(bx,by+1,26,13,0,0,Math.PI*2);c.clip();spr(c,sel+'_g0',bx,by+2);c.restore()}   // the big cheese handful, kept inside the bowl
+    else if(!b.g&&ATLAS.frames[sel+'_0'][2]>36)sprFit(c,sel+'_0',bx,by+1,40);   // one big piece (beef, a cheese slice) fills the bowl alone
     else{const k=b.g?v=>sel+'_g'+v:v=>sel+'_'+v;spr(c,k(1),bx-9,by-1);spr(c,k(2),bx+9,by);spr(c,k(0),bx,by+2)}}
     benchText(c,t(b.g?(ok?(ING[sel].t.includes('queijo')?'bench.grated':'bench.chopped'):'bench.nograte.'+noCutKind(sel)):'bench.whole'),bx,b.y+BOWL_H+3,on?'#2c1a0b':'#6c5233');
   }

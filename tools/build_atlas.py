@@ -132,7 +132,7 @@ INGS = {
     'chocolate':    (G13.chocolate, ('choc', 'shred', 40)),
     'natas_azedas': (G13.sour_cream, None),
     'emmental':     (G14.emmental,  ('emm', 'shred', 130, BIG)),
-    'flamengo':     (G14.flamengo,  ('flam', 'shred', 130, BIG)),
+    'flamengo':     (G18.flamengo_slice, ('flam', 'shred', 130, BIG)),   # whole: one big supermarket slice
     'kebab':        (G14.kebab,     ('kebab', 'cube', 12)),
     'tomilho':      (G14.thyme,     ('thyme', 'flake', 44)),
     'pimenta':      (G14.peppercorns, ('pepcorn', 'flake', 50)),
