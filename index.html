@@ -981,6 +981,7 @@ function setupPizzaCanvas(){
 }
 function setCut(g){
   if(g&&!canGrate(state.sel)){toast(t('k.nograte.'+noCutKind(state.sel),{x:ING[state.sel].n}));return}
+  if(!g&&!curCut()&&canRotate(state.sel)){rotatePiece();return}   // tapping whole again (its picture or bowl) turns the next piece
   state.cut=g?'g':'w';drawBench();save();
 }
 const curAng=()=>((state.rot||{})[state.sel]||0)%turns(state.sel);
