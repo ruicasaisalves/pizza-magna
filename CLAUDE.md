@@ -9,15 +9,15 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
   - `= PIZZA ANALYSIS =`: `analyze()` (quality, cost, appeal) and `contestScore()`
   - `= DRAWING`: atlas, `spr()`, rotating pieces (`turned()`), `composePizza()` (pieces are drawn in the order they were placed)
   - `= UI: KITCHEN =` and `-- the pizza bench`: the bench (320 wide, with a title strip on top; zoom mode), the bowls, `addPiece()`, `rotatePiece()`, `GRAMS` and `portion()` (weights)
-  - `= UI: DAY =`, `-- simulation`, `-- restaurant room`: the day, the customers and the tiled room
+  - `= UI: DAY =`, `-- simulation`, `-- restaurant room`: the day, the customers and the tiled room (32 px tiles, art and piece layouts from `assets/room.js`)
   - `= UI: SHOP =`, `= UI: CONTEST =`, `= MODALS =`, `= RECIPES: LINK, FILE, IMPORT =`, `= SHARE =`
   - `= RENDER + EVENTS =`: `render()` and the button actions (`ACT`), plus `TRACK` (analytics events)
-- `sprites.js`: room, furniture and characters, generated in code.
 - `music.js`: 8-bit / lo-fi Italian music, synthesised with Web Audio (no sound files). Each tune is text: one note per eighth, `-` holds, `.` is silence. Lead, bass and harmony must have the same number of steps per part. Tunes play in a fixed order ("Next song" in Options). The public-domain classics come from ABC sheet music (abcnotation.com), converted with `tools/abc2music.py`. The on/off preference lives in `localStorage` (`pm-music`), apart from the save.
 - `assets/ingredients.js`: the toppings atlas. **It is generated** by `tools/build_atlas.py`; never edit it by hand. See `tools/CLAUDE.md`.
-- `assets/room.js`: the dining room atlas at 32 px tiles (furniture, decor, kitchen, people) with the layout of each piece. **Generated** by `tools/gen_room.py`; never edit it by hand. Used by `docs/drafts/room.html`; the game's room still uses `sprites.js`.
+- `assets/room.js`: the dining room atlas at 32 px tiles (furniture, decor, kitchen, people) with the layout of each piece. **Generated** by `tools/gen_room.py`; never edit it by hand. Used by the game's room (loaded only when the room is first shown, `roomArt()`) and by `docs/drafts/room.html`.
 - `assets/icon-*.png` and `manifest.webmanifest`: the game's icon (a pizza slice) for the browser tab, the header button, the phone home screen and a future app. **Generated** by `tools/gen_icon.py`: 32 px drawn pixel by pixel; 180/192/512 cut from a real game pizza.
 - `sw.js`: service worker (network first, keeps the last copy for offline play); registered only over http(s). Installing the game: `= INSTALL =` in `index.html` (Options section, and a one-time invitation on phones after the first pizza saved; `pm-install-asked` in `localStorage`).
+- `old/`: earlier models kept in case we go back (the first 16 px room: `old/sprites.js` and `old/room-16px.js`). Not loaded by the game.
 - `docs/ingredients.md`: the topping list (✓★ = in the game) and how things are cut.
 - `docs/art-packs.md`: art packs considered and the style decision.
 - `docs/ideas.md`: ideas on hold.

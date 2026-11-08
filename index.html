@@ -264,7 +264,6 @@ table.rank tr.me td{color:var(--tomato-lo);font-weight:700}
 <script src="assets/ingredients.js"></script>
 <script src="music.js"></script>
 <script data-goatcounter="https://pizzamagna.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
-<script src="sprites.js"></script>
 <script>
 /* ================= LANGUAGE =================
    English by default, Portuguese when the browser or phone is set to pt, pt-PT or pt-BR.
@@ -1223,8 +1222,9 @@ function finishDay(res){
   return {...res,profit,sal,repBefore,repAfter:s.rep,contest,quotes:q,day:s.day-1};
 }
 
-/* ---- restaurant room: 16px tile engine (sprites in sprites.js) ---- */
-const T=16,COLS=20,ROWS=17,RW=COLS*T,RH=ROWS*T,STREET_ROW=15;
+/* ---- restaurant room: 32 px tiles, art from the atlas assets/room.js (made by tools/gen_room.py; the first
+   16 px model is kept in old/) ---- */
+const T=32,COLS=20,ROWS=17,RW=COLS*T,RH=ROWS*T,STREET_ROW=15;
 const DOOR=[10,14],PICK=[16,8];
 const TABLES=[[1,3],[6,3],[1,7],[6,7],[13,9],[1,11],[6,11],[13,12]];
 const QUEUE=[[11,13],[10,13],[11,12],[10,12],[11,11],[10,11],[11,10],[10,10],[11,9],[10,9],[11,8],[10,8]];
@@ -1246,7 +1246,7 @@ function buildMap(){
   const seats=[],tables=TABLES.slice(0,tableCount()).map(([c,r])=>{
     for(let dc=1;dc<=2;dc++)for(let dr=0;dr<2;dr++)S(c+dc,r+dr);
     S(c,r+1);S(c+3,r+1);
-    const t={c:c+1,r};
+    const t={c:c+1,r,ic:c};
     seats.push({cx:c,cy:r+1,face:'right',t,occ:null},{cx:c+3,cy:r+1,face:'left',t,occ:null});
     return t;
   });
@@ -1283,8 +1283,8 @@ function roomSize(){
   return room;
 }
 function spawn(e){
-  const left=e.target==='rival'?true:Math.random()<.5,y=STREET_ROW*T+(e.target==='ours'?0:Math.round(Math.random()*8));
-  const p={e,x:left?-T:RW,y,look:{body:SEG[e.seg].col,hair:pick(HAIR),skin:pick(SKIN),long:Math.random()<.4},v:44+Math.random()*12,st:'street',path:[],dir:left?'right':'left',ph:Math.random()*4};
+  const left=e.target==='rival'?true:Math.random()<.5,y=STREET_ROW*T+(e.target==='ours'?0:Math.round(Math.random()*16));
+  const p={e,x:left?-T:RW,y,look:{body:SEG[e.seg].col,hair:pick(HAIR),skin:pick(SKIN),long:Math.random()<.4},rlook:Math.floor(Math.random()*21),v:88+Math.random()*24,st:'street',path:[],dir:left?'right':'left',ph:Math.random()*4};
   p.path=[{x:e.target==='ours'?DOOR[0]*T:e.target==='rival'?RW+T:(left?RW+T:-T),y}];
   anim.people.push(p);
 }
@@ -1311,14 +1311,14 @@ function step(dt){
     switch(p.st){
       case 'street':if(moveAlong(p,dt,p.v)){
         if(p.e.target==='ours'){
-          if(p.e.out==='full'){anim.cnt.left++;bubble(p.x+8,p.y-18,'FILA!','#ff6a4a');p.st='leave';p.path=[{x:p.x<RW/2?-T:RW+T,y:p.y}]}
+          if(p.e.out==='full'){anim.cnt.left++;bubble(p.x+16,p.y-36,'FILA!','#ff6a4a');p.st='leave';p.path=[{x:p.x<RW/2?-T:RW+T,y:p.y}]}
           else{p.st='queue';p.spot=null}
-        }else{if(p.e.target==='rival'){anim.cnt.rival++;if(Math.random()<.5)bubble(RW-30,p.y-18,'→ RIVAL','#ffb04a')}p.gone=true}
+        }else{if(p.e.target==='rival'){anim.cnt.rival++;if(Math.random()<.5)bubble(RW-60,p.y-36,'→ RIVAL','#ffb04a')}p.gone=true}
       }break;
       case 'toSeat':if(moveAlong(p,dt,p.v)){p.st='wait';p.dir=p.seat.face;anim.jobs.push(p)}break;
       case 'wait':if(p.served){p.st='eat';p.timer=2.6}break;
       case 'eat':p.timer-=dt;if(p.timer<=0){
-        anim.cnt.served++;anim.cnt.rev+=p.e.price;const h=p.e.out==='happy';bubble(p.x+8,p.y-22,'+'+eur(p.e.price)+(h?' ★':''),h?'#8cff73':'#ffd36a');
+        anim.cnt.served++;anim.cnt.rev+=p.e.price;const h=p.e.out==='happy';bubble(p.x+16,p.y-44,'+'+eur(p.e.price)+(h?' ★':''),h?'#8cff73':'#ffd36a');
         const s=p.seat;s.occ=null;p.st='exit';p.path=[...toPx(bfs(map,[s.cx,s.cy],[DOOR[0],STREET_ROW])),{x:Math.random()<.5?-T:RW+T,y:STREET_ROW*T}];
       }break;
       case 'exit':case 'leave':if(moveAlong(p,dt,p.v))p.gone=true;break;
@@ -1329,14 +1329,14 @@ function step(dt){
     if(anim.jobs.length&&(!w.job||w.phase==='back')){w.job=anim.jobs.shift();w.phase='pick';w.path=toPx(bfs(map,tileOf(w),PICK))}
     if(!w.job){w.walking=false;if(w.dir!=='down'&&!w.path.length)w.dir='down';continue}
     if(w.pause>0){w.pause-=dt;continue}
-    if(moveAlong(w,dt,82)){
+    if(moveAlong(w,dt,164)){
       const s=w.job.seat;
       if(w.phase==='pick'){w.carry=true;w.phase='go';w.dir='up';w.pause=.25;w.path=toPx(bfs(map,PICK,[s.cx,s.cy]).slice(0,-1))}
       else if(w.phase==='go'){w.job.served=true;w.carry=false;w.phase='back';w.path=toPx(bfs(map,tileOf(w),w.home))}
       else{w.job=null;w.dir='down'}
     }
   }
-  for(const b of anim.bubbles){b.life-=dt;b.y-=dt*9}
+  for(const b of anim.bubbles){b.life-=dt;b.y-=dt*18}
   anim.bubbles=anim.bubbles.filter(b=>b.life>0);
   if(anim.next>=ev.length&&!anim.people.length&&anim.t>=DAY_SECONDS)anim.done=true;
 }
@@ -1351,51 +1351,64 @@ function loop(ts){
 }
 function endAnim(){const res=anim.res;anim=null;idleScene=null;const rep=finishDay(res);save();render();showReport(rep)}
 
-const FRAMES=['a','idle','b','idle'];
-function drawChar(c,a,extra){
-  const frame=a.walking?FRAMES[Math.floor(a.ph)%4]:'idle';
-  const spr=SPR.char({...a.look,dir:a.dir,frame,sit:extra&&extra.sit});
-  c.drawImage(spr,Math.round(a.x),Math.round(a.y)+(extra&&extra.sit?-3:-6));
+/* The atlas (250 KB) loads only when the room is first shown, so the public bench never fetches it.
+   It also carries the layout of each piece: parts, chairs, where people sit, the table top. */
+const RA={img:new Image(),cache:new Map(),loading:false};
+function roomArt(){
+  if(typeof ROOM_ART!=='undefined'&&RA.img.complete&&RA.img.naturalWidth)return true;
+  if(!RA.loading){RA.loading=true;const sc=document.createElement('script');sc.src='assets/room.js';
+    sc.onload=()=>{RA.img.onload=()=>{if(!anim)drawRoom()};RA.img.src=ROOM_ART.src};document.head.append(sc)}
+  return false;
+}
+const rspr=k=>{if(!RA.cache.has(k)){const f=ROOM_ART.frames[k],cv=document.createElement('canvas');cv.width=f[2];cv.height=f[3];cv.getContext('2d').drawImage(RA.img,f[0],f[1],f[2],f[3],0,0,f[2],f[3]);RA.cache.set(k,cv)}return RA.cache.get(k)};
+function rtile(c,key,x0,y0,x1,y1){const im=rspr(key);c.save();c.beginPath();c.rect(x0,y0,x1-x0,y1-y0);c.clip();for(let y=y0;y<y1;y+=im.height)for(let x=x0;x<x1;x+=im.width)c.drawImage(im,x,y);c.restore()}
+// the look grows with the shop's decoration level: more tables (buildMap), plants, pictures, then luxury tables
+const roomTable=()=>state.deco>=3?'bistro':'xadrez2';
+const roomWalls=()=>[state.deco>=2?'quadro':null,'janela',state.deco>=2?'quadro':null,'janela','giz',state.deco>=1?'prateleira':null];
+// a person: one of the 21 customer looks (or the waiter / cook), feet on the bottom of its tile; walking bobs a pixel
+function drawChar(c,a,key){
+  const im=rspr(key),bob=a.walking&&Math.floor(a.ph)%2?2:0;
+  c.drawImage(im,Math.round(a.x),Math.round(a.y)+T-im.height-bob);
 }
 function drawRoom(){
   const R=roomSize();if(!R)return;const c=R.lc;
-  const sc=anim||(idleScene||(idleScene=makeScene()));const map=sc.map;
-  const t=anim?Math.min(anim.t/DAY_SECONDS,1):0,night=t>.7,fr=anim?Math.floor(anim.t*6)%2:0;
+  if(!roomArt()){c.fillStyle='#2a1407';c.fillRect(0,0,RW,RH);R.c.drawImage(R.low,0,0,R.w,R.h);return}
+  const L_=ROOM_ART.layout,sc=anim||(idleScene||(idleScene=makeScene()));const map=sc.map;
+  const t=anim?Math.min(anim.t/DAY_SECONDS,1):0,fr=anim?Math.floor(anim.t*6):0;
   c.clearRect(0,0,RW,RH);
-  // floors
-  for(let r=2;r<14;r++)for(let col=0;col<COLS;col++)c.drawImage(col>=12&&r<=7?SPR.floorKitchen():SPR.floorCheck((col+r)%2),col*T,r*T);
-  if(state.deco>=2){c.fillStyle='#7a1f2e';c.fillRect(10*T+2,8*T,2*T-4,6*T);c.fillStyle='#a8323f';c.fillRect(10*T+4,8*T+2,2*T-8,6*T-2);c.fillStyle='#e0b048';c.fillRect(10*T+5,8*T+3,1,6*T-3);c.fillRect(12*T-6,8*T+3,1,6*T-3)}
-  // back wall
-  for(let col=0;col<COLS;col++)c.drawImage(col>=12?SPR.wallKitchen():SPR.wallDining(),col*T,0);
-  c.drawImage(SPR.windowS(night?1:0),2*T-1,4);c.drawImage(SPR.windowS(night?1:0),7*T-1,4);
-  c.drawImage(SPR.chalkboard(),9*T+15,4);
-  if(state.deco>=2){c.drawImage(SPR.painting(),5*T-2,6);c.drawImage(SPR.painting(),0,6)}
-  c.drawImage(SPR.rack(),19*T-1,2);
-  // divider + bottom wall
-  for(let r=0;r<7;r++)c.drawImage(SPR.wallTop(),12*T-8,r*T);
-  for(let col=0;col<COLS;col++)if(col!==DOOR[0]&&col!==DOOR[0]+1)c.drawImage(SPR.wallTop(),col*T,14*T);else c.drawImage(SPR.doorMat(),col*T,14*T);
-  c.fillStyle='#4a2a14';c.fillRect(DOOR[0]*T-3,14*T-6,3,22);c.fillRect((DOOR[0]+2)*T,14*T-6,3,22);
-  // street
-  for(let col=0;col<COLS;col++){c.drawImage(SPR.sidewalk(),col*T,15*T);c.drawImage(SPR.curb(),col*T,16*T)}
-  // depth-sorted drawables
-  const L=[];const add=(y,p,fn)=>L.push({y,p,fn});
-  for(let i=0;i<state.ovens;i++)add(4*T,0,()=>c.drawImage(SPR.oven((fr+i)%2),(13+i*2)*T-1,4*T-43));
-  add(4*T,0,()=>c.drawImage(SPR.logs(),19*T,3*T+4));
-  add(8*T,0,()=>{c.drawImage(SPR.counter(8),12*T-1,7*T-11);c.drawImage(SPR.register(),12*T+1,7*T-14);c.drawImage(SPR.boxes(),19*T-1,7*T-15);
-    const ready=anim?Math.min(3,anim.jobs.length):0;for(let k=0;k<ready;k++)c.drawImage(SPR.pizza(),15*T+2+k*9,7*T-10)});
-  for(const tb of map.tables){add((tb.r+2)*T,2,()=>{c.drawImage(SPR.table(state.deco>=3),tb.c*T-1,tb.r*T-2);
-    for(const s of sc.seats){if(s.t!==tb||!s.occ)continue;const p=s.occ,dx=tb.c*T+(s.face==='right'?2:18),dy=tb.r*T+12;
-      if(p.st==='wait')c.drawImage(SPR.plate(),dx,dy);else if(p.st==='eat')c.drawImage(p.timer>1?SPR.pizza():SPR.crumbs(),dx,dy-2)}})}
-  for(const s of sc.seats)add((s.cy+1)*T-1,0,()=>c.drawImage(SPR.chair(s.face),s.cx*T,s.cy*T-2));
-  for(const [pc,pr] of map.plants)add((pr+1)*T,1,()=>c.drawImage(SPR.plant(),pc*T-1,pr*T-14));
-  for(const k of sc.cooks){add(k.y+T,1,()=>{const bob=anim&&Math.floor(anim.t*3+k.x)%2;drawChar(c,{...k,dir:bob?'up':'down',walking:false})})}
-  for(const w of sc.waiters)add(w.y+T,1,()=>{drawChar(c,w);if(w.carry)c.drawImage(SPR.pizza(),Math.round(w.x)+2,Math.round(w.y)-14)});
-  if(anim)for(const p of anim.people){const sit=p.st==='wait'||p.st==='eat';add(p.y+T+(sit?0:0),1,()=>drawChar(c,p,{sit}))}
-  L.sort((a,b)=>a.y-b.y||a.p-b.p).forEach(d=>d.fn());
+  // floor, walls, the kitchen corner, the front wall with the door, the street
+  rtile(c,'f_check',0,2*T,RW,14*T);rtile(c,'f_kitchen',12*T,2*T,RW,8*T);
+  rtile(c,'w_cream',0,0,12*T,2*T);rtile(c,'w_kitchen',12*T,0,RW,2*T);
+  roomWalls().forEach((id,i)=>{if(!id)return;const [k,x,y]=L_.walls[id];c.drawImage(rspr(k),i*64+x,y)});
+  c.drawImage(rspr('k_rack'),19*T-6,6);c.drawImage(rspr('divider'),12*T-16,0);
+  for(let col=0;col<COLS;col+=2)if(col!==DOOR[0])c.drawImage(rspr('frontwall'),col*T,14*T);
+  c.drawImage(rspr('doormat'),DOOR[0]*T,14*T);c.drawImage(rspr('doormat'),(DOOR[0]+1)*T,14*T);
+  c.fillStyle='#2a1407';c.fillRect(DOOR[0]*T-6,14*T-12,6,44);c.fillRect((DOOR[0]+2)*T,14*T-12,6,44);
+  rtile(c,'sidewalk',0,15*T,RW,17*T);rtile(c,'curb',0,16*T,RW,17*T);
+  // everything that stands is sorted by depth (z: the y of its foot)
+  const L=[],add=(z,img,x,y)=>L.push({z,img,x,y});
+  for(const [k,x,y,z,n] of L_.kitchen){if(k==='cook')continue;
+    if(k==='k_oven'){for(let i=0;i<state.ovens;i++)add(z,rspr('k_oven_'+((fr+i)%(n||1))),x+i*58,y);continue}
+    add(z,rspr(n>1?k+'_'+(fr%n):k),x,y)}
+  const ready=anim?Math.min(3,anim.jobs.length):0;for(let k=0;k<ready;k++)add(256.3,rspr('pizza'),15*T+k*26,7*T-22);   // pizzas waiting on the counter
+  const tk=roomTable(),it=L_.items[tk],tz=it.parts.find(q=>q[0].startsWith('t_'))[3];
+  for(const tb of map.tables){const x0=tb.ic*T,y0=tb.r*T;
+    for(const [k,x,y,z] of it.parts)add(y0+z,rspr(k),x0+x,y0+y);
+    for(const s of it.seats)for(const ch of [s.chair,s.back])if(ch)add(y0+ch[3],rspr(ch[0]),x0+ch[1],y0+ch[2]);
+    for(const s of sc.seats){if(s.t!==tb||!s.occ)continue;const p=s.occ,seat=it.seats.find(q=>q.d===s.face);if(!seat)continue;
+      if(p.st==='wait'||p.st==='eat'){add(y0+seat.p[2],rspr(`p${p.rlook||0}_${seat.d}`),x0+seat.p[0],y0+seat.p[1]);   // seated, from the atlas layout
+        const [tx,ty,rx]=it.top,qx=seat.d==='right'?tx-rx+14:tx+rx-14;
+        add(y0+tz+.2,rspr(p.st==='eat'&&p.timer>1?'pizza':'plate'),x0+Math.round(qx)-12,y0+Math.round(ty)-8)}}}
+  for(const [pc,pr] of map.plants){const [k,x,y,z]=L_.items.vaso.parts[0];add(pr*T+z,rspr(k),pc*T+x,pr*T+y)}
+  const person=(a,key)=>L.push({z:a.y+T,draw:()=>drawChar(c,a,key)});
+  for(const k of sc.cooks)person(k,'cook');
+  for(const w of sc.waiters){person(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)-20)}
+  if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;person(p,`p${p.rlook||0}_${p.dir}`)}
+  L.sort((a,b)=>a.z-b.z).forEach(d=>d.draw?d.draw():c.drawImage(d.img,d.x,d.y));
   if(t>.55){c.fillStyle=`rgba(30,22,70,${Math.min(.3,(t-.55)*.9)})`;c.fillRect(0,0,RW,RH)}
   // blit + overlay text
-  const k=R.w/RW,m=R.c;m.imageSmoothingEnabled=false;m.clearRect(0,0,R.w,R.h);m.drawImage(R.low,0,0,R.w,R.h);
-  const fs=Math.max(9,Math.round(k*7));m.font=`700 ${fs}px Silkscreen, monospace`;m.textBaseline='middle';m.textAlign='right';
+  const k=R.w/RW,m=R.c;m.imageSmoothingEnabled=k<1;m.imageSmoothingQuality='high';m.clearRect(0,0,R.w,R.h);m.drawImage(R.low,0,0,R.w,R.h);   // shrunk smoothly on phones, crisp when enlarged
+  const fs=Math.max(9,Math.round(k*14));m.font=`700 ${fs}px Silkscreen, monospace`;m.textBaseline='middle';m.textAlign='right';
   m.fillStyle='rgba(18,10,4,.75)';const lbl=(state.rival.promo&&anim?'2X1 · ':'')+state.rival.name.toUpperCase()+' →';const lw=m.measureText(lbl).width+10;m.fillRect(R.w-lw-4,R.h-fs*1.9,lw,fs*1.5);m.fillStyle='#ffcf4a';m.fillText(lbl,R.w-9,R.h-fs*1.15);
   m.textAlign='center';
   if(anim)for(const b of anim.bubbles){const tw=m.measureText(b.text).width+10,bx=clamp(b.x*k,tw/2+2,R.w-tw/2-2),by=Math.max(fs,b.y*k);m.globalAlpha=clamp(b.life*1.5,0,1);
