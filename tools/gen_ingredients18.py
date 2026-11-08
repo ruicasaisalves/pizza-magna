@@ -2,9 +2,9 @@
 """Pizza Magna: eighteenth batch, a redraw. Grated mozzarella as a thick white layer.
 
 The old handful was loose beige strands with sauce showing between them, so a pizza
-covered in mozzarella still looked red and stripy. Now each handful is an opaque,
-melted-looking white patch with a grated texture on top and a few loose strands at
-the edge: handfuls side by side make an even white surface, good to draw on
+covered in mozzarella still looked red and stripy. Now each handful is a dense pile
+of white strands on a white bed (the strands show, the sauce doesn't), with strands
+poking out a little at the edge: handfuls side by side make an even white surface, good to draw on
 (a heart of ham, a face...). It lies flat, so the atlas gives it no drop shadow
 (NO_DROP in build_atlas.py). Same method as gen_ingredients.py (see tools/CLAUDE.md).
 Usage: python3 tools/gen_ingredients18.py <folder>"""
@@ -18,51 +18,47 @@ OUT = (sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file
 
 R.update({
     'mozzw': hexs(['#b8ad94', '#ddd6c4', '#efebe0', '#f9f7f1', '#ffffff']),     # melted fresh mozzarella, near white
-    'mozzedge': hexs(['#d6cebb', '#e8e3d6']),                                    # soft edge: handfuls side by side melt into one layer
+    'mozzsh': hexs(['#a89a7c', '#c9bea6']),                                      # strand shadows: past the edge / on the bed
 })
 
 def mozz_layer(seed, W=60, H=56):
+    """a dense pile of grated strands on a white bed: the strands show (light top, thin shadow),
+    the sauce doesn't show through, and the edge is strands poking out a little, not loose bits"""
     rng = np.random.default_rng(seed + 5500)
     ys, xs = np.mgrid[0:H, 0:W]
     cx, cy = (W - 1) / 2, (H - 1) / 2
-    # body: a few overlapping round lumps, with a ragged edge
+    # the bed: a few overlapping round lumps, with a ragged edge
     blob = np.zeros((H, W))
     for _ in range(8):
-        a, d = rng.random() * 6.28, rng.random() * 9
-        r = rng.uniform(10, 14)
+        a, d = rng.random() * 6.28, rng.random() * 8
+        r = rng.uniform(10, 13)
         bx, by = cx + np.cos(a) * d, cy + np.sin(a) * d * .9
         blob = np.maximum(blob, 1 - np.hypot(xs - bx, ys - by) / r)
     n = noise(H, W, 4, rng)
-    mask = blob + (n - .5) * .35 > .12
-    # height: soft melted bumps plus a fine grated grain
-    grain = noise(H, W, 2, rng)
-    height = np.clip(blob, 0, 1) * 3 + (n - .5) * 1.5 + (grain - .5) * .9
-    light = np.clip(shade(height, mask) * .55 + .45, 0, 1) * mask
-    mat = [['mozzw'] * W for _ in range(H)]
-    img = render(mat, light, mask, {'mozzw': 'mozzedge'})
-    px = img.load()
+    bed = (blob > .05) & (blob + (n - .5) * .3 > .14)        # no islands away from the handful
+    img = Image.new('RGBA', (W, H), (0, 0, 0, 0)); px = img.load()
     ramp = R['mozzw']
-    # grated texture: short strands, a light top and a soft shadow under each
-    for _ in range(90):
-        x0, y0 = rng.uniform(0, W), rng.uniform(0, H)
-        if not mask[int(y0), int(x0)]: continue
-        L, ang = int(rng.integers(3, 6)), rng.random() * 3.14
+    for y in range(H):                                       # the bed itself is in shade: it is what lies under the strands
+        for x in range(W):
+            if bed[y, x]: px[x, y] = R['mozzsh'][1] + (255,)
+    # strands: many short ones, each lit on top with a 1 px shadow under it; later ones lie on earlier ones
+    near = np.argwhere(bed)
+    for k in range(300):
+        y0, x0 = near[rng.integers(len(near))] + rng.uniform(-.5, .5, 2)
+        L, ang = int(rng.integers(4, 8)), rng.random() * 3.14
         pts = [(int(round(x0 + np.cos(ang) * t)), int(round(y0 + np.sin(ang) * t * .7))) for t in range(L)]
-        for x, y in pts:
-            if 0 <= x < W and 0 <= y + 1 < H and mask[y + 1, x]: px[x, y + 1] = ramp[1] + (255,)
-        for x, y in pts:
-            if 0 <= x < W and 0 <= y < H and mask[y, x]: px[x, y] = ramp[4 if rng.random() < .6 else 3] + (255,)
-    # loose strands just past the edge, so the handful doesn't end in a hard line
-    for _ in range(22):
-        a = rng.random() * 6.28
-        r = rng.uniform(15, 21)
-        x0, y0 = cx + np.cos(a) * r, cy + np.sin(a) * r * .92
-        L, ang = int(rng.integers(3, 6)), rng.random() * 3.14
-        pts = [(int(round(x0 + np.cos(ang) * t)), int(round(y0 + np.sin(ang) * t * .7))) for t in range(L)]
-        for x, y in pts:
-            if 0 <= x < W and 0 <= y + 1 < H and px[x, y + 1][3] == 0: px[x, y + 1] = R['mozzedge'][0] + (255,)
-        for i, (x, y) in enumerate(pts):
-            if 0 <= x < W and 0 <= y < H: px[x, y] = ramp[2 + (i == 1) + int(rng.random() * 2)] + (255,)
+        for x, y in pts:                                     # shadow first (may hang just past the bed)
+            if 0 <= x < W and 0 <= y + 1 < H: px[x, y + 1] = R['mozzsh'][0 if not bed[min(H - 1, y + 1), x] else 1] + (255,)
+        for t, (x, y) in enumerate(pts):
+            if 0 <= x < W and 0 <= y < H:
+                px[x, y] = ramp[4 if t in (1, 2) else 3] + (255,)          # bright in the middle of the strand
+    # round off the edge: a lone pixel sticking out on its own is dropped
+    a = np.array(img)[:, :, 3] > 0
+    for y in range(H):
+        for x in range(W):
+            if a[y, x] and not bed[y, x]:
+                nb = sum(a[y + dy, x + dx] for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)) if 0 <= y + dy < H and 0 <= x + dx < W)
+                if nb == 0: px[x, y] = (0, 0, 0, 0)
     return img
 
 if __name__ == '__main__':
