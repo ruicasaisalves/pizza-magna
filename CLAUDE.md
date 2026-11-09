@@ -30,7 +30,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 - **Language of the repo:** documentation (`.md`), commit messages and new code comments in English, so the repo can be shared with English-speaking colleagues. Only game text in `I18N` (and Portuguese names like francesinha or alheira) stays in Portuguese. Reply to the user in the language they write in (they usually write Portuguese, pt-PT).
 - **Saves:** state goes to `localStorage` (`massa-mestra-v1`); pieces are stored compactly (`packPieces`, 5 bytes per piece), the same format as recipe links (`#p=`) and `.pizza` files. No limit on pizzas in the menu; up to 300 pieces per pizza. New fields need a default value, so old saves still open.
 - **Analytics:** GoatCounter (`pizzamagna.goatcounter.com`). Buttons worth counting are in `TRACK` and arrive as `ev/<name>` events; a new button worth counting goes there. Never send names or recipes.
-- **Fonts:** body text and numbers are VT323 (the clearest digits at small sizes; body text is enlarged with `font-size-adjust`, other fonts reset it); titles and buttons Silkscreen. Don't use Pixelify Sans: its digits muddle at small sizes (2/8, 5/S). Write ordinals as words (segunda, primeiro lugar).
+- **Fonts:** body text and numbers are Tiny5 (bold pixel strokes and clear digits on phones; body text is sized with `font-size-adjust`, other fonts reset it); titles and buttons Silkscreen; the green LCDs VT323. Don't use Pixelify Sans (its digits muddle at small sizes: 2/8, 5/S) or VT323 for body text (too thin on phones). Write ordinals as words (segunda, primeiro lugar).
 - Don't add dependencies or build steps.
 
 ## Testing
