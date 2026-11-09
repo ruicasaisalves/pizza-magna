@@ -13,6 +13,6 @@ Ideas on hold, with no plan or date yet.
 - Later: buy stock by the kilo, and each pizza sold uses its weight from the stock.
 
 ## Several suppliers
-- For now there is one price per topping. Later: several suppliers (the market, a wholesaler, a delicatessen, a farm) with different prices, quality and delivery days.
+- Done in part: one supplier at a time, chosen in the Shop as a quality level (`SUPPLIER`). Still an idea: Later: several suppliers (the market, a wholesaler, a delicatessen, a farm) with different prices, quality and delivery days.
 - Gives the player more to do in tier 3 (you run everything): find the cheapest or the best place for each topping and plan the pantry around deliveries.
 - Quality from a better supplier could raise the pizza's quality a little; a cheap one could lower it.
