@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#4a260f">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Pixelify+Sans:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Jersey+10&display=swap">
 <style>
 /* Layout: 90s management-sim cabinet. Wood-panelled frames around every surface, parchment cards, a green-phosphor terminal for live numbers, brass push-buttons, pixel-art canvases scaled with nearest-neighbour */
 :root{
@@ -20,11 +20,11 @@
   --tomato:#c4352a; --tomato-hi:#e8705a; --tomato-lo:#7e1d14; --good:#2e7b2c; --bad:#b02a1c; --cheese:#ffcf4a;
   --f-pixel:'Silkscreen','Courier New',monospace;
   --f-lcd:'VT323','Courier New',monospace;
-  --f-body:'Pixelify Sans','Trebuchet MS',system-ui,sans-serif;
+  --f-body:'Jersey 10','Trebuchet MS',system-ui,sans-serif;   /* clear digits at small sizes (Pixelify Sans muddled 2/8 and 5/S) */
   color-scheme:light;
 }
 html,body{height:100%}
-body{color:var(--on-wood);font-family:var(--f-body);font-size:15px;line-height:1.4;background-color:#4c2a13;
+body{color:var(--on-wood);font-family:var(--f-body);font-size:18px;line-height:1.4;background-color:#4c2a13;
   background-image:repeating-linear-gradient(0deg,rgba(20,8,2,.55) 0 2px,transparent 2px 44px),repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 1px,transparent 1px 9px),linear-gradient(90deg,#4c2a13,#573117 50%,#4c2a13)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--wood-deep)}
 *{box-sizing:border-box}
@@ -887,7 +887,7 @@ function renderHeader(){
       <div class="stat"><span class="lbl">Caixa</span><b>${eur(state.money)}</b></div>
       <div class="stat"><span class="lbl">Reputação</span><b class="stars" aria-label="${state.rep.toFixed(1)} de 5">${starsHTML(state.rep)} ${state.rep.toFixed(1).replace('.',',')}</b></div>
     </div>
-    <div class="goal"><span>Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a 2.ª loja</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>`}
+    <div class="goal"><span>Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a segunda loja</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>`}
   </div>`;
   $('#hdr').append(...corner);   // corner buttons ride in the header, not over the page
 }
@@ -1747,7 +1747,7 @@ function drawCurves(){
     const best=pts.reduce((a,b)=>b.profit>a.profit?b:a),cur=pts.reduce((a,b)=>Math.abs(b.price-p.price)<Math.abs(a.price-p.price)?b:a);
     c.setLineDash([3,3]);c.strokeStyle='#6c5233';c.beginPath();c.moveTo(X(best.price),4);c.lineTo(X(best.price),H-14);c.stroke();c.setLineDash([]);
     const px=X(clamp(p.price,lo,hi));c.strokeStyle='#c4352a';c.lineWidth=2;c.beginPath();c.moveTo(px,2);c.lineTo(px,H-14);c.stroke();
-    c.fillStyle='#6c5233';c.font='11px "Pixelify Sans", sans-serif';c.textBaseline='bottom';c.textAlign='left';c.fillText(eur(lo),2,H-1);c.textAlign='right';c.fillText(eur(hi),W-2,H-1);
+    c.fillStyle='#6c5233';c.font='13px "Jersey 10", sans-serif';c.textBaseline='bottom';c.textAlign='left';c.fillText(eur(lo),2,H-1);c.textAlign='right';c.fillText(eur(hi),W-2,H-1);
     const tx=document.querySelector(`[data-dct="${p.id}"]`);if(tx)tx.textContent=t('menu.dc',{n:Math.round(cur.units),x:eur(Math.round(cur.profit)).replace('.00',''),b:eur(Math.round(best.price*2)/2)});
   })}
 
@@ -1776,11 +1776,11 @@ function contestHTML(){
   const base=Math.round(Math.min(92,50+cd*1.1));
   return `<div class="stack">
     <div class="card stack"><span class="lbl">${left===0?'Hoje':left===1?'Amanhã':'Daqui a '+left+' dias'} · dia ${cd} (${wdName(cd)})</span><h2>${th.n}</h2><p class="sub" style="margin:0">${th.d}</p>
-      <dl class="kv"><dt>1.º lugar</dt><dd>$600 e +0,4★</dd><dt>2.º lugar</dt><dd>$250 e +0,2★</dd><dt>3.º lugar</dt><dd>$80 e +0,1★</dd><dt>Inscrição</dt><dd>$${ENTRY_FEE}</dd><dt>Os rivais rondam</dt><dd>${base-8} a ${base+8} pts</dd></dl>
+      <dl class="kv"><dt>Primeiro lugar</dt><dd>$600 e +0,4★</dd><dt>Segundo lugar</dt><dd>$250 e +0,2★</dd><dt>Terceiro lugar</dt><dd>$80 e +0,1★</dd><dt>Inscrição</dt><dd>$${ENTRY_FEE}</dd><dt>Os rivais rondam</dt><dd>${base-8} a ${base+8} pts</dd></dl>
     </div>
     <div><h3>Escolhe a pizza a concurso</h3><p class="sub">${state.contestEntry?'Podes trocar de pizza sem pagar de novo.':'Pagas a inscrição ao escolher.'} O júri avalia ao fecho do dia ${cd}.</p></div>
     ${state.menu.length?`<div class="picks">${picks}</div>`:'<div class="empty">Precisas de pizzas no menu.</div>'}
-    <div class="card"><h3>Histórico</h3>${state.contestLog.length?`<table class="rank">${state.contestLog.slice(0,6).map(l=>`<tr><td>Dia ${l.day} · ${l.theme}<br><span class="sub">${esc(l.pizza)}</span></td><td>${l.pos}.º${l.prize?' · '+eur(l.prize):''}</td></tr>`).join('')}</table>`:'<p class="sub">Ainda não participaste em nenhum concurso.</p>'}</div>
+    <div class="card"><h3>Histórico</h3>${state.contestLog.length?`<table class="rank">${state.contestLog.slice(0,6).map(l=>`<tr><td>Dia ${l.day} · ${l.theme}<br><span class="sub">${esc(l.pizza)}</span></td><td>lugar ${l.pos}${l.prize?' · '+eur(l.prize):''}</td></tr>`).join('')}</table>`:'<p class="sub">Ainda não participaste em nenhum concurso.</p>'}</div>
   </div>`;
 }
 
@@ -1913,11 +1913,11 @@ function shareCard(p,name){
   c.textAlign='center';
   c.fillStyle='#2c1a0b';c.font='bold 60px Silkscreen, monospace';
   const tl=wrapLines(c,name.toUpperCase(),W-200).slice(0,2);tl.forEach((l,i)=>c.fillText(l,W/2,(tl.length>1?175:205)+i*66));   // recipe name is the headline
-  c.font='34px "Pixelify Sans", sans-serif';c.fillStyle='#6c5233';
+  c.font='40px "Jersey 10", sans-serif';c.fillStyle='#6c5233';
   c.fillText(DOUGHS[p.dough].n+' · '+SAUCES[p.sauce].n,W/2,900);
-  c.fillStyle='#2c1a0b';c.font='38px "Pixelify Sans", sans-serif';
+  c.fillStyle='#2c1a0b';c.font='44px "Jersey 10", sans-serif';
   wrapLines(c,recipeIngs(p).join(' · '),W-200).slice(0,3).forEach((l,i)=>c.fillText(l,W/2,970+i*50));
-  const by=chefLine(p);if(by){c.fillStyle='#7a4520';c.font='bold 36px "Pixelify Sans", sans-serif';c.fillText(by,W/2,1138)}
+  const by=chefLine(p);if(by){c.fillStyle='#7a4520';c.font='42px "Jersey 10", sans-serif';c.fillText(by,W/2,1138)}
   c.fillStyle='#c4352a';c.fillRect(60,H-170,W-120,110);c.fillStyle='#fff1d2';c.font='bold 40px Silkscreen, monospace';c.fillText(SITE.toUpperCase(),W/2,H-100);
   return cv;
 }
@@ -1944,7 +1944,7 @@ function showReport(r){
   <p style="margin:0">Reputação: ${r.repBefore.toFixed(2).replace('.',',')} → <b>${r.repAfter.toFixed(2).replace('.',',')}</b>★</p>
   ${state.menu.length?`<div class="pl">${state.menu.map(p=>`<span>${esc(p.name)}</span><span>${r.sales[p.id]||0} vendidas</span>`).join('')}</div>`:''}
   ${r.quotes.map(([s,q])=>`<div class="quote"><small>${SEG[s].n}</small>“${esc(q)}”</div>`).join('')}
-  ${c?`<h3>${c.th.n}: ${c.pos}.º lugar${c.prize?' · +'+eur(c.prize):''}</h3>${c.dq?`<p class="sub">Desclassificada: ${c.dq}.</p>`:''}<table class="rank">${c.rows.map((x,i)=>`<tr class="${x.me?'me':''}"><td>${i+1}. ${esc(x.n)}</td><td>${x.s}</td></tr>`).join('')}</table>`:''}
+  ${c?`<h3>${c.th.n}: lugar ${c.pos}${c.prize?' · +'+eur(c.prize):''}</h3>${c.dq?`<p class="sub">Desclassificada: ${c.dq}.</p>`:''}<table class="rank">${c.rows.map((x,i)=>`<tr class="${x.me?'me':''}"><td>${i+1}. ${esc(x.n)}</td><td>${x.s}</td></tr>`).join('')}</table>`:''}
   ${(r.nostock||0)>3?`<p class="sub">${t('st.tip.soldout')}</p>`:(r.noseat||0)>3?'<p class="sub">Dica: faltaram lugares à hora de almoço e de jantar. Compra mais mesas em Loja › Decorar a sala.</p>':r.full>3?'<p class="sub">Dica: perdeste clientes na fila. Contrata um pizzaiolo ou compra um forno.</p>':r.toRival>r.served?'<p class="sub">Dica: a concorrência ganhou hoje. Revê preços ou melhora as receitas.</p>':''}
   <button class="btn primary big" data-act="closereport">Continuar</button>`);
 }
@@ -1958,7 +1958,7 @@ function showIntro(){modal(`<h2>Bem-vindo à Pizza Magna</h2><p style="margin:0"
   <li><b>Menu:</b> as pizzas que quiseres. Põe preços que cada público aceite pagar.</li>
   <li><b>Abrir:</b> vê os clientes a escolher entre ti e o rival. A reputação sobe com clientes satisfeitos.</li>
   <li><b>Loja e Concursos:</b> investe em fornos, equipa e ingredientes, e ganha prémios a cada 5 dias.</li></ol>
-  <p class="sub" style="margin:0">Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a 2.ª loja.</p>
+  <p class="sub" style="margin:0">Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a segunda loja.</p>
   <button class="btn primary big" data-act="close">Começar</button>`)}
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 
