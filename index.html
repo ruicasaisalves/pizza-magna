@@ -9,8 +9,12 @@
 <meta name="theme-color" content="#4a260f">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Pixelify+Sans:wght@400;600;700&display=swap">
 <style>
+/* Pixelify Sans draws 5 like an S or an 8 and 2 like a Z at small sizes: the digits 0-9 come from VT323
+   (assets/digits.woff2, only those ten glyphs; VT323 by Peter Hull, SIL Open Font License) and the browser
+   takes everything else from Pixelify Sans */
+@font-face{font-family:'PM Digits';src:url(assets/digits.woff2) format('woff2');unicode-range:U+0030-0039;size-adjust:120%;font-display:swap}
 /* Layout: 90s management-sim cabinet. Wood-panelled frames around every surface, parchment cards, a green-phosphor terminal for live numbers, brass push-buttons, pixel-art canvases scaled with nearest-neighbour */
 :root{
   --wood:#7a4520; --wood-hi:#a8692f; --wood-lo:#4a260f; --wood-deep:#2a1407;
@@ -20,11 +24,11 @@
   --tomato:#c4352a; --tomato-hi:#e8705a; --tomato-lo:#7e1d14; --good:#2e7b2c; --bad:#b02a1c; --cheese:#ffcf4a;
   --f-pixel:'Silkscreen','Courier New',monospace;
   --f-lcd:'VT323','Courier New',monospace;
-  --f-body:'VT323','Courier New',monospace;   /* the terminal font: the clearest digits at small sizes (Pixelify Sans muddled 2/8 and 5/S) */
+  --f-body:'PM Digits','Pixelify Sans','Trebuchet MS',system-ui,sans-serif;   /* digits from VT323, the rest Pixelify Sans */
   color-scheme:light;
 }
 html,body{height:100%}
-body{font-size-adjust:.42;color:var(--on-wood);font-family:var(--f-body);font-size:16px;line-height:1.4;background-color:#4c2a13;
+body{color:var(--on-wood);font-family:var(--f-body);font-size:15px;line-height:1.4;background-color:#4c2a13;
   background-image:repeating-linear-gradient(0deg,rgba(20,8,2,.55) 0 2px,transparent 2px 44px),repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 1px,transparent 1px 9px),linear-gradient(90deg,#4c2a13,#573117 50%,#4c2a13)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--wood-deep)}
 *{box-sizing:border-box}
@@ -34,7 +38,6 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--cheese);outline-offset:2px}
 button:disabled{cursor:not-allowed;filter:grayscale(.7);opacity:.6}
-h1,h2,h3,.lbl,.btn,.brand,.stat b,.zname,.zlcd,.qbig,details.book summary,.kv dd,.price b,.lcd,.banner,.tag,#nav button,.modepick button b,.segs .v,.rtabs button,.rcat .it .p,.chip,.quote small,#toast{font-size-adjust:none}   /* VT323 body text is enlarged; titles, buttons and LCDs keep their size */
 h1,h2,h3{font-family:var(--f-pixel);font-weight:700;margin:0;text-wrap:balance;letter-spacing:.01em;line-height:1.15}
 h2{font-size:1.15rem}
 h3{font-size:.92rem}
@@ -1763,7 +1766,7 @@ function drawCurves(){
     const best=pts.reduce((a,b)=>b.profit>a.profit?b:a),cur=pts.reduce((a,b)=>Math.abs(b.price-p.price)<Math.abs(a.price-p.price)?b:a);
     c.setLineDash([3,3]);c.strokeStyle='#6c5233';c.beginPath();c.moveTo(X(best.price),4);c.lineTo(X(best.price),H-14);c.stroke();c.setLineDash([]);
     const px=X(clamp(p.price,lo,hi));c.strokeStyle='#c4352a';c.lineWidth=2;c.beginPath();c.moveTo(px,2);c.lineTo(px,H-14);c.stroke();
-    c.fillStyle='#6c5233';c.font="15px VT323, monospace";c.textBaseline='bottom';c.textAlign='left';c.fillText(eur(lo),2,H-1);c.textAlign='right';c.fillText(eur(hi),W-2,H-1);
+    c.fillStyle='#6c5233';c.font='11px "PM Digits", "Pixelify Sans", sans-serif';c.textBaseline='bottom';c.textAlign='left';c.fillText(eur(lo),2,H-1);c.textAlign='right';c.fillText(eur(hi),W-2,H-1);
     const tx=document.querySelector(`[data-dct="${p.id}"]`);if(tx)tx.textContent=t('menu.dc',{n:Math.round(cur.units),x:eur(Math.round(cur.profit)).replace('.00',''),b:eur(Math.round(best.price*2)/2)});
   })}
 
@@ -1935,11 +1938,11 @@ function shareCard(p,name){
   c.textAlign='center';
   c.fillStyle='#2c1a0b';c.font='bold 60px Silkscreen, monospace';
   const tl=wrapLines(c,name.toUpperCase(),W-200).slice(0,2);tl.forEach((l,i)=>c.fillText(l,W/2,(tl.length>1?175:205)+i*66));   // recipe name is the headline
-  c.font='52px VT323, monospace';c.fillStyle='#6c5233';
+  c.font='34px "PM Digits", "Pixelify Sans", sans-serif';c.fillStyle='#6c5233';
   c.fillText(DOUGHS[p.dough].n+' · '+SAUCES[p.sauce].n,W/2,900);
-  c.fillStyle='#2c1a0b';c.font='56px VT323, monospace';
+  c.fillStyle='#2c1a0b';c.font='38px "PM Digits", "Pixelify Sans", sans-serif';
   wrapLines(c,recipeIngs(p).join(' · '),W-200).slice(0,3).forEach((l,i)=>c.fillText(l,W/2,970+i*50));
-  const by=chefLine(p);if(by){c.fillStyle='#7a4520';c.font='54px VT323, monospace';c.fillText(by,W/2,1138)}
+  const by=chefLine(p);if(by){c.fillStyle='#7a4520';c.font='bold 36px "PM Digits", "Pixelify Sans", sans-serif';c.fillText(by,W/2,1138)}
   c.fillStyle='#c4352a';c.fillRect(60,H-170,W-120,110);c.fillStyle='#fff1d2';c.font='bold 40px Silkscreen, monospace';c.fillText(SITE.toUpperCase(),W/2,H-100);
   return cv;
 }
