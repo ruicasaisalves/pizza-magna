@@ -11,3 +11,8 @@ Ideas on hold, with no plan or date yet.
 ## Shopping by weight
 - Every topping already has a weight (`GRAMS` in `index.html`); grated pieces weigh less (`portion()`).
 - Later: buy stock by the kilo, and each pizza sold uses its weight from the stock.
+
+## Several suppliers
+- For now there is one price per topping. Later: several suppliers (the market, a wholesaler, a delicatessen, a farm) with different prices, quality and delivery days.
+- Gives the player more to do in tier 3 (you run everything): find the cheapest or the best place for each topping and plan the pantry around deliveries.
+- Quality from a better supplier could raise the pizza's quality a little; a cheap one could lower it.

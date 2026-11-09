@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#4a260f">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Pixelify+Sans:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap">
 <style>
 /* Layout: 90s management-sim cabinet. Wood-panelled frames around every surface, parchment cards, a green-phosphor terminal for live numbers, brass push-buttons, pixel-art canvases scaled with nearest-neighbour */
 :root{
@@ -20,11 +20,11 @@
   --tomato:#c4352a; --tomato-hi:#e8705a; --tomato-lo:#7e1d14; --good:#2e7b2c; --bad:#b02a1c; --cheese:#ffcf4a;
   --f-pixel:'Silkscreen','Courier New',monospace;
   --f-lcd:'VT323','Courier New',monospace;
-  --f-body:'Pixelify Sans','Trebuchet MS',system-ui,sans-serif;
+  --f-body:'VT323','Courier New',monospace;   /* the terminal font: the clearest digits at small sizes (Pixelify Sans muddled 2/8 and 5/S) */
   color-scheme:light;
 }
 html,body{height:100%}
-body{color:var(--on-wood);font-family:var(--f-body);font-size:15px;line-height:1.4;background-color:#4c2a13;
+body{font-size-adjust:.42;color:var(--on-wood);font-family:var(--f-body);font-size:16px;line-height:1.4;background-color:#4c2a13;
   background-image:repeating-linear-gradient(0deg,rgba(20,8,2,.55) 0 2px,transparent 2px 44px),repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 1px,transparent 1px 9px),linear-gradient(90deg,#4c2a13,#573117 50%,#4c2a13)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--wood-deep)}
 *{box-sizing:border-box}
@@ -34,6 +34,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--cheese);outline-offset:2px}
 button:disabled{cursor:not-allowed;filter:grayscale(.7);opacity:.6}
+h1,h2,h3,.lbl,.btn,.brand,.stat b,.zname,.zlcd,.qbig,details.book summary,.kv dd,.price b,.lcd,.banner,.tag,#nav button,.modepick button b,.segs .v,.rtabs button,.rcat .it .p,.chip,.quote small,#toast{font-size-adjust:none}   /* VT323 body text is enlarged; titles, buttons and LCDs keep their size */
 h1,h2,h3{font-family:var(--f-pixel);font-weight:700;margin:0;text-wrap:balance;letter-spacing:.01em;line-height:1.15}
 h2{font-size:1.15rem}
 h3{font-size:.92rem}
@@ -219,6 +220,10 @@ table.rank{width:100%;border-collapse:collapse;font-size:.92rem}
 table.rank td{padding:6px 4px;border-bottom:1px dashed var(--line)}
 table.rank td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 table.rank tr.me td{color:var(--tomato-lo);font-weight:700}
+table.sales th{font:inherit;font-size:.8rem;color:var(--muted);text-align:right;padding:0 4px;font-weight:400}
+table.sales td{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.sales td:first-child{text-align:left;white-space:normal;font-weight:400}
+table.sales td:first-child i{display:block;height:4px;margin-top:3px;background:var(--tomato)}
 
 /* Nav */
 #nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:linear-gradient(var(--wood-hi),var(--wood) 25%,var(--wood-lo));border-top:4px solid var(--wood-deep);
@@ -230,6 +235,40 @@ table.rank tr.me td{color:var(--tomato-lo);font-weight:700}
 #nav button.go{background:linear-gradient(var(--tomato-hi),var(--tomato) 45%,var(--tomato-lo));color:#fff1d2;border-color:#3a0c06}
 #nav button.go.on{background:linear-gradient(var(--tomato-lo),var(--tomato))}
 
+/* Pantry (Shop > Pantry) and the demand curve in the Menu */
+.stockrows{display:grid;gap:8px}
+.srow{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:4px 10px;align-items:center;background:#fbf3df;border:2px solid var(--line);padding:6px 8px;color:var(--ink)}
+.srow canvas{width:36px;height:36px;image-rendering:pixelated}
+.srow .nm{font-size:.9rem;line-height:1.15}.srow .nm small{display:block;color:var(--muted);font-size:.75rem}
+.srow .bx{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;grid-column:2/-1}
+.srow.low{border-color:var(--bad)}.srow.mid{border-color:#d39b12}
+.modepick{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.modepick button{all:unset;cursor:pointer;border:2px solid var(--line);background:#fbf3df;color:var(--ink);padding:10px;display:flex;flex-direction:column;gap:4px}
+.modepick button b{font-family:var(--f-pixel);font-size:.8rem}.modepick button span{font-size:.82rem;color:var(--muted)}
+.modepick button[aria-pressed=true]{border-color:var(--tomato);box-shadow:0 0 0 2px var(--tomato)}
+.dcurve{width:100%;height:84px;display:block;margin-top:6px;background:#fbf3df;border:1px solid var(--line)}
+.dctext{font-size:.8rem;color:var(--muted);display:block;margin-top:3px}
+/* Room editor (Shop > Decorate the room) */
+.roomed{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;align-items:start}
+@media (min-width:1000px){.roomed{grid-template-columns:minmax(0,1fr) 360px}}
+#redit{touch-action:none;cursor:crosshair}
+.rhint{font-size:.85rem;color:#d9bf8e;margin:10px 2px 0}
+.lcd .warn{color:#ffb04a;white-space:normal}
+.segs{display:grid;grid-template-columns:auto 1fr 2.2em;gap:6px 10px;align-items:center;margin-top:12px;font-size:.85rem}
+.segs h3{grid-column:1/-1;margin:0}
+.segs .bar{height:12px;border:2px solid var(--ink);background:#e6d3a8}.segs .bar b{display:block;height:100%}
+.segs .v{font-family:var(--f-lcd);font-size:1.2rem;text-align:right;line-height:1}
+.rtabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 12px}
+.rtabs button{border:2px solid var(--line);background:#fbf3df;color:var(--ink);padding:5px 9px;font-family:var(--f-pixel);font-size:.6rem;text-transform:uppercase;border-radius:2px}
+.rtabs button[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--parch)}
+.rcat{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;max-height:520px;overflow:auto;padding:2px}
+.rcat .it{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;border:2px solid var(--line);background:#fbf3df;color:var(--ink);padding:6px 4px 5px;text-align:center;font-size:.76rem;line-height:1.1}
+.rcat .it[aria-pressed=true]{border-color:var(--tomato);box-shadow:0 0 0 2px var(--tomato)}
+.rcat .it.poor{opacity:.55}
+.rcat .it canvas{height:48px;width:auto;max-width:92px;image-rendering:pixelated}
+.rcat .it .p{font-family:var(--f-lcd);font-size:1.1rem;line-height:1}
+.chip{font-family:var(--f-pixel);font-size:.5rem;text-transform:uppercase;color:#fff;padding:2px 4px;line-height:1}
+.selbox{margin-top:12px;padding-top:10px;border-top:2px dashed var(--line)}
 /* Install invitation: a bar just above the bottom buttons */
 #instask{position:fixed;left:8px;right:8px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:7;max-width:520px;margin:0 auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;
   background:var(--parch);color:var(--ink);border:3px solid var(--wood-deep);box-shadow:0 0 0 2px var(--wood-hi),0 4px 0 rgba(0,0,0,.3);padding:8px 10px;font-size:.9rem;text-align:center}
@@ -338,7 +377,7 @@ en:{
   'k.empty':'Empty pizza. Start with the cheese.','k.needname':'Give the pizza a name.','k.needmore':'Add a few toppings first.',
   'k.updated':'{x} updated.','k.added':'{x} is on the menu at {p}.',
   'k.newname':'New pizza','k.rotate':'Rotate {x}','k.rotatetip':'Turns the next piece you put down. With a mouse, right-click the pizza to turn it.','k.norotate':'{x} doesn’t need turning.',
-  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte.drizzle':'DRIZZLE','bench.nograte.spread':'SPREAD','bench.nograte.small':'SMALL','bench.q':'PRICE','bench.c':'COST','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','chef.title':'Welcome, chef!','chef.lead':'What should we call you? Your name signs every pizza you share.','chef.name':'Chef’s name','chef.shop':'Pizzeria name','chef.defshop':'Pizzeria {c}','chef.save':'Start cooking','chef.need':'Fill in the chef’s name and the pizzeria’s name.','chef.or':'or','chef.quick':'Quick start','chef.hello':'Saved. Good luck, chef {c}!','fs.enter':'Full screen','fs.exit':'Leave full screen','fs.no':'This browser does not allow full screen here.','lang.title':'Language','lang.auto':'Automatic (browser)','lang.en':'English','lang.pt':'Português','mus.title':'Music','mus.vol':'Volume','mus.v1':'Low','mus.v2':'Quiet','mus.v3':'Medium','mus.v4':'Loud','mus.v5':'Max','mus.on':'Turn music on','mus.off':'Turn music off','mus.next':'Next song','mus.now':'Now playing: {x}','mus.waiting':'On. A tune plays every now and then.','mus.offlead':'Off.','opt.title':'Options','opt.names':'Chef and pizzeria','opt.savenames':'Save names','opt.saves':'Saved game','opt.auto':'Your progress is saved in this browser after every change. Last saved: {w}.','opt.export':'Download save','opt.import':'Import save','opt.exported':'Save file downloaded.','opt.imported':'Save imported. Welcome back, chef {c}!','opt.badfile':'That file is not a Pizza Magna save.','opt.reset':'Reset progress','opt.resetlead':'Starts again from day 1 with the starter menu. Your chef and pizzeria names stay.','opt.sure':'Sure? Click again to reset','opt.wasreset':'Progress reset.','chef.edit':'Change chef and pizzeria','chef.by':'Made by {c} · {s}','share.btn':'Download photo','share.saved':'Photo downloaded: {f}','share.manual':'Downloads are blocked here. Right-click the photo (or press and hold on a phone) and choose “Save image”.','share.close':'Close','inst.title':'Install the game','inst.lead':'Play from your home screen, full screen, like an app. It also works offline.','inst.btn':'Install','inst.later':'Not now','inst.ask':'Enjoying it? Install Pizza Magna on your phone.','inst.ios':'In Safari, tap Share (the square with an arrow) and then “Add to Home Screen”.','inst.done':'Installed. Look for Pizza Magna on your home screen.','share.make':'Make yours at','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES','bench.w':'WEIGHT','rec.btn':"Share recipe",'rec.title':"Share the recipe",'rec.lead':"Anyone who opens this link gets “{x}” on their bench, piece by piece, signed with the original chef.",'rec.send':"Send…",'rec.copy':"Copy link",'rec.file':"Download .pizza file",'rec.copied':"Link copied.",'rec.selfcopy':"Select the link and copy it.",'rec.sendtxt':"Try my pizza “{x}” on Pizza Magna",'rec.filed':"Recipe downloaded: {f}",'rec.import':"Import pizza",'rec.implead':"Paste a recipe link or code, or choose a .pizza file.",'rec.load':"Put it on the bench",'rec.choose':"Choose file",'rec.got':"“{x}” by chef {c} is on the bench. Save it to add it to the menu.",'rec.bad':"That is not a Pizza Magna recipe.",'rec.from':"Recipe by {c} · {s}",
+  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte.drizzle':'DRIZZLE','bench.nograte.spread':'SPREAD','bench.nograte.small':'SMALL','bench.q':'PRICE','bench.c':'COST','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','chef.title':'Welcome, chef!','chef.lead':'What should we call you? Your name signs every pizza you share.','chef.name':'Chef’s name','chef.shop':'Pizzeria name','chef.defshop':'Pizzeria {c}','chef.save':'Start cooking','chef.need':'Fill in the chef’s name and the pizzeria’s name.','chef.or':'or','chef.quick':'Quick start','chef.hello':'Saved. Good luck, chef {c}!','fs.enter':'Full screen','fs.exit':'Leave full screen','fs.no':'This browser does not allow full screen here.','lang.title':'Language','lang.auto':'Automatic (browser)','lang.en':'English','lang.pt':'Português','mus.title':'Music','mus.vol':'Volume','mus.v1':'Low','mus.v2':'Quiet','mus.v3':'Medium','mus.v4':'Loud','mus.v5':'Max','mus.on':'Turn music on','mus.off':'Turn music off','mus.next':'Next song','mus.now':'Now playing: {x}','mus.waiting':'On. A tune plays every now and then.','mus.offlead':'Off.','opt.title':'Options','opt.names':'Chef and pizzeria','opt.savenames':'Save names','opt.saves':'Saved game','opt.auto':'Your progress is saved in this browser after every change. Last saved: {w}.','opt.export':'Download save','opt.import':'Import save','opt.exported':'Save file downloaded.','opt.imported':'Save imported. Welcome back, chef {c}!','opt.badfile':'That file is not a Pizza Magna save.','opt.reset':'Reset progress','opt.resetlead':'Starts again from day 1 with the starter menu. Your chef and pizzeria names stay.','opt.sure':'Sure? Click again to reset','opt.wasreset':'Progress reset.','chef.edit':'Change chef and pizzeria','chef.by':'Made by {c} · {s}','share.btn':'Download photo','share.saved':'Photo downloaded: {f}','share.manual':'Downloads are blocked here. Right-click the photo (or press and hold on a phone) and choose “Save image”.','share.close':'Close',"ing.coxa":"Chicken drumstick","combo.coxapiri":"Piri-piri Chicken","combo.x_coxanutella":"Drumstick & Nutella","quote.x_coxanutella":"Chicken with Nutella? No, thank you.","rep.close":"Close of day {d} · {w}","rep.good":"A day in profit","rep.bad":"A day in the red","rep.served":"Customers served","rep.ofN":"{n} of {N} in the street","rep.rival":"Went to {x}","rep.full":"Gave up in the queue","rep.noseat":"No free table","rep.happy":"Happy / disappointed","rep.revenue":"Sales","rep.ing":"Toppings","rep.rent":"Rent","rep.sal":"Wages","rep.result":"Result","rep.rep":"Reputation","rep.tip.seats":"Tip: there weren’t enough seats at lunch and dinner. Buy more tables in Shop › Decorate the room.","rep.tip.queue":"Tip: you lost customers in the queue. Hire a pizzaiolo or buy an oven.","rep.tip.rival":"Tip: the rival won today. Check your prices or improve the recipes.","rep.go":"Continue","start.fc":"Ham & Mushroom","start.pep":"Spicy Pepperoni","adv.title":"Advanced analytics","adv.lead":"Off: the Menu shows only quality, cost, margin and how many sold yesterday. On: it adds the fair price and a chart of profit by price.","adv.off":"Off (simple)","adv.on":"On","menu.lead.easy":"Set the prices. The margin is what each pizza leaves you after its ingredients.","rep.sales":"Sales by pizza","rep.n":"sold","rep.v":"takings","rep.m":"margin",'st.fill1':'Fill everything for 1 day',"mg.title":"Who runs the pizzeria?","mg.lead":"You can change this any time. The more you hand over, the less you earn.","mg.t1":"The manager runs it","mg.t1d":"Buys the toppings, sets the prices every morning and hires pizzaiolos. You decorate and cook. Costs {f} a day.","mg.t2":"A buyer keeps the pantry","mg.t2d":"The pantry fills itself in bulk every morning. You set the prices and run the staff. Costs {f} a day.","mg.t3":"You run everything","mg.t3d":"Prices, staff and the pantry: everything is up to you, and toppings can run out. Free.","mg.fee":"Manager","mg.price":"The manager set “{x}” to {p}.","mg.hire":"The manager hired a pizzaiolo.","mg.stock":"The buyer filled the pantry for {d} days: {x}.","mg.hires":"The manager hires","mg.prices":"The manager picks the best price every morning.","st.t1":"The manager buys whatever is needed during the day, 25% dearer. Nothing ever runs out.","st.t2":"Fill the pantry for","st.t2d":"Every morning, toppings with less than a day left are topped up for {d} day(s). The more days, the bigger the discount.","st.t3":"You buy the toppings. A pizza whose toppings run out can’t be sold, so keep an eye on the days left.","st.days.n":"{d} day(s)","st.ask.title":"The pantry won’t last today","st.ask.lead":"Some pizzas on the menu will run out of toppings, and customers who want them will leave.","st.ask.auto":"Let the manager buy","st.ask.go":"Open anyway","st.title":"Pantry","st.card":"The toppings you keep. The manager buys what is missing (25% dearer, never runs out), or buy it yourself: cheaper the more days at once, nothing spoils.","st.lead":"Plan: about {n} pizzas a day, split like yesterday’s sales. Nothing spoils.","st.fill":"Fill everything for {d} days","st.buy":"+{d} d","st.have":"In stock","st.days":"≈ {d} days","st.none":"none","st.kg":"{x}/kg","st.empty":"Your menu has no toppings yet.","st.extra":"Not in the menu any more","st.soldout":"Sold out","st.bought":"Bought: {x}.","st.rep.manager":"of which the manager bought {x}","st.rep.pantry":"of which {x} from the pantry (already paid)","st.tip.soldout":"Tip: toppings ran out. Fill the pantry (Shop › Pantry) or let the manager buy.","st.low":"Pantry: some pizzas will run out today. Shop › Pantry.","menu.dc":"At this price: about {n} a day, {x} profit a day. Best near {b}.","menu.dc.lbl":"Profit a day by price","rm.title":"Decorate the room","rm.back":"← Shop","rm.shop":"Furniture shop","rm.lead":"Buy furniture and place it. Tables give seats; everything sets the atmosphere for each kind of customer. You have {m}.","rm.tab.table":"Tables","rm.tab.decor":"Decor","rm.tab.wall":"On the wall","rm.tab.floor":"Floor","rm.tab.walls":"Walls","rm.st.tasca":"Tasca","rm.st.tratt":"Trattoria","rm.st.moder":"Modern","rm.st.luxo":"Luxury","rm.stop":"Stop placing","rm.move":"Move","rm.sell":"Sell (+{x})","rm.seats":"{n} seats","rm.seat1":"seats","rm.h.idle":"Pick something in the shop and tap the room to place it. Tap a piece to move or sell it.","rm.h.place":"Tap the room to place it (green = fits). Tap again to place another.","rm.h.wall":"Tap a spot on the back wall.","rm.lcd.room":"ROOM","rm.lcd.style":"STYLE","rm.lcd.mix":"MIXED","rm.lcd.tables":"TABLES","rm.lcd.seats":"SEATS","rm.lcd.free":"FREE FLOOR","rm.lcd.spent":"FURNISHED","rm.lcd.cash":"CASH","rm.atm":"Atmosphere for each customer","rm.w.blocked":"{n} table(s) cannot be reached from the door: they don’t count.","rm.w.kitchen":"The waiters cannot reach the kitchen counter.","rm.w.crowd":"The room is crowded: customers feel squeezed.","rm.w.ok":"Every table can be reached.","rm.nomoney":"Not enough money for that.","rm.loading":"Loading the room…","rm.noseats":"There are no tables the customers can reach. Add tables in Shop › Decorate the room.","rm.card":"Tables, chairs, plants, pictures, floor and walls. More seats serve more people at the lunch and dinner rush; the style brings in the customers who like it.","rm.i.xadrez2":"Small checked table","rm.i.xadrez4":"Big checked table","rm.i.redonda":"Round wooden table","rm.i.corrida":"Long table with benches","rm.i.branca":"White square table","rm.i.booth":"Leather booth","rm.i.gala":"Gala table","rm.i.bistro":"Marble bistro table","rm.i.vaso":"Potted plant","rm.i.ficus":"Tall ficus","rm.i.oliveira":"Olive tree in a pot","rm.i.barril":"Wine barrel","rm.i.jukebox":"Jukebox","rm.i.aquario":"Aquarium","rm.i.candeeiro":"Floor lamp","rm.i.estatua":"Marble statue","rm.i.fonte":"Fountain","rm.i.piano":"Grand piano","rm.i.persa":"Persian rug","rm.i.trapos":"Rag rug","rm.i.garrafeira":"Wine rack","rm.i.arcade":"Arcade machine","rm.i.janela":"Window","rm.i.quadro":"Painting","rm.i.giz":"Chalkboard menu","rm.i.azulejos":"Tile panel","rm.i.prateleira":"Bottle shelf","rm.i.espelho":"Gilded mirror","rm.i.neon":"Neon sign","rm.i.relogio":"Clock","rm.i.fotos":"Old photographs","rm.f.check":"Red and cream check","rm.f.planks":"Wooden boards","rm.f.hydraulic":"Patterned tiles","rm.f.terrazzo":"Terrazzo","rm.f.marble":"Marble","rm.f.terracotta":"Terracotta","rm.w.cream":"Cream and wood","rm.w.azulejo":"Blue tiles","rm.w.brick":"Bare brick","rm.w.modern":"White and oak","rm.w.damask":"Green damask",'inst.title':'Install the game','inst.lead':'Play from your home screen, full screen, like an app. It also works offline.','inst.btn':'Install','inst.later':'Not now','inst.ask':'Enjoying it? Install Pizza Magna on your phone.','inst.ios':'In Safari, tap Share (the square with an arrow) and then “Add to Home Screen”.','inst.done':'Installed. Look for Pizza Magna on your home screen.','share.make':'Make yours at','nav.cozinha':'Kitchen','nav.menu':'Menu','nav.dia':'Open','nav.loja':'Shop','nav.concurso':'Contest','bench.n':'PIECES','bench.w':'WEIGHT','rec.btn':"Share recipe",'rec.title':"Share the recipe",'rec.lead':"Anyone who opens this link gets “{x}” on their bench, piece by piece, signed with the original chef.",'rec.send':"Send…",'rec.copy':"Copy link",'rec.file':"Download .pizza file",'rec.copied':"Link copied.",'rec.selfcopy':"Select the link and copy it.",'rec.sendtxt':"Try my pizza “{x}” on Pizza Magna",'rec.filed':"Recipe downloaded: {f}",'rec.import':"Import pizza",'rec.implead':"Paste a recipe link or code, or choose a .pizza file.",'rec.load':"Put it on the bench",'rec.choose':"Choose file",'rec.got':"“{x}” by chef {c} is on the bench. Save it to add it to the menu.",'rec.bad':"That is not a Pizza Magna recipe.",'rec.from':"Recipe by {c} · {s}",
   'menu.house':'House menu','menu.lead':'Adjust the prices. The fair price depends on quality and on who comes in: gourmets pay more, students count every cent.','menu.empty':'The menu is empty. Create a pizza in the Kitchen to open the doors.','menu.gokitchen':'Go to the Kitchen',
   'menu.cost':'Cost','menu.margin':'Margin','menu.fair':'Fair price','menu.sold':'Sold yesterday','menu.edit':'Edit recipe','menu.remove':'Remove','menu.confirm':'Confirm removal','menu.new':'+ Create new pizza ({n})','k.unsaved.title':'Pizza not saved','k.unsaved.lead':'You haven’t saved “{x}” to the menu yet. Start a new pizza anyway?','k.unsaved.new':'Create new','k.unsaved.keep':'Continue','menu.pdn':'Lower price','menu.pup':'Raise price'
 },
@@ -405,7 +444,7 @@ pt:{
   'k.empty':'Pizza vazia. Começa pelo queijo.','k.needname':'Dá um nome à pizza.','k.needmore':'Põe pelo menos alguns ingredientes.',
   'k.updated':'{x} atualizada.','k.added':'{x} entrou no menu por {p}.',
   'k.newname':'Nova pizza','k.rotate':'Rodar {x}','k.rotatetip':'Roda a próxima peça que puseres. Com o rato, clica com o botão direito na pizza para a rodar.','k.norotate':'{x} não precisa de rodar.',
-  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte.drizzle':'EM FIO','bench.nograte.spread':'ESPALHA-SE','bench.nograte.small':'JÁ É MIÚDO','bench.q':'PREÇO','bench.c':'CUSTO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','chef.title':'Bem-vindo, chef!','chef.lead':'Como te chamas? O teu nome assina todas as pizzas que partilhares.','chef.name':'Nome do chef','chef.shop':'Nome da pizzaria','chef.defshop':'Pizzaria {c}','chef.save':'Começar a cozinhar','chef.need':'Preenche o nome do chef e o da pizzaria.','chef.or':'ou','chef.quick':'Começo rápido','chef.hello':'Guardado. Bom trabalho, chef {c}!','fs.enter':'Ecrã inteiro','fs.exit':'Sair do ecrã inteiro','fs.no':'Este browser não deixa usar o ecrã inteiro aqui.','lang.title':'Língua','lang.auto':'Automática (do browser)','lang.en':'English','lang.pt':'Português','mus.title':'Música','mus.vol':'Volume','mus.v1':'Baixo','mus.v2':'Suave','mus.v3':'Médio','mus.v4':'Alto','mus.v5':'Máximo','mus.on':'Ligar a música','mus.off':'Desligar a música','mus.next':'Próxima música','mus.now':'A tocar: {x}','mus.waiting':'Ligada. De vez em quando toca uma música.','mus.offlead':'Desligada.','opt.title':'Opções','opt.names':'Chef e pizzaria','opt.savenames':'Guardar nomes','opt.saves':'Jogo guardado','opt.auto':'O progresso fica guardado neste browser a cada alteração. Última gravação: {w}.','opt.export':'Descarregar gravação','opt.import':'Importar gravação','opt.exported':'Ficheiro de gravação descarregado.','opt.imported':'Gravação importada. Bem-vindo de volta, chef {c}!','opt.badfile':'Esse ficheiro não é uma gravação do Pizza Magna.','opt.reset':'Recomeçar o progresso','opt.resetlead':'Volta ao dia 1, com o menu inicial. Os nomes do chef e da pizzaria ficam.','opt.sure':'Tens a certeza? Carrega outra vez','opt.wasreset':'Progresso recomeçado.','chef.edit':'Mudar chef e pizzaria','chef.by':'Feita por {c} · {s}','share.btn':'Descarregar foto','share.saved':'Foto descarregada: {f}','share.manual':'Aqui as transferências estão bloqueadas. Carrega com o botão direito na foto (ou mantém o dedo, no telemóvel) e escolhe “Guardar imagem”.','share.close':'Fechar','inst.title':'Instalar o jogo','inst.lead':'Joga a partir do ecrã principal, em ecrã inteiro, como uma app. Também funciona sem internet.','inst.btn':'Instalar','inst.later':'Agora não','inst.ask':'Gostas? Instala o Pizza Magna no telemóvel.','inst.ios':'No Safari, toca em Partilhar (o quadrado com uma seta) e depois em “Adicionar ao ecrã principal”.','inst.done':'Instalado. Procura o Pizza Magna no ecrã principal.','share.make':'Faz a tua em','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS','bench.w':'PESO','rec.btn':"Partilhar receita",'rec.title':"Partilhar a receita",'rec.lead':"Quem abrir este link recebe “{x}” na bancada, peça a peça, assinada pelo chef original.",'rec.send':"Enviar…",'rec.copy':"Copiar link",'rec.file':"Descarregar ficheiro .pizza",'rec.copied':"Link copiado.",'rec.selfcopy':"Seleciona o link e copia-o.",'rec.sendtxt':"Experimenta a minha pizza “{x}” no Pizza Magna",'rec.filed':"Receita descarregada: {f}",'rec.import':"Importar pizza",'rec.implead':"Cola um link ou código de receita, ou escolhe um ficheiro .pizza.",'rec.load':"Pôr na bancada",'rec.choose':"Escolher ficheiro",'rec.got':"“{x}”, do chef {c}, está na bancada. Guarda-a para a pôr no menu.",'rec.bad':"Isso não é uma receita do Pizza Magna.",'rec.from':"Receita de {c} · {s}",
+  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte.drizzle':'EM FIO','bench.nograte.spread':'ESPALHA-SE','bench.nograte.small':'JÁ É MIÚDO','bench.q':'PREÇO','bench.c':'CUSTO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','chef.title':'Bem-vindo, chef!','chef.lead':'Como te chamas? O teu nome assina todas as pizzas que partilhares.','chef.name':'Nome do chef','chef.shop':'Nome da pizzaria','chef.defshop':'Pizzaria {c}','chef.save':'Começar a cozinhar','chef.need':'Preenche o nome do chef e o da pizzaria.','chef.or':'ou','chef.quick':'Começo rápido','chef.hello':'Guardado. Bom trabalho, chef {c}!','fs.enter':'Ecrã inteiro','fs.exit':'Sair do ecrã inteiro','fs.no':'Este browser não deixa usar o ecrã inteiro aqui.','lang.title':'Língua','lang.auto':'Automática (do browser)','lang.en':'English','lang.pt':'Português','mus.title':'Música','mus.vol':'Volume','mus.v1':'Baixo','mus.v2':'Suave','mus.v3':'Médio','mus.v4':'Alto','mus.v5':'Máximo','mus.on':'Ligar a música','mus.off':'Desligar a música','mus.next':'Próxima música','mus.now':'A tocar: {x}','mus.waiting':'Ligada. De vez em quando toca uma música.','mus.offlead':'Desligada.','opt.title':'Opções','opt.names':'Chef e pizzaria','opt.savenames':'Guardar nomes','opt.saves':'Jogo guardado','opt.auto':'O progresso fica guardado neste browser a cada alteração. Última gravação: {w}.','opt.export':'Descarregar gravação','opt.import':'Importar gravação','opt.exported':'Ficheiro de gravação descarregado.','opt.imported':'Gravação importada. Bem-vindo de volta, chef {c}!','opt.badfile':'Esse ficheiro não é uma gravação do Pizza Magna.','opt.reset':'Recomeçar o progresso','opt.resetlead':'Volta ao dia 1, com o menu inicial. Os nomes do chef e da pizzaria ficam.','opt.sure':'Tens a certeza? Carrega outra vez','opt.wasreset':'Progresso recomeçado.','chef.edit':'Mudar chef e pizzaria','chef.by':'Feita por {c} · {s}','share.btn':'Descarregar foto','share.saved':'Foto descarregada: {f}','share.manual':'Aqui as transferências estão bloqueadas. Carrega com o botão direito na foto (ou mantém o dedo, no telemóvel) e escolhe “Guardar imagem”.','share.close':'Fechar',"ing.coxa":"Coxa de frango","combo.coxapiri":"Frango Piri-piri","combo.x_coxanutella":"Coxa com Nutella","quote.x_coxanutella":"Frango com Nutella? Não, obrigado.","rep.close":"Fecho do dia {d} · {w}","rep.good":"Dia com lucro","rep.bad":"Dia no vermelho","rep.served":"Clientes servidos","rep.ofN":"{n} de {N} na rua","rep.rival":"Foram à {x}","rep.full":"Desistiram na fila","rep.noseat":"Sem mesa livre","rep.happy":"Satisfeitos / desiludidos","rep.revenue":"Vendas","rep.ing":"Ingredientes","rep.rent":"Renda","rep.sal":"Salários","rep.result":"Resultado","rep.rep":"Reputação","rep.tip.seats":"Dica: faltaram lugares à hora de almoço e de jantar. Compra mais mesas em Loja › Decorar a sala.","rep.tip.queue":"Dica: perdeste clientes na fila. Contrata um pizzaiolo ou compra um forno.","rep.tip.rival":"Dica: a concorrência ganhou hoje. Revê preços ou melhora as receitas.","rep.go":"Continuar","start.fc":"Fiambre e Cogumelos","start.pep":"Pepperoni Picante","adv.title":"Análise avançada","adv.lead":"Desligada: o Menu mostra só a qualidade, o custo, a margem e quantas se venderam ontem. Ligada: junta o preço justo e um gráfico do lucro conforme o preço.","adv.off":"Desligada (simples)","adv.on":"Ligada","menu.lead.easy":"Escolhe os preços. A margem é o que cada pizza te deixa depois dos ingredientes.","rep.sales":"Vendas por pizza","rep.n":"vendidas","rep.v":"vendas","rep.m":"margem",'st.fill1':'Encher tudo para 1 dia',"mg.title":"Quem gere a pizzaria?","mg.lead":"Podes mudar quando quiseres. Quanto mais deixas para os outros, menos ganhas.","mg.t1":"O gerente gere tudo","mg.t1d":"Compra os ingredientes, escolhe os preços todas as manhãs e contrata pizzaiolos. Tu decoras e cozinhas. Custa {f} por dia.","mg.t2":"Um comprador trata da despensa","mg.t2d":"A despensa enche-se sozinha, em quantidade, todas as manhãs. Tu escolhes os preços e geres o pessoal. Custa {f} por dia.","mg.t3":"Tu geres tudo","mg.t3d":"Preços, pessoal e despensa: tudo contigo, e os ingredientes podem acabar. Grátis.","mg.fee":"Gerente","mg.price":"O gerente pôs a “{x}” a {p}.","mg.hire":"O gerente contratou um pizzaiolo.","mg.stock":"O comprador encheu a despensa para {d} dias: {x}.","mg.hires":"O gerente contrata","mg.prices":"O gerente escolhe o melhor preço todas as manhãs.","st.t1":"O gerente compra o que for preciso durante o dia, 25% mais caro. Nunca falta nada.","st.t2":"Encher a despensa para","st.t2d":"Todas as manhãs, os ingredientes com menos de um dia são repostos para {d} dia(s). Quantos mais dias, maior o desconto.","st.t3":"Tu compras os ingredientes. Uma pizza cujos ingredientes acabem não se vende, por isso vê os dias que faltam.","st.days.n":"{d} dia(s)","st.ask.title":"A despensa não chega para hoje","st.ask.lead":"Algumas pizzas do menu vão ficar sem ingredientes e quem as quiser vai-se embora.","st.ask.auto":"O gerente compra","st.ask.go":"Abrir na mesma","st.title":"Despensa","st.card":"Os ingredientes que tens guardados. O gerente compra o que falta (25% mais caro, nunca falta), ou compras tu: mais barato quantos mais dias de uma vez, nada se estraga.","st.lead":"Plano: cerca de {n} pizzas por dia, repartidas como as vendas de ontem. Nada se estraga.","st.fill":"Encher tudo para {d} dias","st.buy":"+{d} d","st.have":"Em stock","st.days":"≈ {d} dias","st.none":"nada","st.kg":"{x}/kg","st.empty":"O teu menu ainda não tem ingredientes.","st.extra":"Já não está no menu","st.soldout":"Esgotado","st.bought":"Comprado: {x}.","st.rep.manager":"dos quais o gerente comprou {x}","st.rep.pantry":"dos quais {x} da despensa (já pagos)","st.tip.soldout":"Dica: acabaram ingredientes. Enche a despensa (Loja › Despensa) ou deixa o gerente comprar.","st.low":"Despensa: algumas pizzas vão esgotar hoje. Loja › Despensa.","menu.dc":"A este preço: cerca de {n} por dia, {x} de lucro por dia. O melhor ronda {b}.","menu.dc.lbl":"Lucro por dia conforme o preço","rm.title":"Decorar a sala","rm.back":"← Loja","rm.shop":"Loja de mobília","rm.lead":"Compra mobília e põe-na na sala. As mesas dão lugares; tudo conta para o ambiente de cada tipo de cliente. Tens {m}.","rm.tab.table":"Mesas","rm.tab.decor":"Decoração","rm.tab.wall":"Na parede","rm.tab.floor":"Chão","rm.tab.walls":"Paredes","rm.st.tasca":"Tasca","rm.st.tratt":"Trattoria","rm.st.moder":"Moderno","rm.st.luxo":"Luxo","rm.stop":"Parar","rm.move":"Mudar de sítio","rm.sell":"Vender (+{x})","rm.seats":"{n} lugares","rm.seat1":"lugares","rm.h.idle":"Escolhe uma peça na loja e toca na sala para a pôr. Toca numa peça para a mudar de sítio ou vender.","rm.h.place":"Toca na sala para a pôr (verde = cabe). Toca outra vez para pôr mais uma.","rm.h.wall":"Toca num lugar da parede do fundo.","rm.lcd.room":"SALA","rm.lcd.style":"ESTILO","rm.lcd.mix":"MISTO","rm.lcd.tables":"MESAS","rm.lcd.seats":"LUGARES","rm.lcd.free":"CHÃO LIVRE","rm.lcd.spent":"INVESTIDO","rm.lcd.cash":"CAIXA","rm.atm":"Ambiente para cada cliente","rm.w.blocked":"{n} mesa(s) sem acesso a partir da porta: não contam.","rm.w.kitchen":"Os empregados não chegam ao balcão da cozinha.","rm.w.crowd":"A sala está apinhada: os clientes sentem-se apertados.","rm.w.ok":"Todas as mesas têm acesso.","rm.nomoney":"Não tens dinheiro para isso.","rm.loading":"A carregar a sala…","rm.noseats":"Não há mesas a que os clientes cheguem. Põe mesas em Loja › Decorar a sala.","rm.card":"Mesas, cadeiras, plantas, quadros, chão e paredes. Mais lugares servem mais gente à hora de almoço e de jantar; o estilo atrai os clientes que gostam dele.","rm.i.xadrez2":"Mesa aos quadrados pequena","rm.i.xadrez4":"Mesa aos quadrados grande","rm.i.redonda":"Mesa redonda de madeira","rm.i.corrida":"Mesa corrida com bancos","rm.i.branca":"Mesa quadrada branca","rm.i.booth":"Cabine de cabedal","rm.i.gala":"Mesa de gala","rm.i.bistro":"Mesa de mármore","rm.i.vaso":"Vaso com planta","rm.i.ficus":"Fícus alto","rm.i.oliveira":"Oliveira em vaso","rm.i.barril":"Pipa de vinho","rm.i.jukebox":"Jukebox","rm.i.aquario":"Aquário","rm.i.candeeiro":"Candeeiro de pé","rm.i.estatua":"Estátua de mármore","rm.i.fonte":"Fonte","rm.i.piano":"Piano de cauda","rm.i.persa":"Tapete persa","rm.i.trapos":"Tapete de trapos","rm.i.garrafeira":"Garrafeira","rm.i.arcade":"Máquina de jogos","rm.i.janela":"Janela","rm.i.quadro":"Quadro","rm.i.giz":"Ardósia com o menu","rm.i.azulejos":"Painel de azulejos","rm.i.prateleira":"Prateleira de garrafas","rm.i.espelho":"Espelho dourado","rm.i.neon":"Néon","rm.i.relogio":"Relógio","rm.i.fotos":"Fotografias antigas","rm.f.check":"Xadrez vermelho e creme","rm.f.planks":"Soalho de madeira","rm.f.hydraulic":"Mosaico hidráulico","rm.f.terrazzo":"Marmorite","rm.f.marble":"Mármore","rm.f.terracotta":"Tijoleira","rm.w.cream":"Creme e madeira","rm.w.azulejo":"Azulejo azul","rm.w.brick":"Tijolo à vista","rm.w.modern":"Branco e carvalho","rm.w.damask":"Damasco verde",'inst.title':'Instalar o jogo','inst.lead':'Joga a partir do ecrã principal, em ecrã inteiro, como uma app. Também funciona sem internet.','inst.btn':'Instalar','inst.later':'Agora não','inst.ask':'Gostas? Instala o Pizza Magna no telemóvel.','inst.ios':'No Safari, toca em Partilhar (o quadrado com uma seta) e depois em “Adicionar ao ecrã principal”.','inst.done':'Instalado. Procura o Pizza Magna no ecrã principal.','share.make':'Faz a tua em','nav.cozinha':'Cozinha','nav.menu':'Menu','nav.dia':'Abrir','nav.loja':'Loja','nav.concurso':'Concurso','bench.n':'PEÇAS','bench.w':'PESO','rec.btn':"Partilhar receita",'rec.title':"Partilhar a receita",'rec.lead':"Quem abrir este link recebe “{x}” na bancada, peça a peça, assinada pelo chef original.",'rec.send':"Enviar…",'rec.copy':"Copiar link",'rec.file':"Descarregar ficheiro .pizza",'rec.copied':"Link copiado.",'rec.selfcopy':"Seleciona o link e copia-o.",'rec.sendtxt':"Experimenta a minha pizza “{x}” no Pizza Magna",'rec.filed':"Receita descarregada: {f}",'rec.import':"Importar pizza",'rec.implead':"Cola um link ou código de receita, ou escolhe um ficheiro .pizza.",'rec.load':"Pôr na bancada",'rec.choose':"Escolher ficheiro",'rec.got':"“{x}”, do chef {c}, está na bancada. Guarda-a para a pôr no menu.",'rec.bad':"Isso não é uma receita do Pizza Magna.",'rec.from':"Receita de {c} · {s}",
   'menu.house':'Menu da casa','menu.lead':'Ajusta os preços. O preço justo depende da qualidade e de quem entra: gourmets pagam mais, estudantes contam cada cêntimo.','menu.empty':'O menu está vazio. Cria uma pizza na Cozinha para poderes abrir portas.','menu.gokitchen':'Ir para a Cozinha',
   'menu.cost':'Custo','menu.margin':'Margem','menu.fair':'Preço justo','menu.sold':'Vendidas ontem','menu.edit':'Editar receita','menu.remove':'Remover','menu.confirm':'Confirmar remoção','menu.new':'+ Criar nova pizza ({n})','k.unsaved.title':'Pizza por guardar','k.unsaved.lead':'Ainda não guardaste a pizza anterior, “{x}”, no menu. Criar uma nova na mesma?','k.unsaved.new':'Criar nova','k.unsaved.keep':'Continuar','menu.pdn':'Baixar preço','menu.pup':'Subir preço'
 }};
@@ -449,6 +488,7 @@ const ING={
   tomate:{n:'Tomate',c:.04,t:['vegetal','classico'],pack:'base'},
   milho:{n:'Milho',c:.03,t:['vegetal'],pack:'base'},
   frango:{n:'Frango',c:.09,t:['carne'],pack:'base'},
+  coxa:{n:'Coxa de frango',c:.08,t:['carne'],pack:'base',rot:4},
   salame:{n:'Salame',c:.10,t:['carne','classico'],pack:'base'},
   espinafres:{n:'Espinafres',c:.04,t:['vegetal'],pack:'base'},
   tomate_cherry:{n:'Tomate cherry',c:.06,t:['vegetal','classico'],pack:'base'},
@@ -462,7 +502,7 @@ const ING={
   vaca:{n:'Carne de vaca',c:.12,t:['carne','classico'],pack:'base'},
   ribs:{n:'Ribs',c:.12,t:['carne'],pack:'base',rot:4},
   nutella:{n:'Nutella',c:.10,t:['doce'],pack:'base'},
-  banana:{n:'Banana',c:.04,t:['doce'],pack:'base'},
+  banana:{n:'Banana',c:.04,t:['doce'],pack:'base',rot:4},
   mirtilo:{n:'Mirtilo',c:.12,t:['doce'],pack:'base'},
   feta:{n:'Feta',c:.10,t:['queijo'],pack:'base'},
   oregaos:{n:'Orégãos',c:.02,t:['vegetal','classico'],pack:'base',rot:4},
@@ -623,6 +663,7 @@ const COMBOS=[
   {id:'ricottaamora',n:'Ricotta com Amoras',req:['amora','ricotta','mel'],q:9,seg:{gourmet:8,turista:4}},
   {id:'mirtilochoc',n:'Mirtilo e Chocolate',req:['mirtilo','chocolate'],q:7,seg:{estudante:6,familia:5}},
   {id:'briefram',n:'Brie com Framboesa',req:['framboesa','brie'],q:9,seg:{gourmet:9,turista:3}},
+  {id:'coxapiri',n:'Frango Piri-piri',req:['coxa','piripiri'],q:12,seg:{familia:5,turista:7,estudante:4}},
   {id:'bitoque',n:'Bitoque',req:['fiambre','ovo'],q:7,seg:{familia:6,estudante:3}},
   {id:'x_ananasbac',n:'Ananás com Bacalhau',req:['ananas','bacalhau'],q:-22,seg:{},quote:'Ananás com bacalhau? Nunca mais.'},
   {id:'x_melatum',n:'Mel com Atum',req:['mel','atum'],q:-18,seg:{},quote:'O mel e o atum não se falam.'},
@@ -641,6 +682,7 @@ const COMBOS=[
   {id:'x_frankfurttrufa',n:'Salsicha de Lata com Trufa',req:['frankfurt','trufa'],q:-9,seg:{},quote:'Trufa numa salsicha de lata? Que desperdício.'},
   {id:'x_lagostanutella',n:'Lagosta com Nutella',req:['lagosta','nutella'],q:-12,seg:{},quote:'Lagosta com Nutella? Isso é crime.'},
   {id:'x_anchovamirtilo',n:'Anchova com Mirtilo',req:['anchovas','mirtilo'],q:-10,seg:{},quote:'Anchovas com mirtilos? O mar e o bosque não se falam.'},
+  {id:'x_coxanutella',n:'Coxa com Nutella',req:['coxa','nutella'],q:-12,seg:{},quote:'Frango com Nutella? Não, obrigado.'},
   {id:'x_pestoananas',n:'Pesto com Ananás',req:['s:pesto','ananas'],q:-10,seg:{},quote:'Pesto e ananás? Não.'}
 ];
 const SEG={
@@ -676,7 +718,7 @@ const THEMES=[
 const NPCS=['Trattoria Bella','Forno do Zé','Casa Nápoles','La Brasa','Pizza Rápida'];
 const WD=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const WK_MUL=[1,1,1,1.05,1.12,1.3,1.25];
-const RENT=50, SALARY=40, ENTRY_FEE=50, GOAL_MONEY=4000, GOAL_REP=3;
+const RENT=40, SALARY=30, ENTRY_FEE=50, GOAL_MONEY=4000, GOAL_REP=3;
 const DAY_SECONDS=26;
 
 /* ================= HELPERS ================= */
@@ -693,7 +735,8 @@ const BASE_PRICE=5,MARKUP=2.5,baseCost=()=>DOUGHS.fina.c+SAUCES.tomate.c;
 const costPrice=cost=>Math.max(3,r2(BASE_PRICE+(cost-baseCost())*MARKUP));
 // what a customer finds fair: the cost-based price, nudged by how much they like it (appeal 50 = neutral)
 const fairPrice=(a,cost=baseCost()+1)=>costPrice(cost)+(a-50)*.06;
-const wdName=d=>WD[(d-1)%7];
+const WD_EN=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const wdName=d=>(LANG==='pt'?WD:WD_EN)[(d-1)%7];
 function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=(n>>16)+amt,g=(n>>8&255)+amt,b=(n&255)+amt;return '#'+[r,g,b].map(v=>clamp(v,0,255).toString(16).padStart(2,'0')).join('')}
 function lerpCol(a,b,t){const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);const ch=s=>Math.round(((A>>s)&255)+((((B>>s)&255)-((A>>s)&255))*t));return `rgb(${ch(16)},${ch(8)},${ch(0)})`}
 function fitCanvas(cv,w,h){const d=window.devicePixelRatio||1;if(cv.width!==Math.round(w*d)||cv.height!==Math.round(h*d)){cv.width=Math.round(w*d);cv.height=Math.round(h*d)}cv.style.width=w+'px';cv.style.height=h+'px';const c=cv.getContext('2d');c.setTransform(d,0,0,d,0,0);return c}
@@ -702,12 +745,14 @@ function spread(id,n,rad=.72,seed=0){const out=[];for(let k=0;k<n;k++){const a=(
 /* ================= STATE ================= */
 function freshState(){
   return {
-    v:1,tab:'cozinha',day:1,money:1000,rep:1,ovens:1,cooks:1,deco:0,ads:false,unlocked:['base'],
-    menu:[{id:'p1',name:'Margherita da Casa',dough:'napo',sauce:'tomate',pieces:[...spread('mozzarella',11,.74,0),...spread('manjericao',6,.62,3)],price:9}],
+    v:1,tab:'cozinha',day:1,money:1000,rep:1,ovens:1,cooks:1,deco:0,room:starterRoom(0),stock:{},tier:1,restockDays:3,ads:false,unlocked:['base'],
+    menu:[{id:'p1',name:'Margherita da Casa',dough:'napo',sauce:'tomate',pieces:[...spread('mozzarella',11,.74,0),...spread('manjericao',6,.62,3)],price:9},   // three starter pizzas
+      {id:'p2',name:t('start.fc'),dough:'napo',sauce:'tomate',pieces:[...spread('mozzarella',11,.74,0),...spread('fiambre',7,.66,1),...spread('cogumelos',7,.6,4)],price:9},
+      {id:'p3',name:t('start.pep'),dough:'napo',sauce:'tomate',pieces:[...spread('mozzarella',11,.74,0),...spread('pepperoni',9,.66,2),...spread('oregaos',5,.55,5)],price:9}],
     draft:{name:'',dough:'napo',sauce:'tomate',pieces:[],editing:null},   // the kitchen starts with an empty pizza
     sel:'fiambre',cut:'w',rot:{},rival:{name:'Pizza Rápida',q:52,price:7,promo:false},
     news:['Abriste a tua pizzaria na Rua das Flores. A Pizza Rápida, mesmo ao lado, já tem clientela fiel.'],
-    discovered:[],contestEntry:null,contestLog:[],lastSales:{},seenIntro:false,goalDone:false,over:false,chef:'',shop:''
+    discovered:[],contestEntry:null,contestLog:[],lastSales:{},banana2:true,seenIntro:false,goalDone:false,over:false,chef:'',shop:''
   };
 }
 let state;
@@ -767,9 +812,10 @@ function analyze(p){
   for(const k in SEG){let tw=0;for(const t of tags)tw+=SEG[k].w[t]||0;tw=clamp(tw,-20,18);let a=q+tw+SEG[k].dough[p.dough]+segMod[k];if(k==='gourmet'&&n>34)a-=8;if(k==='estudante'&&n>=24)a+=3;appeal[k]=clamp(Math.round(a),0,100)}
   return {q,cost:r2(cost),appeal,notes,combos:combos.map(c=>c.id),n,d,cnt,ids};
 }
-function segMix(){const m={estudante:.36,familia:.32,turista:.18+state.deco*.04,gourmet:.14+state.deco*.04};const t=Object.values(m).reduce((a,b)=>a+b,0);for(const k in m)m[k]/=t;return m}
+function segMix(){const atm=roomA().atm,m={estudante:.36,familia:.32,turista:.18,gourmet:.14};for(const k in m)m[k]*=.6+atm[k]/100*.8;/* a room a group likes brings more of that group */const t=Object.values(m).reduce((a,b)=>a+b,0);for(const k in m)m[k]/=t;return m}
 const suggestPrice=a=>costPrice(a.cost);   // to the cent: dough, sauce and every topping move it
-const capacity=()=>Math.min(state.ovens*28,state.cooks*20);
+const OVEN_CAP=36,COOK_CAP=30;   // pizzas a day per oven / per pizzaiolo
+const capacity=()=>Math.min(state.ovens*OVEN_CAP,state.cooks*COOK_CAP);
 const expectedCustomers=()=>Math.round((20+state.rep*8)*WK_MUL[(state.day-1)%7]*(state.ads?1.45:1));
 const tagCount=(a,t)=>a.ids.filter(i=>ING[i].t.includes(t)).length;
 function themeFor(day){return THEMES[(day/5-1)%THEMES.length]}
@@ -852,7 +898,7 @@ function renderHeader(){
       <div class="stat"><span class="lbl">Caixa</span><b>${eur(state.money)}</b></div>
       <div class="stat"><span class="lbl">Reputação</span><b class="stars" aria-label="${state.rep.toFixed(1)} de 5">${starsHTML(state.rep)} ${state.rep.toFixed(1).replace('.',',')}</b></div>
     </div>
-    <div class="goal"><span>Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a 2.ª loja</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>`}
+    <div class="goal"><span>Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a segunda loja</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>`}
   </div>`;
   $('#hdr').append(...corner);   // corner buttons ride in the header, not over the page
 }
@@ -865,17 +911,18 @@ const GRATED_W=.7;
 // grated cheese comes as a big, loose handful (bigger sprite): one handful is 1.5 portions, so 10-12 cover a pizza
 const BIG_SHRED=new Set(['mozzarella','burrata','parmesao','cheddar','provolone','sao_jorge','emmental','flamengo','brie']),SHRED_W=1.5;
 // big whole pieces count as several portions (cost, weight, how full the pizza is): a whole lobster covers the pizza (8),
-// a whole beef slice is four ordinary slices (4), a supermarket slice of flamengo is two portions (2)
-const WHOLE_W={lagosta:8,vaca:4,flamengo:2},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
+// a whole beef slice is four ordinary slices (4), a supermarket slice of flamengo is two portions (2),
+// a whole banana is eight slices (8), a drumstick five chunks (5)
+const WHOLE_W={lagosta:8,vaca:4,flamengo:2,banana:8,coxa:5},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
 const portion=x=>x.g?(BIG_SHRED.has(x.i)?SHRED_W:GRATED_W):(WHOLE_W[x.i]||1);
 const GRAMS={mozzarella:8,fiambre:12,pepperoni:4,cogumelos:8,azeitonas:4,pimento:8,cebola:6,ananas:12,manjericao:1,atum:10,bacon:10,tomate:18,milho:4,frango:12,
-  salame:5,espinafres:3,tomate_cherry:10,jalapenos:3,alho:3,beringela:12,batata:12,curgete:10,salsicha:10,frankfurt:28,vaca:12,ribs:30,lagosta:40,amora:5,mirtilo:2,framboesa:4,nutella:15,banana:10,feta:10,oregaos:.5,
+  salame:5,espinafres:3,tomate_cherry:10,jalapenos:3,alho:3,beringela:12,batata:12,curgete:10,salsicha:10,frankfurt:28,vaca:12,ribs:30,lagosta:40,amora:5,mirtilo:2,framboesa:4,nutella:15,banana:10,coxa:15,feta:10,oregaos:.5,
   azeite:5,maionese:10,cheddar:12,provolone:12,carne_picada:10,cebola_roxa:6,batata_palha:3,salsa:.5,chocolate:6,emmental:12,kebab:12,tomilho:.5,pimenta:.3,
   tofu:10,edamame:5,frango_teriyaki:12,calabresa:6,frango_tikka:12,grao:4,parmesao:5,chourico:5,piripiri:1,alheira:12,anchovas:4,grelos:6,sardinha:20,polvo:12,
   lulas:10,morcela:10,padron:8,farinheira:12,ameijoas:6,coentros:.5,alecrim:.5,maca:10,sao_jorge:12,leitao:15,couve_galega:5,flamengo:12,marmelada:12,
   mejillones:8,ovo:50,bacalhau:12,queijo_serra:15,presunto:10,mel:6,rucula:2,gorgonzola:12,figo:15,espargos:12,camarao:8,ricotta:15,pera:10,cabra:12,
   salmao:12,burrata:40,nozes:4,alcachofra:12,pinhoes:2,prosciutto:10,balsamico:4,natas_azedas:12,trufa:2,char_siu:12,catupiry:15,brie:15};
-const GRAMS_GRATED={burrata:12};   // one grated portion, when it differs from the whole piece (a whole burrata is a 40 g ball, a grated handful is like mozzarella)
+const GRAMS_GRATED={burrata:12,banana:14};   // one grated portion, when it differs from the whole piece (a whole burrata is a 40 g ball, a grated handful is like mozzarella; a banana slice is 10 g)
 const pieceGrams=x=>((x.g&&GRAMS_GRATED[x.i])||GRAMS[x.i]||10)*portion(x);
 const pizzaGrams=p=>Math.round(p.pieces.reduce((t,x)=>t+pieceGrams(x),0));
 const fmtG=g=>g>=1000?(g/1000).toFixed(2).replace('.',LANG==='pt'?',':'.')+' kg':g+' g';
@@ -885,7 +932,7 @@ const FAV=['mozzarella','tomate','fiambre','bacon','frango'];   // most used on 
 const EXTRAS=['azeite','balsamico','maionese','natas_azedas','ovo','nozes','pinhoes','batata_palha'];
 function ingCat(id){const t=ING[id].t;if(HERBS.includes(id))return 'ervas';if(EXTRAS.includes(id))return 'extras';
   for(const c of ['queijo','carne','peixe','doce','vegetal'])if(t.includes(c))return c;return 'extras'}
-const CAT_ICON={queijo:'cheddar',carne:'pepperoni',peixe:'sardinha',vegetal:'cogumelos',ervas:'manjericao',doce:'banana',extras:'ovo'};
+const CAT_ICON={queijo:'cheddar',carne:'coxa',peixe:'sardinha',vegetal:'cogumelos',ervas:'manjericao',doce:'banana',extras:'ovo'};
 function pantryHTML(){
   const cat=CATS.includes(state.cat)?state.cat:ingCat(state.sel);
   if(MINI_PANTRY)return miniPantryHTML(cat);
@@ -1097,12 +1144,13 @@ function drawIngIcons(){document.querySelectorAll('canvas[data-ing]').forEach(cv
 /* ================= UI: MENU ================= */
 function menuHTML(){
   if(!state.menu.length)return `<div class="stack"><h2>${t('nav.menu')}</h2><div class="empty">${t('menu.empty')}<br><br><button class="btn primary" data-tab-go="cozinha">${t('menu.gokitchen')}</button> <button class="btn ghost" data-act="recimport">${t('rec.import')}</button></div></div>`;
-  return `<div class="stack"><div><h2>${t('menu.house')}</h2><p class="sub">${t('menu.lead')}</p></div>
+  return `<div class="stack"><div><h2>${t('menu.house')}</h2><p class="sub">${t(ADV.on()?'menu.lead':'menu.lead.easy')}</p></div>
   <div class="menu-list">${state.menu.map(p=>{const a=analyze(p);const sold=state.lastSales[p.id]||0;const margin=p.price-a.cost;return `<div class="card mcard">
     <canvas data-pz="${p.id}"></canvas>
     <div><h3>${esc(p.name)}</h3><span class="sub">${DOUGHS[p.dough].n} · ${SAUCES[p.sauce].n}</span>
-      <div class="price"><button data-act="pdn" data-id="${p.id}" aria-label="${t('menu.pdn')}">−</button><b>${eur(p.price)}</b><button data-act="pup" data-id="${p.id}" aria-label="${t('menu.pup')}">+</button></div>
-      <dl class="kv"><dt>${t('k.q')}</dt><dd>${a.q}/100</dd><dt>${t('menu.cost')}</dt><dd>${eur(a.cost)}</dd><dt>${t('menu.margin')}</dt><dd style="color:${margin>0?'var(--good)':'var(--bad)'}">${eur(margin)}</dd><dt>${t('menu.fair')}</dt><dd>${eur(suggestPrice(a))}</dd><dt>${t('menu.sold')}</dt><dd>${sold}</dd></dl>
+      <div class="price"><button data-act="pdn" data-id="${p.id}" aria-label="${t('menu.pdn')}" ${state.tier===1?'disabled':''}>−</button><b>${eur(p.price)}</b><button data-act="pup" data-id="${p.id}" aria-label="${t('menu.pup')}" ${state.tier===1?'disabled':''}>+</button></div>${state.tier===1?`<span class="dctext">${t('mg.prices')}</span>`:''}
+      ${ADV.on()?`<canvas class="dcurve" data-dc="${p.id}" aria-label="${esc(t('menu.dc.lbl'))}"></canvas><span class="dctext" data-dct="${p.id}"></span>`:''}
+      <dl class="kv"><dt>${t('k.q')}</dt><dd>${a.q}/100</dd><dt>${t('menu.cost')}</dt><dd>${eur(a.cost)}</dd><dt>${t('menu.margin')}</dt><dd style="color:${margin>0?'var(--good)':'var(--bad)'}">${eur(margin)}</dd>${ADV.on()?`<dt>${t('menu.fair')}</dt><dd>${eur(suggestPrice(a))}</dd>`:''}<dt>${t('menu.sold')}</dt><dd>${sold}</dd></dl>
       <div class="row"><button class="btn sm" data-act="edit" data-id="${p.id}">${t('menu.edit')}</button><button class="btn sm" data-act="share" data-id="${p.id}">${t('share.btn')}</button><button class="btn sm" data-act="recshare" data-id="${p.id}">${t('rec.btn')}</button><button class="btn sm danger" data-act="rm" data-id="${p.id}">${t('menu.remove')}</button></div>
     </div></div>`}).join('')}
   <button class="empty" data-act="newdraft" style="background:transparent;font-weight:800">${t('menu.new',{n:state.menu.length})}</button><button class="btn ghost" data-act="recimport">${t('rec.import')}</button>
@@ -1117,12 +1165,14 @@ function dayHTML(){
     ${cd?`<div class="banner">&gt; HOJE: CONCURSO ${esc(th.n.toUpperCase())}. ${entry?`INSCRITA: ${esc(entry.name.toUpperCase())}. RESULTADO AO FECHO.`:'NENHUMA PIZZA INSCRITA. VAI A CONCURSO.'}</div>`:''}
     <div class="dayview">
       <div class="stack" style="gap:18px"><div class="frame room"><canvas id="room" aria-label="Sala do restaurante vista de cima"></canvas></div>
-      <div class="row" id="dayctl">${anim?runCtlHTML():`<button class="btn primary big" data-act="open" ${state.menu.length?'':'disabled'}>Abrir portas · dia ${state.day}</button>`}</div></div>
+      <div class="row" id="dayctl">${anim?runCtlHTML():`<button class="btn primary big" data-act="open" ${state.menu.length?'':'disabled'}>Abrir portas · dia ${state.day}</button><button class="btn" data-tab-go="sala">${t('rm.title')}</button>`}</div></div>
       <div class="frame"><pre class="lcd" id="lcd">${lcdText()}</pre></div>
     </div>
     <div class="legend">${Object.values(SEG).map(s=>`<span style="--c:${s.col}">${s.n}</span>`).join('')}</div>
     <div class="grid2">
       <div class="card"><h3>Notícias do bairro</h3><ul class="news">${state.news.slice(0,5).map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>
+      ${state.tier===3&&state.menu.some(p=>Object.keys(pizzaNeeds(p)).some(id=>stockDays(id)<1))?`<div class="card"><h3>Aviso do gerente</h3><p class="sub">${t('st.low')}</p></div>`:''}
+      ${roomA().seats*3<expectedCustomers()?'<div class="card"><h3>Aviso do gerente</h3><p class="sub">Poucos lugares: à hora de almoço e de jantar vai haver quem não encontre mesa. Mais mesas em Loja › Decorar a sala.</p></div>':''}
       ${capacity()<expectedCustomers()*.6?'<div class="card"><h3>Aviso do gerente</h3><p class="sub">Vai haver fila: hoje esperam-se mais clientes do que a cozinha aguenta. Um pizzaiolo ou forno extra ajuda (Loja).</p></div>':''}
     </div>
   </div>`;
@@ -1149,7 +1199,7 @@ function lcdText(){
     L('PIZZAIOLOS',state.cooks),
     L('EMPREGADOS',waiterCount()),
     L('FORNOS',state.ovens),
-    L('MESAS',tableCount()),
+    L('MESAS · LUGARES',roomA().tables+' · '+roomA().seats),
     L('CAPACIDADE',(a?a.cnt.served:0)+'/'+capacity()),
     L('RIVAL',(r.promo?'2X1 ':'')+eur(r.price)),
     '<span class="dim">'+'-'.repeat(W)+'</span>',
@@ -1160,32 +1210,99 @@ function lcdText(){
 const runCtlHTML=()=>[1,2,4].map(v=>`<button class="btn ${anim&&anim.speed===v?'primary':''}" data-act="speed" data-v="${v}">×${v}</button>`).join('')+`<button class="btn ghost" data-act="skip">Saltar para o fecho</button>`;
 
 /* ---- simulation ---- */
+/* ---- stock: toppings bought by weight and kept in the pantry (nothing spoils). The dough and the sauce are
+   always there, paid pizza by pizza. In tiers 1 and 2 (see below) whatever is missing is bought on the
+   spot at MANAGER_MARKUP; buying it yourself is cheaper the more days you buy at once, but a pizza whose
+   toppings ran out can't be made that day. state.stock[id] = {g: grams, v: what they cost}. ---- */
+const MANAGER_MARKUP=1.25,BULK={1:0,3:.15,7:.25};
+/* Who runs the pizzeria (state.tier), for a game that children can play:
+   1 the manager runs everything: buys toppings as needed (+25%), sets each pizza's price to the best of the
+     demand curve every morning and hires pizzaiolos when the kitchen is short. Paid TIER_FEE[1] a day.
+   2 a buyer keeps the pantry: every morning, when a topping has less than a day left, it is topped up for
+     state.restockDays (1, 3 or 7) days at that bulk price; anything still missing is bought on the spot. The
+     player runs prices, staff and the room. Paid TIER_FEE[2] a day.
+   3 the player runs everything; the pantry can run out (sold out), with buttons to buy for 1, 3 or 7 days.
+   (Several suppliers, cheaper or better, are an idea for later: docs/ideas.md.) */
+const TIER_FEE={1:15,2:8,3:0};
+const gramPrice=id=>ING[id].c/(GRAMS[id]||10);   // $ per gram, the cost per portion spread over its weight
+function pizzaNeeds(p){const n={};for(const x of p.pieces)n[x.i]=(n[x.i]||0)+pieceGrams(x);return n}
+const baseCostOf=p=>DOUGHS[p.dough].c+SAUCES[p.sauce].c;
+// how many pizzas a day to plan for, and how they split over the menu (yesterday's sales, or an even split)
+function salesPlan(){const tot=Object.values(state.lastSales||{}).reduce((a,b)=>a+b,0),E=tot||Math.min(capacity(),Math.max(20,roomA().seats*2.4));
+  return state.menu.map(p=>({p,n:tot?(state.lastSales[p.id]||0)*E/tot:E/Math.max(1,state.menu.length)}))}
+function dailyNeed(){const need={};for(const {p,n} of salesPlan())for(const [id,g] of Object.entries(pizzaNeeds(p)))need[id]=(need[id]||0)+g*n;return need}
+function fillStock(d,onlyLow){   // buy every topping the menu uses up to d days; onlyLow: only those under a day
+  const need=dailyNeed();let cost=0;
+  for(const id in need){const have=(state.stock[id]||{}).g||0;if(onlyLow&&have>=need[id])continue;const g=Math.max(0,need[id]*d-have),c=r2(Math.ceil(g/10)*10*gramPrice(id)*(1-(BULK[d]||0)));
+    if(g<=0||state.money<c)continue;state.money=r2(state.money-buyStock(id,g,d));cost+=c}
+  return r2(cost)}
+const fillCost=d=>{const need=dailyNeed();return r2(Object.keys(need).reduce((a,id)=>a+Math.ceil(Math.max(0,need[id]*d-((state.stock[id]||{}).g||0))/10)*10*gramPrice(id)*(1-BULK[d]),0))};
+// the morning, before the doors open: what the manager or the buyer does on their own (news lines)
+function managerMorning(){
+  const s=state,news=[];
+  if(s.tier===1){
+    const was=s.menu.map(p=>p.price);
+    for(let pass=0;pass<2;pass++)for(const p of s.menu){const pts=demandCurve(p),best=pts.reduce((a,b)=>b.profit>a.profit?b:a),np=Math.max(r2(analyze(p).cost+1),Math.round(best.price*2)/2);
+      p.price=np}
+    s.menu.forEach((p,i)=>{if(p.price!==was[i])news.push(t('mg.price',{x:p.name,p:eur(p.price)}))});
+    const want=Math.min(expectedCustomers()*.85,roomA().seats*2.6);
+    while(s.cooks<5&&capacity()<want&&s.cooks*COOK_CAP<s.ovens*OVEN_CAP&&s.money>=100){s.cooks++;s.money=r2(s.money-100);news.push(t('mg.hire'))}
+  }
+  if(s.tier===2){const c=fillStock(s.restockDays||3,true);if(c)news.push(t('mg.stock',{x:eur(c),d:s.restockDays}))}
+  if(news.length)s.news=[...news,...s.news].slice(0,8);
+  return news;
+}
+const stockDays=id=>{const d=dailyNeed()[id];return d?((state.stock[id]||{}).g||0)/d:Infinity};
+function buyStock(id,grams,days){const g=Math.ceil(grams/10)*10;if(g<=0)return 0;const cost=r2(g*gramPrice(id)*(1-(BULK[days]||0)));
+  const st=state.stock[id]||(state.stock[id]={g:0,v:0});st.g+=g;st.v=r2(st.v+cost);return cost}
+
 function simulateDay(){
-  const s=state,menuA=s.menu.map(p=>({p,a:analyze(p)})),mix=segMix(),cap=capacity(),r=s.rival;
-  const N=expectedCustomers();const TH=4.2;const events=[];
-  let served=0,toRival=0,full=0,passed=0,revenue=0,ingCost=0,repDelta=0,happy=0,unhappy=0;const sales={},quotes=[];
+  const s=state,menuA=s.menu.map(p=>({p,a:analyze(p),need:pizzaNeeds(p),base:baseCostOf(p)})),mix=segMix(),cap=capacity(),r=s.rival;
+  const N=expectedCustomers();const TH=4.2,REGULARS=.45;const events=[];
+  // the room: seats at the tables a waiter can reach, and how much each group likes it
+  const RM=roomA(),atm=RM.atm,EAT=.18,WAIT=.04,seatFree=Array(RM.seats).fill(0);let noseat=0;
+  // the pantry for today (a copy: the day is applied in finishDay)
+  const manual=s.tier===3,stock={};for(const [id,st] of Object.entries(s.stock||{}))stock[id]={g:st.g,v:st.v};
+  const canMake=m=>{if(!manual)return true;for(const id in m.need)if(((stock[id]||{}).g||0)<m.need[id]-1e-6)return false;return true};
+  let paidBefore=0,bought=0;   // toppings taken from the pantry (already paid) / bought on the spot by the manager
+  const useStock=m=>{let v=0;for(const id in m.need){const st=stock[id],want=m.need[id],have=st?Math.min(st.g,want):0;
+    if(have>0){const val=st.v*have/st.g;st.v-=val;st.g-=have;v+=val;paidBefore+=val}
+    if(want-have>1e-6){const b=(want-have)*gramPrice(id)*MANAGER_MARKUP;v+=b;bought+=b}}return v};
+  // customers come in two rushes, lunch and dinner, and a few in between
+  const g=()=>(Math.random()+Math.random()+Math.random()-1.5)*2;
+  const arrivals=Array.from({length:N},()=>{const x=Math.random();return clamp(x<.45?.27+g()*.06:x<.9?.66+g()*.07:Math.random()*.9,.02,.9)}).sort((a,b)=>a-b);
+  let served=0,toRival=0,full=0,nostock=0,passed=0,revenue=0,ingCost=0,repDelta=0,happy=0,unhappy=0;const sales={},quotes=[];
   const pickSeg=()=>{let x=Math.random();for(const k in mix){x-=mix[k];if(x<=0)return k}return 'familia'};
   for(let i=0;i<N;i++){
-    const seg=pickSeg(),ps=SEG[seg].ps,t=(i+Math.random())/N*.9;
-    const deco=s.deco*(seg==='turista'||seg==='gourmet'?.6:.3)+(s.rep-2.5)*.3;
-    let best=null,bu=-1e9;
-    for(const m of menuA){const ap=m.a.appeal[seg];const u=ap/10-ps*(m.p.price-fairPrice(ap,m.a.cost))+noise()+deco;if(u>bu){bu=u;best=m}}
-    const ra=clamp(r.q+RIVAL_BIAS[seg],0,100);const ru=ra/10-ps*(r.price-fairPrice(ra))+noise()+(r.promo?2.5:0);
+    const seg=pickSeg(),ps=SEG[seg].ps,t=arrivals[i];
+    const deco=(atm[seg]-35)/25+(s.rep-2.5)*.3;   // the room's atmosphere for this group, and the reputation
+    const opts=menuA.map(m=>{const ap=m.a.appeal[seg];return {m,u:ap/10-ps*(m.p.price-fairPrice(ap,m.a.cost))+noise()+deco}}).sort((a,b)=>b.u-a.u);
+    const best=opts.length?opts[0].m:null,bu=opts.length?opts[0].u:-1e9;
+    const ra=clamp(r.q+RIVAL_BIAS[seg],0,100);const ru=ra/10-ps*(r.price-fairPrice(ra))+noise()+(r.promo?1.5:0);
     const e={t,seg};
-    if(best&&bu>=Math.max(ru,TH)){
+    // regulars: about half the street knows you and comes back unless the pizza is poor or overpriced,
+    // whatever the rival does; this keeps a beginner's day steady (stable profit on the starter room)
+    const regular=Math.random()<REGULARS,bar=regular?TH-2.5:Math.max(ru,TH);
+    if(best&&bu>=bar){
       e.target='ours';
-      if(served<cap){
-        served++;revenue+=best.p.price;ingCost+=best.a.cost;sales[best.p.id]=(sales[best.p.id]||0)+1;e.price=best.p.price;
-        const ap=best.a.appeal[seg],over=best.p.price-fairPrice(ap,best.a.cost);const sat=ap+noise()*5-Math.max(0,over)*7+s.deco*2;
-        if(sat>=62){happy++;repDelta+=.011;e.out='happy';if(Math.random()<.25)quotes.push([seg,happyQuote(seg,best.p.name)])}
-        else{unhappy++;repDelta-=.03;e.out='meh';const bad=best.a.notes.find(n=>n[0]==='bad'&&n[2]);quotes.push([seg,over>1.5?`Boa, mas ${eur(best.p.price)} é caro para o que é.`:bad?bad[2]:'Comível, mas nada de especial.'])}
+      const pk=opts.find(o=>o.u>=bar&&canMake(o.m)),m=pk&&pk.m;   // their favourite, or the next one they'd still have
+      let k=-1;for(let j=0;j<seatFree.length;j++)if(k<0||seatFree[j]<seatFree[k])k=j;   // the seat that frees up first
+      if(!m){nostock++;repDelta-=.006;e.out='nostock';if(Math.random()<.3)quotes.push([seg,'Acabou a pizza que eu queria.'])}
+      else if(served<cap&&(k<0||seatFree[k]>t+WAIT)){noseat++;repDelta-=.012;e.out='noseat';if(Math.random()<.3)quotes.push([seg,'Não havia mesa livre e fui-me embora.'])}
+      else if(served<cap){
+        seatFree[k]=Math.max(t,seatFree[k])+EAT;
+        served++;revenue+=m.p.price;ingCost+=m.base+useStock(m);sales[m.p.id]=(sales[m.p.id]||0)+1;e.price=m.p.price;
+        const ap=m.a.appeal[seg],over=m.p.price-fairPrice(ap,m.a.cost);const sat=ap+noise()*5-Math.max(0,over)*7+(atm[seg]-35)/7;
+        if(sat>=62){happy++;repDelta+=.008;e.out='happy';if(Math.random()<.25)quotes.push([seg,happyQuote(seg,m.p.name)])}
+        else{unhappy++;repDelta-=.03;e.out='meh';const bad=m.a.notes.find(n=>n[0]==='bad'&&n[2]);quotes.push([seg,over>1.5?`Boa, mas ${eur(m.p.price)} é caro para o que é.`:bad?bad[2]:'Comível, mas nada de especial.'])}
       }else{full++;repDelta-=.012;e.out='full';if(Math.random()<.3)quotes.push([seg,'Esperei imenso e desisti.'])}
     }else if(ru>=TH){e.target='rival';toRival++;if(best&&Math.random()<.12)quotes.push([seg,r.promo?`Hoje a ${r.name} faz 2 por 1, não resisti.`:best.p.price>r.price+1.5?`A ${r.name} é mais barata.`:`Prefiro o sabor da ${r.name}.`])}
     else{e.target='none';passed++}
     events.push(e);
   }
   events.sort((a,b)=>a.t-b.t);
-  return {events,served,toRival,full,passed,revenue:r2(revenue),ingCost:r2(ingCost),repDelta,happy,unhappy,sales,quotes,N,cap};
+  for(const id in stock)if(stock[id].g<.5)delete stock[id];
+  return {events,served,toRival,full,noseat,nostock,seats:RM.seats,passed,revenue:r2(revenue),ingCost:r2(ingCost),paidBefore:r2(paidBefore),bought:r2(bought),stockAfter:stock,repDelta,happy,unhappy,sales,quotes,N,cap};
 }
 function happyQuote(seg,name){const q={estudante:[`A ${name} encheu-me a barriga por um bom preço.`,`Volto amanhã com a malta!`],familia:[`Os miúdos adoraram a ${name}.`,`Boa pizza, bom ambiente.`],turista:[`Best pizza in Lisbon! A ${name} é incrível.`,`Muito autêntico, adorei.`],gourmet:[`A ${name} tem equilíbrio de sabores notável.`,`Massa bem trabalhada. Recomendo.`]}[seg];return q[Math.floor(Math.random()*q.length)]}
 
@@ -1202,8 +1319,9 @@ function resolveContest(){
 }
 function finishDay(res){
   const s=state,r=s.rival,sal=s.cooks*SALARY;
-  const profit=r2(res.revenue-res.ingCost-RENT-sal);
-  s.money=r2(s.money+profit);const repBefore=s.rep;s.rep=clamp(s.rep+clamp(res.repDelta,-.4,.25),0,5);
+  const fee=TIER_FEE[s.tier]||0,profit=r2(res.revenue-res.ingCost-RENT-sal-fee);
+  s.money=r2(s.money+profit+(res.paidBefore||0));   // toppings from the pantry were paid when bought
+  if(res.stockAfter)s.stock=res.stockAfter;const repBefore=s.rep;s.rep=clamp(s.rep+clamp(res.repDelta,-.4,.25),0,5);
   s.lastSales=res.sales;
   let contest=null;if(s.day%5===0){if(s.contestEntry)contest=resolveContest();s.contestEntry=null}
   s.ads=false;const news=[];
@@ -1219,23 +1337,101 @@ function finishDay(res){
   s.news=[...news,...s.news].slice(0,8);
   if(s.money<-500)s.over=true;
   const q=res.quotes.sort(()=>Math.random()-.5).slice(0,3);
-  return {...res,profit,sal,repBefore,repAfter:s.rep,contest,quotes:q,day:s.day-1};
+  return {...res,profit,sal,fee,repBefore,repAfter:s.rep,contest,quotes:q,day:s.day-1};
 }
 
 /* ---- restaurant room: 32 px tiles, art from the atlas assets/room.js (made by tools/gen_room.py; the first
    16 px model is kept in old/) ---- */
 const T=32,COLS=20,ROWS=17,RW=COLS*T,RH=ROWS*T,STREET_ROW=15;
 const DOOR=[10,14],PICK=[16,8];
-const TABLES=[[1,3],[6,3],[1,7],[6,7],[13,9],[1,11],[6,11],[13,12]];
+const TABLES=[[1,3],[6,3],[1,7],[6,7],[13,9],[1,11],[6,11],[13,12]];   // where the starter / old-save tables stand
 const QUEUE=[[11,13],[10,13],[11,12],[10,12],[11,11],[10,11],[11,10],[10,10],[11,9],[10,9],[11,8],[10,8]];
 const WAITER_HOME=[[18,8],[19,8],[18,9],[19,9]];
 const COOK_POS=[[13,4],[15,4],[17,4],[14,5],[16,5]];
 const HAIR=['#2b1b10','#5a3a1e','#c9a24a','#151515','#8a3b1c','#d8d0c0','#6b6b6b'];
 const SKIN=['#f1c7a0','#d9a477','#a8714a','#f6d6b8','#7a4d2e'];
-const tableCount=()=>Math.min(TABLES.length,5+state.deco);
 const waiterCount=()=>Math.min(4,state.cooks+1);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-const plantsFor=d=>[...(d>=1?[[0,2],[19,13]]:[]),...(d>=2?[[0,13],[11,2]]:[])];
+
+/* ---- room design: what stands in the room and what it does (from docs/drafts/room.html) ----
+   state.room = {floor, wall, walls: [6 back-wall pieces], items: [{id, c, r}]} (tiles; the atlas layout says
+   where each piece's parts, chairs and sitters are). Tables give seats; everything gives atmosphere for each
+   customer group (app = [students, families, tourists, gourmets]); a room mostly in one style gets a bonus;
+   a crowded room loses some. mask: '#' tiles that block walking. */
+const FLOORS={check:{style:'tratt',price:0,app:[2,3,1,0]},planks:{style:'tasca',price:260,app:[1,2,2,1]},hydraulic:{style:'tasca',price:380,app:[0,2,4,2]},
+  terrazzo:{style:'moder',price:320,app:[3,2,1,2]},marble:{style:'luxo',price:620,app:[-1,1,3,6]},terracotta:{style:'tratt',price:200,app:[1,3,2,0]}};
+const WALLS={cream:{style:'tratt',price:0,app:[1,3,1,0]},azulejo:{style:'tasca',price:340,app:[0,2,5,2]},brick:{style:'tratt',price:220,app:[3,2,2,0]},
+  modern:{style:'moder',price:300,app:[3,2,1,3]},damask:{style:'luxo',price:560,app:[-1,1,3,6]}};
+const M4=['.##.','####','####','.##.'],M2=['####','####'],ONE=['#'];
+const ITEMS={
+  xadrez2:{cat:'table',style:'tratt',price:120,app:[2,3,1,0],w:4,h:2,mask:M2,n:2},
+  xadrez4:{cat:'table',style:'tratt',price:190,app:[2,4,1,0],w:4,h:4,mask:M4,n:4},
+  redonda:{cat:'table',style:'tasca',price:170,app:[1,3,3,1],w:4,h:4,mask:M4,n:4},
+  corrida:{cat:'table',style:'tasca',price:240,app:[3,4,3,0],w:5,h:4,mask:['#####','#####','#####','#####'],n:6},
+  branca:{cat:'table',style:'moder',price:210,app:[3,2,0,2],w:4,h:4,mask:M4,n:4},
+  booth:{cat:'table',style:'moder',price:340,app:[5,3,1,1],w:3,h:4,mask:['###','###','###','###'],n:4},
+  gala:{cat:'table',style:'luxo',price:420,app:[-2,1,3,7],w:4,h:4,mask:M4,n:4},
+  bistro:{cat:'table',style:'luxo',price:260,app:[-1,0,2,5],w:4,h:2,mask:M2,n:2},
+  vaso:{cat:'decor',style:'tratt',price:40,app:[1,2,1,1],w:1,h:1,mask:ONE},
+  ficus:{cat:'decor',style:'moder',price:90,app:[1,2,1,2],w:1,h:1,mask:ONE},
+  oliveira:{cat:'decor',style:'tasca',price:120,app:[0,2,4,2],w:1,h:1,mask:ONE},
+  barril:{cat:'decor',style:'tasca',price:70,app:[2,1,3,1],w:1,h:1,mask:ONE},
+  garrafeira:{cat:'decor',style:'tasca',price:210,app:[0,1,3,4],w:2,h:1,mask:['##']},
+  jukebox:{cat:'decor',style:'moder',price:260,app:[6,3,1,-1],w:1,h:1,mask:ONE},
+  arcade:{cat:'decor',style:'moder',price:280,app:[7,4,0,-3],w:1,h:1,mask:ONE},
+  aquario:{cat:'decor',style:'moder',price:320,app:[2,6,2,1],w:2,h:1,mask:['##']},
+  candeeiro:{cat:'decor',style:'luxo',price:130,app:[0,1,1,3],w:1,h:1,mask:ONE},
+  estatua:{cat:'decor',style:'luxo',price:420,app:[-1,1,4,5],w:1,h:1,mask:ONE},
+  fonte:{cat:'decor',style:'luxo',price:680,app:[1,4,5,5],w:2,h:2,mask:['##','##']},
+  piano:{cat:'decor',style:'luxo',price:950,app:[-2,1,3,9],w:3,h:2,mask:['###','###']},
+  persa:{cat:'decor',style:'luxo',price:160,app:[0,1,2,3],w:3,h:2,mask:['...','...'],rug:1},
+  trapos:{cat:'decor',style:'tasca',price:60,app:[1,2,2,0],w:3,h:2,mask:['...','...'],rug:1},
+  janela:{cat:'wall',style:'tratt',price:0,app:[1,1,1,1]},quadro:{cat:'wall',style:'luxo',price:70,app:[0,1,1,2]},
+  giz:{cat:'wall',style:'tratt',price:40,app:[2,2,1,0]},azulejos:{cat:'wall',style:'tasca',price:160,app:[0,1,5,2]},
+  prateleira:{cat:'wall',style:'tasca',price:90,app:[1,1,2,2]},espelho:{cat:'wall',style:'luxo',price:230,app:[-1,1,2,4]},
+  neon:{cat:'wall',style:'moder',price:180,app:[5,2,1,-2]},relogio:{cat:'wall',style:'moder',price:50,app:[0,1,0,1]},
+  fotos:{cat:'wall',style:'tasca',price:70,app:[0,3,2,1]}
+};
+const STYLE_COL={tasca:'#2f5f9e',tratt:'#c4352a',moder:'#2b2b33',luxo:'#a7771f'};
+const STYLE_BONUS={tasca:[2,6,12,4],tratt:[6,10,4,0],moder:[10,4,2,4],luxo:[-6,2,6,16]};
+const SEGK=['estudante','familia','turista','gourmet'],WALL_SLOTS=6,DOOR_IN=[10,13];
+// the room a new game starts with, or an old save's room rebuilt from its decoration level (0-3)
+function starterRoom(deco){
+  const tb=deco>=3?'bistro':'xadrez2';
+  return {floor:'check',wall:'cream',walls:[deco>=2?'quadro':null,'janela',deco>=2?'quadro':null,'janela','giz',deco>=1?'prateleira':null],
+    items:[...TABLES.slice(0,5+deco).map(([c,r])=>({id:tb,c,r})),...[...(deco>=1?[[0,2],[19,13]]:[]),...(deco>=2?[[0,13],[11,2]]:[])].map(([c,r])=>({id:'vaso',c,r}))]};
+}
+const roomEditable=(c,r)=>c>=0&&c<COLS&&r>=2&&r<=13&&!(c>=12&&r<=7);
+const RESERVED=new Set([PICK,...WAITER_HOME,DOOR_IN,[DOOR_IN[0]+1,DOOR_IN[1]]].map(([c,r])=>r*COLS+c));   // the counter, the waiters' corner, the way in
+function roomOcc(room,skip){const g=new Map();for(const it of room.items){if(it===skip)continue;const d=ITEMS[it.id];d.mask.forEach((row,j)=>[...row].forEach((ch,i)=>{const k=(it.r+j)*COLS+it.c+i;if(ch==='#')g.set(k,it);else if(d.rug)g.set('rug'+k,it)}))}return g}
+function roomFits(room,id,c,r,skip){const d=ITEMS[id],g=roomOcc(room,skip);
+  for(let j=0;j<d.h;j++)for(let i=0;i<d.w;i++){const cc=c+i,rr=r+j;if(!roomEditable(cc,rr))return false;const k=rr*COLS+cc;
+    if(d.rug){if(g.has('rug'+k))return false;continue}
+    if(d.mask[j][i]==='#'&&(g.has(k)||RESERVED.has(k)))return false}
+  return true}
+function roomAnalyse(room){
+  const g=roomOcc(room),solid=k=>g.has(k);
+  const seen=new Set(),q=[];for(const c of [DOOR_IN[0],DOOR_IN[0]+1]){const k=DOOR_IN[1]*COLS+c;seen.add(k);q.push(k)}   // floor reachable from the door
+  while(q.length){const k=q.shift(),c=k%COLS,rr=(k/COLS)|0;for(const [dc,dr] of [[1,0],[-1,0],[0,1],[0,-1]]){const nc=c+dc,nr=rr+dr,nk=nr*COLS+nc;if(!roomEditable(nc,nr)||seen.has(nk)||solid(nk))continue;seen.add(nk);q.push(nk)}}
+  const blocked=new Set();let seats=0,tables=0;
+  for(const it of room.items){const d=ITEMS[it.id];if(d.cat!=='table')continue;
+    let ok=false;for(let j=-1;j<=d.h&&!ok;j++)for(let i=-1;i<=d.w&&!ok;i++){const inside=i>=0&&j>=0&&i<d.w&&j<d.h;if(inside&&d.mask[j][i]==='#')continue;if(seen.has((it.r+j)*COLS+it.c+i))ok=true}
+    if(ok){tables++;seats+=d.n}else blocked.add(it)}   // a table counts only if a waiter can get next to it
+  const kitchenOk=seen.has(PICK[1]*COLS+PICK[0]);
+  let total=0,free=0;for(let rr=2;rr<=13;rr++)for(let c=0;c<COLS;c++)if(roomEditable(c,rr)){total++;if(!solid(rr*COLS+c))free++}
+  const freeShare=free/total;
+  const sum=[0,0,0,0],byStyle={tasca:0,tratt:0,moder:0,luxo:0};let spent=0;
+  const addApp=(d,w=1)=>{d.app.forEach((v,i)=>sum[i]+=v*w);byStyle[d.style]+=Math.max(30,d.price);spent+=d.price};
+  addApp(FLOORS[room.floor],2);addApp(WALLS[room.wall],2);
+  for(const it of room.items)addApp(ITEMS[it.id]);for(const w of room.walls)if(w)addApp(ITEMS[w]);
+  const tot=Object.values(byStyle).reduce((a,b)=>a+b,0),dom=Object.keys(byStyle).sort((a,b)=>byStyle[b]-byStyle[a])[0],share=byStyle[dom]/tot;
+  const bonus=share>=.5?STYLE_BONUS[dom].map(v=>v*(share-.5)*2):[0,0,0,0];
+  const crowd=freeShare<.42?Math.round((.42-freeShare)*120):0;
+  const atmA=sum.map((v,i)=>Math.max(0,Math.min(100,Math.round(20+v*.9+bonus[i]-crowd))));
+  const atm={};SEGK.forEach((k,i)=>atm[k]=atmA[i]);
+  return {blocked,kitchenOk,seats,tables,freeShare,atm,dom,share,spent,crowd};
+}
+let roomAC=null;const roomA=()=>{const key=JSON.stringify(state.room);if(!roomAC||roomAC.key!==key)roomAC={key,a:roomAnalyse(state.room)};return roomAC.a};
 
 function buildMap(){
   const solid=new Uint8Array(COLS*ROWS),S=(c,r)=>{solid[r*COLS+c]=1};
@@ -1243,15 +1439,13 @@ function buildMap(){
     if(r<2||(r===14&&c!==DOOR[0]&&c!==DOOR[0]+1)||r>15||(r===15&&c!==DOOR[0]&&c!==DOOR[0]+1))S(c,r);
     if(c>=12&&r>=2&&r<=7)S(c,r);
   }
-  const seats=[],tables=TABLES.slice(0,tableCount()).map(([c,r])=>{
-    for(let dc=1;dc<=2;dc++)for(let dr=0;dr<2;dr++)S(c+dc,r+dr);
-    S(c,r+1);S(c+3,r+1);
-    const t={c:c+1,r,ic:c};
-    seats.push({cx:c,cy:r+1,face:'right',t,occ:null},{cx:c+3,cy:r+1,face:'left',t,occ:null});
-    return t;
-  });
-  const plants=plantsFor(state.deco);plants.forEach(([c,r])=>S(c,r));
-  return {solid,seats,tables,plants};
+  const room=state.room,RM=roomA(),L_=ROOM_ART.layout.items,seats=[],tables=[];
+  for(const it of room.items){const d=ITEMS[it.id];d.mask.forEach((row,j)=>[...row].forEach((ch,i)=>{if(ch==='#')S(it.c+i,it.r+j)}));
+    if(d.cat!=='table'||RM.blocked.has(it))continue;tables.push(it);
+    // each seat of the piece: where its sitter is drawn (atlas layout) and the tile they walk to
+    for(const st of L_[it.id].seats)seats.push({t:it,s:st,face:st.d,occ:null,cx:it.c+clamp(Math.floor((st.p[0]+16)/T),0,d.w-1),cy:it.r+clamp(Math.floor((st.p[1]+40)/T),0,d.h-1)});
+  }
+  return {solid,seats,tables,queue:QUEUE.filter(([c,r])=>!solid[r*COLS+c])};
 }
 function bfs(map,from,to){
   const key=(c,r)=>r*COLS+c,goal=key(to[0],to[1]),start=key(from[0],from[1]);
@@ -1271,9 +1465,13 @@ function makeScene(){
   return {map,seats:map.seats,waiters,cooks};
 }
 let anim=null,room=null,idleScene=null;
-function startDay(){
+function startDay(force){
   if(!state.menu.length){toast('Precisas de pelo menos uma pizza no menu.');return}
-  const res=simulateDay();
+  if(!roomArt()){toast(t('rm.loading'));return}
+  const RM=roomA();if(!RM.seats){toast(t('rm.noseats'));return}if(!RM.kitchenOk){toast(t('rm.w.kitchen'));return}
+  if(!force&&state.tier===3&&state.menu.some(p=>Object.keys(pizzaNeeds(p)).some(id=>stockDays(id)<1))){   // the pantry won't last the day: ask
+    modal(`<h2>${t('st.ask.title')}</h2><p style="margin:0">${t('st.ask.lead')}</p><div class="row"><button class="btn primary" data-act="openfill">${t('st.fill',{d:3})}</button><button class="btn" data-act="openauto">${t('st.ask.auto')}</button><button class="btn ghost" data-act="openanyway">${t('st.ask.go')}</button></div>`);return}
+  closeModal();managerMorning();const res=simulateDay();
   anim={res,t:0,speed:1,next:0,people:[],bubbles:[],jobs:[],cnt:{served:0,rival:0,left:0,rev:0},last:0,lcdT:0,...makeScene()};
   render();requestAnimationFrame(loop);
 }
@@ -1303,7 +1501,7 @@ function step(dt){
     if(p.st!=='queue')continue;
     const s=anim.seats.find(s=>!s.occ);
     if(s){s.occ=p;p.seat=s;p.st='toSeat';p.path=toPx(bfs(map,tileOf(p),[s.cx,s.cy]));continue}
-    const spot=QUEUE[Math.min(qi++,QUEUE.length-1)];
+    const Q=map.queue.length?map.queue:[DOOR_IN],spot=Q[Math.min(qi++,Q.length-1)];
     if(!p.spot||p.spot[0]!==spot[0]||p.spot[1]!==spot[1]){p.spot=spot;p.path=toPx(bfs(map,tileOf(p),spot))}
     moveAlong(p,dt,p.v);
   }
@@ -1311,7 +1509,7 @@ function step(dt){
     switch(p.st){
       case 'street':if(moveAlong(p,dt,p.v)){
         if(p.e.target==='ours'){
-          if(p.e.out==='full'){anim.cnt.left++;bubble(p.x+16,p.y-36,'FILA!','#ff6a4a');p.st='leave';p.path=[{x:p.x<RW/2?-T:RW+T,y:p.y}]}
+          if(p.e.out==='full'||p.e.out==='noseat'||p.e.out==='nostock'){anim.cnt.left++;bubble(p.x+16,p.y-36,p.e.out==='full'?'FILA!':p.e.out==='noseat'?'SEM MESA!':'ESGOTADO!','#ff6a4a');p.st='leave';p.path=[{x:p.x<RW/2?-T:RW+T,y:p.y}]}
           else{p.st='queue';p.spot=null}
         }else{if(p.e.target==='rival'){anim.cnt.rival++;if(Math.random()<.5)bubble(RW-60,p.y-36,'→ RIVAL','#ffb04a')}p.gone=true}
       }break;
@@ -1357,14 +1555,33 @@ const RA={img:new Image(),cache:new Map(),loading:false};
 function roomArt(){
   if(typeof ROOM_ART!=='undefined'&&RA.img.complete&&RA.img.naturalWidth)return true;
   if(!RA.loading){RA.loading=true;const sc=document.createElement('script');sc.src='assets/room.js';
-    sc.onload=()=>{RA.img.onload=()=>{if(!anim)drawRoom()};RA.img.src=ROOM_ART.src};document.head.append(sc)}
+    sc.onload=()=>{RA.img.onload=()=>{if(!anim)drawRoom();if(state.tab==='sala')setupRoomEditor()};RA.img.src=ROOM_ART.src};document.head.append(sc)}
   return false;
 }
 const rspr=k=>{if(!RA.cache.has(k)){const f=ROOM_ART.frames[k],cv=document.createElement('canvas');cv.width=f[2];cv.height=f[3];cv.getContext('2d').drawImage(RA.img,f[0],f[1],f[2],f[3],0,0,f[2],f[3]);RA.cache.set(k,cv)}return RA.cache.get(k)};
 function rtile(c,key,x0,y0,x1,y1){const im=rspr(key);c.save();c.beginPath();c.rect(x0,y0,x1-x0,y1-y0);c.clip();for(let y=y0;y<y1;y+=im.height)for(let x=x0;x<x1;x+=im.width)c.drawImage(im,x,y);c.restore()}
-// the look grows with the shop's decoration level: more tables (buildMap), plants, pictures, then luxury tables
-const roomTable=()=>state.deco>=3?'bistro':'xadrez2';
-const roomWalls=()=>[state.deco>=2?'quadro':null,'janela',state.deco>=2?'quadro':null,'janela','giz',state.deco>=1?'prateleira':null];
+// a piece's sprites: its parts, then its chairs (a chair seen from behind comes in two layers)
+function itemParts(it,f){const L=ROOM_ART.layout.items[it.id],x0=it.c*T,y0=it.r*T,out=[];
+  for(const [k,x,y,z,n] of L.parts)out.push({z:y0+z,img:rspr(n>1?k+'_'+(f%n):k),x:x0+x,y:y0+y,rug:L.rug});
+  for(const st of L.seats||[])for(const ch of [st.chair,st.back])if(ch)out.push({z:y0+ch[3],img:rspr(ch[0]),x:x0+ch[1],y:y0+ch[2]});
+  return out}
+// floor, walls and wall pieces, the kitchen corner, the front wall with the door, the street
+function paintRoomBase(c,room,f){
+  rtile(c,'f_'+room.floor,0,2*T,RW,14*T);rtile(c,'f_kitchen',12*T,2*T,RW,8*T);
+  rtile(c,'w_'+room.wall,0,0,12*T,2*T);rtile(c,'w_kitchen',12*T,0,RW,2*T);
+  room.walls.forEach((id,i)=>{if(!id)return;const [k,x,y]=ROOM_ART.layout.walls[id];c.drawImage(rspr(k==='w_neon_1'&&f%9===0?'w_neon_0':k),i*64+x,y)});
+  c.drawImage(rspr('k_rack'),19*T-6,6);c.drawImage(rspr('divider'),12*T-16,0);
+  for(let col=0;col<COLS;col+=2)if(col!==DOOR[0])c.drawImage(rspr('frontwall'),col*T,14*T);
+  c.drawImage(rspr('doormat'),DOOR[0]*T,14*T);c.drawImage(rspr('doormat'),(DOOR[0]+1)*T,14*T);
+  c.fillStyle='#2a1407';c.fillRect(DOOR[0]*T-6,14*T-12,6,44);c.fillRect((DOOR[0]+2)*T,14*T-12,6,44);
+  rtile(c,'sidewalk',0,15*T,RW,17*T);rtile(c,'curb',0,16*T,RW,17*T);
+}
+// the kitchen's own pieces (ovens by how many were bought), at their depth
+function kitchenParts(f){const out=[];
+  for(const [k,x,y,z,n] of ROOM_ART.layout.kitchen){if(k==='cook')continue;
+    if(k==='k_oven'){for(let i=0;i<state.ovens;i++)out.push({z,img:rspr('k_oven_'+((f+i)%(n||1))),x:x+i*58,y});continue}
+    out.push({z,img:rspr(n>1?k+'_'+(f%n):k),x,y})}
+  return out}
 // a person on foot, feet on the bottom of its tile: customers in their own look (w<look>_<dir>_<step>, the step
 // frame alternates while walking); the waiter and cook have one standing frame and bob a little instead
 function drawChar(c,a,key){
@@ -1377,34 +1594,23 @@ function drawRoom(){
   const L_=ROOM_ART.layout,sc=anim||(idleScene||(idleScene=makeScene()));const map=sc.map;
   const t=anim?Math.min(anim.t/DAY_SECONDS,1):0,fr=anim?Math.floor(anim.t*6):0;
   c.clearRect(0,0,RW,RH);
-  // floor, walls, the kitchen corner, the front wall with the door, the street
-  rtile(c,'f_check',0,2*T,RW,14*T);rtile(c,'f_kitchen',12*T,2*T,RW,8*T);
-  rtile(c,'w_cream',0,0,12*T,2*T);rtile(c,'w_kitchen',12*T,0,RW,2*T);
-  roomWalls().forEach((id,i)=>{if(!id)return;const [k,x,y]=L_.walls[id];c.drawImage(rspr(k),i*64+x,y)});
-  c.drawImage(rspr('k_rack'),19*T-6,6);c.drawImage(rspr('divider'),12*T-16,0);
-  for(let col=0;col<COLS;col+=2)if(col!==DOOR[0])c.drawImage(rspr('frontwall'),col*T,14*T);
-  c.drawImage(rspr('doormat'),DOOR[0]*T,14*T);c.drawImage(rspr('doormat'),(DOOR[0]+1)*T,14*T);
-  c.fillStyle='#2a1407';c.fillRect(DOOR[0]*T-6,14*T-12,6,44);c.fillRect((DOOR[0]+2)*T,14*T-12,6,44);
-  rtile(c,'sidewalk',0,15*T,RW,17*T);rtile(c,'curb',0,16*T,RW,17*T);
-  // everything that stands is sorted by depth (z: the y of its foot)
-  const L=[],add=(z,img,x,y)=>L.push({z,img,x,y});
-  for(const [k,x,y,z,n] of L_.kitchen){if(k==='cook')continue;
-    if(k==='k_oven'){for(let i=0;i<state.ovens;i++)add(z,rspr('k_oven_'+((fr+i)%(n||1))),x+i*58,y);continue}
-    add(z,rspr(n>1?k+'_'+(fr%n):k),x,y)}
+  paintRoomBase(c,state.room,fr);
+  // everything that stands is sorted by depth (z: the y of its foot); rugs go first
+  const L=[],add=(z,img,x,y)=>L.push({z,img,x,y}),rugs=[];
+  for(const it of state.room.items)for(const q of itemParts(it,fr))(q.rug?rugs:L).push(q);
+  L.push(...kitchenParts(fr));
   const ready=anim?Math.min(3,anim.jobs.length):0;for(let k=0;k<ready;k++)add(256.3,rspr('pizza'),15*T+k*26,7*T-22);   // pizzas waiting on the counter
-  const tk=roomTable(),it=L_.items[tk],tz=it.parts.find(q=>q[0].startsWith('t_'))[3];
-  for(const tb of map.tables){const x0=tb.ic*T,y0=tb.r*T;
-    for(const [k,x,y,z] of it.parts)add(y0+z,rspr(k),x0+x,y0+y);
-    for(const s of it.seats)for(const ch of [s.chair,s.back])if(ch)add(y0+ch[3],rspr(ch[0]),x0+ch[1],y0+ch[2]);
-    for(const s of sc.seats){if(s.t!==tb||!s.occ)continue;const p=s.occ,seat=it.seats.find(q=>q.d===s.face);if(!seat)continue;
-      if(p.st==='wait'||p.st==='eat'){add(y0+seat.p[2],rspr(`p${p.rlook||0}_${seat.d}`),x0+seat.p[0],y0+seat.p[1]);   // seated, from the atlas layout
-        const [tx,ty,rx]=it.top,qx=seat.d==='right'?tx-rx+14:tx+rx-14;
-        add(y0+tz+.2,rspr(p.st==='eat'&&p.timer>1?'pizza':'plate'),x0+Math.round(qx)-12,y0+Math.round(ty)-8)}}}
-  for(const [pc,pr] of map.plants){const [k,x,y,z]=L_.items.vaso.parts[0];add(pr*T+z,rspr(k),pc*T+x,pr*T+y)}
+  for(const st of sc.seats){if(!st.occ)continue;const p=st.occ,it=st.t,s_=st.s,lay=L_.items[it.id],x0=it.c*T,y0=it.r*T;
+    if(p.st!=='wait'&&p.st!=='eat')continue;
+    add(y0+s_.p[2],rspr(`p${p.rlook||0}_${s_.d}`),x0+s_.p[0],y0+s_.p[1]);   // seated, from the atlas layout
+    const [tx,ty,rx,ry]=lay.top,qx=s_.d==='right'?tx-rx+14:s_.d==='left'?tx+rx-14:(s_.chair?tx:s_.p[0]+16),qy=s_.d==='down'?ty-ry+9:s_.d==='up'?ty+ry-9:ty;
+    const tz=lay.parts.find(q=>q[0].startsWith('t_'))[3];
+    add(y0+tz+.2,rspr(p.st==='eat'&&p.timer>1?'pizza':'plate'),x0+Math.round(qx)-12,y0+Math.round(qy)-8)}
   const person=(a,key)=>L.push({z:a.y+T,draw:()=>drawChar(c,a,key)});
   for(const k of sc.cooks)person(k,'cook');
   for(const w of sc.waiters){person(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2)}   // held in both hands, in front
   if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;person(p,`w${p.rlook||0}_${p.dir}_${p.walking?Math.floor(p.ph)%2:0}`)}   // standing or walking; seated ones are drawn at their table
+  for(const q of rugs)c.drawImage(q.img,q.x,q.y);
   L.sort((a,b)=>a.z-b.z).forEach(d=>d.draw?d.draw():c.drawImage(d.img,d.x,d.y));
   if(t>.55){c.fillStyle=`rgba(30,22,70,${Math.min(.3,(t-.55)*.9)})`;c.fillRect(0,0,RW,RH)}
   // blit + overlay text
@@ -1418,18 +1624,161 @@ function drawRoom(){
   m.globalAlpha=1;
 }
 
+/* ================= UI: ROOM EDITOR ================= */
+/* Shop > Decorate the room: buy furniture and place it on the tile grid (from docs/drafts/room.html).
+   Buying costs the piece's price; selling gives half back; moving is free. */
+const ED={tab:'table',tool:null,moving:null,ghost:null,sel:null,R:null,thumbs:new Map()};
+function roomEdHTML(){
+  return `<div class="stack"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>${t('rm.title')}</h2><p class="sub" style="color:var(--on-wood)">${t('rm.lead',{m:eur(state.money)})}</p></div><button class="btn ghost" data-tab-go="loja">${t('rm.back')}</button></div>
+  <div class="roomed"><div><div class="frame room"><canvas id="redit" aria-label="${esc(t('rm.title'))}"></canvas></div><div class="row" id="rtools" style="margin-top:12px"></div><p class="rhint" id="rhint"></p></div>
+  <div class="stack" style="gap:22px"><div class="card"><pre class="lcd" id="rlcd"></pre><div class="segs" id="rsegs"></div><div id="rsel"></div></div>
+  <div class="card"><h3>${t('rm.shop')}</h3><div class="rtabs" id="rtabs"></div><div class="rcat" id="rcat"></div></div></div></div></div>`;
+}
+function edSize(){const cv=$('#redit');if(!cv)return null;const w=cv.parentElement.clientWidth;if(!w)return null;const h=Math.round(w*RH/RW);
+  if(!ED.R||ED.R.cv!==cv||ED.R.w!==w){const low=document.createElement('canvas');low.width=RW;low.height=RH;ED.R={cv,w,h,c:fitCanvas(cv,w,h),low,lc:low.getContext('2d')}}return ED.R}
+function setupRoomEditor(){
+  const R=edSize();if(!R)return;
+  if(!roomArt()){$('#rhint').textContent=t('rm.loading');return}
+  const cv=R.cv,at=e=>{const b=cv.getBoundingClientRect();return [(e.clientX-b.left)/b.width*RW,(e.clientY-b.top)/b.height*RH]};
+  cv.onpointermove=e=>{ED.ghost=edGhost(...at(e));drawEditor()};
+  cv.onpointerleave=()=>{ED.ghost=null;drawEditor()};
+  cv.oncontextmenu=e=>{e.preventDefault();edStop()};
+  cv.onpointerdown=e=>edDown(...at(e));
+  edChanged(false);
+}
+function edGhost(x,y){if(!ED.tool)return null;const d=ITEMS[ED.tool];if(d.cat==='wall')return y<2*T&&x<12*T?{slot:Math.floor(x/64)}:null;return {c:Math.round(x/T-d.w/2),r:Math.round(y/T-d.h/2)}}
+const edPay=v=>{if(state.money<v){toast(t('rm.nomoney'));return false}state.money=r2(state.money-v);return true};
+function edDown(x,y){
+  const room=state.room;
+  if(ED.tool){const g=edGhost(x,y);if(!g)return;const d=ITEMS[ED.tool];ED.ghost=g;
+    if(d.cat==='wall'){if(g.slot>=0&&g.slot<WALL_SLOTS&&room.walls[g.slot]!==ED.tool&&edPay(d.price)){const old=room.walls[g.slot];if(old)state.money=r2(state.money+Math.round(ITEMS[old].price*.5));room.walls[g.slot]=ED.tool;track('room-buy');edChanged()}return}
+    if(!roomFits(room,ED.tool,g.c,g.r,ED.moving)){drawEditor();return}
+    if(ED.moving){ED.moving.c=g.c;ED.moving.r=g.r;ED.sel=ED.moving;ED.moving=null;ED.tool=null}
+    else if(edPay(d.price)){room.items.push({id:ED.tool,c:g.c,r:g.r});track('room-buy')}
+    edChanged();return}
+  // pick a piece: furniture before rugs, the one in front first
+  const c=Math.floor(x/T),rr=Math.floor(y/T);
+  if(y<2*T&&x<12*T){const i=Math.floor(x/64);ED.sel=room.walls[i]?{wall:i}:null;edChanged(false);return}
+  const hit=room.items.filter(it=>{const d=ITEMS[it.id];return c>=it.c&&c<it.c+d.w&&rr>=it.r&&rr<it.r+d.h}).sort((a,b)=>(ITEMS[b.id].rug?0:1)-(ITEMS[a.id].rug?0:1)||b.r-a.r);
+  ED.sel=hit[0]||null;edChanged(false);
+}
+function edStop(){ED.moving=null;ED.tool=null;ED.ghost=null;edChanged(false)}
+function edChanged(saveIt=true){if(saveIt){save();renderHeader()}drawEditor();edSide();edCat();edTools()}
+function edThumb(id){if(!ED.thumbs.has(id)){let ps;const d=ITEMS[id];
+    if(d.cat==='wall'){const [k,x,y]=ROOM_ART.layout.walls[id];ps=[{img:rspr(k),x,y}]}else ps=itemParts({id,c:0,r:0},3).sort((a,b)=>a.z-b.z);
+    const x0=Math.min(...ps.map(q=>q.x)),y0=Math.min(...ps.map(q=>q.y)),x1=Math.max(...ps.map(q=>q.x+q.img.width)),y1=Math.max(...ps.map(q=>q.y+q.img.height));
+    const cv=document.createElement('canvas');cv.width=x1-x0;cv.height=y1-y0;const c=cv.getContext('2d');for(const q of ps)c.drawImage(q.img,q.x-x0,q.y-y0);ED.thumbs.set(id,cv)}
+  return ED.thumbs.get(id)}
+function edFinish(kind,key){const k=kind+key;if(!ED.thumbs.has(k)){const cv=document.createElement('canvas');cv.width=cv.height=64;cv.getContext('2d').drawImage(rspr((kind==='floor'?'f_':'w_')+key),0,0,64,64,0,0,64,64);ED.thumbs.set(k,cv)}return ED.thumbs.get(k)}
+function edCat(){
+  const el=$('#rtabs');if(!el)return;
+  el.innerHTML=['table','decor','wall','floor','walls'].map(k=>`<button data-k="${k}" aria-pressed="${ED.tab===k}">${t('rm.tab.'+k)}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{ED.tab=b.dataset.k;edCat()});
+  const card=(label,price,style,on,attr)=>`<button class="it ${price>state.money&&!on?'poor':''}" ${attr} aria-pressed="${on}"><span data-thumb></span><span>${esc(label)}</span><span class="row" style="gap:4px;justify-content:center"><b class="p">${price?eur(price).replace('.00',''):'—'}</b><span class="chip" style="background:${STYLE_COL[style]}">${t('rm.st.'+style)}</span></span></button>`;
+  const cat=$('#rcat');let thumbs=[];const room=state.room;
+  if(ED.tab==='floor'){cat.innerHTML=Object.keys(FLOORS).map(k=>card(t('rm.f.'+k),FLOORS[k].price,FLOORS[k].style,room.floor===k,`data-floor="${k}"`)).join('');thumbs=Object.keys(FLOORS).map(k=>edFinish('floor',k))}
+  else if(ED.tab==='walls'){cat.innerHTML=Object.keys(WALLS).map(k=>card(t('rm.w.'+k),WALLS[k].price,WALLS[k].style,room.wall===k,`data-wall="${k}"`)).join('');thumbs=Object.keys(WALLS).map(k=>edFinish('wall',k))}
+  else{const ids=Object.keys(ITEMS).filter(k=>ITEMS[k].cat===ED.tab);cat.innerHTML=ids.map(k=>card(t('rm.i.'+k)+(ITEMS[k].n?` · ${ITEMS[k].n}`:''),ITEMS[k].price,ITEMS[k].style,ED.tool===k&&!ED.moving,`data-item="${k}"`)).join('');thumbs=ids.map(edThumb)}
+  cat.querySelectorAll('[data-thumb]').forEach((sp,i)=>{const src=thumbs[i],cv=document.createElement('canvas');cv.width=src.width;cv.height=src.height;cv.getContext('2d').drawImage(src,0,0);sp.replaceWith(cv)});
+  cat.querySelectorAll('[data-item]').forEach(b=>b.onclick=()=>{const k=b.dataset.item;ED.moving=null;ED.tool=ED.tool===k?null:k;ED.sel=null;edChanged(false)});
+  cat.querySelectorAll('[data-floor]').forEach(b=>b.onclick=()=>{const k=b.dataset.floor;if(room.floor!==k&&edPay(FLOORS[k].price)){room.floor=k;track('room-buy');edChanged()}});
+  cat.querySelectorAll('[data-wall]').forEach(b=>b.onclick=()=>{const k=b.dataset.wall;if(room.wall!==k&&edPay(WALLS[k].price)){room.wall=k;track('room-buy');edChanged()}});
+}
+function edSide(){
+  const lcd=$('#rlcd');if(!lcd)return;const a=roomA(),room=state.room,W=26,L=(k,v)=>k+String(v).padStart(W-k.length,' ');
+  const st=a.share>=.5?t('rm.st.'+a.dom).toUpperCase()+' '+Math.round(a.share*100)+'%':t('rm.lcd.mix');
+  const warn=[];if(a.blocked.size)warn.push(t('rm.w.blocked',{n:a.blocked.size}));if(!a.kitchenOk)warn.push(t('rm.w.kitchen'));if(a.crowd)warn.push(t('rm.w.crowd'));
+  lcd.innerHTML=[L(t('rm.lcd.room'),t('rm.lcd.style')+' '+st),'<span class="dim">'+'-'.repeat(W)+'</span>',L(t('rm.lcd.tables'),a.tables),L(t('rm.lcd.seats'),a.seats),
+    L(t('rm.lcd.free'),Math.round(a.freeShare*100)+'%'),L(t('rm.lcd.spent'),eur(a.spent)),L(t('rm.lcd.cash'),eur(state.money)),
+    ...(warn.length?warn.map(w=>'<span class="warn">! '+esc(w)+'</span>'):['<span class="dim">'+esc(t('rm.w.ok'))+'</span>'])].join('\n');
+  $('#rsegs').innerHTML=`<h3>${t('rm.atm')}</h3>`+SEGK.map(k=>`<span>${esc(SEG[k].n)}</span><span class="bar"><b style="width:${a.atm[k]}%;background:${SEG[k].col}"></b></span><span class="v">${a.atm[k]}</span>`).join('');
+  const el=$('#rsel'),sel=ED.sel;
+  if(sel&&(sel.wall!==undefined?room.walls[sel.wall]:room.items.includes(sel))){
+    const id=sel.wall!==undefined?room.walls[sel.wall]:sel.id,d=ITEMS[id],refund=Math.round(d.price*.5);
+    el.innerHTML=`<div class="selbox"><div class="row" style="justify-content:space-between"><h3>${esc(t('rm.i.'+id))}</h3><span class="chip" style="background:${STYLE_COL[d.style]}">${t('rm.st.'+d.style)}</span></div>
+      ${d.n?`<p class="sub">${t('rm.seats',{n:d.n})}</p>`:''}<div class="row" style="margin-top:8px">${sel.wall===undefined?`<button class="btn sm" data-ed="move">${t('rm.move')}</button>`:''}<button class="btn sm ghost" data-ed="sell">${t('rm.sell',{x:eur(refund).replace('.00','')})}</button></div></div>`;
+    const mv=el.querySelector('[data-ed="move"]');if(mv)mv.onclick=()=>{ED.moving=sel;ED.tool=sel.id;edChanged(false)};
+    el.querySelector('[data-ed="sell"]').onclick=()=>{state.money=r2(state.money+refund);if(sel.wall!==undefined)room.walls[sel.wall]=null;else room.items=room.items.filter(x=>x!==sel);ED.sel=null;track('room-sell');edChanged()};
+  }else el.innerHTML='';
+  $('#rhint').textContent=ED.tool?(ITEMS[ED.tool].cat==='wall'?t('rm.h.wall'):t('rm.h.place')):t('rm.h.idle');
+}
+function edTools(){const el=$('#rtools');if(!el)return;el.innerHTML=ED.tool?`<button class="btn sm primary" data-ed="stop">${t('rm.stop')}</button>`:'';const b=el.querySelector('[data-ed="stop"]');if(b)b.onclick=edStop}
+function drawEditor(){
+  const R=edSize();if(!R||!roomArt())return;const c=R.lc,room=state.room;
+  c.clearRect(0,0,RW,RH);paintRoomBase(c,room,0);
+  const L=[],rugs=[];for(const it of room.items)if(it!==ED.moving)for(const q of itemParts(it,0))(q.rug?rugs:L).push(q);
+  L.push(...kitchenParts(0));
+  for(const q of rugs)c.drawImage(q.img,q.x,q.y);L.sort((a,b)=>a.z-b.z).forEach(q=>c.drawImage(q.img,q.x,q.y));
+  const g=ED.ghost,tool=ED.tool;
+  if(g&&tool&&ITEMS[tool].cat!=='wall'){const d=ITEMS[tool],ok=roomFits(room,tool,g.c,g.r,ED.moving);
+    c.fillStyle=ok?'rgba(80,220,90,.28)':'rgba(230,60,40,.32)';d.mask.forEach((row,j)=>[...row].forEach((ch,i)=>{if(ch==='#'||d.rug)c.fillRect((g.c+i)*T,(g.r+j)*T,T,T)}));
+    c.globalAlpha=.75;itemParts({id:tool,c:g.c,r:g.r},0).sort((a,b)=>a.z-b.z).forEach(q=>c.drawImage(q.img,q.x,q.y));c.globalAlpha=1}
+  if(tool&&ITEMS[tool].cat==='wall')for(let i=0;i<WALL_SLOTS;i++){c.strokeStyle=g&&g.slot===i?'#ffcf4a':'rgba(255,241,210,.55)';c.lineWidth=2;c.strokeRect(i*64+3,7,58,50)}
+  const k=R.w/RW,m=R.c;m.imageSmoothingEnabled=k<1;m.imageSmoothingQuality='high';m.clearRect(0,0,R.w,R.h);m.drawImage(R.low,0,0,R.w,R.h);
+  for(const it of roomA().blocked){const d=ITEMS[it.id];m.strokeStyle='#ff5a3a';m.lineWidth=2;m.setLineDash([6,4]);m.strokeRect(it.c*T*k+1,it.r*T*k+1,d.w*T*k-2,d.h*T*k-2);m.setLineDash([])}
+  const sel=ED.sel;if(sel&&sel.wall===undefined&&room.items.includes(sel)){const d=ITEMS[sel.id];m.strokeStyle='#120a04';m.lineWidth=4;m.strokeRect(sel.c*T*k,sel.r*T*k,d.w*T*k,d.h*T*k);m.strokeStyle='#ffcf4a';m.lineWidth=2;m.strokeRect(sel.c*T*k,sel.r*T*k,d.w*T*k,d.h*T*k)}
+  if(sel&&sel.wall!==undefined){m.strokeStyle='#ffcf4a';m.lineWidth=2;m.strokeRect(sel.wall*64*k+2,6*k,60*k,52*k)}
+}
+
+/* ================= UI: PANTRY ================= */
+function stockHTML(){
+  const need=dailyNeed(),plan=Math.round(salesPlan().reduce((a,b)=>a+b.n,0)),tier=state.tier;
+  const ids=[...new Set([...Object.keys(need),...Object.keys(state.stock)])].sort((a,b)=>(need[b]?1:0)-(need[a]?1:0)||ING[a].n.localeCompare(ING[b].n,LANG));
+  const rows=ids.map(id=>{const d=need[id]||0,have=(state.stock[id]||{}).g||0,days=d?have/d:Infinity,cls=tier===3&&d&&days<1?'low':tier===3&&d&&days<3?'mid':'';
+    const btns=d&&tier===3?[1,3,7].map(n=>`<button class="btn sm" data-act="stockbuy" data-id="${id}" data-days="${n}">${t('st.buy',{d:n})} · ${eur(r2(Math.ceil(d*n/10)*10*gramPrice(id)*(1-BULK[n])))}</button>`).join(''):'';
+    return `<div class="srow ${cls}"><canvas data-ing="${id}" width="32" height="32"></canvas><div class="nm">${esc(ING[id].n)}<small>${t('st.have')}: ${have?fmtG(Math.round(have)):t('st.none')}${d?' · '+t('st.days',{d:days>99?'99+':(Math.floor(days*10)/10).toString().replace('.',LANG==='pt'?',':'.')}):' · '+t('st.extra')} · ${t('st.kg',{x:eur(gramPrice(id)*1000)})}</small></div><span></span><div class="bx">${btns}</div></div>`}).join('');
+  const top=tier===1?`<div class="card"><p class="sub" style="margin:0">${t('st.t1')}</p></div>`
+    :tier===2?`<div class="card"><div><h3>${t('st.t2')}</h3><div class="seg" style="margin-top:8px">${[1,3,7].map(d=>`<button data-act="restock" data-v="${d}" class="${state.restockDays===d?'on':''}">${t('st.days.n',{d})}${BULK[d]?` <small>−${Math.round(BULK[d]*100)}%</small>`:''}</button>`).join('')}</div><p class="sub">${t('st.t2d',{d:state.restockDays})}</p></div></div>`
+    :`<div class="card"><p class="sub" style="margin:0">${t('st.t3')}</p></div>${ids.length?`<div class="row">${[1,3,7].map(d=>`<button class="btn ${d===3?'primary':''}" data-act="stockfill" data-days="${d}">${t(d===1?'st.fill1':'st.fill',{d})}${BULK[d]?` (−${Math.round(BULK[d]*100)}%)`:''} · ${eur(fillCost(d))}</button>`).join('')}</div>`:''}`;
+  return `<div class="stack"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>${t('st.title')}</h2><p class="sub" style="color:var(--on-wood)">${t('st.lead',{n:plan})}</p></div><button class="btn ghost" data-tab-go="loja">${t('rm.back')}</button></div>
+  ${top}${ids.length?`<div class="stockrows">${rows}</div>`:`<div class="empty">${t('st.empty')}</div>`}</div>`;
+}
+
+/* ================= DEMAND CURVE (Menu) ================= */
+/* The day's choice model run on a fixed sample of customers, moving only this pizza's price: how many would
+   pick it, and the profit a day, capped by what the kitchen and the seats can serve. */
+function demandCurve(p){
+  const menuA=state.menu.map(q=>({p:q,a:analyze(q)})),me=menuA.find(m=>m.p===p),mix=segMix(),atm=roomA().atm,rv=state.rival,N=expectedCustomers(),TH=4.2,REG=.45;
+  let sd=12345;const rnd=()=>{sd=sd+0x6D2B79F5|0;let x=Math.imul(sd^sd>>>15,1|sd);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296};
+  const nz=()=>(rnd()+rnd()+rnd()-1.5)*1.6,cust=[];
+  for(let i=0;i<300;i++){let x=rnd(),seg='familia';for(const k in mix){x-=mix[k];if(x<=0){seg=k;break}}cust.push({seg,n:menuA.map(nz),rn:nz(),reg:rnd()<REG})}
+  const cap=Math.min(capacity(),roomA().seats*2.6);   // what the kitchen and the seats can serve in a day
+  const lo=Math.max(1,r2(me.a.cost)),hi=Math.max(lo+3,suggestPrice(me.a)*2),pts=[];
+  // profit is the whole menu's: a cheaper pizza also takes customers from the other pizzas, and they share the kitchen
+  for(let k=0;k<=30;k++){const price=lo+(hi-lo)*k/30,n=menuA.map(()=>0);
+    for(const c of cust){const ps=SEG[c.seg].ps,deco=(atm[c.seg]-35)/25+(state.rep-2.5)*.3;let bu=-1e9,bj=-1;
+      menuA.forEach((m,j)=>{const pr=m===me?price:m.p.price,ap=m.a.appeal[c.seg],u=ap/10-ps*(pr-fairPrice(ap,m.a.cost))+c.n[j]+deco;if(u>bu){bu=u;bj=j}});
+      const ra=clamp(rv.q+RIVAL_BIAS[c.seg],0,100),ru=ra/10-ps*(rv.price-fairPrice(ra))+c.rn;
+      if(bj>=0&&bu>=(c.reg?TH-2.5:Math.max(ru,TH)))n[bj]++}
+    const tot=n.reduce((x,y)=>x+y,0)/300*N,sc=tot>cap?cap/tot:1,u=n.map(x=>x/300*N*sc);
+    pts.push({price,units:u[menuA.indexOf(me)],profit:menuA.reduce((acc,m,j)=>acc+u[j]*((m===me?price:m.p.price)-m.a.cost),0)})}
+  return pts;
+}
+function drawCurves(){
+  document.querySelectorAll('canvas[data-dc]').forEach(cv=>{const p=state.menu.find(x=>x.id===cv.dataset.dc);if(!p)return;
+    const pts=demandCurve(p),W=Math.max(160,cv.parentElement.clientWidth||240),H=84,c=fitCanvas(cv,W,H),cost=analyze(p).cost;
+    const lo=pts[0].price,hi=pts[pts.length-1].price,mx=Math.max(1,...pts.map(q=>q.profit)),X=v=>4+(v-lo)/(hi-lo)*(W-8),Y=v=>H-14-Math.max(0,v)/mx*(H-24);
+    c.clearRect(0,0,W,H);c.fillStyle='rgba(46,123,44,.18)';c.beginPath();c.moveTo(X(lo),Y(0));pts.forEach(q=>c.lineTo(X(q.price),Y(q.profit)));c.lineTo(X(hi),Y(0));c.fill();
+    c.strokeStyle='#2e7b2c';c.lineWidth=2;c.beginPath();pts.forEach((q,i)=>i?c.lineTo(X(q.price),Y(q.profit)):c.moveTo(X(q.price),Y(q.profit)));c.stroke();
+    const best=pts.reduce((a,b)=>b.profit>a.profit?b:a),cur=pts.reduce((a,b)=>Math.abs(b.price-p.price)<Math.abs(a.price-p.price)?b:a);
+    c.setLineDash([3,3]);c.strokeStyle='#6c5233';c.beginPath();c.moveTo(X(best.price),4);c.lineTo(X(best.price),H-14);c.stroke();c.setLineDash([]);
+    const px=X(clamp(p.price,lo,hi));c.strokeStyle='#c4352a';c.lineWidth=2;c.beginPath();c.moveTo(px,2);c.lineTo(px,H-14);c.stroke();
+    c.fillStyle='#6c5233';c.font="15px VT323, monospace";c.textBaseline='bottom';c.textAlign='left';c.fillText(eur(lo),2,H-1);c.textAlign='right';c.fillText(eur(hi),W-2,H-1);
+    const tx=document.querySelector(`[data-dct="${p.id}"]`);if(tx)tx.textContent=t('menu.dc',{n:Math.round(cur.units),x:eur(Math.round(cur.profit)).replace('.00',''),b:eur(Math.round(best.price*2)/2)});
+  })}
+
 /* ================= UI: SHOP ================= */
 const SHOP=[
-  {id:'oven',n:'Forno a lenha extra',d:'+28 pizzas por dia de capacidade de forno.',cost:()=>500+state.ovens*300,ok:()=>state.ovens<3,lvl:()=>`${state.ovens}/3 fornos`,buy:()=>{state.ovens++}},
-  {id:'cook',n:'Contratar pizzaiolo',d:`+20 pizzas por dia. Salário de $${SALARY} por dia.`,cost:()=>100,ok:()=>state.cooks<5,lvl:()=>`${state.cooks} na equipa`,buy:()=>{state.cooks++}},
-  {id:'deco',n:'Renovar a sala',d:'Azulejos novos e luz quente: atrai turistas e gourmets e deixa os clientes mais satisfeitos.',cost:()=>[400,900,1600][state.deco],ok:()=>state.deco<3,lvl:()=>`Nível ${state.deco}/3`,buy:()=>{state.deco++}},
+  {id:'oven',n:'Forno a lenha extra',d:`+${OVEN_CAP} pizzas por dia de capacidade de forno.`,cost:()=>500+state.ovens*300,ok:()=>state.ovens<3,lvl:()=>`${state.ovens}/3 fornos`,buy:()=>{state.ovens++}},
+  {id:'cook',n:'Contratar pizzaiolo',mgr:1,d:`+${COOK_CAP} pizzas por dia. Salário de $${SALARY} por dia.`,cost:()=>100,ok:()=>state.cooks<5,lvl:()=>`${state.cooks} na equipa`,buy:()=>{state.cooks++}},
   {id:'ads',n:'Folhetos no bairro',d:'No próximo dia aparecem cerca de 45% mais clientes na rua.',cost:()=>120,ok:()=>!state.ads,lvl:()=>state.ads?'Ativo no próximo dia':'Efeito de 1 dia',buy:()=>{state.ads=true}},
   {id:'local',n:'Fornecedor: Mercado Local',d:'Desbloqueia chouriço, piri-piri e ovo.',cost:()=>200,ok:()=>!state.unlocked.includes('local'),lvl:()=>state.unlocked.includes('local')?'Comprado':'3 ingredientes',buy:()=>{state.unlocked.push('local')}},
   {id:'gourmet',n:'Fornecedor: Delicatessen',d:'Desbloqueia bacalhau, queijo da Serra, presunto, mel e rúcula.',cost:()=>450,ok:()=>!state.unlocked.includes('gourmet'),lvl:()=>state.unlocked.includes('gourmet')?'Comprado':'5 ingredientes',buy:()=>{state.unlocked.push('gourmet')}}
 ];
 function shopHTML(){
   return `<div class="stack"><div><h2>Loja</h2><p class="sub">Investe na pizzaria. Tens ${eur(state.money)} em caixa.</p></div>
-  <div class="shop">${SHOP.map(it=>{const c=it.cost();const ok=it.ok();return `<div class="card"><div class="row" style="justify-content:space-between"><h3>${it.n}</h3><span class="tag">${it.lvl()}</span></div><p class="sub">${it.d}</p>
+  <div class="card"><div><h3>${t('mg.title')}</h3><p class="sub">${t('mg.lead')}</p><div class="modepick" style="margin-top:8px">${[1,2,3].map(k=>`<button data-act="tier" data-v="${k}" aria-pressed="${state.tier===k}"><b>${t('mg.t'+k)}</b><span>${t('mg.t'+k+'d',{f:eur(TIER_FEE[k]).replace('.00','')})}</span></button>`).join('')}</div></div></div>
+  <div class="shop">${state.tier===1?'':`<div class="card"><div class="row" style="justify-content:space-between"><h3>${t('st.title')}</h3><span class="tag">${t('mg.t'+state.tier)}</span></div><p class="sub">${t('st.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="stock">${t('st.title')}</button></div></div>`}<div class="card"><div class="row" style="justify-content:space-between"><h3>${t('rm.title')}</h3><span class="tag">${t('rm.seats',{n:roomA().seats})}</span></div><p class="sub">${t('rm.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="sala">${t('rm.title')}</button></div></div>${SHOP.map(it=>{const c=it.cost(),byMgr=it.mgr&&state.tier===1;const ok=it.ok()&&!byMgr;return `<div class="card"><div class="row" style="justify-content:space-between"><h3>${it.n}</h3><span class="tag">${byMgr?t('mg.hires'):it.lvl()}</span></div><p class="sub">${it.d}</p>
     <div class="foot"><b class="num">${ok?eur(c):''}</b><div class="row">${it.id==='cook'&&state.cooks>1?'<button class="btn sm ghost" data-act="fire">Dispensar um</button>':''}<button class="btn ${ok?'primary':''}" data-act="buy" data-id="${it.id}" ${ok&&state.money>=c?'':'disabled'}>${ok?'Comprar':'Feito'}</button></div></div></div>`}).join('')}
   </div>
   <div class="card"><h3>Em breve</h3><p class="sub">Mapa da cidade com bairros diferentes, segunda loja, entregas ao domicílio e mais concorrentes. Ficam para a próxima versão do protótipo.</p></div>
@@ -1443,11 +1792,11 @@ function contestHTML(){
   const base=Math.round(Math.min(92,50+cd*1.1));
   return `<div class="stack">
     <div class="card stack"><span class="lbl">${left===0?'Hoje':left===1?'Amanhã':'Daqui a '+left+' dias'} · dia ${cd} (${wdName(cd)})</span><h2>${th.n}</h2><p class="sub" style="margin:0">${th.d}</p>
-      <dl class="kv"><dt>1.º lugar</dt><dd>$600 e +0,4★</dd><dt>2.º lugar</dt><dd>$250 e +0,2★</dd><dt>3.º lugar</dt><dd>$80 e +0,1★</dd><dt>Inscrição</dt><dd>$${ENTRY_FEE}</dd><dt>Os rivais rondam</dt><dd>${base-8} a ${base+8} pts</dd></dl>
+      <dl class="kv"><dt>Primeiro lugar</dt><dd>$600 e +0,4★</dd><dt>Segundo lugar</dt><dd>$250 e +0,2★</dd><dt>Terceiro lugar</dt><dd>$80 e +0,1★</dd><dt>Inscrição</dt><dd>$${ENTRY_FEE}</dd><dt>Os rivais rondam</dt><dd>${base-8} a ${base+8} pts</dd></dl>
     </div>
     <div><h3>Escolhe a pizza a concurso</h3><p class="sub">${state.contestEntry?'Podes trocar de pizza sem pagar de novo.':'Pagas a inscrição ao escolher.'} O júri avalia ao fecho do dia ${cd}.</p></div>
     ${state.menu.length?`<div class="picks">${picks}</div>`:'<div class="empty">Precisas de pizzas no menu.</div>'}
-    <div class="card"><h3>Histórico</h3>${state.contestLog.length?`<table class="rank">${state.contestLog.slice(0,6).map(l=>`<tr><td>Dia ${l.day} · ${l.theme}<br><span class="sub">${esc(l.pizza)}</span></td><td>${l.pos}.º${l.prize?' · '+eur(l.prize):''}</td></tr>`).join('')}</table>`:'<p class="sub">Ainda não participaste em nenhum concurso.</p>'}</div>
+    <div class="card"><h3>Histórico</h3>${state.contestLog.length?`<table class="rank">${state.contestLog.slice(0,6).map(l=>`<tr><td>Dia ${l.day} · ${l.theme}<br><span class="sub">${esc(l.pizza)}</span></td><td>lugar ${l.pos}${l.prize?' · '+eur(l.prize):''}</td></tr>`).join('')}</table>`:'<p class="sub">Ainda não participaste em nenhum concurso.</p>'}</div>
   </div>`;
 }
 
@@ -1494,6 +1843,10 @@ function maybeAskInstall(){
   document.body.append(el);
 }
 function hideInstallAsk(){const el=$('#instask');if(el)el.remove()}
+/* Advanced analytics: off by default so the Menu stays simple for children (quality, cost, margin, sold
+   yesterday); on, it adds the fair price and the profit-by-price chart. Kept in localStorage, apart from the save. */
+const ADV={on:()=>{try{return localStorage.getItem('pm-adv')==='1'}catch(_){return false}},
+  set:v=>{try{localStorage.setItem('pm-adv',v?'1':'0')}catch(_){}}};
 /* ================= OPTIONS ================= */
 /* Names, save file download/import and reset. The save file is the same JSON kept in localStorage. */
 function showOptions(){
@@ -1514,6 +1867,8 @@ function showOptions(){
       <div class="field"><label class="lbl" for="musVol">${t('mus.vol')}: <span id="musVolTxt">${t('mus.v'+MUSIC.volume())}</span></label>
         <input id="musVol" type="range" min="1" max="5" step="1" value="${MUSIC.volume()}" style="width:100%;accent-color:var(--tomato)">
         <div class="row" style="justify-content:space-between;font-size:.75rem;color:var(--muted)"><span>${t('mus.v1')}</span><span>${t('mus.v5')}</span></div></div></section>
+    <section><h3>${t('adv.title')}</h3><p class="sub" style="margin:0">${t('adv.lead')}</p>
+      <div class="seg" role="radiogroup">${[0,1].map(v=>`<button data-act="adv" data-v="${v}" class="${+ADV.on()===v?'on':''}" role="radio" aria-checked="${+ADV.on()===v}">${t(v?'adv.on':'adv.off')}</button>`).join('')}</div></section>
     <section><h3>${t('opt.reset')}</h3><p class="sub" style="margin:0">${t('opt.resetlead')}</p>
       <div class="row"><button class="btn danger" data-act="optreset">${t('opt.reset')}</button></div></section>
     <button class="btn ghost" data-act="close">${t('share.close')}</button></div>`);
@@ -1580,11 +1935,11 @@ function shareCard(p,name){
   c.textAlign='center';
   c.fillStyle='#2c1a0b';c.font='bold 60px Silkscreen, monospace';
   const tl=wrapLines(c,name.toUpperCase(),W-200).slice(0,2);tl.forEach((l,i)=>c.fillText(l,W/2,(tl.length>1?175:205)+i*66));   // recipe name is the headline
-  c.font='34px "Pixelify Sans", sans-serif';c.fillStyle='#6c5233';
+  c.font='52px VT323, monospace';c.fillStyle='#6c5233';
   c.fillText(DOUGHS[p.dough].n+' · '+SAUCES[p.sauce].n,W/2,900);
-  c.fillStyle='#2c1a0b';c.font='38px "Pixelify Sans", sans-serif';
+  c.fillStyle='#2c1a0b';c.font='56px VT323, monospace';
   wrapLines(c,recipeIngs(p).join(' · '),W-200).slice(0,3).forEach((l,i)=>c.fillText(l,W/2,970+i*50));
-  const by=chefLine(p);if(by){c.fillStyle='#7a4520';c.font='bold 36px "Pixelify Sans", sans-serif';c.fillText(by,W/2,1138)}
+  const by=chefLine(p);if(by){c.fillStyle='#7a4520';c.font='54px VT323, monospace';c.fillText(by,W/2,1138)}
   c.fillStyle='#c4352a';c.fillRect(60,H-170,W-120,110);c.fillStyle='#fff1d2';c.font='bold 40px Silkscreen, monospace';c.fillText(SITE.toUpperCase(),W/2,H-100);
   return cv;
 }
@@ -1603,17 +1958,23 @@ async function sharePizza(p,name){
 }
 function modal(html){$('#mbox').innerHTML=html;$('#modal').hidden=false;const b=$('#mbox button');if(b)b.focus()}
 function closeModal(){$('#modal').hidden=true}
+// the day's sales by pizza: how many, takings and what each one left after its ingredients (best seller first)
+function salesTable(r){
+  if(!state.menu.length)return '';
+  const rows=state.menu.map(p=>{const n=r.sales[p.id]||0,c=analyze(p).cost;return {p,n,v:n*p.price,m:n*(p.price-c)}}).sort((a,b)=>b.n-a.n);
+  const top=Math.max(1,rows[0].n);
+  return `<h3 style="margin:4px 0 0">${t('rep.sales')}</h3><table class="rank sales"><tr><th></th><th>${t('rep.n')}</th><th>${t('rep.v')}</th><th>${t('rep.m')}</th></tr>${rows.map(x=>`<tr><td>${esc(x.p.name)}<i style="width:${Math.round(x.n/top*100)}%"></i></td><td>${x.n}</td><td>${eur(x.v)}</td><td style="color:${x.m>=0?'var(--good)':'var(--bad)'}">${eur(x.m)}</td></tr>`).join('')}</table>`}
 function showReport(r){
   const c=r.contest;
-  modal(`<span class="lbl">Fecho do dia ${r.day} · ${wdName(r.day)}</span><h2>${r.profit>=0?'Dia com lucro':'Dia no vermelho'}: ${eur(r.profit)}</h2>
-  <div class="pl"><span>Clientes servidos</span><span>${r.served} de ${r.N} na rua</span><span>Foram à ${esc(state.rival.name)}</span><span>${r.toRival}</span><span>Desistiram na fila</span><span>${r.full}</span><span>Satisfeitos / desiludidos</span><span>${r.happy} / ${r.unhappy}</span></div>
-  <div class="pl"><span>Vendas</span><span>${eur(r.revenue)}</span><span>Ingredientes</span><span>${eur(-r.ingCost)}</span><span>Renda</span><span>${eur(-RENT)}</span><span>Salários</span><span>${eur(-r.sal)}</span><span class="tot">Resultado</span><span class="tot" style="color:${r.profit>=0?'var(--good)':'var(--bad)'}">${eur(r.profit)}</span></div>
-  <p style="margin:0">Reputação: ${r.repBefore.toFixed(2).replace('.',',')} → <b>${r.repAfter.toFixed(2).replace('.',',')}</b>★</p>
-  ${state.menu.length?`<div class="pl">${state.menu.map(p=>`<span>${esc(p.name)}</span><span>${r.sales[p.id]||0} vendidas</span>`).join('')}</div>`:''}
+  modal(`<span class="lbl">${t('rep.close',{d:r.day,w:wdName(r.day)})}</span><h2>${t(r.profit>=0?'rep.good':'rep.bad')}: ${eur(r.profit)}</h2>
+  <div class="pl"><span>${t('rep.served')}</span><span>${t('rep.ofN',{n:r.served,N:r.N})}</span><span>${t('rep.rival',{x:esc(state.rival.name)})}</span><span>${r.toRival}</span><span>${t('rep.full')}</span><span>${r.full}</span><span>${t('rep.noseat')}</span><span>${r.noseat||0}</span>${r.nostock?`<span>${t('st.soldout')}</span><span>${r.nostock}</span>`:''}<span>${t('rep.happy')}</span><span>${r.happy} / ${r.unhappy}</span></div>
+  <div class="pl"><span>${t('rep.revenue')}</span><span>${eur(r.revenue)}</span><span>${t('rep.ing')}</span><span>${eur(-r.ingCost)}</span>${r.bought?`<span class="sub">${t('st.rep.manager',{x:eur(r.bought)})}</span><span></span>`:''}${r.paidBefore?`<span class="sub">${t('st.rep.pantry',{x:eur(r.paidBefore)})}</span><span></span>`:''}<span>${t('rep.rent')}</span><span>${eur(-RENT)}</span><span>${t('rep.sal')}</span><span>${eur(-r.sal)}</span>${r.fee?`<span>${t('mg.fee')}</span><span>${eur(-r.fee)}</span>`:''}<span class="tot">${t('rep.result')}</span><span class="tot" style="color:${r.profit>=0?'var(--good)':'var(--bad)'}">${eur(r.profit)}</span></div>
+  <p style="margin:0">${t('rep.rep')}: ${r.repBefore.toFixed(2).replace('.',',')} → <b>${r.repAfter.toFixed(2).replace('.',',')}</b>★</p>
+  ${salesTable(r)}
   ${r.quotes.map(([s,q])=>`<div class="quote"><small>${SEG[s].n}</small>“${esc(q)}”</div>`).join('')}
-  ${c?`<h3>${c.th.n}: ${c.pos}.º lugar${c.prize?' · +'+eur(c.prize):''}</h3>${c.dq?`<p class="sub">Desclassificada: ${c.dq}.</p>`:''}<table class="rank">${c.rows.map((x,i)=>`<tr class="${x.me?'me':''}"><td>${i+1}. ${esc(x.n)}</td><td>${x.s}</td></tr>`).join('')}</table>`:''}
-  ${r.full>3?'<p class="sub">Dica: perdeste clientes na fila. Contrata um pizzaiolo ou compra um forno.</p>':r.toRival>r.served?'<p class="sub">Dica: a concorrência ganhou hoje. Revê preços ou melhora as receitas.</p>':''}
-  <button class="btn primary big" data-act="closereport">Continuar</button>`);
+  ${c?`<h3>${c.th.n}: lugar ${c.pos}${c.prize?' · +'+eur(c.prize):''}</h3>${c.dq?`<p class="sub">Desclassificada: ${c.dq}.</p>`:''}<table class="rank">${c.rows.map((x,i)=>`<tr class="${x.me?'me':''}"><td>${i+1}. ${esc(x.n)}</td><td>${x.s}</td></tr>`).join('')}</table>`:''}
+  ${(r.nostock||0)>3?`<p class="sub">${t('st.tip.soldout')}</p>`:(r.noseat||0)>3?`<p class="sub">${t('rep.tip.seats')}</p>`:r.full>3?`<p class="sub">${t('rep.tip.queue')}</p>`:r.toRival>r.served?`<p class="sub">${t('rep.tip.rival')}</p>`:''}
+  <button class="btn primary big" data-act="closereport">${t('rep.go')}</button>`);
 }
 function afterReport(){
   closeModal();
@@ -1625,21 +1986,24 @@ function showIntro(){modal(`<h2>Bem-vindo à Pizza Magna</h2><p style="margin:0"
   <li><b>Menu:</b> as pizzas que quiseres. Põe preços que cada público aceite pagar.</li>
   <li><b>Abrir:</b> vê os clientes a escolher entre ti e o rival. A reputação sobe com clientes satisfeitos.</li>
   <li><b>Loja e Concursos:</b> investe em fornos, equipa e ingredientes, e ganha prémios a cada 5 dias.</li></ol>
-  <p class="sub" style="margin:0">Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a 2.ª loja.</p>
+  <p class="sub" style="margin:0">Objetivo: $${GOAL_MONEY.toLocaleString('en-US')} e ${GOAL_REP}★ para abrir a segunda loja.</p>
   <button class="btn primary big" data-act="close">Começar</button>`)}
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 
 /* ================= RENDER + EVENTS ================= */
 function render(){
   renderHeader();
-  const V={cozinha:kitchenHTML,menu:menuHTML,dia:dayHTML,loja:shopHTML,concurso:contestHTML};
+  const V={cozinha:kitchenHTML,menu:menuHTML,dia:dayHTML,loja:shopHTML,concurso:contestHTML,sala:roomEdHTML,stock:stockHTML};
   if(anim)state.tab='dia';
   $('#view').innerHTML=V[state.tab]();
-  document.querySelectorAll('#nav button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===state.tab);b.disabled=!!anim&&b.dataset.tab!=='dia'});
+  document.querySelectorAll('#nav button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===state.tab||((state.tab==='sala'||state.tab==='stock')&&b.dataset.tab==='loja'));b.disabled=!!anim&&b.dataset.tab!=='dia'});
   pz=null;room=null;
   if(state.tab==='cozinha'){setupPizzaCanvas();drawIngIcons();updateAnalysis()}
   if(state.tab==='menu'||state.tab==='concurso')drawMinis();
+  if(state.tab==='menu')drawCurves();
   if(state.tab==='dia')drawRoom();
+  if(state.tab==='sala')setupRoomEditor();
+  if(state.tab==='stock')drawIngIcons();
   save();
 }
 /* Analytics (GoatCounter): page views come by themselves; these are the button events worth counting.
@@ -1647,7 +2011,7 @@ function render(){
 const TRACK={zoom:a=>state.zoom?'zoom-on':'zoom-off',share:'photo-download',recshare:'recipe-share',recsend:'recipe-send',reccopy:'recipe-copy-link',
   recfile:'recipe-file',recimport:'import-open',options:'options',chef:'change-names',savechef:'start-names',quickstart:'start-quick',
   mute:()=>MUSIC.isOn()?'music-on':'music-mute',musictoggle:()=>MUSIC.isOn()?'music-on':'music-off',musicnext:'music-next',
-  lang:b=>'lang-'+b.dataset.v,fullscreen:'fullscreen',exportsave:'save-download',optreset:'reset',newdraft:'new-pizza',install:'install',instlater:'install-later',
+  lang:b=>'lang-'+b.dataset.v,fullscreen:'fullscreen',exportsave:'save-download',optreset:'reset',newdraft:'new-pizza',tier:b=>'tier-'+b.dataset.v,restock:b=>'restock-'+b.dataset.v,stockfill:b=>'stock-fill-'+b.dataset.days,install:'install',instlater:'install-later',
   clear:'clear',undo:'undo',rotate:'rotate',edit:'edit-pizza',rm:'remove-pizza',open:'open-day',buy:'shop-buy',enter:'contest-enter'};
 function track(ev,tries=0){try{if(window.goatcounter&&goatcounter.count)goatcounter.count({path:'ev/'+ev,title:ev,event:true});
   else if(tries<20)setTimeout(()=>track(ev,tries+1),500)}catch(_){}}   // the script loads async: early events wait for it
@@ -1683,7 +2047,7 @@ const ACT={
   pdn:b=>{const p=state.menu.find(x=>x.id===b.dataset.id);p.price=Math.max(1,r2(p.price-.5));render()},
   edit:b=>{const p=state.menu.find(x=>x.id===b.dataset.id);state.draft={name:p.name,dough:p.dough,sauce:p.sauce,pieces:p.pieces.map(x=>({...x})),from:p.from,fromSig:p.fromSig,editing:p.id};go('cozinha')},
   rm:b=>{if(!b.dataset.armed){b.dataset.armed='1';b.textContent=t('menu.confirm');setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=t('menu.remove')}},3000);return}state.menu=state.menu.filter(p=>p.id!==b.dataset.id);if(state.contestEntry===b.dataset.id)state.contestEntry=null;render()},
-  open:()=>startDay(),
+  open:()=>startDay(false),
   speed:b=>{if(anim){anim.speed=+b.dataset.v;$('#dayctl').innerHTML=runCtlHTML()}},
   skip:()=>{if(!anim)return;let guard=0;while(!anim.done&&guard++<20000)step(.1);endAnim()},
   buy:b=>{const it=SHOP.find(x=>x.id===b.dataset.id);const c=it.cost();if(!it.ok()||state.money<c)return;state.money=r2(state.money-c);it.buy();toast(`${it.n}: feito.`);render()},
@@ -1708,6 +2072,7 @@ const ACT={
   musictoggle:b=>{const on=MUSIC.toggle();drawMute();b.textContent=on?t('mus.off'):t('mus.on');const n=$('#musNow');if(n)n.textContent=on?t('mus.waiting'):t('mus.offlead')},
   musicnext:()=>{MUSIC.next();drawMute();const b=$('[data-act="musictoggle"]');if(b)b.textContent=t('mus.off')},
   exportsave:()=>exportSave(),
+  adv:b=>{ADV.set(b.dataset.v==='1');showOptions();render()},
   optreset:b=>{if(!b.dataset.armed){b.dataset.armed='1';b.textContent=t('opt.sure');setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent=t('opt.reset')}},3500);return}
     const keep={chef:state.chef,shop:state.shop};state=freshState();Object.assign(state,keep);state.seenIntro=true;save();closeModal();render();toast(t('opt.wasreset'))},
   quickstart:()=>{$('#chefName').value=DEF_CHEF;$('#shopName').value=DEF_SHOP;ACT.savechef()},
@@ -1715,6 +2080,14 @@ const ACT={
     state.chef=c;state.shop=sh;save();closeModal();toast(t('chef.hello',{c}));
     if(!state.seenIntro){state.seenIntro=true;save();showIntro()}},
   close:()=>closeModal(),
+  tier:b=>{state.tier=+b.dataset.v;render()},
+  restock:b=>{state.restockDays=+b.dataset.v;render()},
+  openfill:()=>{closeModal();ACT.stockfill({dataset:{days:3}});startDay(false)},   // asks again only if the money didn't stretch
+  openauto:()=>{state.tier=2;startDay(true)},
+  openanyway:()=>startDay(true),
+  stockbuy:b=>{const id=b.dataset.id,d=+b.dataset.days,need=dailyNeed()[id]||0,price=r2(Math.ceil(need*d/10)*10*gramPrice(id)*(1-BULK[d]));
+    if(state.money<price){toast(t('rm.nomoney'));return}state.money=r2(state.money-buyStock(id,need*d,d));toast(t('st.bought',{x:eur(price)}));render()},
+  stockfill:b=>{const d=+b.dataset.days,total=fillCost(d);if(state.money<total){toast(t('rm.nomoney'));return}const c=fillStock(d,false);toast(t('st.bought',{x:eur(c)}));render()},
   install:()=>installGame(),
   instlater:()=>{try{localStorage.setItem('pm-install-asked','1')}catch(_){}hideInstallAsk()}
 };
@@ -1753,6 +2126,9 @@ function start(data){
   document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n)});   // static labels (nav)
   state=(data&&data.state)||load()||freshState();
   if(state.over){state=freshState();state.seenIntro=true}
+  if(!state.room||!Array.isArray(state.room.items))state.room=starterRoom(state.deco||0);
+  if(!state.banana2){for(const p of [...state.menu,state.draft])for(const x of p.pieces||[])if(x.i==='banana'&&!x.g)x.g=1;state.banana2=true}   // the whole banana used to be a slice: those become chopped
+  if(!state.stock)state.stock={};if(!state.tier)state.tier=state.stockMode==='manual'?3:2;if(!state.restockDays)state.restockDays=3;delete state.stockMode;   // old saves keep running their own prices
   for(const p of state.menu){if(!p.from&&state.chef)p.from=meNow();if(p.from&&!p.fromSig)p.fromSig=pizzaSig(p)}   // old saves: sign the menu as it is now
   if(PHONE&&state.zoom==null)state.zoom=true;   // phones start on the big pizza; the player can still leave zoom
   if(SANDBOX){

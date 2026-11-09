@@ -10,6 +10,8 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
   - `= DRAWING`: atlas, `spr()`, rotating pieces (`turned()`), `composePizza()` (pieces are drawn in the order they were placed)
   - `= UI: KITCHEN =` and `-- the pizza bench`: the bench (320 wide, with a title strip on top; zoom mode), the bowls, `addPiece()`, `rotatePiece()`, `GRAMS` and `portion()` (weights)
   - `= UI: DAY =`, `-- simulation`, `-- restaurant room`: the day, the customers and the tiled room (32 px tiles, art and piece layouts from `assets/room.js`)
+  - `-- room design` (state.room: pieces, seats, atmosphere per customer group, `roomAnalyse()`), `= UI: ROOM EDITOR =` (Shop › Decorate the room)
+  - `-- stock` (pantry by weight: `state.stock`, nothing spoils) and who runs the pizzeria, `state.tier`: 1 the manager runs everything (buys at +25%, sets prices, hires; `TIER_FEE`), 2 a buyer refills the pantry every morning for `restockDays`, 3 the player does everything; `managerMorning()`, `= UI: PANTRY =` (Shop › Pantry), `= DEMAND CURVE =` (the whole menu's profit by one pizza's price; shown in the Menu only with Options › Advanced analytics, `ADV`, `pm-adv` in `localStorage`; by default the Menu shows just quality, cost, margin and sold yesterday)
   - `= UI: SHOP =`, `= UI: CONTEST =`, `= MODALS =`, `= RECIPES: LINK, FILE, IMPORT =`, `= SHARE =`
   - `= RENDER + EVENTS =`: `render()` and the button actions (`ACT`), plus `TRACK` (analytics events)
 - `music.js`: 8-bit / lo-fi Italian music, synthesised with Web Audio (no sound files). Each tune is text: one note per eighth, `-` holds, `.` is silence. Lead, bass and harmony must have the same number of steps per part. Tunes play in a fixed order ("Next song" in Options). The public-domain classics come from ABC sheet music (abcnotation.com), converted with `tools/abc2music.py`. The on/off preference lives in `localStorage` (`pm-music`), apart from the save.
@@ -28,6 +30,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 - **Language of the repo:** documentation (`.md`), commit messages and new code comments in English, so the repo can be shared with English-speaking colleagues. Only game text in `I18N` (and Portuguese names like francesinha or alheira) stays in Portuguese. Reply to the user in the language they write in (they usually write Portuguese, pt-PT).
 - **Saves:** state goes to `localStorage` (`massa-mestra-v1`); pieces are stored compactly (`packPieces`, 5 bytes per piece), the same format as recipe links (`#p=`) and `.pizza` files. No limit on pizzas in the menu; up to 300 pieces per pizza. New fields need a default value, so old saves still open.
 - **Analytics:** GoatCounter (`pizzamagna.goatcounter.com`). Buttons worth counting are in `TRACK` and arrive as `ev/<name>` events; a new button worth counting goes there. Never send names or recipes.
+- **Fonts:** body text and numbers are VT323 (the clearest digits at small sizes; body text is enlarged with `font-size-adjust`, other fonts reset it); titles and buttons Silkscreen. Don't use Pixelify Sans: its digits muddle at small sizes (2/8, 5/S). Write ordinals as words (segunda, primeiro lugar).
 - Don't add dependencies or build steps.
 
 ## Testing

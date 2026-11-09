@@ -28,6 +28,7 @@ sys.argv = sys.argv[:1] + [os.path.join(HERE, '..', 'preview')]     # the genera
 import gen_ingredients as G
 import gen_ingredients2 as G2
 import gen_ingredients3 as G3
+import gen_ingredients20 as G20
 import gen_ingredients4 as G4
 import gen_ingredients5 as G5
 import gen_ingredients6 as G6
@@ -109,7 +110,7 @@ INGS = {
     'padron':       (G9.padron,     ('padron', 'flake', 40)),
     'pinhoes':      (G9.pinenuts,   None),
     'nutella':      (G10.nutella,   None),
-    'banana':       (G10.banana,    ('banana', 'cube', 11)),
+    'banana':       (G20.banana,    G20.banana_slices),          # whole banana; chopped = the slices
     'feta':         (G10.feta,      ('feta', 'flake', 40)),
     'farinheira':   (G10.farinheira, ('farin', 'cube', 11)),
     'ameijoas':     (G10.clam,      ('clammeat', 'chunk', 9)),
@@ -156,6 +157,7 @@ INGS = {
     'amora':        (G19.blackberry, G19.blackberry_halves),
     'mirtilo':      (G19.blueberry, G19.blueberry_halves),
     'framboesa':    (G19.raspberry, G19.raspberry_halves),
+    'coxa':         (G20.drumstick, G20.drumstick_chunk),
 }
 # chopped forms that lie flat (melted cheese): no drop shadow, so handfuls side by side make one even surface
 NO_DROP = {'mozzarella'}
@@ -186,6 +188,8 @@ ROTATE = {
     'frankfurt': lambda: G16.frankfurt(1, ang=0),  # 2: the same end to end
     'lagosta': lambda: G17.lobster(1, ang=0),      # 4: claws one way, tail the other
     'ribs': lambda: G17.rib(1, ang=0),             # 4: the bone sticks out at one end
+    'coxa': lambda: G20.drumstick(1, ang=0),       # 4: the bone sticks out at one end
+    'banana': lambda: G20.banana(1, ang=0),        # 4: a smile, a frown, or on its side
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
