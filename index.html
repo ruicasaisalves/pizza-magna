@@ -946,7 +946,7 @@ function pantryHTML(){
   if(MINI_PANTRY)return miniPantryHTML(cat);
   const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}">${t('cat.'+c)} <small>${Object.keys(ING).filter(k=>ingCat(k)===c).length}</small></button>`).join('');
   const ids=Object.keys(ING).filter(k=>ingCat(k)===cat).sort((a,b)=>(FAV.includes(b)-FAV.includes(a))||FAV.indexOf(a)-FAV.indexOf(b)||ING[a].n.localeCompare(ING[b].n,LANG));   // the classics first, then A to Z in the player's language
-  const ings=ids.map(k=>{const v=ING[k];return `<button class="ing ${state.sel===k?'on':''}" data-act="ing" data-v="${k}"><canvas data-ing="${k}" width="32" height="32"></canvas>${esc(v.n)}<small>${locked?esc(PACKS[v.pack]):eur(v.c)}</small></button>`}).join('');
+  const ings=ids.map(k=>{const v=ING[k];return `<button class="ing ${state.sel===k?'on':''}" data-act="ing" data-v="${k}"><canvas data-ing="${k}" width="32" height="32"></canvas>${esc(v.n)}<small>${eur(ingC(k))}</small></button>`}).join('');
   return `<span class="lbl">${t('k.ings')}</span><div class="seg cats" role="tablist">${tabs}</div><div class="ings">${ings}</div>`;
 }
 // phone: pictures only, so a child can pick everything on the first screen; names stay in tooltips and for screen readers
