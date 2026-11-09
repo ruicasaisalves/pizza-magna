@@ -769,9 +769,8 @@ function freshState(){
 }
 let state;
 // test bench: only Kitchen and Menu, its own save (window.PM_SANDBOX or #sandbox)
-// the public site (pizzamagna.xyz / GitHub Pages) shows only the bench; the full game lives at /dev (dev/index.html sets PM_DEV)
-const LIVE_BENCH=!window.PM_DEV&&/(^|\.)pizzamagna\.xyz$|\.github\.io$/.test(location.hostname);
-const SANDBOX=LIVE_BENCH||!!window.PM_SANDBOX||/^#sandbox(&|$)/.test(location.hash);
+// the public site used to show only this bench (until the restaurant went live); its players' saves are adopted in load()
+const SANDBOX=!!window.PM_SANDBOX||/^#sandbox(&|$)/.test(location.hash);
 // phone: a finger is the main input and the screen is small; #phone (or #sandbox&phone) forces it for testing on a PC
 const PHONE=/[#&]phone(&|$)/.test(location.hash)||(matchMedia('(pointer: coarse)').matches&&Math.min(screen.width,screen.height)<600);
 document.documentElement.classList.toggle('phone',PHONE);
@@ -793,7 +792,11 @@ function unpackPieces(str,max=Infinity){const [ids,b]=String(str).split('|'),idl
 const packState=st=>JSON.stringify(st,(k,v)=>k==='pieces'&&Array.isArray(v)?packPieces(v):v);
 function unpackState(st){for(const p of [...(st.menu||[]),st.draft].filter(Boolean))if(typeof p.pieces==='string'){try{p.pieces=unpackPieces(p.pieces)}catch(_){p.pieces=[]}}return st}
 function save(){try{state.savedAt=Date.now();localStorage.setItem(SAVE_KEY,packState(state))}catch(e){}}
-function load(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&s.v===1)return unpackState(s)}catch(e){}return null}
+function load(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&s.v===1)return unpackState(s)}catch(e){}
+  // the public site was bench-only and saved under the bench key: a player with no full-game save keeps their
+  // chef, pizzas and combos and starts the restaurant on day 1 (the bench never changed day, money or the room)
+  if(!SANDBOX)try{const s=JSON.parse(localStorage.getItem('massa-mestra-sandbox-v1'));if(s&&s.v===1){s.seenIntro=false;s.tab='cozinha';return unpackState(s)}}catch(e){}
+  return null}
 
 /* ================= PIZZA ANALYSIS ================= */
 function analyze(p){
@@ -2179,7 +2182,7 @@ function start(data){
   if(!state.chef)showChef();
   else if(!state.seenIntro){state.seenIntro=true;save();showIntro()}
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(!anim)render()});
-  if(/[#&]p=/.test(location.hash)){const h=location.hash;history.replaceState(null,'',location.href.split('#')[0]+(SANDBOX&&!LIVE_BENCH&&!window.PM_SANDBOX?'#sandbox':''));
+  if(/[#&]p=/.test(location.hash)){const h=location.hash;history.replaceState(null,'',location.href.split('#')[0]+(SANDBOX&&!window.PM_SANDBOX?'#sandbox':''));
     readRecipe(h).then(r=>{track('open-recipe-link');state.draft={...r,fromSig:pizzaSig(r),editing:null};if(state.tab!=='cozinha')state.tab='cozinha';render();save();toast(t('rec.got',{x:r.name,c:r.from.c}))}).catch(()=>toast(t('rec.bad')))}
 }
 window.claude?.hot?.snapshot?.(()=>({state}));
