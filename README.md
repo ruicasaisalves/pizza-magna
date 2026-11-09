@@ -16,7 +16,7 @@ Open `index.html` in a browser. No install and no server needed.
 - **Menu:** as many pizzas as you like, with adjustable prices; under each price a chart of the profit a day by price, with the best price marked.
 - **Sharing:** "Download photo" saves a picture card of the pizza. "Share recipe" makes a link (`#p=…`) or a `.pizza` file with every piece in place, signed by the original chef; "Import pizza" opens one.
 - **Open:** watch the dining room from above. Customers (students, families, tourists, gourmets) choose between you and Pizza Rápida, the rival.
-- **Shop:** ovens, pizzaiolos, flyers and suppliers of Portuguese and gourmet ingredients, and **Decorate the room**: buy and place tables, decor, wall pieces, floor and walls. Tables give the seats for the lunch and dinner rush; each style draws the customers who like it. **Who runs the pizzeria**: the manager (buys, sets prices and hires, for a daily fee), a buyer who refills the pantry every morning, or you; the more you run yourself, the more you earn. **Pantry**: toppings by the day, cheaper in bulk; nothing spoils.
+- **Shop:** ovens, pizzaiolos, flyers, the supplier (three quality levels: better toppings, dearer; every topping is always available), and **Decorate the room**: buy and place tables, decor, wall pieces, floor and walls. Tables give the seats for the lunch and dinner rush; each style draws the customers who like it. **Who runs the pizzeria**: the manager (buys, sets prices and hires, for a daily fee), a buyer who refills the pantry every morning, or you; the more you run yourself, the more you earn. **Pantry**: toppings by the day, cheaper in bulk; nothing spoils.
 - **Contest:** every 5 days there is a themed contest.
 
 Goal: $4,000 and 3★ to open the second restaurant.

@@ -10,7 +10,7 @@ Where Pizza Magna is today and what is still missing to make it a full pizzeria 
 | **Menu** | Unlimited pizzas, cost-based suggested price, adjustable prices. |
 | **Service day** | Top-down room (20×17 tiles), 4 customer groups choosing between you and the rival, weekday multiplier. |
 | **Competition** | One fixed rival (Pizza Rápida) with fixed quality and price, and a 2-for-1 promo every 6 days. |
-| **Shop** | Extra oven (up to 3), pizzaiolo (up to 5, $40/day), room renovation (levels 0–3, just a number), flyers (+45% customers for 1 day), 2 suppliers. |
+| **Shop** | Extra oven (up to 3), pizzaiolo (up to 5, $40/day), room renovation (levels 0–3, just a number), flyers (+45% customers for 1 day), supplier quality 1/2/3 (+0/+3/+6 quality, toppings ×1/×1.25/×1.5); no topping is locked. |
 | **Contest** | Every 5 days, 5 themes, prizes. |
 | **Goal** | $4,000 and 3★. |
 
