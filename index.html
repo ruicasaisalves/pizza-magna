@@ -11,6 +11,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=Pixelify+Sans:wght@400;600;700&display=swap">
 <style>
+/* Pixelify Sans draws 5 like an S or an 8 and 2 like a Z at small sizes: the digits 0-9 come from VT323
+   (assets/digits.woff2, only those ten glyphs; VT323 by Peter Hull, SIL Open Font License) and the browser
+   takes everything else from Pixelify Sans */
+@font-face{font-family:'PM Digits';src:url(assets/digits.woff2) format('woff2');unicode-range:U+0030-0039;size-adjust:120%;font-display:swap}
 /* Layout: 90s management-sim cabinet. Wood-panelled frames around every surface, parchment cards, a green-phosphor terminal for live numbers, brass push-buttons, pixel-art canvases scaled with nearest-neighbour */
 :root{
   --wood:#7a4520; --wood-hi:#a8692f; --wood-lo:#4a260f; --wood-deep:#2a1407;
@@ -20,7 +24,7 @@
   --tomato:#c4352a; --tomato-hi:#e8705a; --tomato-lo:#7e1d14; --good:#2e7b2c; --bad:#b02a1c; --cheese:#ffcf4a;
   --f-pixel:'Silkscreen','Courier New',monospace;
   --f-lcd:'VT323','Courier New',monospace;
-  --f-body:'Pixelify Sans','Trebuchet MS',system-ui,sans-serif;
+  --f-body:'PM Digits','Pixelify Sans','Trebuchet MS',system-ui,sans-serif;   /* digits from VT323, the rest Pixelify Sans */
   color-scheme:light;
 }
 html,body{height:100%}
@@ -1762,7 +1766,7 @@ function drawCurves(){
     const best=pts.reduce((a,b)=>b.profit>a.profit?b:a),cur=pts.reduce((a,b)=>Math.abs(b.price-p.price)<Math.abs(a.price-p.price)?b:a);
     c.setLineDash([3,3]);c.strokeStyle='#6c5233';c.beginPath();c.moveTo(X(best.price),4);c.lineTo(X(best.price),H-14);c.stroke();c.setLineDash([]);
     const px=X(clamp(p.price,lo,hi));c.strokeStyle='#c4352a';c.lineWidth=2;c.beginPath();c.moveTo(px,2);c.lineTo(px,H-14);c.stroke();
-    c.fillStyle='#6c5233';c.font='11px "Pixelify Sans", sans-serif';c.textBaseline='bottom';c.textAlign='left';c.fillText(eur(lo),2,H-1);c.textAlign='right';c.fillText(eur(hi),W-2,H-1);
+    c.fillStyle='#6c5233';c.font='11px "PM Digits", "Pixelify Sans", sans-serif';c.textBaseline='bottom';c.textAlign='left';c.fillText(eur(lo),2,H-1);c.textAlign='right';c.fillText(eur(hi),W-2,H-1);
     const tx=document.querySelector(`[data-dct="${p.id}"]`);if(tx)tx.textContent=t('menu.dc',{n:Math.round(cur.units),x:eur(Math.round(cur.profit)).replace('.00',''),b:eur(Math.round(best.price*2)/2)});
   })}
 
@@ -1934,11 +1938,11 @@ function shareCard(p,name){
   c.textAlign='center';
   c.fillStyle='#2c1a0b';c.font='bold 60px Silkscreen, monospace';
   const tl=wrapLines(c,name.toUpperCase(),W-200).slice(0,2);tl.forEach((l,i)=>c.fillText(l,W/2,(tl.length>1?175:205)+i*66));   // recipe name is the headline
-  c.font='34px "Pixelify Sans", sans-serif';c.fillStyle='#6c5233';
+  c.font='34px "PM Digits", "Pixelify Sans", sans-serif';c.fillStyle='#6c5233';
   c.fillText(DOUGHS[p.dough].n+' · '+SAUCES[p.sauce].n,W/2,900);
-  c.fillStyle='#2c1a0b';c.font='38px "Pixelify Sans", sans-serif';
+  c.fillStyle='#2c1a0b';c.font='38px "PM Digits", "Pixelify Sans", sans-serif';
   wrapLines(c,recipeIngs(p).join(' · '),W-200).slice(0,3).forEach((l,i)=>c.fillText(l,W/2,970+i*50));
-  const by=chefLine(p);if(by){c.fillStyle='#7a4520';c.font='bold 36px "Pixelify Sans", sans-serif';c.fillText(by,W/2,1138)}
+  const by=chefLine(p);if(by){c.fillStyle='#7a4520';c.font='bold 36px "PM Digits", "Pixelify Sans", sans-serif';c.fillText(by,W/2,1138)}
   c.fillStyle='#c4352a';c.fillRect(60,H-170,W-120,110);c.fillStyle='#fff1d2';c.font='bold 40px Silkscreen, monospace';c.fillText(SITE.toUpperCase(),W/2,H-100);
   return cv;
 }
