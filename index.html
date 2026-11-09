@@ -821,6 +821,8 @@ function analyze(p){
   return {q,cost:r2(cost),appeal,notes,combos:combos.map(c=>c.id),n,d,cnt,ids};
 }
 function segMix(){const atm=roomA().atm,m={estudante:.36,familia:.32,turista:.18,gourmet:.14};for(const k in m)m[k]*=.6+atm[k]/100*.8;/* a room a group likes brings more of that group */const t=Object.values(m).reduce((a,b)=>a+b,0);for(const k in m)m[k]/=t;return m}
+// quality colour, a smooth gradient: red up to 25, yellow around 55, green from 85 (darker on light backgrounds)
+const qColor=(q,dark)=>{const h=Math.round(clamp((q-25)/60,0,1)*120);return dark?`hsl(${h},90%,62%)`:`hsl(${h},${h>30&&h<90?95:80}%,${h>30&&h<=60?40:h<90?33:38}%)`};
 const suggestPrice=a=>costPrice(a.cost);   // to the cent: dough, sauce and every topping move it
 const OVEN_CAP=36,COOK_CAP=30;   // pizzas a day per oven / per pizzaiolo
 const capacity=()=>Math.min(state.ovens*OVEN_CAP,state.cooks*COOK_CAP);
@@ -1113,7 +1115,7 @@ function zoomBar(){const el=$('#zbar');if(!el)return;const sel=state.sel,cut=cur
   const cutB=ok?`<div class="zcut"><button class="btn sm ibtn ${cut?'ghost':'primary'}" data-act="cut" data-v="0" aria-pressed="${!cut}" aria-label="${esc(t('bench.whole'))}" title="${esc(t('bench.whole'))}"><canvas id="zwhole" width="32" height="32"></canvas></button><button class="btn sm ibtn ${cut?'primary':'ghost'}" data-act="cut" data-v="1" aria-pressed="${!!cut}" aria-label="${esc(cutL)}" title="${esc(cutL)}">${icon(ING[sel].t.includes('queijo')?'grate':'chop')}</button></div>`:'';
   // price is what matters most: big and with no label; pieces and weight small beside it
   el.innerHTML=`<div class="zrow"><div class="zname">${esc(ING[sel].n)}</div>${cutB}</div>
-    <div class="zlcd" title="${esc(t('bench.c'))}"><b>${eur(a.cost)}</b><span title="${esc(t('k.q'))}">Q${a.q}</span><span>${state.draft.pieces.length} ${t('bench.n')} · ${fmtG(pizzaGrams(state.draft))}</span></div>`;
+    <div class="zlcd" title="${esc(t('bench.c'))}"><b>${eur(a.cost)}</b><span title="${esc(t('k.q'))}" style="color:${qColor(a.q)};font-weight:700">Q${a.q}</span><span>${state.draft.pieces.length} ${t('bench.n')} · ${fmtG(pizzaGrams(state.draft))}</span></div>`;
   const zw=$('#zwhole');if(zw){const c=zw.getContext('2d');c.imageSmoothingEnabled=false;sprFit(c,wholeKey(sel,0,canRotate(sel)?curAng():0),16,16,31)}}
 let cleared=null;   // the pizza the bin just cleared: undo on an empty bench brings it back (same draft only)
 function drawDraft(){if(!pz)return;pz.pizza=null;drawBench()}
@@ -1137,7 +1139,7 @@ function updateAnalysis(){
   const el=$('#analysis');if(!el)return;
   const a=analyze(state.draft);
   for(const id of a.combos)if(!state.discovered.includes(id)){state.discovered.push(id);const c=COMBOS.find(x=>x.id===id);toast(c.q>=0?t('k.found',{x:c.n}):t('k.foundbad',{x:c.n}));const s=document.querySelector('details.book summary');if(s)s.textContent=t('k.book',{n:state.discovered.length,t:COMBOS.length});const ul=document.querySelector('details.book ul');if(ul)ul.innerHTML=bookHTML()}
-  const qc=a.q>=70?'var(--good)':a.q>=45?'#d39b12':'var(--bad)';
+  const qc=qColor(a.q);
   el.innerHTML=`<div class="analysis">
     <div><span class="lbl">${t('k.q')}</span><div class="qbig num" style="color:${qc}">${a.q}</div><div class="meter"><span style="width:${a.q}%;background:${qc}"></span></div>${ingListHTML(state.draft)}</div>
     <div><span class="lbl">${t('k.cost')}</span><div class="qbig num" style="font-size:1.7rem">${eur(a.cost)}</div><span class="sub">${t('k.portions',{n:LANG==='pt'?String(a.n).replace('.',','):a.n,p:eur(suggestPrice(a))})}</span></div>
@@ -1157,7 +1159,7 @@ function menuHTML(){
     <div><h3>${esc(p.name)}</h3><span class="sub">${DOUGHS[p.dough].n} · ${SAUCES[p.sauce].n}</span>
       <div class="price"><button data-act="pdn" data-id="${p.id}" aria-label="${t('menu.pdn')}" ${state.tier===1?'disabled':''}>−</button><b>${eur(p.price)}</b><button data-act="pup" data-id="${p.id}" aria-label="${t('menu.pup')}" ${state.tier===1?'disabled':''}>+</button></div>${state.tier===1?`<span class="dctext">${t('mg.prices')}</span>`:''}
       ${ADV.on()?`<canvas class="dcurve" data-dc="${p.id}" aria-label="${esc(t('menu.dc.lbl'))}"></canvas><span class="dctext" data-dct="${p.id}"></span>`:''}
-      <dl class="kv"><dt>${t('k.q')}</dt><dd>${a.q}/100</dd><dt>${t('menu.cost')}</dt><dd>${eur(a.cost)}</dd><dt>${t('menu.margin')}</dt><dd style="color:${margin>0?'var(--good)':'var(--bad)'}">${eur(margin)}</dd>${ADV.on()?`<dt>${t('menu.fair')}</dt><dd>${eur(suggestPrice(a))}</dd>`:''}<dt>${t('menu.sold')}</dt><dd>${sold}</dd></dl>
+      <dl class="kv"><dt>${t('k.q')}</dt><dd style="color:${qColor(a.q)}">${a.q}/100</dd><dt>${t('menu.cost')}</dt><dd>${eur(a.cost)}</dd><dt>${t('menu.margin')}</dt><dd style="color:${margin>0?'var(--good)':'var(--bad)'}">${eur(margin)}</dd>${ADV.on()?`<dt>${t('menu.fair')}</dt><dd>${eur(suggestPrice(a))}</dd>`:''}<dt>${t('menu.sold')}</dt><dd>${sold}</dd></dl>
       <div class="row"><button class="btn sm" data-act="edit" data-id="${p.id}">${t('menu.edit')}</button><button class="btn sm" data-act="share" data-id="${p.id}">${t('share.btn')}</button><button class="btn sm" data-act="recshare" data-id="${p.id}">${t('rec.btn')}</button><button class="btn sm danger" data-act="rm" data-id="${p.id}">${t('menu.remove')}</button></div>
     </div></div>`}).join('')}
   <button class="empty" data-act="newdraft" style="background:transparent;font-weight:800">${t('menu.new',{n:state.menu.length})}</button><button class="btn ghost" data-act="recimport">${t('rec.import')}</button>
