@@ -31,10 +31,13 @@ RAMP.update({
     'shoeR':   hexs(['#4a0c08', '#8a1810', '#c42a1c', '#ec5a40']),
     'shoeW':   hexs(['#8a8a90', '#c0c0c8', '#ececf2', '#ffffff']),
     'boot':    hexs(['#08080a', '#16161a', '#2a2a30', '#48484e']),
+    'rose':    hexs(['#7a2a4a', '#a8486a', '#cc6c8c', '#e496b0', '#f6c4d4']),
+    'bagB':    hexs(['#2a1408', '#4e2a12', '#74441e', '#9a6430', '#c08a4a']),
 })
 
-def render(s, dither=.14):
-    """like Canvas.image, with almost no dithering and a firm dark outline round the figure"""
+def render(s, dither=0):
+    """like Canvas.image, with no dithering (clean bands of each ramp). The outline is the material's own dark tone; on
+    skin it is softer (one tone lighter on the lit side), so faces and bald heads keep a gentle edge"""
     h, w = s.h, s.w
     out = np.zeros((h, w, 4), np.uint8)
     filled = s.mat != None
@@ -44,7 +47,7 @@ def render(s, dither=.14):
                 a = s.shadow[y, x]
                 if a > 0 and a + BAYER[y % 4, x % 4] * .25 > .2: out[y, x] = G.SHADOW + (int(min(1, a) * 150),)
                 continue
-            ramp = RAMP[s.mat[y, x]]; k = len(ramp)
+            m = s.mat[y, x]; ramp = RAMP[m]; k = len(ramp)
             v = int(round(float(np.clip(s.lit[y, x] * (k - 1) + BAYER[y % 4, x % 4] * dither, 0, k - 1))))
             col = ramp[v]
             if not s.noline[y, x]:
@@ -53,14 +56,14 @@ def render(s, dither=.14):
                     yy, xx = y + dy, x + dx
                     if not (0 <= yy < h and 0 <= xx < w) or not filled[yy, xx]: edge = True
                     elif s.part[yy, xx] > s.part[y, x] and not s.noline[yy, xx]: front = True      # small details (eyes, buttons) cast no edge
-                if edge: col = tuple(int(c * .72) for c in ramp[0])
-                elif front: col = ramp[max(0, v - 2)]
+                if edge: col = ramp[1 if m in G.SKINS and s.lit[y, x] > .5 else 0]
+                elif front: col = ramp[max(0, v - (1 if m in G.SKINS else 2))]
             out[y, x] = col + (255,)
     return Image.fromarray(out, 'RGBA')
 
 HX = 16
 def band(c, cx, cy, rx, ry, lo=.25, hi=.95):
-    """cel light of a ball: three clean bands, light from the top left"""
+    """cel light of a ball: clean bands, light from the top left"""
     return np.clip(lo + (hi - lo) * c.sphere(cx - rx * .15, cy - ry * .2, rx * 1.15, ry * 1.15), 0, 1)
 
 def shoe(c, cx, yb, L, part, w=3.6):
@@ -68,123 +71,188 @@ def shoe(c, cx, yb, L, part, w=3.6):
     c.paint(m, L.get('shoe', 'shoe'), band(c, cx, yb + .5, w, 2.5, .3, 1), part=part)
     c.paint(m & (c.ys >= yb + 2), 'sole', 1 if L.get('shoe') in ('shoeR', 'shoeW') else 0, part=part, noline=True)
 
-def hair_mask(c, L, o, side=False):
-    st = L.get('style', 'short'); hy = 11 + o; hx = c.xs + .5 - HX
-    cap = c.ell(HX - (1 if side else 0), hy - 1.2, 10.3, 9.6)
+def curls(c, pts, r=3.7):
+    """a cloud of round curls: the mask and a light where every curl is its own little ball"""
+    m = np.zeros((c.h, c.w), bool); lit = np.zeros((c.h, c.w))
+    for cx, cy in pts:
+        e = c.ell(cx, cy, r, r); m |= e
+        lit = np.where(e, np.maximum(lit, band(c, cx, cy, r, r, .2, 1)), lit)
+    return m & (c.ys >= 0), lit
+
+def hair(c, L, o, side=False):
+    """paints the hair of a head centred on (HX, 11 + o)"""
+    st = L.get('style', 'short'); hy = 11 + o; hx = c.xs + .5 - HX; col = L['hair']; skin = L['skin']
+    cap = c.ell(HX - (1 if side else 0), hy - 1.2, 10.6, 9.9)
+    ear = c.ell(HX - 2, hy + 2, 2, 2.6)
+    shine = (np.abs(np.hypot((c.xs + .5 - HX + 1.5) / 1.1, c.ys + .5 - hy + 1.5) - 6.4) < .75) & (c.xs < HX + 3) & (c.ys < hy - 2)
+    lit = band(c, HX, hy - 3, 11, 10, .2, .7) + np.where(shine, .3, 0)
+    if st == 'bouffant':                                                # the old lady's big set of curls
+        if side:
+            pts = [(HX - 2 + 8.4 * np.cos(a), hy - 2.4 + 7.4 * np.sin(a)) for a in np.arange(.72, 1.95, .13) * np.pi]
+            pts += [(HX - 2 + 4.4 * np.cos(a), hy - 4 + 4.2 * np.sin(a)) for a in np.arange(.8, 1.9, .26) * np.pi]
+            win = c.ell(HX + 4, hy + 3.5, 7.6, 8) & (c.ys > hy - 5)
+        else:
+            pts = [(HX + 8.8 * np.cos(a), hy - 2 + 7.6 * np.sin(a)) for a in np.arange(.94, 2.07, .125) * np.pi]
+            pts += [(HX + 4.6 * np.cos(a), hy - 3.6 + 4 * np.sin(a)) for a in np.arange(1.05, 2, .22) * np.pi]
+            win = c.ell(HX, hy + 4.2, 8.3, 8.2) & (c.ys > hy - 4.6)
+        m, cl = curls(c, pts, 3.4)
+        fill = c.ell(HX - (2 if side else 0), hy - 3.5, 10.5, 9) & (c.ys >= 0)
+        hm = (fill | m) & ~win
+        if side: hm &= ~ear
+        c.paint(hm, col, np.where(m, cl * .9 + .05, .4), part=9)
+        return
+    if st == 'bald':                                                    # a shiny scalp and grey tufts over the ears
+        if side:
+            c.paint(c.ell(HX - 6.5, hy + 1.5, 4.2, 5) & c.ell(HX - 1, hy, 10.2, 9.6) & ~ear, col, band(c, HX - 6.5, hy + 1, 4.2, 5, .3, .9), part=9)
+            c.paint(c.rect(HX - 1, hy - 8, HX + 3, hy - 6) & c.ell(HX, hy, 9, 9), skin, 1, part=8, noline=True)
+        else:
+            for sx in (-1, 1):
+                c.paint(c.ell(HX + sx * 9.2, hy + .5, 2.6, 4.2), col, band(c, HX + sx * 9.2, hy, 2.6, 4.2, .3, .9), part=9)
+            c.paint(c.rect(HX - 5, hy - 8, HX - 1, hy - 6), skin, 1, part=8, noline=True)
+        return
+    if st == 'mohawk':
+        stub = c.ell(HX - (1 if side else 0), hy - 1, 10.2, 9.6) & (c.ys < hy - 3.2)
+        c.paint(stub, skin, .5, part=8, noline=False)                   # shaved sides: one flat tone darker
+        if side: m = (c.xs > HX - 9) & (c.xs < HX + 6) & (c.ys >= o - 2 + 2.4 * np.abs((c.xs % 4) - 2)) & (c.ys < hy - 4) & (c.ys >= 0)
+        else: m = (np.abs(hx) < 3.5) & (c.ys >= o - 2 + 3 * (((c.xs - 13) % 3) != 1)) & (c.ys < hy - 2) & (c.ys >= 0)
+        c.paint(m, col, np.where(side, np.where(c.ys < hy - 7, .95, .5), np.where(hx < -.5, .95, np.where(hx < 1.5, .6, .3))), part=9)
+        return
     if side:
         m = cap & ((c.ys < hy - 3.5 + (c.xs > HX + 4) * 1.5) | (c.xs < HX - 3) | ((c.xs < HX + 1) & (c.ys < hy)))
         if st == 'long': m |= c.ell(HX - 6, hy + 8, 5.5, 12) & (c.ys > hy - 2)
-        if st == 'bun': m |= c.ell(HX - 9.5, hy - 5, 3.8, 3.6)
-        if st == 'afro': m = c.ell(HX - 2, hy - 3, 12, 11) & ~(c.ell(HX + 4, hy + 3, 7, 8) & (c.ys > hy - 5))
-        if st == 'mohawk': m = (c.xs > HX - 9) & (c.xs < HX + 6) & (c.ys >= o + 2.4 * np.abs((c.xs % 4) - 2) - 1) & (c.ys < hy - 4) & (c.ys >= 0)
+        if st == 'afro': m = c.ell(HX - 2, hy - 1.5, 11.6, 10) & ~(c.ell(HX + 4, hy + 3, 7, 8) & (c.ys > hy - 5))
         if st == 'cap': m = cap & (c.xs < HX - 4) & (c.ys > hy - 2) & (c.ys < hy + 5)
-        return m & ~c.ell(HX - 2, hy + 2, 2, 2.6)
-    fringe = c.ys < hy - 3.6 + 1.6 * np.abs(np.sin(hx * .5 + .6))
-    m = cap & (fringe | (np.abs(hx) > 8.3) & (c.ys < hy + 3))
-    if st == 'long': m |= (c.ell(HX - 8.5, hy + 8, 3.2, 11) | c.ell(HX + 8.5, hy + 8, 3.2, 11)) & (c.ys > hy - 3)
-    if st == 'bun': m = cap & ((c.ys < hy - 4.5 + (hx > 1) * 2) | (np.abs(hx) > 8.6) & (c.ys < hy + 1)) | c.ell(HX, o + 1.6, 4.2, 3.4)
-    if st == 'afro': m = (c.ell(HX, hy - 3, 13, 11.5) & (c.ys >= 0)) & ~(c.ell(HX, hy + 4.5, 8.4, 8.5) & (c.ys > hy - 4.4))
-    if st == 'mohawk': m = (np.abs(hx) < 3) & (c.ys >= o + 2.2 * np.abs((c.xs % 3) - 1)) & (c.ys < hy - 3)
-    if st == 'cap': m = cap & (np.abs(hx) > 8) & (c.ys > hy - 2) & (c.ys < hy + 4)
-    return m
-
-def head(c, L, o, side=False):
-    skin, hair, eye = L['skin'], L['hair'], L['eye']; hy = 11 + o; st = L.get('style', 'short'); ex_ = L.get('extras', ())
-    if not side:
-        c.paint(c.ell(HX - 9.8, hy + 2, 1.7, 2.3) | c.ell(HX + 9.8, hy + 2, 1.7, 2.3), skin, .45, part=7)      # ears
-    face = c.ell(HX, hy - .5, 9.4, 8.8) | c.ell(HX + (1 if side else 0), hy + 2.5, 8.2 if not side else 7.6, 7)
-    c.paint(face, skin, band(c, HX, hy, 10, 9.5, .5, .95), part=8)
-    if side: c.paint(c.ell(HX - 2, hy + 2, 1.8, 2.4), skin, .4, part=8)
-    hm = hair_mask(c, L, o, side)
-    shine = np.abs(np.hypot((c.xs + .5 - HX + 1.5) / 1.1, c.ys + .5 - hy + 1.5) - 6.4) < .75                  # a shine band
-    shine &= (c.xs < HX + 3) & (c.ys < hy - 2)
-    lit = band(c, HX, hy - 3, 11, 10, .2, .7) + np.where(shine, .3, 0)
-    if st == 'afro': lit = band(c, HX, hy - 3, 13, 11.5, .15, .7) + (G.noise(c.h, c.w, 2, G.rng(31)) - .5) * .5
-    c.paint(hm, hair, np.clip(lit, 0, 1), part=9)
+        m &= ~ear
+    else:
+        fringe = c.ys < hy - 3.6 + 1.6 * np.abs(np.sin(hx * .5 + .6))
+        m = cap & (fringe | (np.abs(hx) > 8.6) & (c.ys < hy + 3))
+        if st == 'long': m |= (c.ell(HX - 9, hy + 8, 3.2, 11) | c.ell(HX + 9, hy + 8, 3.2, 11)) & (c.ys > hy - 3)
+        if st == 'afro': m = (c.ell(HX, hy - 1.5, 12.6, 10) & (c.ys >= 0)) & ~(c.ell(HX, hy + 4.5, 8.6, 8.5) & (c.ys > hy - 4.4))
+        if st == 'cap': m = cap & (np.abs(hx) > 8.4) & (c.ys > hy - 2) & (c.ys < hy + 4)
+    if st == 'afro': lit = band(c, HX, hy - 2, 12.6, 10, .15, .75) + (G.noise(c.h, c.w, 2, G.rng(31)) - .5) * .35
+    if st == 'long' and not side: lit = np.where((c.ys > hy + 1) & (np.abs(hx) < 9), .2, np.where(c.ys > hy + 1, np.where(hx < 0, .7, .45), lit))
+    c.paint(m, col, np.clip(lit, 0, 1), part=9)
     if st == 'cap':                                                                                           # a baseball cap
-        dome = c.ell(HX - (1 if side else 0), hy - 2, 10.4, 9) & (c.ys < hy - 2.6)
+        dome = c.ell(HX - (1 if side else 0), hy - 2, 10.6, 9.2) & (c.ys < hy - 2.6)
         c.paint(dome, 'capB', band(c, HX, hy - 4, 10, 8, .3, 1), part=10)
-        peak = c.rect(HX + 2, hy - 4, HX + 14, hy - 1) & c.ell(HX + 6, hy - 2.5, 8, 2.2) if side else c.ell(HX, hy - 2.2, 9.5, 2.2) & (c.ys >= hy - 4)
+        peak = c.rect(HX + 2, hy - 4, HX + 14, hy - 1) & c.ell(HX + 6, hy - 2.5, 8, 2.2) if side else c.ell(HX, hy - 2.2, 9.8, 2.2) & (c.ys >= hy - 4)
         c.paint(peak, 'capB', .25 if not side else .5, part=11)
         if not side: c.paint(c.rect(HX - 1, hy - 8, HX + 1, hy - 6), 'white', 1, part=11, noline=True)
+
+def head(c, L, o, side=False):
+    """the round head of today's people (20 px wide), with the hair, face and extras of the look"""
+    skin, eye = L['skin'], L['eye']; hy = 11 + o; ex_ = L.get('extras', ())
+    if not side:
+        c.paint(c.ell(HX - 9.9, hy + 2, 1.6, 2.2) | c.ell(HX + 9.9, hy + 2, 1.6, 2.2), skin, .5, part=7)     # ears
+    c.paint(c.ell(HX, hy, 10 - (.3 if side else 0), 9.5), skin, .6 + c.sphere(HX + (1 if side else 0), hy, 10, 10) * .3, part=8)
+    if side: c.paint(c.ell(HX - 2, hy + 2, 1.6, 2.2), skin, .5, part=8, noline=True); c.paint(c.rect(HX - 2, hy + 1, HX - 1, hy + 3), skin, .25, part=8, noline=True)                                   # the ear, with its own edge
+    hair(c, L, o, side)
     def eye_at(ex):
-        """a big glossy eye, 3 x 5 with soft corners: dark on top, the iris colour below, one catch light"""
-        e = c.rect(ex, hy - 1, ex + 3, hy + 4) & ~(c.rect(ex, hy + 3, ex + 1, hy + 4) | c.rect(ex + 2, hy + 3, ex + 3, hy + 4))
-        c.paint(e, eye, np.where(c.ys >= hy + 2, .6, .05), part=10, noline=True)
+        """a big glossy eye, 3 x 4: a lash line, dark, then the iris colour along the bottom, and one catch light"""
+        c.paint(c.rect(ex, hy - 1, ex + 3, hy + 3), eye, np.where(c.ys >= hy + 2, .6, .05), part=10, noline=True)
         c.paint(c.rect(ex, hy - 1, ex + 3, hy), 'lash', 0, part=10, noline=True)
         c.paint(c.rect(ex, hy, ex + 1, hy + 2), 'white', 1, part=11, noline=True)
-    brow = skin; bl = .12                                             # brows: a darker skin tone, never a hard line
+    old = L.get('old')
     if side:
         ex = HX + 4; eye_at(ex)
-        c.paint(c.rect(ex - 1, hy + 4, ex + 1, hy + 5), 'blush' + skin, 0, part=10, noline=True)
-        c.paint(c.rect(HX + 6, hy + 6, HX + 8, hy + 7), skin, .1, part=10, noline=True)
+        c.paint(c.rect(ex - 2, hy + 4, ex, hy + 5), 'blush' + skin, 0, part=10, noline=True)
+        if 'moustache' in ex_: c.paint(c.rect(HX + 5, hy + 5, HX + 9, hy + 7) & c.ell(HX, hy, 9.6, 9.4), L['hair'], np.where(c.ys < hy + 6, .75, .5), part=11, noline=True)
+        else: c.paint(c.rect(HX + 6, hy + 6, HX + 8, hy + 7), skin, 0, part=10, noline=True); c.paint(c.rect(HX + 5, hy + 5, HX + 6, hy + 6), skin, .25, part=10, noline=True)
         if 'glasses' in ex_:
-            c.paint((c.rect(ex - 1, hy - 2, ex + 4, hy + 5) & ~c.rect(ex, hy - 1, ex + 3, hy + 4)) | c.rect(HX - 1, hy, ex - 1, hy + 1), 'gold', .42, part=12, noline=True)
+            c.paint((c.rect(ex - 1, hy - 2, ex + 4, hy + 4) & ~c.rect(ex, hy - 1, ex + 3, hy + 3)) | c.rect(HX - 1, hy, ex - 1, hy + 1), 'gold', .55, part=12, noline=True)
+        if 'piercing' in ex_: c.paint(c.rect(HX - 2, hy + 4, HX - 1, hy + 6), 'chrome', 1, part=12, noline=True)
         return
-    for ex in (HX - 5, HX + 2):
-        eye_at(ex)
+    for ex in (HX - 5, HX + 2): eye_at(ex)
     c.paint(c.rect(HX - 7, hy + 4, HX - 5, hy + 5) | c.rect(HX + 5, hy + 4, HX + 7, hy + 5), 'blush' + skin, 0, part=10, noline=True)
+    if old:                                                             # a line under each eye
+        for ex in (HX - 5, HX + 2): c.paint(c.rect(ex, hy + 4, ex + 3, hy + 5), skin, .5, part=9, noline=True)
     if 'moustache' in ex_:
-        c.paint(c.rect(HX - 3, hy + 5, HX + 3, hy + 7) & ~c.rect(HX - 1, hy + 6, HX + 1, hy + 7), hair, .9, part=11, noline=True)
-    else:                                                                                                      # a small smile
-        c.paint(c.rect(HX - 1, hy + 6, HX + 1, hy + 7) | c.rect(HX - 2, hy + 5, HX - 1, hy + 6) | c.rect(HX + 1, hy + 5, HX + 2, hy + 6), skin, .12, part=10, noline=True)
+        mo = (c.rect(HX - 4, hy + 5, HX + 4, hy + 7) | c.rect(HX - 5, hy + 6, HX + 5, hy + 8)) & ~c.rect(HX - 1, hy + 7, HX + 1, hy + 8) & ~c.rect(HX - 5, hy + 6, HX - 4, hy + 7) & ~c.rect(HX + 4, hy + 6, HX + 5, hy + 7)
+        c.paint(mo, L['hair'], np.where(c.ys < hy + 6, .75, .5) - (np.abs(c.xs + .5 - HX) < 1) * .25, part=11, noline=True)   # a bushy moustache, parted in the middle
+    else:                                                               # a small smile
+        c.paint(c.rect(HX - 1, hy + 6, HX + 1, hy + 7), skin, 0, part=10, noline=True)
+        c.paint(c.rect(HX - 2, hy + 5, HX - 1, hy + 6) | c.rect(HX + 1, hy + 5, HX + 2, hy + 6), skin, .25, part=10, noline=True)
     if 'glasses' in ex_:
         for ex in (HX - 6, HX + 1):
-            c.paint(c.rect(ex, hy - 2, ex + 5, hy + 5) & ~c.rect(ex + 1, hy - 1, ex + 4, hy + 4), 'gold', .42, part=12, noline=True)
-        c.paint(c.rect(HX - 1, hy, HX + 1, hy + 1), 'gold', .42, part=12, noline=True)
+            c.paint(c.rect(ex, hy - 2, ex + 5, hy + 4) & ~c.rect(ex + 1, hy - 1, ex + 4, hy + 3), 'gold', .55, part=12, noline=True)
+        c.paint(c.rect(HX - 1, hy, HX + 1, hy + 1), 'gold', .55, part=12, noline=True)
+    if 'piercing' in ex_: c.paint(c.rect(HX + 10, hy + 3, HX + 11, hy + 5), 'chrome', 1, part=12, noline=True)
+
+# ---- the body seen from the front: one rounded line from the neck over the shoulders into the arms ----
+def handbag(c, x, y):
+    """a small leather handbag hanging from the hand at (x, y): two straps, a flap and a gold clasp"""
+    c.paint(c.rect(x - 2, y, x - 1, y + 4) | c.rect(x + 1, y, x + 2, y + 4), 'bagB', .3, part=7, noline=True)
+    body = c.rect(x - 4, y + 3, x + 4, y + 9) & ~(c.rect(x - 4, y + 8, x - 3, y + 9) | c.rect(x + 3, y + 8, x + 4, y + 9))
+    c.paint(body, 'bagB', np.where(c.ys < y + 5, .9, np.where(c.xs < x, .65, .45)), part=7)
+    c.paint(c.rect(x - 1, y + 5, x + 1, y + 6), 'gold', .9, part=8, noline=True)
+
+def sil(c, o):
+    """the body's outline from the front: it widens in rounded steps from the neck to the shoulders (3, 6, 8, then 9 px each side)"""
+    ax = np.abs(c.xs + .5 - 16)
+    hw = np.select([c.ys < 21 + o, c.ys == 21 + o, c.ys == 22 + o, c.ys == 23 + o], [0, 3, 6, 8], 9)
+    return ax < hw
+def torso_mask(c, o): return sil(c, o) & (np.abs(c.xs + .5 - 16) < 6) & (c.ys < 39 + o)
 
 def top_front(c, L, o):
     top, shirt, skin = L['top'], L['shirt'], L['skin']
-    torso = (c.ell(16, 27 + o, 7.6, 5.5) & (c.ys >= 22 + o)) | (c.rect(9, 26 + o, 23, 39 + o) & (np.abs(c.xs + .5 - 16) < 7.2 - (c.ys - 26 - o) * .07))
-    lit = c.cyl_x(8, 24, .3, .9) - np.where(c.ys > 34 + o, .12, 0)
-    c.paint(c.rect(14, 19 + o, 18, 23 + o), skin, .35, part=3)                                                 # neck
-    if top == 'hoodie': c.paint(c.ell(16, 22.5 + o, 8.5, 3.6), shirt, .3, part=3)                               # the hood, behind the neck
+    torso = torso_mask(c, o); cx = 16
+    lit = c.cyl_x(7, 25, .35, .9) - np.where(c.ys > 34 + o, .1, 0) - np.where(c.ys < 23 + o, .18, 0)          # darker under the chin and at the waist
+    c.paint(c.rect(14, 19 + o, 18, 23 + o), skin, .5, part=3)                                                  # neck
+    if top == 'hoodie': c.paint(c.ell(16, 22 + o, 8.6, 3), shirt, .3, part=3)                                 # the hood, behind the neck
     c.paint(torso, shirt, lit, part=4)
-    cx = 16
     if top == 'sweater':
         c.paint(torso & (c.ys >= 37 + o), shirt, .2 + (c.xs % 2) * .2, part=4)                                 # ribbed hem
-        c.paint(c.ell(cx, 22.6 + o, 3.2, 1.6), shirt, .25, part=5)                                               # round collar
+        c.paint(c.ell(cx, 22 + o, 3.2, 1.5), shirt, .25, part=5)                                                 # round collar
     elif top == 'hoodie':
         c.paint(c.rect(11, 32 + o, 21, 37 + o) & (np.abs(c.xs + .5 - cx) < 5.5 - (36 + o - c.ys) * .35), shirt, .28, part=5)   # pocket
-        for x in (14, 17): c.paint(c.rect(x, 23 + o, x + 1, 28 + o), 'white', .8, part=6, noline=True)               # strings
-        c.paint(c.ell(cx, 22.4 + o, 3, 1.5), skin, .4, part=5)
+        for x in (14, 17): c.paint(c.rect(x, 24 + o, x + 1, 29 + o), 'white', .8, part=6, noline=True)               # strings
+        c.paint(c.ell(cx, 22 + o, 3, 1.5), skin, .5, part=5)
     elif top == 'tee':
-        c.paint(c.ell(cx, 22.4 + o, 3, 1.6), skin, .4, part=5)
+        c.paint(c.ell(cx, 22 + o, 3, 1.5), skin, .5, part=5)
         star = [(2, 0), (1, 1), (2, 1), (3, 1), (0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (1, 3), (2, 3), (3, 3), (1, 4), (3, 4)]
-        for dx, dy in star: c.paint(c.rect(cx - 2.5 + dx, 27 + o + dy, cx - 1.5 + dx, 28 + o + dy), 'white', 1, part=6, noline=True)
+        for dx, dy in star: c.paint(c.rect(cx - 2.5 + dx, 28 + o + dy, cx - 1.5 + dx, 29 + o + dy), 'white', 1, part=6, noline=True)
     elif top == 'suit':
-        v = (np.abs(c.xs + .5 - cx) < (31 + o - c.ys) * .42) & (c.ys >= 22 + o) & (c.ys < 31 + o)
+        v = (np.abs(c.xs + .5 - cx) < (31 + o - c.ys) * .42) & (c.ys >= 21 + o) & (c.ys < 31 + o)
         c.paint(v & torso, 'white', .9, part=5)
         c.paint(c.rect(cx - 1, 23 + o, cx + 1, 31 + o), L.get('tie', 'tie'), np.where(c.xs < cx, .9, .45), part=6)
         c.paint(c.rect(cx - 1, 22 + o, cx + 1, 24 + o), L.get('tie', 'tie'), .2, part=6, noline=True)
         for y in (33, 36): c.paint(c.rect(cx, y + o, cx + 1, y + o + 1), 'gold', .8, part=6, noline=True)
-        c.paint(c.rect(19, 28 + o, 22, 29 + o), 'white', .9, part=6, noline=True)                                   # pocket square
-    elif top == 'cardigan':
-        c.paint(c.rect(cx - 2, 22 + o, cx + 2, 39 + o) & torso, 'blouse', np.where(c.xs < cx, .95, .6), part=5)
-        for y in (27, 31, 35): c.paint(c.rect(cx + 2, y + o, cx + 3, y + o + 1), 'gold', .8, part=6, noline=True)
-        for k in range(-2, 3): c.paint(c.rect(cx + k * 2 - .5, 23 + o + (2 - abs(k)) * .8, cx + k * 2 + .5, 24 + o + (2 - abs(k)) * .8), 'plate', 1, part=7, noline=True)   # pearls
+        c.paint(c.rect(18, 28 + o, 21, 29 + o), 'white', .9, part=6, noline=True)                                   # pocket square
+    elif top == 'granny':                                                                                      # a dotted dress under an open cardigan
+        fr_ = c.rect(cx - 3, 21 + o, cx + 3, 39 + o) & torso
+        c.paint(fr_, L['pants'], .55 + ((c.xs * 3 + c.ys * 5) % 7 == 0) * .4, part=5)
+        for k in range(-3, 4): c.paint(c.rect(cx + k * 1.6 - .5, 22.6 + o + (3 - abs(k)) * .8, cx + k * 1.6 + .5, 23.6 + o + (3 - abs(k)) * .8), 'plate', 1, part=7, noline=True)   # pearls
     elif top == 'leather':
-        c.paint(c.rect(cx, 23 + o, cx + 1, 39 + o), 'chrome', .8, part=5, noline=True)                             # zip
-        c.paint((np.abs(c.xs + .5 - cx) < (27 + o - c.ys) * .8) & (c.ys >= 22 + o) & (c.ys < 27 + o) & torso, 'shirtW', .8, part=5)
-        for x in (11, 20): c.paint(c.rect(x, 25 + o, x + 1, 26 + o), 'chrome', 1, part=6, noline=True)
+        c.paint(c.rect(cx, 24 + o, cx + 1, 39 + o), 'chrome', .8, part=5, noline=True)                             # zip
+        c.paint((np.abs(c.xs + .5 - cx) < (27 + o - c.ys) * .8) & (c.ys >= 21 + o) & (c.ys < 27 + o) & torso, 'shirtW', .8, part=5)
+        for x in (11, 20): c.paint(c.rect(x, 27 + o, x + 1, 28 + o), 'chrome', 1, part=6, noline=True)
         c.paint(c.rect(10, 36 + o, 22, 37 + o) & torso, 'chrome', .5, part=6, noline=True)                         # belt of studs
-    return torso
 
 def arms_front(c, L, o, al, ar):
-    shirt, skin, top = L['shirt'], L['skin'], L['top']
-    for ax, d in ((7.4, al), (24.6, ar)):
-        y = 29 + o + d
-        arm = c.ell(ax, y, 2.5, 6.6)
-        c.paint(arm, shirt, band(c, ax, y, 2.5, 6.6, .3, .9) - (.15 if ax > 16 else 0), part=5)
-        if top == 'tee': c.paint(arm & (c.ys > y - 1), skin, .6 if ax < 16 else .45, part=5)
-        elif top in ('sweater', 'hoodie', 'cardigan'): c.paint(arm & (c.ys > y + 4), shirt, .22, part=5)             # cuff
-        elif top == 'suit': c.paint(arm & (c.ys > y + 5), 'white', .9, part=5)
-        hx_ = ax + (.8 if ax < 16 else -.8)
-        c.paint(c.ell(hx_, y + 7.2, 2.2, 2.1), skin, band(c, hx_, y + 7.2, 2.2, 2.1, .45, .9), part=6)                 # hand
-    if 'pack' in L.get('extras', ()):                                                                           # backpack straps
-        for x in (10, 20): c.paint(c.rect(x, 23 + o, x + 2, 33 + o), 'pack', np.where(c.xs < x + 1, .9, .5), part=6)
-    if 'phone' in L.get('extras', ()):
-        c.paint(c.rect(22, 33 + o + ar, 26, 39 + o + ar), 'onyx', .6, part=7); c.paint(c.rect(23, 34 + o + ar, 25, 38 + o + ar), 'neonC', .7, part=8, noline=True)
+    """arms hang from round shoulders: the shoulder is part of the body's outline, the arm only shows
+    as its own shape lower down; a swinging arm gets a little longer or shorter, the shoulder stays"""
+    shirt, skin, top = L['shirt'], L['skin'], L['top']; ex_ = L.get('extras', ())
+    for sx, d in ((-1, al), (1, ar)):
+        x0 = 7 if sx < 0 else 21; cx = x0 + 2; yb = 35 + o + d
+        if sx > 0 and 'cane' in ex_: yb = 33 + o
+        arm = sil(c, o) & c.rect(x0, 0, x0 + 4, yb)
+        lit = np.clip((.82 if sx < 0 else .55) - (c.xs + .5 - x0) * .06 + np.where(c.ys < 24 + o, .12, 0), 0, 1)
+        c.paint(arm & (c.ys < 27 + o), shirt, lit, part=4)                                                       # shoulder: one outline with the body
+        c.paint(arm & (c.ys >= 27 + o), shirt, lit, part=5)
+        low = arm & (c.ys >= 27 + o)
+        if top == 'tee': c.paint(arm & (c.ys >= 29 + o), skin, .7 if sx < 0 else .5, part=5)
+        elif top in ('sweater', 'hoodie', 'granny'): c.paint(low & (c.ys >= yb - 2), shirt, .22, part=5)            # cuff
+        elif top == 'suit': c.paint(low & (c.ys >= yb - 1), 'white', .9, part=5)
+        c.paint(c.ell(cx, yb + 1, 2, 2), skin, band(c, cx, yb + 1, 2, 2, .5, .9), part=6)                           # hand
+    if 'pack' in ex_:                                                                                           # backpack straps
+        for x in (10, 20): c.paint(c.rect(x, 21 + o, x + 2, 33 + o) & sil(c, o), 'pack', np.where(c.xs < x + 1, .9, .5), part=6)
+    if 'phone' in ex_:
+        c.paint(c.rect(21, 34 + o + ar, 25, 40 + o + ar), 'onyx', .6, part=7); c.paint(c.rect(22, 35 + o + ar, 24, 39 + o + ar), 'neonC', .7, part=8, noline=True)
+    if 'cane' in ex_:
+        c.paint(c.rect(23, 35 + o, 25, 55), 'oak', np.where(c.xs < 24, .8, .4), part=5)
+        c.paint(c.rect(21, 33 + o, 26, 35 + o), 'oak', .6, part=5)
+        c.paint(c.rect(23, 54, 25, 55), 'iron', .3, part=5, noline=True)
+    if 'bag' in ex_: handbag(c, 9, 36 + o + al)
 
 def legs_front(c, L, o, ld, rd):
     pants, skin, legs = L['pants'], L['skin'], L.get('legs', 'pants')
@@ -194,10 +262,14 @@ def legs_front(c, L, o, ld, rd):
         c.paint(c.rect(x0, 40 + o, x0 + 5, yb), shin, c.cyl_x(x0, x0 + 5, .3, .9) - (.12 if d < 0 else 0), part=1)
         if legs == 'pants': c.paint(c.rect(x0, yb - 1, x0 + 5, yb), pants, .15, part=1, noline=True)             # hem
         if legs == 'shorts': c.paint(c.rect(x0, yb - 3, x0 + 5, yb), 'white', .8 - (c.ys == yb - 2) * .5, part=1)   # socks
+        if L.get('old') and legs == 'skirt': c.paint(c.rect(x0, 40 + o, x0 + 5, yb), 'cream', c.cyl_x(x0, x0 + 5, .3, .7), part=1)   # stockings
         shoe(c, x0 + 2.5, yb, L, 2, 3.6 + (.4 if d > 0 else 0))
     if legs == 'skirt':
-        sk = (c.ys >= 37 + o) & (c.ys < 47 + o) & (np.abs(c.xs + .5 - 16) < 6.4 + (c.ys - 37 - o) * .28)
-        c.paint(sk, pants, c.cyl_x(8, 24, .3, .9) - ((c.xs + 1) % 4 == 0) * .2, part=3)
+        ln = L.get('skirt', 10)
+        sk = (c.ys >= 37 + o) & (c.ys < 37 + ln + o) & (np.abs(c.xs + .5 - 16) < 6.4 + (c.ys - 37 - o) * .22)
+        lit = c.cyl_x(8, 24, .3, .9) - ((c.xs + 1) % 4 == 0) * .2
+        if L['top'] == 'granny': lit = c.cyl_x(8, 24, .35, .75) + ((c.xs * 3 + c.ys * 5) % 7 == 0) * .35
+        c.paint(sk, pants, lit, part=3)
     else:
         hips = c.rect(10, 37 + o, 22, 43 + o if legs == 'pants' else 46 + o) & ~(c.rect(15, 43 + o, 17, 60))
         c.paint(hips, pants, c.cyl_x(9, 23, .3, .9), part=3)
@@ -207,7 +279,7 @@ def legs_front(c, L, o, ld, rd):
 
 STEP_F = {None: (0, 0, 0, 0, 0), 0: (0, 1, -2, -1, 1), 1: (-1, 0, 0, 0, 0), 2: (0, -2, 1, 1, -1), 3: (-1, 0, 0, 0, 0)}   # body, left foot, right foot, left arm, right arm
 def front(L, f=None):
-    c = Canvas(32, 58); o, ld, rd, al, ar = STEP_F[f]
+    c = Canvas(32, 58); o, ld, rd, al, ar = STEP_F[f]; o += L.get('drop', 0)                                     # some people are a little shorter
     c.cast(c.ell(16, 55.2, 8.5, 2.2), .4)
     legs_front(c, L, o, ld, rd); top_front(c, L, o); arms_front(c, L, o, al, ar); head(c, L, o)
     return render(c)
@@ -215,10 +287,13 @@ def front(L, f=None):
 def side(L, f=None):
     """facing right"""
     c = Canvas(32, 58); skin, shirt, pants, top, legs = L['skin'], L['shirt'], L['pants'], L['top'], L.get('legs', 'pants')
-    o = -1 if f in (1, 3) else 0
+    ex_ = L.get('extras', ()); old = L.get('old')
+    o = (-1 if f in (1, 3) else 0) + L.get('drop', 0)
     c.cast(c.ell(16, 55.2, 8, 2.2), .4)
     shin = skin if legs in ('shorts', 'skirt') else pants
-    lean = {None: (0, 0), 0: (-5, 5), 1: (-1, 1), 2: (5, -5), 3: (1, -1)}[f]                                     # far leg, near leg: how far the foot is from the hip
+    if old and legs == 'skirt': shin = 'cream'
+    st = 3 if old else 5                                                                                       # old people take shorter steps
+    lean = {None: (0, 0), 0: (-st, st), 1: (-1, 1), 2: (st, -st), 3: (1, -1)}[f]                                 # far leg, near leg: how far the foot is from the hip
     for k, ln in enumerate(lean):
         lift = 2 if (f in (1, 3) and k == (0 if f == 1 else 1)) else 0                                        # the passing foot comes up
         x0 = 13.5 + (c.ys - 40 - o) / 12 * ln
@@ -230,39 +305,52 @@ def side(L, f=None):
         c.paint(m, L.get('shoe', 'shoe'), band(c, fx, 52.5 - lift, 4.6, 2.5, .3, 1) - (0 if k else .15), part=2 + k * 2)
         c.paint(m & (c.ys >= 54 - lift), 'sole', 1 if L.get('shoe') in ('shoeR', 'shoeW') else 0, part=2 + k * 2, noline=True)
     if legs == 'skirt':
-        c.paint((c.ys >= 37 + o) & (c.ys < 47 + o) & (np.abs(c.xs + .5 - 16) < 4.6 + (c.ys - 37 - o) * .28), pants, c.cyl_x(10, 22, .3, .9), part=5)
+        ln = L.get('skirt', 10)
+        lit = c.cyl_x(10, 22, .3, .9)
+        if top == 'granny': lit = c.cyl_x(10, 22, .35, .75) + ((c.xs * 3 + c.ys * 5) % 7 == 0) * .35
+        c.paint((c.ys >= 37 + o) & (c.ys < 37 + ln + o) & (np.abs(c.xs + .5 - 16) < 4.6 + (c.ys - 37 - o) * .25), pants, lit, part=5)
     else:
         c.paint(c.rect(11, 37 + o, 20, 43 + o if legs == 'pants' else 46 + o), pants, c.cyl_x(11, 20, .3, .9), part=5)
-    c.paint(c.rect(14, 19 + o, 18, 23 + o), skin, .35, part=3)
+    lf = 1 if old else 0                                                                                       # old people lean forward a little
+    c.paint(c.rect(14 + lf, 19 + o, 18 + lf, 23 + o), skin, .5, part=3)
     if top == 'hoodie': c.paint(c.ell(11.5, 23.5 + o, 4.5, 4), shirt, .3, part=5)                                # the hood on the back
-    if 'pack' in L.get('extras', ()): c.paint(c.ell(8.5, 30 + o, 4, 7), 'pack', band(c, 8.5, 30 + o, 4, 7, .3, 1), part=5)
-    torso = (c.ell(15.5, 27 + o, 5.6, 5.5) & (c.ys >= 22 + o)) | c.rect(10, 26 + o, 21, 39 + o) & c.ell(15.5, 31 + o, 5.8, 9)
+    if 'pack' in ex_: c.paint(c.ell(8.5, 30 + o, 4, 7), 'pack', band(c, 8.5, 30 + o, 4, 7, .3, 1), part=5)
+    torso = (c.ell(15.5 + lf, 26.5 + o, 5.6, 5.6) & (c.ys >= 21 + o)) | c.rect(10, 26 + o, 21 + lf, 39 + o) & c.ell(15.5 + lf * .5, 31 + o, 5.8 + lf * .5, 9)
     c.paint(torso, shirt, c.cyl_x(9, 22, .3, .9), part=6)
     if top == 'sweater': c.paint(torso & (c.ys >= 37 + o), shirt, .2 + (c.xs % 2) * .2, part=6)
-    if top == 'suit': c.paint(c.rect(19, 23 + o, 21, 30 + o) & torso, 'white', .9, part=7); c.paint(c.rect(20, 24 + o, 21, 31 + o), L.get('tie', 'tie'), .7, part=7, noline=True)
-    if top == 'cardigan': c.paint(c.rect(19, 23 + o, 21, 39 + o) & torso, 'blouse', .9, part=7)
+    if top == 'suit': c.paint(c.rect(19, 23 + o, 22, 30 + o) & torso, 'white', .9, part=7); c.paint(c.rect(20 + lf, 24 + o, 21 + lf, 31 + o), L.get('tie', 'tie'), .7, part=7, noline=True)
+    if top == 'granny': c.paint(c.rect(19, 23 + o, 23, 39 + o) & torso, pants, .55 + ((c.xs * 3 + c.ys * 5) % 7 == 0) * .4, part=7)
     if top == 'leather': c.paint(c.rect(20, 23 + o, 21, 39 + o) & torso, 'chrome', .8, part=7, noline=True)
     sw = {None: 0, 0: 3, 1: 1, 2: -3, 3: -1}[f]                                                                  # near arm swings against the near leg
-    ax = 15.5 + (c.ys - 24 - o) / 12 * sw
-    arm = (c.ys >= 24 + o) & (c.ys < 36 + o) & (np.abs(c.xs + .5 - ax) < 2.6)
+    if 'cane' in ex_: sw = 4                                                                                     # the hand stays on the cane
+    ax = 15.5 + lf + (c.ys - 24 - o) / 12 * sw
+    yb = 36 + o - (2 if 'cane' in ex_ else 0)
+    arm = (c.ys >= 24 + o) & (c.ys < yb) & (np.abs(c.xs + .5 - ax) < 2.6)
     c.paint(arm, shirt, np.clip(.85 - np.abs(c.xs + .5 - ax + .8) * .2, 0, 1), part=8)
     if top == 'tee': c.paint(arm & (c.ys > 29 + o), skin, .6, part=8)
-    elif top == 'suit': c.paint(arm & (c.ys > 34 + o), 'white', .9, part=8)
-    elif top != 'leather': c.paint(arm & (c.ys > 33 + o), shirt, .22, part=8)
-    c.paint(c.ell(15.5 + sw * 1.05, 37 + o, 2.3, 2.1), skin, .75, part=9)
-    if 'phone' in L.get('extras', ()): c.paint(c.rect(16 + sw, 33 + o, 19 + sw, 38 + o), 'onyx', .6, part=10)
-    head(c, L, o, side=True)
+    elif top == 'suit': c.paint(arm & (c.ys >= yb - 1), 'white', .9, part=8)
+    elif top != 'leather': c.paint(arm & (c.ys >= yb - 2), shirt, .22, part=8)
+    hxp = 15.5 + lf + (yb - 24 - o) / 12 * sw
+    if 'cane' in ex_:
+        c.paint(c.rect(hxp - .5, yb + 1, hxp + 1.5, 55), 'oak', np.where(c.xs < hxp + .5, .8, .4), part=7)
+        c.paint(c.rect(hxp - 2.5, yb, hxp + 2.5, yb + 2), 'oak', .6, part=7)
+    c.paint(c.ell(hxp, yb + 1, 2.3, 2.1), skin, .75, part=9)
+    if 'phone' in ex_: c.paint(c.rect(16 + sw, 33 + o, 19 + sw, 38 + o), 'onyx', .6, part=10)
+    if 'bag' in ex_: handbag(c, int(round(hxp)), yb + 1)
+    c.xs = c.xs - lf; head(c, L, o, side=True); c.xs = c.xs + lf                                              # the head a pixel forward for the old
     return render(c)
 
 LOOKS = [
     dict(skin='skinA', hair='hairY', eye='irisBl', shirt='sweater', pants='denim', top='sweater', style='long', shoe='boot'),
     dict(skin='skinB', hair='hairK', eye='irisBr', shirt='hood', pants='pantsK', top='hoodie', style='short', shoe='shoeW'),
     dict(skin='skinC', hair='hairK', eye='irisDk', shirt='teeO', pants='denim', top='tee', legs='shorts', style='cap', shoe='shoeR', extras=('pack',)),
-    dict(skin='skinD', hair='hairK', eye='irisHz', shirt='suitN', pants='suitN', top='suit', tie='tie', style='short', extras=('glasses',)),
-    dict(skin='skinA', hair='hairLilac', eye='irisGr', shirt='cardi', pants='skirtP', top='cardigan', legs='skirt', style='bun', extras=('glasses',)),
-    dict(skin='skinA', hair='hairGreen', eye='irisBr', shirt='jacket', pants='denim', top='leather', style='mohawk', shoe='boot'),
+    # the old gentleman (bald, grey tufts and moustache, glasses, suit, a cane) and the old lady (a big set of
+    # lilac curls, glasses, pearls, a dotted dress under a cardigan, stockings, a handbag)
+    dict(skin='skinA', hair='hairG', eye='irisBl', shirt='suitN', pants='suitN', top='suit', tie='tie', style='bald', old=True, drop=2, extras=('glasses', 'moustache', 'cane')),
+    dict(skin='skinA', hair='hairLilac', eye='irisGr', shirt='rose', pants='shirtP', top='granny', legs='skirt', skirt=12, style='bouffant', old=True, drop=2, extras=('glasses', 'bag')),
+    dict(skin='skinA', hair='hairGreen', eye='irisBr', shirt='jacket', pants='denim', top='leather', style='mohawk', shoe='boot', drop=2, extras=('piercing',)),
     dict(skin='skinC', hair='hairB', eye='irisBr', shirt='shirtY', pants='pantsB', top='sweater', style='afro', shoe='shoeW'),
-    dict(skin='skinB', hair='hairPink', eye='irisBl', shirt='crop', pants='denim', top='tee', style='long', shoe='shoeW', extras=('phone',)),
+    dict(skin='skinB', hair='hairPink', eye='irisBl', shirt='rose', pants='denim', top='tee', style='long', shoe='shoeW', extras=('phone',)),
 ]
 OLD = [0, 1, 3, 13, 14, 15, 5, 17]     # today's looks closest to each pilot look
 
