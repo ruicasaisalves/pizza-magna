@@ -5,7 +5,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 ## Files
 - `index.html`: the whole game (about 1500 lines). **Don't read it whole.** Find the section by its marker with grep and read only that:
   - `= LANGUAGE =`: `LANG` and the `I18N` table (en/pt)
-  - `= DATA =`: `DOUGHS`, `SAUCES`, `ING`, `PACKS`, `COMBOS`, `SEG` and `custU()` (what each customer group looks for: students a low price and home toppings `CASA`, families a good deal, gourmets quality, tourists a mix and unusual toppings `EXOTIC`), `THEMES` and the economy constants
+  - `= DATA =`: `DOUGHS`, `SAUCES`, `ING`, `PACKS`, `COMBOS`, `SEG` and `custU()` (what each customer group looks for: students a low price and home toppings `CASA`, families a good deal, gourmets quality, tourists a mix and unusual toppings `EXOTIC`), `THEMES` and the economy constants; `weekly()`: the topping, least wanted topping and combo of the week; `STUDY_COST`, `studyTips()`: the weekly market study in the Shop (tips in `state.tips`)
   - `= PIZZA ANALYSIS =`: `analyze()` (quality, cost, appeal) and `contestScore()`
   - `= DRAWING`: atlas, `spr()`, rotating pieces (`turned()`), `composePizza()` (pieces are drawn in the order they were placed)
   - `= UI: KITCHEN =` and `-- the pizza bench`: the bench (320 wide, with a title strip on top; zoom mode), the bowls, `addPiece()`, `rotatePiece()`, `GRAMS` and `portion()` (weights)
