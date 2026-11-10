@@ -136,10 +136,12 @@ const MUSIC = (() => {
     return { notes: out, steps: toks.length };
   }
 
+  const waves = {};                      // one wave per duty cycle, built once: a new one per note made phones stutter (crackles)
   function pulseWave(duty) {             // square wave with a narrow duty cycle, the classic 8-bit lead
+    if (waves[duty]) return waves[duty];
     const n = 32, re = new Float32Array(n), im = new Float32Array(n);
     for (let k = 1; k < n; k++) im[k] = 2 / (k * Math.PI) * Math.sin(k * Math.PI * duty);
-    return ctx.createPeriodicWave(re, im);
+    return (waves[duty] = ctx.createPeriodicWave(re, im));
   }
 
   function init() {
@@ -216,8 +218,14 @@ const MUSIC = (() => {
 
   // each song plays through its own bus: cutting the bus silences every note still scheduled, even if the
   // audio clock was suspended (phones) and the wall-clock timer ran ahead of it
-  function stopAll() { clearTimeout(timer); timer = null; voices.forEach(v => { try { v.stop() } catch (_) {} }); voices = [];
-    if (bus) { try { bus.disconnect() } catch (_) {} bus = null } current = null }
+  // fade the old tune out over 80 ms before cutting it: stopping notes mid-wave was a click
+  function stopAll() { clearTimeout(timer); timer = null;
+    const vs = voices, b = bus; voices = []; bus = null; current = null;
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    if (b) { b.gain.cancelScheduledValues(now); b.gain.setValueAtTime(b.gain.value, now); b.gain.linearRampToValueAtTime(0, now + .08) }
+    vs.forEach(v => { try { v.stop(now + .1) } catch (_) {} });
+    if (b) setTimeout(() => { try { b.disconnect() } catch (_) {} }, 200) }
 
   function play(id) {
     if (!init()) return;
@@ -227,7 +235,7 @@ const MUSIC = (() => {
     const song = SONGS.find(s => s.id === id) || ORDER[(lastIdx + 1) % ORDER.length];
     lastIdx = ORDER.indexOf(song);
     current = song;
-    bus = ctx.createGain(); bus.gain.value = song.calm ? .7 : 1; bus.connect(master);   // calm tunes play a little quieter
+    bus = ctx.createGain(); bus.gain.setValueAtTime(0, ctx.currentTime); bus.gain.linearRampToValueAtTime(song.calm ? .7 : 1, ctx.currentTime + .1); bus.connect(master);   // calm tunes play a little quieter
     const endAt = ctx.currentTime + schedule(song);
     // after the tune (by the audio clock, which stops while the phone suspends sound), a quiet break of 60–120 s, then another one
     const done = () => { if (ctx.currentTime < endAt) { timer = setTimeout(done, 2000); return }
