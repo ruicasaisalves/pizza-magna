@@ -20,3 +20,7 @@ Ideas on hold, with no plan or date yet.
 ## Better people (pilot on hold)
 - `tools/pilot_people.py` is a pilot for redrawn customers, kept for later: clean cel shading with no dithering, round shoulders, clothes with their own details (hoodie, suit, cardigan, leather jacket, cap and backpack), the old couple with cane and handbag, and a four-step walk. It only makes preview images (`python3 tools/pilot_people.py <folder>` → `pilot_people.png`, `pilot_walk.gif`); the game still uses the people from `gen_room.py`.
 - Still missing before it could replace them: the back view, seated people, the waiter and the cook, and all 21 looks.
+
+## Promotions (on hold)
+- The rival's 2-for-1 comes every 6 days; the player has no promotions yet, only flyers.
+- Ideas: a "Promotion" in the Shop for the next day (pick a pizza, 2 for 1: more customers and reputation, twice the cost and capacity; worse if repeated); answering the rival's 2-for-1 on the same day; group promotions (a student menu, a pizza of the day for families, a free tasting at contests for gourmets); showing when the rival's next 2-for-1 comes.
