@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Pizza Magna: PILOT for better people. Not used by the game; it only makes preview images.
+"""Pizza Magna: the people. gen_room.py builds the game's customers, waiter and cook from here (walk(), seated(),
+staff()); run on its own it makes preview images against the first people (still in gen_room.py).
 
 Same frame as today's walkers (32 x 58, feet on the same line) so the new people could replace
 them one for one, but drawn differently:
@@ -137,6 +138,8 @@ def hair(c, L, o, side=False):
     if side:
         m = cap & ((c.ys < hy - 3.5 + (c.xs > HX + 4) * 1.5) | (c.xs < HX - 3) | ((c.xs < HX + 1) & (c.ys < hy)))
         if st == 'long': m |= c.ell(HX - 6, hy + 8, 5.5, 12) & (c.ys > hy - 2)
+        if st == 'bob': m |= c.ell(HX - 6, hy + 3, 5.6, 7.4) & (c.ys > hy - 2)
+        if st == 'quiff': m |= c.ell(HX + 5, hy - 8.6, 5.4, 3.8) & (c.ys >= 0)
         if st == 'afro': m = c.ell(HX - 2, hy - 1.5, 11.6, 10) & ~(c.ell(HX + 4, hy + 3, 7, 8) & (c.ys > hy - 5))
         if st == 'cap': m = cap & (c.xs < HX - 4) & (c.ys > hy - 2) & (c.ys < hy + 5)
         m &= ~ear
@@ -144,6 +147,8 @@ def hair(c, L, o, side=False):
         fringe = c.ys < hy - 3.6 + 1.6 * np.abs(np.sin(hx * .5 + .6))
         m = cap & (fringe | (np.abs(hx) > 8.6) & (c.ys < hy + 3))
         if st == 'long': m |= (c.ell(HX - 9, hy + 8, 3.2, 11) | c.ell(HX + 9, hy + 8, 3.2, 11)) & (c.ys > hy - 3)
+        if st == 'bob': m |= (c.ell(HX - 9, hy + 3.5, 3.4, 6.4) | c.ell(HX + 9, hy + 3.5, 3.4, 6.4)) & (c.ys > hy - 3)
+        if st == 'quiff': m |= c.ell(HX + 1.5, hy - 9.4, 6.4, 3.4) & (c.ys >= 0)
         if st == 'afro': m = (c.ell(HX, hy - 1.5, 12.6, 10) & (c.ys >= 0)) & ~(c.ell(HX, hy + 4.5, 8.6, 8.5) & (c.ys > hy - 4.4))
         if st == 'cap': m = cap & (np.abs(hx) > 8.4) & (c.ys > hy - 2) & (c.ys < hy + 4)
     if st == 'afro': lit = band(c, HX, hy - 2, 12.6, 10, .15, .75) + (G.noise(c.h, c.w, 2, G.rng(31)) - .5) * .35
@@ -210,6 +215,9 @@ def head(c, L, o, side=False):
         if 'glasses' in ex_:
             c.paint((c.rect(ex - 1, hy - 2, ex + 4, hy + 4) & ~c.rect(ex, hy - 1, ex + 3, hy + 3)) | c.rect(HX - 1, hy, ex - 1, hy + 1), 'gold', .55, part=12, noline=True)
         if 'piercing' in ex_: c.paint(c.rect(HX - 2, hy + 4, HX - 1, hy + 6), 'chrome', 1, part=12, noline=True)
+        if 'beard' in ex_:
+            bd = c.ell(HX, hy, 9.7, 9.5) & (c.ys >= hy + 4) & (c.xs >= HX - 3) & ~c.rect(HX + 5, hy + 5, HX + 10, hy + 7)
+            c.paint(bd, L['hair'], np.where(c.ys < hy + 6, .7, .45), part=9, noline=True)
         return
     for ex in (HX - 5, HX + 2): eye_at(ex)
     c.paint(c.rect(HX - 7, hy + 4, HX - 5, hy + 5) | c.rect(HX + 5, hy + 4, HX + 7, hy + 5), 'blush' + skin, 0, part=10, noline=True)
@@ -226,6 +234,9 @@ def head(c, L, o, side=False):
             c.paint(c.rect(ex, hy - 2, ex + 5, hy + 4) & ~c.rect(ex + 1, hy - 1, ex + 4, hy + 3), 'gold', .55, part=12, noline=True)
         c.paint(c.rect(HX - 1, hy, HX + 1, hy + 1), 'gold', .55, part=12, noline=True)
     if 'piercing' in ex_: c.paint(c.rect(HX + 10, hy + 3, HX + 11, hy + 5), 'chrome', 1, part=12, noline=True)
+    if 'beard' in ex_:
+        bd = c.ell(HX, hy, 10, 9.5) & (c.ys >= hy + 4) & ~c.rect(HX - 3, hy + 4, HX + 3, hy + 7) & ~(c.rect(HX - 5, hy + 4, HX + 5, hy + 5))
+        c.paint(bd, L['hair'], np.where(c.ys < hy + 6, .7, .45), part=9, noline=True)
 
 # ---- the body seen from the front: one rounded line from the neck over the shoulders into the arms ----
 def handbag(c, x, y):
@@ -294,8 +305,9 @@ def top_front(c, L, o):
     elif top == 'suit':
         v = (np.abs(c.xs + .5 - cx) < (31 + o - c.ys) * .42) & (c.ys >= 21 + o) & (c.ys < 31 + o)
         c.paint(v & torso, 'white', .9, part=5)
-        c.paint(c.rect(cx - 1, 23 + o, cx + 1, 31 + o), L.get('tie', 'tie'), np.where(c.xs < cx, .9, .45), part=6)
-        c.paint(c.rect(cx - 1, 22 + o, cx + 1, 24 + o), L.get('tie', 'tie'), .2, part=6, noline=True)
+        if L.get('tie', 'tie'):
+            c.paint(c.rect(cx - 1, 23 + o, cx + 1, 31 + o), L.get('tie', 'tie'), np.where(c.xs < cx, .9, .45), part=6)
+            c.paint(c.rect(cx - 1, 22 + o, cx + 1, 24 + o), L.get('tie', 'tie'), .2, part=6, noline=True)
         for y in (33, 36): c.paint(c.rect(cx, y + o, cx + 1, y + o + 1), 'gold', .8, part=6, noline=True)
         c.paint(c.rect(18, 28 + o, 21, 29 + o), 'white', .9, part=6, noline=True)                                   # pocket square
     elif top == 'granny':                                                                                      # a dotted dress under an open cardigan
@@ -401,7 +413,7 @@ def side_torso(c, L, o):
     torso = (c.ell(15.5 + lf, 26.5 + o, 5.6, 5.6) & (c.ys >= 21 + o)) | c.rect(10, 26 + o, 21 + lf, 39 + o) & c.ell(15.5 + lf * .5, 31 + o, 5.8 + lf * .5, 9)
     c.paint(torso, shirt, c.cyl_x(9, 22, .3, .9), part=6)
     if top == 'sweater': c.paint(torso & (c.ys >= 37 + o), shirt, .2 + (c.xs % 2) * .2, part=6)
-    if top == 'suit': c.paint(c.rect(19, 23 + o, 22, 30 + o) & torso, 'white', .9, part=7); c.paint(c.rect(20 + lf, 24 + o, 21 + lf, 31 + o), L.get('tie', 'tie'), .7, part=7, noline=True)
+    if top == 'suit': c.paint(c.rect(19, 23 + o, 22, 30 + o) & torso, 'white', .9, part=7); c.paint(c.rect(20 + lf, 24 + o, 21 + lf, 31 + o), L.get('tie', 'tie') or 'white', .7, part=7, noline=True)
     if top == 'granny': c.paint(c.rect(19, 23 + o, 23, 39 + o) & torso, pants, .55 + ((c.xs * 3 + c.ys * 5) % 7 == 0) * .4, part=7)
     if top == 'leather': c.paint(c.rect(20, 23 + o, 21, 39 + o) & torso, 'chrome', .8, part=7, noline=True)
     if top == 'stripes': c.paint(torso & ((c.ys - o) % 3 == 0) & (c.ys > 23 + o), 'white', .95, part=6, noline=True)
@@ -497,6 +509,7 @@ def head_back(c, L, o):
         c.paint(m, col, np.clip(band(c, HX, hy - 2, 12.6, 10, .15, .75) + (G.noise(c.h, c.w, 2, G.rng(31)) - .5) * .35, 0, 1), part=9)
     else:
         m = cap & nape
+        if st == 'bob': m = cap | (c.ell(HX, hy + 3, 10.9, 7.6) & (c.ys > hy - 2))
         if st == 'long':
             m = cap | (c.ell(HX, hy + 9, 10.6, 13) & (c.ys > hy - 2))
             lit = np.where(c.ys > hy + 1, np.clip(.75 - (hx + 4) * .035 - (c.xs % 3 == 0) * .14, 0, 1), lit)      # strands down the back
@@ -610,6 +623,13 @@ def seated(L, d='down'):
     im = render(c).crop((0, 0, 32, 48))
     return ImageOps.mirror(im) if d == 'left' else im
 
+def walk(L, d='down', f=None):
+    """a customer on foot facing d (down, up, right, left); f None = standing, 0-3 = the four steps"""
+    if d == 'down': return front(L, f)
+    if d == 'up': return back(L, f)
+    im = side(L, f)
+    return ImageOps.mirror(im) if d == 'left' else im
+
 # the staff, standing and facing down (the game shows them like this)
 WAITER = dict(skin='skinB', hair='hairB', eye='irisBr', shirt='apron', pants='vest', top='waiter', style='short')
 COOK = dict(skin='skinA', hair='hairK', eye='irisGr', shirt='apron', pants='pantsK', top='cook', style='toque')
@@ -635,8 +655,18 @@ LOOKS = [
     dict(skin='skinA', hair='hairK', eye='irisDk', shirt='polo', pants='pantsB', top='polo', style='bucket', shoe='shoeW', extras=('camera',)),
     dict(skin='skinA', hair='hairK', eye='irisDk', shirt='tang', pants='pantsK', top='tang', style='short', shoe='boot'),
     dict(skin='skinA', hair='hairK', eye='irisBr', shirt='qipao', pants='qipao', top='qipao', legs='skirt', skirt=13, style='buns', shoe='boot', drop=2),
+    # office people (a black suit, a jacket and skirt, a brown suit with a moustache), and more of the street:
+    # a redhead in green, a bearded dad, a kid with a blue quiff, a girl with a green bob, a runner
+    dict(skin='skinB', hair='hairK', eye='irisBr', shirt='suitK', pants='suitK', top='suit', tie='tieB', style='short'),
+    dict(skin='skinA', hair='hairR', eye='irisGr', shirt='suitN', pants='suitN', top='suit', tie=None, legs='skirt', skirt=9, style='bob', shoe='boot'),
+    dict(skin='skinC', hair='hairK', eye='irisDk', shirt='suitBr', pants='suitBr', top='suit', tie='tieY', style='short', extras=('moustache',)),
+    dict(skin='skinA', hair='hairR', eye='irisGr', shirt='hood', pants='denim', top='sweater', style='long', shoe='boot'),
+    dict(skin='skinB', hair='hairB', eye='irisHz', shirt='denim', pants='pantsB', top='hoodie', style='short', shoe='boot', extras=('beard',)),
+    dict(skin='skinD', hair='hairBlue', eye='irisHz', shirt='shirtY', pants='denim', top='tee', legs='shorts', style='quiff', shoe='shoeW', drop=3),
+    dict(skin='skinB', hair='hairGreen', eye='irisGr', shirt='jacket', pants='rose', top='leather', legs='skirt', skirt=8, style='bob', shoe='boot', drop=1),
+    dict(skin='skinD', hair='hairK', eye='irisDk', shirt='hawaii', pants='pantsK', top='stripes', legs='shorts', style='afro', shoe='shoeR'),
 ]
-OLD = [0, 1, 3, 13, 14, 15, 5, 17, 16, 11, 9, 7, 8]     # today's looks closest to each pilot look
+OLD = [0, 1, 3, 13, 14, 15, 5, 17, 16, 11, 9, 7, 8, 10, 11, 12, 4, 2, 19, 20, 6]     # today's looks closest to each pilot look
 
 if __name__ == '__main__':
     OUT = _out + '/'; os.makedirs(OUT, exist_ok=True)

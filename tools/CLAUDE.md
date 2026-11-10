@@ -4,7 +4,7 @@
 
 `gen_room.py` draws the dining room with the same method at 32 px per tile (floors, walls, chairs, tables, decor, wall pieces, kitchen, street, customers seated (`p<look>_<dir>`) and on foot (`w<look>_<dir>_<step>`, 32×58 like the waiter), waiter and cook) and writes `../assets/room.js`: the frames plus the layout of each piece (parts, chairs, sitters and table top, in px from its top-left tile). Run `python3 tools/gen_room.py <scratchpad>` and look at `room_atlas.png`; `docs/drafts/room.html` uses it. Every view of a seated person puts the hips at y = 33, so a person is drawn 18 px above its chair (24 px for a chair seen from behind). Code comments and docs are in English.
 
-`pilot_people.py` is an unused pilot for redrawn customers (see `../docs/ideas.md`); it only writes previews.
+`pilot_people.py` draws the people (21 customers, the waiter and the cook): cel shading with no dithering, front / side / back with a walk, and seated poses. `gen_room.py` imports it for the atlas (`walk()`, `seated()`, `staff()`); the first people (`person()`, `walker()`, `standing()` in `gen_room.py`) are kept only for its comparison sheets. Run on its own (`python3 tools/pilot_people.py <folder>`) it writes previews: `pilot_people.png`, `pilot_seated.png`, `pilot_walk.gif`. A new customer is a new entry in its `LOOKS` (keep 21, or change the `21` in the game's `rlook` and in `layout_json`).
 
 `gen_icon.py` makes the game's icon (`../assets/icon-32.png`, `icon-180/192/512.png`): run `python3 tools/gen_icon.py <scratchpad>` and look at `icons.png`.
 
