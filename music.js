@@ -90,10 +90,32 @@ const MUSIC = (() => {
         bass: '. . . A2 - - E2 - - A2 - - E2 - - D2 - - A2 - - A2 - - E2 - - E2 - - B2 - - A2 - - E2 - - E2 - - B2 - - A2 - - E2 - - A2 - - A2 - - A2 - - A2 - - A2 - - B2 - - A2 - - E2 - - A2 - - A2 - - A2 - - A2 - - A2 - - B2 - - A2 - - E2 - - A2 - - E2 - - A2 - - E2 - - D2 - - A2 - - A2 - - E2 - - E2 - - B2 - - A2 - - E2 - - E2 - - B2 - - A2 - - D2 - - C2 - - G2 - - C2 - - G2 - - G2 - - D2 - - C2 - - D2 - - C2 - - G2 - - C2 - - G2 - - G2 - - D2 - - C2 - - G2 - - A2 - - E2 - - A2 - - E2 - - D2 - - A2 - - A2 - - E2 - - E2 - - B2 - - A2 - - E2 - - E2 - - B2 - - A2 - - E2 - - C2 - - G2 - - G2 - - D2 - - G2 - - D2 - - C2 - - G2 - - A2 - - E2 - - D2 - - A2 - - G2 - - D2 - - C2 - -',
         harm: '. . . C4 - - - - - C4 - - - - - F4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - - - - C4 - - F4 - - C4 - - F4 - - C4 - - Ab4 - - C4 - - - - - C4 - - F4 - - C4 - - F4 - - C4 - - Ab4 - - C4 - - - - - C4 - - - - - C4 - - - - - F4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - B4 - - E4 - - - - - E4 - - - - - B4 - - - - - E4 - - B4 - - E4 - - - - - E4 - - - - - B4 - - - - - E4 - - - - - C4 - - - - - C4 - - - - - F4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - - - - E4 - - - - - B4 - - - - - B4 - - - - - E4 - - - - - C#4 - - - - - F4 - - - - - B4 - - - - - E4 - -' },
       drums: 'k . h s . h' },
+    // calm tunes: slow and quiet, played between the livelier ones (see ORDER)
+    { id: 'venezia', title: 'Notte a Venezia', calm: true, bpm: 110, beat: 6, loops: 2, trem: true, parts: 'A',   // a gentle barcarolle
+      A: {
+        lead: 'E5 - - D5 C5 - | B4 - - A4 - - | C5 - - B4 A4 - | G#4 - - - - - | A4 - - B4 C5 - | D5 - - E5 - - | C5 - B4 - A4 - | A4 - - - . .',
+        bass: 'A2 - E3 - A3 - | E2 - B2 - E3 - | A2 - E3 - A3 - | E2 - B2 - E3 - | F2 - C3 - F3 - | D2 - A2 - D3 - | E2 - B2 - E3 - | A2 - - - . .',
+        harm: 'C4 - - - - - | G#3 - - - - - | A3 - - - - - | B3 - - - - - | A3 - - - - - | F3 - - - - - | G#3 - - - - - | C4 - - - . .' },
+      drums: 'k . . . . .' },
+    { id: 'ninna', title: 'Ninna Nanna del Forno', calm: true, bpm: 100, beat: 6, loops: 2, trem: false, parts: 'A',   // a lullaby by the oven
+      A: {
+        lead: 'C5 - A4 - F4 - | G4 - A4 - Bb4 - | A4 - - - G4 - | F4 - - - - - | C5 - D5 - C5 - | Bb4 - A4 - G4 - | A4 - G4 - E4 - | F4 - - - . .',
+        bass: 'F2 - - - C3 - | C2 - - - G2 - | F2 - - - C3 - | F2 - - - C3 - | A2 - - - F2 - | Bb1 - - - F2 - | C2 - - - G2 - | F2 - - - . .',
+        harm: 'A3 - - - - - | E4 - - - - - | C4 - - - - - | A3 - - - - - | F4 - - - - - | D4 - - - - - | Bb3 - - - - - | A3 - - - . .' },
+      drums: '. . . . . .' },
+    { id: 'toscana', title: 'Tramonto in Toscana', calm: true, bpm: 116, beat: 8, loops: 2, trem: false, parts: 'A',   // sunset over the hills
+      A: {
+        lead: 'D5 - - - B4 - G4 - | A4 - - - - - B4 - | C5 - - - A4 - F#4 - | G4 - - - - - . . | E5 - - - D5 - C5 - | B4 - - - A4 - G4 - | A4 - - - F#4 - A4 - | G4 - - - - - . .',
+        bass: 'G2 - - - D3 - - - | D2 - - - A2 - - - | C2 - - - G2 - - - | G2 - - - D3 - - - | C2 - - - G2 - - - | G2 - - - D3 - - - | D2 - - - A2 - - - | G2 - - - - - . .',
+        harm: 'B3 - - - - - - - | F#4 - - - - - - - | E4 - - - - - - - | D4 - - - - - - - | G4 - - - - - - - | D4 - - - - - - - | C4 - - - - - - - | B3 - - - - - . .' },
+      drums: 'k . . . h . . .' },
   ];
 
+  // play order: lively and calm in turn (lively, calm, lively, calm...); the calm tunes repeat as needed
+  const LIVELY = SONGS.filter(s => !s.calm), CALM = SONGS.filter(s => s.calm);
+  const ORDER = LIVELY.flatMap((s, i) => CALM.length ? [s, CALM[i % CALM.length]] : [s]);
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
-  let lastIdx = Math.floor(Math.random() * SONGS.length) - 1, ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;   // the first tune is random (then the fixed order carries on from it)
+  let lastIdx = Math.floor(Math.random() * LIVELY.length) * 2 - 1, ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;   // the first tune is random (then the fixed order carries on from it)
   const VOL = 'pm-music-vol', LEVELS = [.25, .5, 1, 1.6, 2.3];   // 1 = low ... 5 = max; 3 (the middle) is the default
   const getVol = () => { try { const v = +localStorage.getItem(VOL); return v >= 1 && v <= 5 ? v : 3 } catch (_) { return 3 } };
   const gainFor = v => .16 * LEVELS[v - 1];
@@ -202,10 +224,10 @@ const MUSIC = (() => {
     if (ctx.state === 'suspended') ctx.resume();
     stopAll();
     // fixed order: each new tune is the one after the last played (it starts with the first)
-    const song = SONGS.find(s => s.id === id) || SONGS[(lastIdx + 1) % SONGS.length];
-    lastIdx = SONGS.indexOf(song);
+    const song = SONGS.find(s => s.id === id) || ORDER[(lastIdx + 1) % ORDER.length];
+    lastIdx = ORDER.indexOf(song);
     current = song;
-    bus = ctx.createGain(); bus.connect(master);
+    bus = ctx.createGain(); bus.gain.value = song.calm ? .7 : 1; bus.connect(master);   // calm tunes play a little quieter
     const endAt = ctx.currentTime + schedule(song);
     // after the tune (by the audio clock, which stops while the phone suspends sound), a quiet break of 60–120 s, then another one
     const done = () => { if (ctx.currentTime < endAt) { timer = setTimeout(done, 2000); return }
