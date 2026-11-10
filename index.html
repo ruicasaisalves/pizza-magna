@@ -20,7 +20,7 @@
   --wood:#7a4520; --wood-hi:#a8692f; --wood-lo:#4a260f; --wood-deep:#2a1407;
   --brass:#e3b34a; --brass-hi:#fbe39a; --brass-lo:#94661a; --brass-ink:#3a2706;
   --parch:#f3e6c6; --parch-2:#e6d3a8; --ink:#2c1a0b; --muted:#6c5233; --line:#c8ad7c; --on-wood:#e9d2a2;
-  --blue:#1f4f9c; --marble:#e9e6df url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='40'%3E%3Cpath d='M0 28Q15 18 28 24T60 12M8 0Q20 14 14 40M40 0Q46 20 60 30' stroke='%23c9c4ba' fill='none'/%3E%3C/svg%3E");
+  --blue:#1f4f9c; --marble:#ecebe6;
   --lcd-bg:#081008; --lcd:#8cff73; --lcd-dim:#3f7f33;
   --tomato:#c4352a; --tomato-hi:#e8705a; --tomato-lo:#7e1d14; --good:#2e7b2c; --bad:#b02a1c; --cheese:#ffcf4a;
   --f-pixel:'Silkscreen','Courier New',monospace;
@@ -225,7 +225,7 @@ details.book summary{cursor:pointer;font-family:var(--f-pixel);font-size:.8rem}
 .pick.on{border-color:var(--tomato);box-shadow:inset 0 0 0 2px var(--tomato)}
 .pick b{display:block;overflow-wrap:anywhere}
 .pick .sub{color:var(--blue)}
-#view>.stack>.card>h2,#view .card h2{color:var(--blue);text-shadow:1px 1px 0 #000}
+#view>.stack>.card>h2,#view>.stack>.card>h3,#view .card h2{color:var(--blue);text-shadow:1px 1px 0 #000}
 table.rank{width:100%;border-collapse:collapse;font-size:.92rem}
 table.rank td{padding:6px 4px;border-bottom:1px dashed var(--line)}
 table.rank td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
@@ -458,6 +458,7 @@ pt:{
   'menu.house':'Menu da casa','menu.lead':'Ajusta os preços. O preço justo depende da qualidade e de quem entra: gourmets pagam mais, estudantes contam cada cêntimo.','menu.empty':'O menu está vazio. Cria uma pizza na Cozinha para poderes abrir portas.','menu.gokitchen':'Ir para a Cozinha',
   'menu.cost':'Custo','menu.margin':'Margem','menu.fair':'Preço justo','menu.sold':'Vendidas ontem','menu.edit':'Editar receita','menu.remove':'Remover','menu.confirm':'Confirmar remoção','menu.new':'+ Criar nova pizza ({n})','k.unsaved.title':'Pizza por guardar','k.unsaved.lead':'Ainda não guardaste a pizza anterior, “{x}”, no menu. Criar uma nova na mesma?','k.unsaved.new':'Criar nova','k.unsaved.keep':'Continuar','menu.pdn':'Baixar preço','menu.pup':'Subir preço'
 }};
+const isNewName=n=>!n||n===I18N.en['k.newname']||n===I18N.pt['k.newname'];
 function t(key,v){let s=I18N[LANG][key]??I18N.en[key]??key;if(v)for(const k in v)s=s.split('{'+k+'}').join(v[k]);return s}
 const tx=t;   // the same, for code where a local `t` (time) hides it
 
@@ -1042,7 +1043,7 @@ function kitchenHTML(){
       <div class="stack">
         <div class="card stack">
           <div class="row" style="justify-content:space-between"><h2>${d.editing?t('k.title.edit'):t('k.title.new')}</h2><button class="btn sm ghost" data-act="newdraft">${t('k.fresh')}</button></div>
-          <div class="field"><label class="lbl" for="pname">${t('k.name')}</label><input id="pname" maxlength="28" value="${esc(d.name)}" placeholder="${esc(t('k.newname'))}">${d.from&&authorOf(d)===d.from?`<span class="sub">${esc(t('rec.from',{c:d.from.c,s:d.from.s}))}</span>`:''}</div>
+          <div class="field"><label class="lbl" for="pname">${t('k.name')}</label><input id="pname" maxlength="28" value="${esc(isNewName(d.name)?t('k.newname'):d.name)}" placeholder="${esc(t('k.newname'))}">${d.from&&authorOf(d)===d.from?`<span class="sub">${esc(t('rec.from',{c:d.from.c,s:d.from.s}))}</span>`:''}</div>
           <div class="field"><span class="lbl">${t('k.dough')}</span><div class="seg">${seg(DOUGHS,'dough',d.dough)}</div></div>
           <div class="field"><span class="lbl">${t('k.sauce')}</span><div class="seg">${seg(SAUCES,'sauce',d.sauce)}</div></div>
         </div>
@@ -1124,7 +1125,7 @@ function drawBench(){
   if(pz.ghost){const mid=CENTRED.has(sel)&&!cut;spr(c,cut?sel+'_g0':wholeKey(sel,0,curAng()),PCX+(mid?0:pz.ghost.x)*PR,PCY+(mid?0:pz.ghost.y)*PR,.6)}
   {   // the name of the pizza being made, dark title on the marble strip on top (like the menu cards)
     // one line at full size if it fits; otherwise two lines, shrinking only if two are still not enough
-    const nm=(d.name||t('k.newname')).toUpperCase(),F=f=>{c.font=`bold ${f}px Silkscreen, monospace`};
+    const nm=(isNewName(d.name)?t('k.newname'):d.name).toUpperCase(),F=f=>{c.font=`bold ${f}px Silkscreen, monospace`};
     let fs=11,lines=[nm];F(fs);
     if(c.measureText(nm).width>BW-8)for(fs=10;fs>=6;fs--){F(fs);lines=wrapLines(c,nm,BW-8);if(lines.length<=2&&lines.every(l=>c.measureText(l).width<=BW-8))break}
     lines=lines.slice(0,2);
