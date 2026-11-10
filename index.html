@@ -1343,7 +1343,7 @@ function buyStock(id,grams,days){const g=Math.ceil(grams/10)*10;if(g<=0)return 0
 
 function simulateDay(){
   const s=state,menuA=s.menu.map(p=>({p,a:analyze(p),need:pizzaNeeds(p),base:baseCostOf(p)})),mix=segMix(),cap=capacity(),r=s.rival;
-  const N=expectedCustomers();const TH=4.2,REGULARS=.45;const events=[];
+  const N=expectedCustomers();const TH=4.2,REGULARS=.45,CURIOUS=.2,SLACK=3;const events=[];
   // the room: seats at the tables a waiter can reach, and how much each group likes it
   const RM=roomA(),atm=RM.atm,EAT=.18,WAIT=.04,seatFree=Array(RM.seats).fill(0);let noseat=0;
   // the pantry for today (a copy: the day is applied in finishDay)
@@ -1370,7 +1370,12 @@ function simulateDay(){
     const regular=Math.random()<REGULARS,bar=regular?TH-2.5:Math.max(ru,TH);
     if(best&&bu>=bar){
       e.target='ours';
-      const pk=opts.find(o=>o.u>=bar&&canMake(o.m)),m=pk&&pk.m;   // their favourite, or the next one they'd still have
+      let pk=opts.find(o=>o.u>=bar&&canMake(o.m));   // their favourite, or the next one they'd still have
+      // new customers don't know which pizza is the best one: some are curious and pick any pizza that is not far
+      // below what they'd accept (CURIOUS of the newcomers, SLACK points under the bar), so a pizza nobody
+      // would 'logically' choose still gets a customer or two now and then
+      if(!regular&&Math.random()<CURIOUS){const pool=opts.filter(o=>o.u>=bar-SLACK&&canMake(o.m));if(pool.length>1)pk=pool[Math.floor(Math.random()*pool.length)]}
+      const m=pk&&pk.m;
       let k=-1;for(let j=0;j<seatFree.length;j++)if(k<0||seatFree[j]<seatFree[k])k=j;   // the seat that frees up first
       if(!m){nostock++;repDelta-=.006;e.out='nostock';if(Math.random()<.3)quotes.push([seg,tx('qt.nostock')])}
       else if(served<cap&&(k<0||seatFree[k]>t+WAIT)){noseat++;repDelta-=.012;e.out='noseat';if(Math.random()<.3)quotes.push([seg,tx('qt.noseat')])}
