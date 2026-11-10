@@ -1732,7 +1732,7 @@ function drawRoom(){
   const person=(a,key)=>L.push({z:a.y+T,draw:()=>drawChar(c,a,key)});
   for(const k of sc.cooks)person(k,'cook');
   for(const w of sc.waiters){person(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2)}   // held in both hands, in front
-  if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;person(p,`w${p.rlook||0}_${p.dir}_${p.walking?Math.floor(p.ph)%2:0}`)}   // standing or walking; seated ones are drawn at their table
+  if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;person(p,`w${p.rlook||0}_${p.dir}_${p.walking?[1,0,2,0][Math.floor(p.ph)%4]:0}`)}   // standing or walking; seated ones are drawn at their table
   for(const q of rugs)c.drawImage(q.img,q.x,q.y);
   L.sort((a,b)=>a.z-b.z).forEach(d=>d.draw?d.draw():c.drawImage(d.img,d.x,d.y));
   if(t>.8){c.fillStyle=`rgba(30,22,70,${Math.min(.3,(t-.8)*1.5)})`;   /* dusk only in the last hours */c.fillRect(0,0,RW,RH)}

@@ -1295,11 +1295,14 @@ def sprites():
     put('w_neon_0', w_neon(0)); put('w_neon_1', w_neon(1))
     put('k_oven_0', oven(0)); put('k_oven_1', oven(1)); put('k_counter', counter(8)); put('k_register', register())
     put('k_boxes', boxes()); put('k_logs', logs()); put('k_rack', rack())
-    put('waiter', standing('waiter', 'skinB', 'hairB', 'irisBr')); put('cook', standing('cook', 'skinA', 'hairK', 'irisGr'))
-    for i, L in enumerate(LOOKS):
+    # the people come from pilot_people.py (cel shaded, three views, a real walk); person(), walker() and standing()
+    # above are the first people, kept for its comparison sheets
+    import pilot_people as PP
+    put('waiter', PP.staff('waiter')); put('cook', PP.staff('cook'))
+    for i, L in enumerate(PP.LOOKS):
         for d in ('down', 'up', 'right', 'left'):
-            put(f'p{i}_{d}', person(d, L))                       # seated
-            for f in (0, 1): put(f'w{i}_{d}_{f}', walker(d, L, f))   # standing / walking
+            put(f'p{i}_{d}', PP.seated(L, d))                    # seated
+            for k, f in enumerate((None, 0, 2)): put(f'w{i}_{d}_{k}', PP.walk(L, d, f))   # standing, then the two strides (the game plays 1, 0, 2, 0)
     return out
 
 def layout_json(imgs):
@@ -1313,7 +1316,7 @@ def layout_json(imgs):
     walls = {id_: [k + ('_1' if k == 'w_neon' else ''), x, y] for id_, (k, x, y) in WALLPIECES.items()}
     kitchen = [['k_oven', 414, 42, 128, 2], ['k_logs', 606, 104, 128], ['k_counter', 382, 202, 256], ['k_register', 388, 178, 256.1],
                ['k_boxes', 606, 190, 256.2], ['cook', 456, 58, 129]]
-    return json.dumps({'items': items, 'walls': walls, 'kitchen': kitchen, 'looks': len(LOOKS), 'plain': PLAIN}, separators=(',', ':'))
+    return json.dumps({'items': items, 'walls': walls, 'kitchen': kitchen, 'looks': 21, 'plain': PLAIN}, separators=(',', ':'))
 
 def pack(imgs, width=1024):
     order = sorted(imgs, key=lambda k: (-imgs[k].height, -imgs[k].width))
