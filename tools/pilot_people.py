@@ -7,7 +7,8 @@ them one for one, but drawn differently:
 - a real figure: neck, shoulders, arms with cuffs and hands, hips, legs with a gap, shoes with soles;
 - faces with brows, lashes, a smile; hair with a shine band and its own shapes;
 - clothes with their own details (hood and pocket, lapels and tie, ribbed hems, cardigan, studs);
-- a four-step walk (contact, passing with a 1 px bob, contact, passing) with swinging arms.
+- a four-step walk (contact, passing with a 1 px bob, contact, passing) with swinging arms;
+- three views: front, side (with a nose, and the near arm standing out from the body) and back.
 Usage: python3 tools/pilot_people.py <folder>  -> pilot_people.png, pilot_walk.gif"""
 import os, sys
 import numpy as np
@@ -33,6 +34,9 @@ RAMP.update({
     'boot':    hexs(['#08080a', '#16161a', '#2a2a30', '#48484e']),
     'rose':    hexs(['#7a2a4a', '#a8486a', '#cc6c8c', '#e496b0', '#f6c4d4']),
     'bagB':    hexs(['#2a1408', '#4e2a12', '#74441e', '#9a6430', '#c08a4a']),
+    'hawaii':  hexs(['#0a3a44', '#12606c', '#1c8a94', '#3cb4b8', '#7cdcd8']),
+    'strawH':  hexs(['#7a5a1c', '#a8822c', '#d0aa48', '#ecd070', '#fbe9a0']),
+    'dressK':  hexs(['#0c0c12', '#1c1c26', '#30303e', '#4a4a5c', '#6c6c80']),
 })
 
 def render(s, dither=0):
@@ -113,9 +117,16 @@ def hair(c, L, o, side=False):
     if st == 'mohawk':
         stub = c.ell(HX - (1 if side else 0), hy - 1, 10.2, 9.6) & (c.ys < hy - 3.2)
         c.paint(stub, skin, .5, part=8, noline=False)                   # shaved sides: one flat tone darker
-        if side: m = (c.xs > HX - 9) & (c.xs < HX + 6) & (c.ys >= o - 2 + 2.4 * np.abs((c.xs % 4) - 2)) & (c.ys < hy - 4) & (c.ys >= 0)
-        else: m = (np.abs(hx) < 3.5) & (c.ys >= o - 2 + 3 * (((c.xs - 13) % 3) != 1)) & (c.ys < hy - 2) & (c.ys >= 0)
-        c.paint(m, col, np.where(side, np.where(c.ys < hy - 7, .95, .5), np.where(hx < -.5, .95, np.where(hx < 1.5, .6, .3))), part=9)
+        if side:                                                        # a crest from the forehead to the nape, spikes pointing out
+            dx = c.xs + .5 - (HX - 1); dy = c.ys + .5 - (hy - 1)
+            rr = np.hypot(dx / 10.2, dy / 9.6) * 9.9; a = np.degrees(np.arctan2(-dy, dx))
+            spike = np.abs(((a / 24) % 1) - .5) * 2
+            m = (a > 40) & (a < 170) & (rr > 8.3) & (rr < 10.6 + spike * 2.6) & (c.ys >= 0)
+            c.paint(m, col, np.clip(.3 + (rr - 8.3) * .17, 0, 1), part=9)
+        else:                                                           # a fin down the middle with a jagged top
+            k = c.xs - HX; top = np.select([k == -3, k == -2, k == -1, k == 0, k == 1, k == 2], [3, 1, 0, 2, 0, 2], 99)
+            m = (top < 99) & (c.ys >= max(0, hy - 14) + top) & (c.ys < hy - 2)
+            c.paint(m, col, np.where(k < -1, .95, np.where(k < 1, .65, .35)) - (c.ys > hy - 6) * .12, part=9)
         return
     if side:
         m = cap & ((c.ys < hy - 3.5 + (c.xs > HX + 4) * 1.5) | (c.xs < HX - 3) | ((c.xs < HX + 1) & (c.ys < hy)))
@@ -132,12 +143,26 @@ def hair(c, L, o, side=False):
     if st == 'afro': lit = band(c, HX, hy - 2, 12.6, 10, .15, .75) + (G.noise(c.h, c.w, 2, G.rng(31)) - .5) * .35
     if st == 'long' and not side: lit = np.where((c.ys > hy + 1) & (np.abs(hx) < 9), .2, np.where(c.ys > hy + 1, np.where(hx < 0, .7, .45), lit))
     c.paint(m, col, np.clip(lit, 0, 1), part=9)
+    if st == 'bun': bun(c, col, *((HX - 10, hy - 8.5) if side else (HX, hy - 10.5)))
     if st == 'cap':                                                                                           # a baseball cap
         dome = c.ell(HX - (1 if side else 0), hy - 2, 10.6, 9.2) & (c.ys < hy - 2.6)
         c.paint(dome, 'capB', band(c, HX, hy - 4, 10, 8, .3, 1), part=10)
         peak = c.rect(HX + 2, hy - 4, HX + 14, hy - 1) & c.ell(HX + 6, hy - 2.5, 8, 2.2) if side else c.ell(HX, hy - 2.2, 9.8, 2.2) & (c.ys >= hy - 4)
         c.paint(peak, 'capB', .25 if not side else .5, part=11)
         if not side: c.paint(c.rect(HX - 1, hy - 8, HX + 1, hy - 6), 'white', 1, part=11, noline=True)
+    if st == 'hat': straw_hat(c, HX - (1 if side else 0), hy)
+
+def bun(c, col, x, y):
+    """a round bun, its own shape over the hair"""
+    c.paint(c.ell(x, y, 4, 3.8) & (c.ys >= 0), col, np.clip(band(c, x, y, 4, 3.8, .3, 1), 0, 1), part=10)
+
+def straw_hat(c, x, hy):
+    """the tourist's straw hat: a round crown with a red band and a wide brim"""
+    crown = c.ell(x, hy - 4.5, 8.6, 6.8) & (c.ys < hy - 3) & (c.ys >= 0)
+    c.paint(crown, 'strawH', band(c, x, hy - 6, 9, 7, .35, 1) - ((c.xs + c.ys) % 3 == 0) * .12, part=10)
+    c.paint(crown & (c.ys >= hy - 6), 'red', np.where(c.xs < x, .75, .45), part=10, noline=True)
+    brim = c.ell(x, hy - 3, 14.5, 2.4)
+    c.paint(brim, 'strawH', np.where(c.ys < hy - 3, .95, .5) - ((c.xs + c.ys) % 3 == 0) * .1, part=11)
 
 def head(c, L, o, side=False):
     """the round head of today's people (20 px wide), with the hair, face and extras of the look"""
@@ -146,6 +171,7 @@ def head(c, L, o, side=False):
         c.paint(c.ell(HX - 9.9, hy + 2, 1.6, 2.2) | c.ell(HX + 9.9, hy + 2, 1.6, 2.2), skin, .5, part=7)     # ears
     c.paint(c.ell(HX, hy, 10 - (.3 if side else 0), 9.5), skin, .6 + c.sphere(HX + (1 if side else 0), hy, 10, 10) * .3, part=8)
     if side: c.paint(c.ell(HX - 2, hy + 2, 1.6, 2.2), skin, .5, part=8, noline=True); c.paint(c.rect(HX - 2, hy + 1, HX - 1, hy + 3), skin, .25, part=8, noline=True)                                   # the ear, with its own edge
+    if side: c.paint(c.ell(HX + 9.6, hy + 3.3, 1.7, 1.5), skin, .8, part=8)                                   # the nose
     hair(c, L, o, side)
     def eye_at(ex):
         """a big glossy eye, 3 x 4: a lash line, dark, then the iris colour along the bottom, and one catch light"""
@@ -211,6 +237,19 @@ def top_front(c, L, o):
         c.paint(c.ell(cx, 22 + o, 3, 1.5), skin, .5, part=5)
         star = [(2, 0), (1, 1), (2, 1), (3, 1), (0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (1, 3), (2, 3), (3, 3), (1, 4), (3, 4)]
         for dx, dy in star: c.paint(c.rect(cx - 2.5 + dx, 28 + o + dy, cx - 1.5 + dx, 29 + o + dy), 'white', 1, part=6, noline=True)
+    elif top == 'stripes':
+        c.paint(torso & ((c.ys - o) % 3 == 0) & (c.ys > 23 + o), 'white', .95, part=4, noline=True)
+        c.paint(c.ell(cx, 22 + o, 3.4, 1.6), skin, .5, part=5)
+    elif top == 'hawaii':
+        flowers(c, torso)
+        c.paint((np.abs(c.xs + .5 - cx) < (27 + o - c.ys) * .55) & (c.ys >= 21 + o) & (c.ys < 27 + o) & torso, skin, .55, part=5)   # open collar
+        strap = (np.abs(np.abs(c.xs + .5 - cx) - (1.5 + (30 + o - c.ys) * .4)) < .6) & (c.ys >= 22 + o) & (c.ys < 30 + o)
+        c.paint(strap & torso, 'onyx', .3, part=6, noline=True)
+        c.paint(c.rect(cx - 3, 29 + o, cx + 3, 34 + o), 'onyx', np.where(c.ys < 30 + o, .9, .5), part=7)           # the camera
+        c.paint(c.ell(cx, 31.6 + o, 1.7, 1.7), 'chrome', band(c, cx, 31.6 + o, 1.7, 1.7, .3, 1), part=8, noline=True)
+    elif top == 'dress':
+        c.paint(c.ell(cx, 21.6 + o, 4.4, 2.6) & torso, skin, .55, part=5)                                          # round neckline
+        for k in range(-3, 4): c.paint(c.rect(cx + k * 1.6 - .5, 22 + o + (3 - abs(k)) * .7, cx + k * 1.6 + .5, 23 + o + (3 - abs(k)) * .7), 'plate', 1, part=7, noline=True)
     elif top == 'suit':
         v = (np.abs(c.xs + .5 - cx) < (31 + o - c.ys) * .42) & (c.ys >= 21 + o) & (c.ys < 31 + o)
         c.paint(v & torso, 'white', .9, part=5)
@@ -228,22 +267,37 @@ def top_front(c, L, o):
         for x in (11, 20): c.paint(c.rect(x, 27 + o, x + 1, 28 + o), 'chrome', 1, part=6, noline=True)
         c.paint(c.rect(10, 36 + o, 22, 37 + o) & torso, 'chrome', .5, part=6, noline=True)                         # belt of studs
 
-def arms_front(c, L, o, al, ar):
+def flowers(c, m):
+    """little cream and yellow flowers over a mask (the tourist's shirt)"""
+    c.paint(m & ((c.xs * 5 + c.ys * 3) % 11 == 0), 'cream', 1, part=4, noline=True)
+    c.paint(m & ((c.xs * 5 + c.ys * 3) % 11 == 5) & (c.ys % 2 == 0), 'shirtY', .9, part=4, noline=True)
+
+BARE = {'tee': 29, 'stripes': 29, 'hawaii': 29, 'dress': 26}     # tops with short sleeves: where the bare arm starts
+
+def arms_front(c, L, o, al, ar, back=False):
     """arms hang from round shoulders: the shoulder is part of the body's outline, the arm only shows
     as its own shape lower down; a swinging arm gets a little longer or shorter, the shoulder stays"""
     shirt, skin, top = L['shirt'], L['skin'], L['top']; ex_ = L.get('extras', ())
     for sx, d in ((-1, al), (1, ar)):
         x0 = 7 if sx < 0 else 21; cx = x0 + 2; yb = 35 + o + d
-        if sx > 0 and 'cane' in ex_: yb = 33 + o
+        if sx == (-1 if back else 1) and 'cane' in ex_: yb = 33 + o
         arm = sil(c, o) & c.rect(x0, 0, x0 + 4, yb)
         lit = np.clip((.82 if sx < 0 else .55) - (c.xs + .5 - x0) * .06 + np.where(c.ys < 24 + o, .12, 0), 0, 1)
         c.paint(arm & (c.ys < 27 + o), shirt, lit, part=4)                                                       # shoulder: one outline with the body
         c.paint(arm & (c.ys >= 27 + o), shirt, lit, part=5)
         low = arm & (c.ys >= 27 + o)
-        if top == 'tee': c.paint(arm & (c.ys >= 29 + o), skin, .7 if sx < 0 else .5, part=5)
+        if top in BARE: c.paint(arm & (c.ys >= BARE[top] + o), skin, .7 if sx < 0 else .5, part=5)
         elif top in ('sweater', 'hoodie', 'granny'): c.paint(low & (c.ys >= yb - 2), shirt, .22, part=5)            # cuff
         elif top == 'suit': c.paint(low & (c.ys >= yb - 1), 'white', .9, part=5)
+        if top == 'stripes': c.paint(arm & (c.ys < 29 + o) & (c.ys > 23 + o) & ((c.ys - o) % 3 == 0), 'white', .95, part=5, noline=True)
+        if top == 'hawaii': flowers(c, arm & (c.ys < 29 + o))
         c.paint(c.ell(cx, yb + 1, 2, 2), skin, band(c, cx, yb + 1, 2, 2, .5, .9), part=6)                           # hand
+    if back:                                                                                                    # from behind: the cane and the bag change sides
+        if 'cane' in ex_:
+            c.paint(c.rect(7, 35 + o, 9, 55), 'oak', np.where(c.xs < 8, .8, .4), part=5)
+            c.paint(c.rect(6, 33 + o, 11, 35 + o), 'oak', .6, part=5)
+        if 'bag' in ex_: handbag(c, 23, 36 + o + ar)
+        return
     if 'pack' in ex_:                                                                                           # backpack straps
         for x in (10, 20): c.paint(c.rect(x, 21 + o, x + 2, 33 + o) & sil(c, o), 'pack', np.where(c.xs < x + 1, .9, .5), part=6)
     if 'phone' in ex_:
@@ -321,13 +375,23 @@ def side(L, f=None):
     if top == 'suit': c.paint(c.rect(19, 23 + o, 22, 30 + o) & torso, 'white', .9, part=7); c.paint(c.rect(20 + lf, 24 + o, 21 + lf, 31 + o), L.get('tie', 'tie'), .7, part=7, noline=True)
     if top == 'granny': c.paint(c.rect(19, 23 + o, 23, 39 + o) & torso, pants, .55 + ((c.xs * 3 + c.ys * 5) % 7 == 0) * .4, part=7)
     if top == 'leather': c.paint(c.rect(20, 23 + o, 21, 39 + o) & torso, 'chrome', .8, part=7, noline=True)
+    if top == 'stripes': c.paint(torso & ((c.ys - o) % 3 == 0) & (c.ys > 23 + o), 'white', .95, part=6, noline=True)
+    if top == 'hawaii':
+        flowers(c, torso)
+        c.paint(c.rect(20, 29 + o, 24, 34 + o), 'onyx', np.where(c.ys < 30 + o, .9, .5), part=7)                     # the camera on the chest
+        c.paint(c.rect(23, 30 + o, 25, 33 + o), 'chrome', .7, part=7)
+        c.paint((np.abs(c.xs + .5 - 17 - (c.ys - 22 - o) * .55) < .7) & (c.ys >= 22 + o) & (c.ys < 30 + o) & torso, 'onyx', .3, part=7, noline=True)
     sw = {None: 0, 0: 3, 1: 1, 2: -3, 3: -1}[f]                                                                  # near arm swings against the near leg
     if 'cane' in ex_: sw = 4                                                                                     # the hand stays on the cane
     ax = 15.5 + lf + (c.ys - 24 - o) / 12 * sw
     yb = 36 + o - (2 if 'cane' in ex_ else 0)
     arm = (c.ys >= 24 + o) & (c.ys < yb) & (np.abs(c.xs + .5 - ax) < 2.6)
-    c.paint(arm, shirt, np.clip(.85 - np.abs(c.xs + .5 - ax + .8) * .2, 0, 1), part=8)
-    if top == 'tee': c.paint(arm & (c.ys > 29 + o), skin, .6, part=8)
+    behind = (np.roll(arm, 1, axis=1) | np.roll(arm, 2, axis=1)) & ~arm & (c.mat != None)                      # the arm's shadow on the body
+    c.lit[behind] = np.clip(c.lit[behind] - .28, 0, 1)
+    c.paint(arm, shirt, np.clip(1 - np.abs(c.xs + .5 - ax + .8) * .22, 0, 1), part=8)
+    if top == 'stripes': c.paint(arm & (c.ys < 29 + o) & ((c.ys - o) % 3 == 0), 'white', .95, part=8, noline=True)
+    if top == 'hawaii': flowers(c, arm & (c.ys < 29 + o))
+    if top in BARE: c.paint(arm & (c.ys >= BARE[top] + o), skin, .7, part=8)
     elif top == 'suit': c.paint(arm & (c.ys >= yb - 1), 'white', .9, part=8)
     elif top != 'leather': c.paint(arm & (c.ys >= yb - 2), shirt, .22, part=8)
     hxp = 15.5 + lf + (yb - 24 - o) / 12 * sw
@@ -340,6 +404,86 @@ def side(L, f=None):
     c.xs = c.xs - lf; head(c, L, o, side=True); c.xs = c.xs + lf                                              # the head a pixel forward for the old
     return render(c)
 
+# ---- seen from behind (walking up): the same body, the back of each top and of each head of hair ----
+def head_back(c, L, o):
+    skin, col = L['skin'], L['hair']; st = L.get('style', 'short'); hy = 11 + o; hx = c.xs + .5 - HX
+    c.paint(c.ell(HX - 9.9, hy + 2, 1.6, 2.2) | c.ell(HX + 9.9, hy + 2, 1.6, 2.2), skin, .5, part=7)            # ears
+    c.paint(c.ell(HX, hy, 10, 9.5), skin, .55 + c.sphere(HX, hy, 10, 10) * .3, part=8)
+    cap = c.ell(HX, hy - 1.2, 10.6, 9.9) & (c.ys >= 0)
+    shine = (np.abs(np.hypot((hx + 1.5) / 1.1, c.ys + .5 - hy + 1.5) - 6.4) < .75) & (c.xs < HX + 3) & (c.ys < hy - 2)
+    lit = band(c, HX, hy - 3, 11, 10, .2, .7) + np.where(shine, .3, 0)
+    nape = c.ys < hy + 4.6 + (np.abs(hx) < 6) * 1.4                                                            # the hairline at the neck
+    if st == 'bald':
+        c.paint(cap & (c.ys > hy + .5) & nape, col, band(c, HX, hy + 2, 11, 5, .3, .9), part=9)                 # a grey band from ear to ear
+        c.paint(c.rect(HX - 5, hy - 7, HX - 1, hy - 5), skin, 1, part=8, noline=True)
+    elif st == 'mohawk':
+        c.paint(c.ell(HX, hy - 1, 10.2, 9.6) & nape, skin, .5, part=8)
+        k = c.xs - HX; top = np.select([k == -3, k == -2, k == -1, k == 0, k == 1, k == 2], [3, 1, 0, 2, 0, 2], 99)
+        m = (top < 99) & (c.ys >= max(0, hy - 14) + top) & (c.ys < hy + 6 - np.abs(hx) * .8)
+        c.paint(m, col, np.where(k < -1, .95, np.where(k < 1, .65, .35)) - (c.ys > hy - 6) * .12, part=9)
+    elif st == 'bouffant':
+        pts = [(HX + 8.8 * np.cos(a), hy - 2 + 7.6 * np.sin(a)) for a in np.arange(0, 2, .125) * np.pi]
+        pts += [(HX + 4.6 * np.cos(a), hy - 2.5 + 4 * np.sin(a)) for a in np.arange(0, 2, .25) * np.pi] + [(HX, hy - 2.5)]
+        m, cl = curls(c, pts, 3.4)
+        c.paint((m | c.ell(HX, hy - 2.5, 10.5, 9)) & (c.ys < hy + 7) & (c.ys >= 0), col, np.where(m, cl * .9 + .05, .4), part=9)
+    elif st == 'afro':
+        m = c.ell(HX, hy - 1.5, 12.6, 10.6) & (c.ys >= 0)
+        c.paint(m, col, np.clip(band(c, HX, hy - 2, 12.6, 10, .15, .75) + (G.noise(c.h, c.w, 2, G.rng(31)) - .5) * .35, 0, 1), part=9)
+    else:
+        m = cap & nape
+        if st == 'long':
+            m = cap | (c.ell(HX, hy + 9, 10.6, 13) & (c.ys > hy - 2))
+            lit = np.where(c.ys > hy + 1, np.clip(.75 - (hx + 4) * .035 - (c.xs % 3 == 0) * .14, 0, 1), lit)      # strands down the back
+        c.paint(m, col, np.clip(lit, 0, 1), part=9)
+        if st == 'bun': bun(c, col, HX, hy - 10.5)
+        if st == 'cap':
+            c.paint(cap & (c.ys < hy + 1.5), 'capB', band(c, HX, hy - 4, 10, 8, .3, 1), part=10)
+            c.paint(c.ell(HX, hy + 1.5, 3, 2.4) & (c.ys < hy + 1.5), col, .3, part=10, noline=True)                # the gap over the strap
+            c.paint(c.rect(HX - 3, hy + 1, HX + 3, hy + 2), 'capB', .2, part=10, noline=True)
+        if st == 'hat': straw_hat(c, HX, hy)
+
+def top_back(c, L, o):
+    top, shirt, skin = L['top'], L['shirt'], L['skin']; ex_ = L.get('extras', ())
+    torso = torso_mask(c, o); cx = 16
+    lit = c.cyl_x(7, 25, .35, .9) - np.where(c.ys > 34 + o, .1, 0) - np.where(c.ys < 23 + o, .18, 0)
+    c.paint(c.rect(14, 19 + o, 18, 23 + o), skin, .45, part=3)
+    c.paint(torso, shirt, lit, part=4)
+    if top == 'sweater':
+        c.paint(torso & (c.ys >= 37 + o), shirt, .2 + (c.xs % 2) * .2, part=4)
+        c.paint(c.rect(13, 21 + o, 19, 22 + o), shirt, .25, part=5, noline=True)
+    elif top == 'hoodie':                                                                                      # the hood hangs on the back
+        hood = c.ell(cx, 25 + o, 6.6, 5) & (c.ys >= 21 + o)
+        c.paint(hood, shirt, np.clip(band(c, cx, 25 + o, 6.6, 5, .25, .85), 0, 1), part=5)
+        c.paint(c.ell(cx, 23.6 + o, 4, 2.2) & hood, shirt, .12, part=5, noline=True)                               # its opening
+    elif top == 'stripes':
+        c.paint(torso & ((c.ys - o) % 3 == 0) & (c.ys > 23 + o), 'white', .95, part=4, noline=True)
+    elif top == 'hawaii':
+        flowers(c, torso)
+        c.paint(c.rect(12, 21 + o, 20, 22 + o) & torso, 'onyx', .3, part=5, noline=True)                           # the camera strap
+    elif top == 'suit':
+        c.paint(c.rect(13, 21 + o, 19, 22 + o) & torso, 'white', .9, part=5, noline=True)                          # shirt collar
+        c.paint(c.rect(cx, 33 + o, cx + 1, 39 + o), shirt, .1, part=5, noline=True)                                # vent
+    elif top == 'granny':
+        c.paint(torso & (c.ys >= 37 + o), shirt, .25 + (c.xs % 2) * .15, part=4)
+    elif top == 'leather':
+        c.paint(c.rect(12, 21 + o, 20, 23 + o) & torso, shirt, .15, part=5, noline=True)                           # collar
+        for dx, dy in ((0, 0), (1, 0), (2, 0), (0, 1), (2, 1), (0, 2), (1, 2), (2, 2), (1, 3)):                      # a badge
+            c.paint(c.rect(cx - 1.5 + dx, 27 + o + dy, cx - .5 + dx, 28 + o + dy), 'chrome', .9, part=6, noline=True)
+        c.paint(c.rect(10, 36 + o, 22, 37 + o) & torso, 'chrome', .5, part=6, noline=True)
+    elif top == 'dress':
+        c.paint(c.ell(cx, 21.2 + o, 4, 1.8) & torso, skin, .5, part=5)
+    if 'pack' in ex_:                                                                                           # the backpack
+        bp = c.rect(10, 23 + o, 22, 37 + o) & c.ell(cx, 30 + o, 6.6, 8.4)
+        c.paint(bp, 'pack', band(c, cx, 29 + o, 7, 8, .3, 1), part=6)
+        c.paint(c.rect(12, 31 + o, 20, 36 + o) & bp, 'pack', np.where(c.ys < 32 + o, .2, .55), part=7)             # pocket
+        c.paint(c.rect(cx - 1, 24 + o, cx + 1, 25 + o), 'chrome', .8, part=7, noline=True)
+
+def back(L, f=None):
+    c = Canvas(32, 58); o, ld, rd, al, ar = STEP_F[f]; o += L.get('drop', 0)
+    c.cast(c.ell(16, 55.2, 8.5, 2.2), .4)
+    legs_front(c, L, o, ld, rd); top_back(c, L, o); arms_front(c, L, o, al, ar, back=True); head_back(c, L, o)
+    return render(c)
+
 LOOKS = [
     dict(skin='skinA', hair='hairY', eye='irisBl', shirt='sweater', pants='denim', top='sweater', style='long', shoe='boot'),
     dict(skin='skinB', hair='hairK', eye='irisBr', shirt='hood', pants='pantsK', top='hoodie', style='short', shoe='shoeW'),
@@ -348,31 +492,36 @@ LOOKS = [
     # lilac curls, glasses, pearls, a dotted dress under a cardigan, stockings, a handbag)
     dict(skin='skinA', hair='hairG', eye='irisBl', shirt='suitN', pants='suitN', top='suit', tie='tie', style='bald', old=True, drop=2, extras=('glasses', 'moustache', 'cane')),
     dict(skin='skinA', hair='hairLilac', eye='irisGr', shirt='rose', pants='shirtP', top='granny', legs='skirt', skirt=12, style='bouffant', old=True, drop=2, extras=('glasses', 'bag')),
-    dict(skin='skinA', hair='hairGreen', eye='irisBr', shirt='jacket', pants='denim', top='leather', style='mohawk', shoe='boot', drop=2, extras=('piercing',)),
+    dict(skin='skinA', hair='hairGreen', eye='irisBr', shirt='jacket', pants='denim', top='leather', style='mohawk', shoe='boot', drop=3, extras=('piercing',)),
     dict(skin='skinC', hair='hairB', eye='irisBr', shirt='shirtY', pants='pantsB', top='sweater', style='afro', shoe='shoeW'),
-    dict(skin='skinB', hair='hairPink', eye='irisBl', shirt='rose', pants='denim', top='tee', style='long', shoe='shoeW', extras=('phone',)),
+    dict(skin='skinB', hair='hairPink', eye='irisBl', shirt='rose', pants='denim', top='stripes', legs='skirt', skirt=8, style='long', shoe='shoeW', extras=('phone',)),
+    # the tourist (straw hat, flowered shirt, a camera round the neck, shorts and socks) and the gourmet (a bun,
+    # a black dress, pearls, red shoes)
+    dict(skin='skinA', hair='hairR', eye='irisGr', shirt='hawaii', pants='pantsB', top='hawaii', legs='shorts', style='hat', shoe='bagB'),
+    dict(skin='skinD', hair='hairK', eye='irisHz', shirt='dressK', pants='dressK', top='dress', legs='skirt', skirt=11, style='bun', shoe='shoeR', drop=3),
 ]
-OLD = [0, 1, 3, 13, 14, 15, 5, 17]     # today's looks closest to each pilot look
+OLD = [0, 1, 3, 13, 14, 15, 5, 17, 16, 11]     # today's looks closest to each pilot look
 
 if __name__ == '__main__':
     OUT = _out + '/'; os.makedirs(OUT, exist_ok=True)
     fs = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 20)
     K = 5; n = len(LOOKS); BG = (206, 178, 136)
     W = n * 34 * K + 190
-    sheet = Image.new('RGB', (W, 4 * 62 * K + 20), BG); dr = ImageDraw.Draw(sheet)
+    sheet = Image.new('RGB', (W, 6 * 62 * K + 20), BG); dr = ImageDraw.Draw(sheet)
     def put(im, col, row):
         b = im.resize((im.width * K, im.height * K), Image.NEAREST); sheet.paste(b, (180 + col * 34 * K, 10 + row * 62 * K), b)
-    for row, t in enumerate(['TODAY', 'PILOT', 'TODAY  side', 'PILOT  side']): dr.text((14, 10 + row * 62 * K + 130), t, fill=(60, 30, 10), font=fs)
+    for row, t in enumerate(['TODAY', 'PILOT', 'TODAY  side', 'PILOT  side', 'TODAY  back', 'PILOT  back']): dr.text((14, 10 + row * 62 * K + 130), t, fill=(60, 30, 10), font=fs)
     for i, L in enumerate(LOOKS):
         put(G.walker('down', G.LOOKS[OLD[i]], 0).image(), i, 0); put(front(L), i, 1)
         put(G.walker('right', G.LOOKS[OLD[i]], 1).image(), i, 2); put(side(L, 0), i, 3)
+        put(G.walker('up', G.LOOKS[OLD[i]], 0).image(), i, 4); put(back(L), i, 5)
     sheet.save(OUT + 'pilot_people.png')
-    # the walk, old (2 steps) against the pilot (4 steps), at the game's size x4
-    K = 4; frames = []
+    # the walk, old (2 steps) against the pilot (4 steps), at the game's size x3; the last row is the pilot from behind
+    K = 3; frames = []
     for t in range(8):
-        fr = Image.new('RGB', (n * 34 * K + 16, 2 * 62 * K * 2 + 16), BG)
+        fr = Image.new('RGB', (n * 34 * K + 16, 5 * 62 * K + 16), BG)
         for i, L in enumerate(LOOKS):
-            for r, im in enumerate([G.walker('down', G.LOOKS[OLD[i]], (t // 2) % 2).image(), front(L, t % 4), G.walker('right', G.LOOKS[OLD[i]], (t // 2) % 2).image(), side(L, t % 4)]):
+            for r, im in enumerate([G.walker('down', G.LOOKS[OLD[i]], (t // 2) % 2).image(), front(L, t % 4), G.walker('right', G.LOOKS[OLD[i]], (t // 2) % 2).image(), side(L, t % 4), back(L, t % 4)]):
                 b = im.resize((im.width * K, im.height * K), Image.NEAREST); fr.paste(b, (8 + i * 34 * K, 8 + r * 62 * K), b)
         frames.append(fr)
     frames[0].save(OUT + 'pilot_walk.gif', save_all=True, append_images=frames[1:], duration=140, loop=0)

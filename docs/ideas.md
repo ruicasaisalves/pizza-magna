@@ -18,7 +18,7 @@ Ideas on hold, with no plan or date yet.
 - Quality from a better supplier could raise the pizza's quality a little; a cheap one could lower it.
 
 ## Better people (pilot on hold)
-- `tools/pilot_people.py` is a pilot for redrawn customers, kept for later: clean cel shading with no dithering, round shoulders, clothes with their own details (hoodie, suit, cardigan, leather jacket, cap and backpack), the old couple with cane and handbag, and a four-step walk. It only makes preview images (`python3 tools/pilot_people.py <folder>` → `pilot_people.png`, `pilot_walk.gif`); the game still uses the people from `gen_room.py`.
+- `tools/pilot_people.py` is a pilot for redrawn customers, kept for later: clean cel shading with no dithering, round shoulders, clothes with their own details (hoodie, suit, cardigan, leather jacket, cap and backpack), the old couple with cane and handbag, a tourist (straw hat, flowered shirt, camera) and a gourmet (bun, black dress, pearls), three views (front, side with a nose, back) and a four-step walk. Still missing before it can replace today's people: the seated poses, the waiter and the cook. It only makes preview images (`python3 tools/pilot_people.py <folder>` → `pilot_people.png`, `pilot_walk.gif`); the game still uses the people from `gen_room.py`.
 - Still missing before it could replace them: the back view, seated people, the waiter and the cook, and all 21 looks.
 
 ## Promotions (on hold)
