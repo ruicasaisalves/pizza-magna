@@ -16,3 +16,7 @@ Ideas on hold, with no plan or date yet.
 - Done in part: one supplier at a time, chosen in the Shop as a quality level (`SUPPLIER`). Still an idea: Later: several suppliers (the market, a wholesaler, a delicatessen, a farm) with different prices, quality and delivery days.
 - Gives the player more to do in tier 3 (you run everything): find the cheapest or the best place for each topping and plan the pantry around deliveries.
 - Quality from a better supplier could raise the pizza's quality a little; a cheap one could lower it.
+
+## Better people (pilot on hold)
+- `tools/pilot_people.py` is a pilot for redrawn customers, kept for later: clean cel shading with no dithering, round shoulders, clothes with their own details (hoodie, suit, cardigan, leather jacket, cap and backpack), the old couple with cane and handbag, and a four-step walk. It only makes preview images (`python3 tools/pilot_people.py <folder>` → `pilot_people.png`, `pilot_walk.gif`); the game still uses the people from `gen_room.py`.
+- Still missing before it could replace them: the back view, seated people, the waiter and the cook, and all 21 looks.
