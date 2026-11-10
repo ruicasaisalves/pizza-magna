@@ -698,9 +698,9 @@ const COMBOS=[
   {id:'x_pestoananas',n:'Pesto com Ananás',req:['s:pesto','ananas'],q:-10,seg:{},quote:'Pesto e ananás? Não.'}
 ];
 const SEG={
-  estudante:{n:'Estudantes',col:'#f08a3b',ps:1.45,w:{carne:3,picante:3,doce:2,gourmet:-2,peixe:-1},dough:{alta:6,fina:0,napo:0,integral:-1,sem_gluten:-2,lenta:0,recheado:8}},
+  estudante:{n:'Estudantes',col:'#f08a3b',ps:1.45,w:{carne:3,picante:3,doce:2,casa:3,gourmet:-3,peixe:-1},dough:{alta:6,fina:0,napo:0,integral:-1,sem_gluten:-2,lenta:0,recheado:8}},
   familia:{n:'Famílias',col:'#3d8ee0',ps:1.15,w:{classico:3,carne:1,picante:-4,peixe:-1,gourmet:-1,doce:1},dough:{alta:3,fina:0,napo:1,integral:1,sem_gluten:1,lenta:1,recheado:5}},
-  turista:{n:'Turistas',col:'#24a067',ps:.8,w:{portugues:4,classico:2,gourmet:1},dough:{alta:0,fina:0,napo:3,integral:0,sem_gluten:0,lenta:4,recheado:0}},
+  turista:{n:'Turistas',col:'#24a067',ps:.8,w:{portugues:3,exotico:4,classico:2,gourmet:1},dough:{alta:0,fina:0,napo:3,integral:0,sem_gluten:0,lenta:4,recheado:0}},
   gourmet:{n:'Gourmets',col:'#8a55d0',ps:.45,w:{gourmet:4,portugues:2,classico:1,carne:-1},dough:{alta:-4,fina:3,napo:3,integral:2,sem_gluten:1,lenta:6,recheado:-6}}
 };
 // names come from the language table (run again when the player changes language)
@@ -718,6 +718,21 @@ function setLang(pref){
   LANG=pref==='auto'?browserLang():pref;document.documentElement.lang=LANG;applyNames();
   document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n)});
   drawMute();drawFs();render();showOptions();
+}
+/* What each group looks for when it picks a pizza (custU): u is how much they want it, before the room and the luck.
+   value = what the pizza seems worth to them (fairPrice: quality and what it is made of) minus its price.
+   - students: a low price above all, and home toppings (CASA: ham, chocolate, banana...); gourmet things less
+   - families: a good deal, a pizza priced under what it is worth
+   - gourmets: quality first (their appeal counts more), then a good deal; luxury toppings through their tags
+   - tourists: a mix of price, quality and value, and unusual toppings (EXOTIC: tikka, Serra cheese...) */
+const CASA=new Set(['fiambre','chocolate','banana','nutella','milho','salsicha','frankfurt','batata_palha','ananas','pepperoni','bacon','coxa','frango','mel','carne_picada','ovo']);
+const EXOTIC=new Set(['frango_tikka','frango_teriyaki','char_siu','kebab','queijo_serra','sao_jorge','alheira','farinheira','catupiry','edamame','tofu','polvo','lulas','padron','marmelada','calabresa','grao','morcela','bacalhau','sardinha','lagosta','figo','framboesa','amora','mirtilo']);
+function custU(seg,ap,price,cost){
+  const v=fairPrice(ap,cost)-price;
+  if(seg==='estudante')return ap/10-1.5*(price-7)+.25*v;
+  if(seg==='familia')return ap/10+1.15*v;
+  if(seg==='gourmet')return ap/6+.35*v-.15*(price-10);
+  return ap/10-.5*(price-8)+.5*v;   // tourists
 }
 const RIVAL_BIAS={estudante:10,familia:5,turista:-6,gourmet:-18};
 const THEMES=[
@@ -823,7 +838,7 @@ function analyze(p){
   if(n>0)q+=sup().q;   // the supplier's quality
   q=clamp(Math.round(q),0,100);
   const cost=D.c+S.c+cost0;
-  const tags=[...ids.flatMap(i=>ING[i].t),...S.t,...D.t];
+  const tags=[...ids.flatMap(i=>[...ING[i].t,...(CASA.has(i)?['casa']:[]),...(EXOTIC.has(i)?['exotico']:[])]),...S.t,...D.t];
   const appeal={};
   for(const k in SEG){let tw=0;for(const t of tags)tw+=SEG[k].w[t]||0;tw=clamp(tw,-20,18);let a=q+tw+SEG[k].dough[p.dough]+segMod[k];if(k==='gourmet'&&n>34)a-=8;if(k==='estudante'&&n>=24)a+=3;appeal[k]=clamp(Math.round(a),0,100)}
   return {q,cost:r2(cost),appeal,notes,combos:combos.map(c=>c.id),n,d,cnt,ids};
@@ -1293,9 +1308,9 @@ function simulateDay(){
   for(let i=0;i<N;i++){
     const seg=pickSeg(),ps=SEG[seg].ps,t=arrivals[i];
     const deco=(atm[seg]-35)/25+(s.rep-2.5)*.3;   // the room's atmosphere for this group, and the reputation
-    const opts=menuA.map(m=>{const ap=m.a.appeal[seg];return {m,u:ap/10-ps*(m.p.price-fairPrice(ap,m.a.cost))+noise()+deco}}).sort((a,b)=>b.u-a.u);
+    const opts=menuA.map(m=>{const ap=m.a.appeal[seg];return {m,u:custU(seg,ap,m.p.price,m.a.cost)+noise()+deco}}).sort((a,b)=>b.u-a.u);
     const best=opts.length?opts[0].m:null,bu=opts.length?opts[0].u:-1e9;
-    const ra=clamp(r.q+RIVAL_BIAS[seg],0,100);const ru=ra/10-ps*(r.price-fairPrice(ra))+noise()+(r.promo?1.5:0);
+    const ra=clamp(r.q+RIVAL_BIAS[seg],0,100);const ru=custU(seg,ra,r.price,baseCost()+1)+noise()+(r.promo?1.5:0);
     const e={t,seg};
     // regulars: about half the street knows you and comes back unless the pizza is poor or overpriced,
     // whatever the rival does; this keeps a beginner's day steady (stable profit on the starter room)
@@ -1786,8 +1801,8 @@ function demandCurve(p){
   // profit is the whole menu's: a cheaper pizza also takes customers from the other pizzas, and they share the kitchen
   for(let k=0;k<=30;k++){const price=lo+(hi-lo)*k/30,n=menuA.map(()=>0);
     for(const c of cust){const ps=SEG[c.seg].ps,deco=(atm[c.seg]-35)/25+(state.rep-2.5)*.3;let bu=-1e9,bj=-1;
-      menuA.forEach((m,j)=>{const pr=m===me?price:m.p.price,ap=m.a.appeal[c.seg],u=ap/10-ps*(pr-fairPrice(ap,m.a.cost))+c.n[j]+deco;if(u>bu){bu=u;bj=j}});
-      const ra=clamp(rv.q+RIVAL_BIAS[c.seg],0,100),ru=ra/10-ps*(rv.price-fairPrice(ra))+c.rn;
+      menuA.forEach((m,j)=>{const pr=m===me?price:m.p.price,ap=m.a.appeal[c.seg],u=custU(c.seg,ap,pr,m.a.cost)+c.n[j]+deco;if(u>bu){bu=u;bj=j}});
+      const ra=clamp(rv.q+RIVAL_BIAS[c.seg],0,100),ru=custU(c.seg,ra,rv.price,baseCost()+1)+c.rn;
       if(bj>=0&&bu>=(c.reg?TH-2.5:Math.max(ru,TH)))n[bj]++}
     const tot=n.reduce((x,y)=>x+y,0)/300*N,sc=tot>cap?cap/tot:1,u=n.map(x=>x/300*N*sc);
     pts.push({price,units:u[menuA.indexOf(me)],profit:menuA.reduce((acc,m,j)=>acc+u[j]*((m===me?price:m.p.price)-m.a.cost),0)})}
