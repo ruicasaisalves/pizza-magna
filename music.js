@@ -147,7 +147,7 @@ const MUSIC = (() => {
   function init() {
     if (ctx) return true;
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
-    ctx = new AC();
+    ctx = new AC({ latencyHint: 'playback' });   // bigger audio buffers: phones that fall behind make pops
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200; lp.Q.value = .4;   // lo-fi: soften the top
     master = ctx.createGain(); master.gain.value = gainFor(getVol());
     // a limiter at the end: stacked voices at high volume used to clip (crackles)
@@ -159,7 +159,7 @@ const MUSIC = (() => {
     return true;
   }
 
-  function tone(type, f, t0, dur, vol, opts = {}) {
+  function toneNow(type, f, t0, dur, vol, opts = {}) {
     const o = ctx.createOscillator(), g = ctx.createGain();
     if (type === 'pulse') o.setPeriodicWave(pulseWave(opts.duty || .25)); else o.type = type;
     o.frequency.value = f;
@@ -171,11 +171,11 @@ const MUSIC = (() => {
     g.gain.setValueAtTime(vol, t0 + dur - rel);
     g.gain.linearRampToValueAtTime(0, t0 + dur);
     o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + dur + .02);
-    voices.push(o);
+    o.onended = () => { o.done = true; try { g.disconnect() } catch (_) {} }; voices.push(o);
   }
 
   let noiseBuf = null;
-  function drum(kind, t0) {
+  function drumNow(kind, t0) {
     if (kind === 'k') {                                  // kick: sine sweeping down
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.frequency.setValueAtTime(150, t0); o.frequency.exponentialRampToValueAtTime(45, t0 + .12);
@@ -191,7 +191,18 @@ const MUSIC = (() => {
   }
 
   // schedule a whole song from now; returns its length in seconds
+  // notes are created only a little ahead of time (see pump): creating a whole tune's notes at once,
+  // thousands of oscillators, made phones fall behind, and that was heard as pops everywhere
+  let queue = [], qi = 0, pumpT = null;
+  function pump() {
+    const until = ctx.currentTime + .5;
+    while (qi < queue.length && queue[qi][0] < until) { const [t0, fn] = queue[qi++]; if (t0 > ctx.currentTime - .02) fn() }
+    voices = voices.filter(v => !v.done);
+    pumpT = qi < queue.length ? setTimeout(pump, 150) : null;
+  }
   function schedule(song) {
+    queue = []; qi = 0; clearTimeout(pumpT);
+    const tone = (...a) => queue.push([a[2], () => toneNow(...a)]), drum = (k, t0) => queue.push([t0, () => drumNow(k, t0)]);
     const step = 60 / song.bpm;
     let t = ctx.currentTime + .15;
     const start = t;
@@ -213,13 +224,14 @@ const MUSIC = (() => {
         t += lead.steps * step;
       }
     }
+    queue.sort((a, b) => a[0] - b[0]); pump();
     return t - start;
   }
 
   // each song plays through its own bus: cutting the bus silences every note still scheduled, even if the
   // audio clock was suspended (phones) and the wall-clock timer ran ahead of it
   // fade the old tune out over 80 ms before cutting it: stopping notes mid-wave was a click
-  function stopAll() { clearTimeout(timer); timer = null;
+  function stopAll() { clearTimeout(timer); timer = null; clearTimeout(pumpT); pumpT = null; queue = []; qi = 0;
     const vs = voices, b = bus; voices = []; bus = null; current = null;
     if (!ctx) return;
     const now = ctx.currentTime;
