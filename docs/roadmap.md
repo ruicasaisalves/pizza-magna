@@ -14,7 +14,7 @@ Where Pizza Magna is today and what is still missing to make it a full pizzeria 
 | **Contest** | Every 5 days, 5 themes, prizes. |
 | **Goal** | $4,000 and 3★. |
 
-The public site only shows the Kitchen and the Menu (sandbox mode).
+The public site runs the full game (it showed only the Kitchen and the Menu until the restaurant went live).
 
 ## Missing
 

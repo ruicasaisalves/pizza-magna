@@ -2,7 +2,7 @@
 
 A pizzeria management game for browser and phone, in 90s pixel-art style.
 
-Live (pizza bench only): https://www.pizzamagna.xyz
+Live: https://www.pizzamagna.xyz
 
 ## How to play
 
@@ -21,7 +21,7 @@ Open `index.html` in a browser. No install and no server needed.
 
 Goal: $4,000 and 3★ to open the second restaurant.
 
-The public site (GitHub Pages from `main`) only shows the Kitchen and the Menu. The full game is at https://www.pizzamagna.xyz/dev (`dev/index.html` loads the same `index.html` without the bench-only mode, with its own save), and the city draft at https://www.pizzamagna.xyz/docs/drafts/city.html.
+The public site (GitHub Pages from `main`) runs the full game. `index.html#sandbox` opens only the Kitchen and the Menu, with a separate save, for testing. https://www.pizzamagna.xyz/dev loads the same `index.html` and is kept for old links.
 
 ## Technology
 

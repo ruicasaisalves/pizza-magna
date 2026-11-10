@@ -9,7 +9,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
   - `= PIZZA ANALYSIS =`: `analyze()` (quality, cost, appeal) and `contestScore()`
   - `= DRAWING`: atlas, `spr()`, rotating pieces (`turned()`), `composePizza()` (pieces are drawn in the order they were placed)
   - `= UI: KITCHEN =` and `-- the pizza bench`: the bench (320 wide, with a title strip on top; zoom mode), the bowls, `addPiece()`, `rotatePiece()`, `GRAMS` and `portion()` (weights)
-  - `= UI: DAY =`, `-- simulation`, `-- restaurant room`: the day, the customers and the tiled room (32 px tiles, art and piece layouts from `assets/room.js`)
+  - `= UI: DAY =`, `-- simulation`, `-- restaurant room`: the day, the customers and the tiled room (32 px tiles, art and piece layouts from `assets/room.js`); `RZ`: room zoom 1–3 (− / + buttons, two-finger pinch, ctrl+wheel) shared by the day and the room editor, the canvas scrolls inside `.rscroll`
   - `-- room design` (state.room: pieces, seats, atmosphere per customer group, `roomAnalyse()`), `= UI: ROOM EDITOR =` (Shop › Decorate the room)
   - `-- stock` (pantry by weight: `state.stock`, nothing spoils) and who runs the pizzeria, `state.tier`: 1 the manager runs everything (buys at +25%, sets prices, hires; `TIER_FEE`), 2 a buyer refills the pantry every morning for `restockDays`, 3 the player does everything; the supplier, `state.supplier` (`SUPPLIER`, `ingC()`): 1/2/3 adds quality to every pizza and makes toppings dearer, and no topping is ever locked; `managerMorning()`, `= UI: PANTRY =` (Shop › Pantry), `= DEMAND CURVE =` (the whole menu's profit by one pizza's price; shown in the Menu only with Options › Advanced analytics, `ADV`, `pm-adv` in `localStorage`; by default the Menu shows just quality, cost, margin and sold yesterday)
   - `= UI: SHOP =`, `= UI: CONTEST =`, `= MODALS =`, `= RECIPES: LINK, FILE, IMPORT =`, `= SHARE =`
@@ -34,8 +34,9 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 - Don't add dependencies or build steps.
 
 ## Testing
-- Test mode: `index.html#sandbox` (or `window.PM_SANDBOX=true`) opens only the Kitchen and the Menu, everything unlocked and with a separate save. On the public site (`pizzamagna.xyz` and `*.github.io`, GitHub Pages from `main`) the game always opens in this mode: only the bench is live.
-- Full game online: `pizzamagna.xyz/dev`. `dev/index.html` fetches `../index.html`, adds `<base href="../">` and sets `window.PM_DEV=true`, which turns off the forced bench mode. There is only one copy of the game: never copy `index.html` into `dev/`.
+- The public site (`pizzamagna.xyz`, GitHub Pages from `main`) runs the full game. It used to show only the bench, saved under the bench key; `load()` adopts that save for players who have no full-game save.
+- Test mode: `index.html#sandbox` (or `window.PM_SANDBOX=true`) opens only the Kitchen and the Menu, with a separate save.
+- `pizzamagna.xyz/dev` still works (`dev/index.html` fetches `../index.html` and adds `<base href="../">`) and is now the same as the site. There is only one copy of the game: never copy `index.html` into `dev/`.
 - `node tools/test_ingredients.js [id1,id2] <folder>`: checks sprites, translations, combos and weights, and places pieces on the bench.
 - For other screens, use Playwright: `require('playwright')` works without installing anything.
 
