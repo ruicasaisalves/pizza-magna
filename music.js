@@ -90,7 +90,7 @@ const MUSIC = (() => {
         bass: '. . . A2 - - E2 - - A2 - - E2 - - D2 - - A2 - - A2 - - E2 - - E2 - - B2 - - A2 - - E2 - - E2 - - B2 - - A2 - - E2 - - A2 - - A2 - - A2 - - A2 - - A2 - - B2 - - A2 - - E2 - - A2 - - A2 - - A2 - - A2 - - A2 - - B2 - - A2 - - E2 - - A2 - - E2 - - A2 - - E2 - - D2 - - A2 - - A2 - - E2 - - E2 - - B2 - - A2 - - E2 - - E2 - - B2 - - A2 - - D2 - - C2 - - G2 - - C2 - - G2 - - G2 - - D2 - - C2 - - D2 - - C2 - - G2 - - C2 - - G2 - - G2 - - D2 - - C2 - - G2 - - A2 - - E2 - - A2 - - E2 - - D2 - - A2 - - A2 - - E2 - - E2 - - B2 - - A2 - - E2 - - E2 - - B2 - - A2 - - E2 - - C2 - - G2 - - G2 - - D2 - - G2 - - D2 - - C2 - - G2 - - A2 - - E2 - - D2 - - A2 - - G2 - - D2 - - C2 - -',
         harm: '. . . C4 - - - - - C4 - - - - - F4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - - - - C4 - - F4 - - C4 - - F4 - - C4 - - Ab4 - - C4 - - - - - C4 - - F4 - - C4 - - F4 - - C4 - - Ab4 - - C4 - - - - - C4 - - - - - C4 - - - - - F4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - B4 - - E4 - - - - - E4 - - - - - B4 - - - - - E4 - - B4 - - E4 - - - - - E4 - - - - - B4 - - - - - E4 - - - - - C4 - - - - - C4 - - - - - F4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - - - - Ab4 - - - - - C4 - - - - - E4 - - - - - B4 - - - - - B4 - - - - - E4 - - - - - C#4 - - - - - F4 - - - - - B4 - - - - - E4 - -' },
       drums: 'k . h s . h' },
-    // calm tunes: slow and quiet, played between the livelier ones (see ORDER)
+    // calm tunes: slow and quiet, in the same order as the others (see ORDER)
     { id: 'venezia', title: 'Notte a Venezia', calm: true, bpm: 110, beat: 6, loops: 2, trem: true, parts: 'A',   // a gentle barcarolle
       A: {
         lead: 'E5 - - D5 C5 - | B4 - - A4 - - | C5 - - B4 A4 - | G#4 - - - - - | A4 - - B4 C5 - | D5 - - E5 - - | C5 - B4 - A4 - | A4 - - - . .',
@@ -111,11 +111,10 @@ const MUSIC = (() => {
       drums: 'k . . . h . . .' },
   ];
 
-  // play order: lively and calm in turn (lively, calm, lively, calm...); the calm tunes repeat as needed
-  const LIVELY = SONGS.filter(s => !s.calm), CALM = SONGS.filter(s => s.calm);
-  const ORDER = LIVELY.flatMap((s, i) => CALM.length ? [s, CALM[i % CALM.length]] : [s]);
+  // play order: every tune once, as listed in SONGS, then from the top again (calm ones are not put in between)
+  const ORDER = SONGS;
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
-  let lastIdx = Math.floor(Math.random() * LIVELY.length) * 2 - 1, ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;   // the first tune is random (then the fixed order carries on from it)
+  let lastIdx = Math.floor(Math.random() * ORDER.length) - 1, ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;   // the first tune is random (then the fixed order carries on from it)
   const VOL = 'pm-music-vol', LEVELS = [.25, .5, 1, 1.6, 2.3];   // 1 = low ... 5 = max; 3 (the middle) is the default
   const getVol = () => { try { const v = +localStorage.getItem(VOL); return v >= 1 && v <= 5 ? v : 3 } catch (_) { return 3 } };
   const gainFor = v => .16 * LEVELS[v - 1];
@@ -245,8 +244,6 @@ const MUSIC = (() => {
     stopAll();
     // fixed order: each new tune is the one after the last played (it starts with the first)
     const asked = SONGS.find(s => s.id === id);
-    // count the position, don't look it up: the calm tunes appear several times in ORDER, and indexOf
-    // sent the player back to their first place, so only the first 6 tunes ever played
     lastIdx = asked ? ORDER.indexOf(asked) : (lastIdx + 1) % ORDER.length;
     const song = asked || ORDER[lastIdx];
     current = song;
