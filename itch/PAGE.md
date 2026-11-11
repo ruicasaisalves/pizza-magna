@@ -82,4 +82,10 @@ From the repo root:
 zip -r pizza-magna-itch.zip index.html music.js sw.js manifest.webmanifest assets
 ```
 
-On itch.io: Upload files › the zip › tick **This file will be played in the browser**. The game opens by itself from `index.html` at the root of the zip. (The zip is about 0.8 MB.) The game also lives at pizzamagna.xyz; players can use either, but the save is kept separately on each address.
+On itch.io: Upload files › the zip › tick **This file will be played in the browser**. The game opens by itself from `index.html` at the root of the zip. (The zip is about 0.9 MB.) The game also lives at pizzamagna.xyz; players can use either, but the save is kept separately on each address.
+
+### Offline download (Windows, Mac, Linux)
+
+The same zip also plays offline: unzip it and open `index.html` (double-click). Everything it needs is inside, fonts and music included; only the visit counter needs the internet, and the game works without it.
+
+To offer it, upload the same zip a second time (itch keeps the browser upload and the download apart): leave "played in the browser" unticked, tick **Windows**, **macOS** and **Linux**, and name it e.g. `Pizza Magna (offline, unzip and open index.html)`. The offline game keeps its own save in the browser that opens it; **Download save** / **Import save** in Options moves a game between versions.

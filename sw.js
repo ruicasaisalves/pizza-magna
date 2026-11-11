@@ -1,6 +1,6 @@
 /* Pizza Magna service worker: lets the installed game open without a connection.
    Network first, so every update shows up at once; the last copy fetched is kept for offline play.
-   Only same-origin GET requests (the game's own files); analytics and fonts go straight to the network. */
+   Only same-origin GET requests (the game's own files); analytics go straight to the network. */
 const CACHE = 'pizza-magna-v1';
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
