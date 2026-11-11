@@ -29,6 +29,9 @@
   color-scheme:light;
 }
 html,body{height:100%}
+/* inside an iframe (itch.io) the page itself may not scroll (scrolling="no"), so the body becomes the scroller */
+html.embed{overflow:hidden}
+html.embed body{margin:0;overflow-y:auto;overscroll-behavior:contain}
 body{color:var(--on-wood);font-family:var(--f-body);font-size:15px;line-height:1.4;background-color:#4c2a13;
   background-image:repeating-linear-gradient(0deg,rgba(20,8,2,.55) 0 2px,transparent 2px 44px),repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 1px,transparent 1px 9px),linear-gradient(90deg,#4c2a13,#573117 50%,#4c2a13)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--wood-deep)}
@@ -847,6 +850,8 @@ const SANDBOX=!!window.PM_SANDBOX||/^#sandbox(&|$)/.test(location.hash);
 // phone: a finger is the main input and the screen is small; #phone (or #sandbox&phone) forces it for testing on a PC
 const PHONE=/[#&]phone(&|$)/.test(location.hash)||(matchMedia('(pointer: coarse)').matches&&Math.min(screen.width,screen.height)<600);
 document.documentElement.classList.toggle('phone',PHONE);
+let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an iframe (itch.io): the body scrolls, see html.embed
+document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
@@ -2164,7 +2169,7 @@ const TRACK={zoom:a=>state.zoom?'zoom-on':'zoom-off',share:'photo-download',recs
   clear:'clear',undo:'undo',rotate:'rotate',edit:'edit-pizza',rm:'remove-pizza',open:'open-day',buy:'shop-buy',enter:'contest-enter'};
 function track(ev,tries=0){try{if(window.goatcounter&&goatcounter.count)goatcounter.count({path:'ev/'+ev,title:ev,event:true});
   else if(tries<20)setTimeout(()=>track(ev,tries+1),500)}catch(_){}}   // the script loads async: early events wait for it
-function go(tab){if(tab!==state.tab)track('tab-'+tab);if(anim||(SANDBOX&&!['cozinha','menu'].includes(tab)))return;state.tab=tab;render();window.scrollTo(0,0)}
+function go(tab){if(tab!==state.tab)track('tab-'+tab);if(anim||(SANDBOX&&!['cozinha','menu'].includes(tab)))return;state.tab=tab;render();window.scrollTo(0,0);document.body.scrollTop=0}
 const ACT={
   dough:b=>{state.draft.dough=b.dataset.v;render()},
   sauce:b=>{state.draft.sauce=b.dataset.v;render()},
