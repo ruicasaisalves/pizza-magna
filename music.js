@@ -244,8 +244,11 @@ const MUSIC = (() => {
     if (ctx.state === 'suspended') ctx.resume();
     stopAll();
     // fixed order: each new tune is the one after the last played (it starts with the first)
-    const song = SONGS.find(s => s.id === id) || ORDER[(lastIdx + 1) % ORDER.length];
-    lastIdx = ORDER.indexOf(song);
+    const asked = SONGS.find(s => s.id === id);
+    // count the position, don't look it up: the calm tunes appear several times in ORDER, and indexOf
+    // sent the player back to their first place, so only the first 6 tunes ever played
+    lastIdx = asked ? ORDER.indexOf(asked) : (lastIdx + 1) % ORDER.length;
+    const song = asked || ORDER[lastIdx];
     current = song;
     bus = ctx.createGain(); bus.gain.setValueAtTime(0, ctx.currentTime); bus.gain.linearRampToValueAtTime(song.calm ? .7 : 1, ctx.currentTime + .1); bus.connect(master);   // calm tunes play a little quieter
     const endAt = ctx.currentTime + schedule(song);

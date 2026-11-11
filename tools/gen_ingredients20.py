@@ -5,8 +5,9 @@ banana. Same method as gen_ingredients.py (see tools/CLAUDE.md).
 - Drumstick: a roast leg with golden, blistered skin and the bone sticking out with its
   knob. Rotates with 4 positions; with ang=0 the bone points right. Chopped: a chunk of
   leg meat with the roast skin on one side, like the suckling pig's.
-- Banana: a whole yellow banana on a curve (ends up with ang=0, so a row of them can make
-  a smile), the stalk on the right and a dark tip on the left. Rotates with 4 positions.
+- Banana: a big whole peeled banana (about 110 px, almost as long as the pizza, smaller
+  than the lobster), cream flesh on a curve (ends up with ang=0, so a row of them can make
+  a smile), a blunt end on the right and a small dark tip on the left. Rotates with 4 positions.
   Chopped: the slices drawn in gen_ingredients10.py.
 Usage: python3 tools/gen_ingredients20.py <folder>"""
 import os, sys
@@ -23,7 +24,7 @@ R.update({
     'roast': hexs(['#5a2808', '#8a4212', '#b8661e', '#dc8e34', '#f4bc62']),      # roast chicken skin
     'chkmeat': hexs(['#9a6a46', '#c08e62', '#dcb084', '#eecca2', '#f8e4c4']),    # pale leg meat
     'cbone': hexs(['#8e7c62', '#b8a888', '#dcd0b6', '#f6f0e2']),
-    'banskin': hexs(['#7a5a0a', '#b8900e', '#e0be1e', '#f6dc4a', '#fff08a']),    # banana skin
+    'banflesh': hexs(['#a08a4a', '#ccb672', '#e6d698', '#f6ecc2', '#fffae4']),   # peeled banana
     'banend': hexs(['#2a1c0c', '#4a3414', '#6e5422']),                         # stalk and tip
 })
 
@@ -69,28 +70,29 @@ def drumstick_chunk(seed, W=18, H=16):
     return render(mat, np.clip(shade(height, mask) * .85 + .16, 0, 1) * mask, mask, {'roast': 'roast', 'chkmeat': 'chkmeat'})
 
 # ---------------- BANANA (whole, curved; ends up with ang=0) ----------------
-def banana(seed, ang=None, L=46, T=10):
+def banana(seed, ang=None, L=104, T=22):
+    """a whole peeled banana: cream flesh with faint long strings, a small dark tip on the left"""
     a = 0 if ang is None else ang
-    SAG = 8
-    W, H = turn(L + 4, T + SAG + 4, ang)
+    SAG = 18
+    W, H = turn(L + 6, T + SAG + 6, ang)
     u, v = axes(W, H, a)
     rng = np.random.default_rng(seed + 6500)
-    n = noise(H, W, 2, rng)
+    n = noise(H, W, 3, rng)
     half = L / 2
     vv = v + SAG * (u / half) ** 2 - SAG / 2 - 1                     # a smile: the middle low, the ends up
     t = np.clip(np.abs(u) / half, 0, 1)
-    w = (T / 2) * np.sqrt(np.clip(1 - t ** 3.2, 0, 1)) * (1 + (n - .5) * .08)
+    w = (T / 2) * np.sqrt(np.clip(1 - t ** np.where(u > 0, 4.5, 2.6), 0, 1)) * (1 + (n - .5) * .07)   # blunt right end, rounder tip left
     body = (np.abs(u) <= half) & (np.abs(vv) <= w)
-    stalk = (u > half - 1) & (u <= half + 2.5) & (np.abs(vv - .3) <= 1.4)
-    tip = body & (u < -half + 2.2)
-    mask = body | stalk
-    height = np.where(body, np.sqrt(np.clip(1 - (vv / (w + .2)) ** 2, 0, 1)) * 2.6, .8)
-    ridge = body & (np.abs(vv + w * .25) < .55) & (np.abs(u) < half - 5)   # the long edge of the peel
-    freckle = body & (rng.random((H, W)) < .025)
-    end = stalk | tip | (body & (u > half - 2.5))
-    mat = [['banend' if end[y, x] else 'banskin' for x in range(W)] for y in range(H)]
-    light = np.clip(shade(height, mask) * .7 + .3 + np.where(ridge, .2, 0) - np.where(freckle, .35, 0), 0, 1) * mask
-    return render(mat, light, mask, {'banskin': 'banskin', 'banend': 'banend'})
+    mask = body
+    vn = vv / (w + .2)                                               # -1..1 across the banana
+    facet = np.abs(np.sin((vn + 1) * np.pi * 1.5)) ** .5 * .3        # the soft faces the peel leaves
+    height = np.where(body, np.sqrt(np.clip(1 - vn ** 2, 0, 1)) * 5 + facet + (n - .5) * .15, 0)
+    strings = body & (rng.random((H, W)) < .5) & ((np.abs(vn + .45) < .06) | (np.abs(vn - .2) < .06)) & (np.abs(u) < half - 6)
+    tip = body & (u < -half + 3)                                     # the little dark point
+    bruise = body & (noise(H, W, 6, np.random.default_rng(seed + 6550)) > .86) & (rng.random((H, W)) < .3)
+    mat = [['banend' if tip[y, x] else 'banflesh' for x in range(W)] for y in range(H)]
+    light = np.clip(shade(height, mask) * .72 + .28 - np.where(strings, .22, 0) - np.where(bruise, .15, 0), 0, 1) * mask
+    return render(mat, light, mask, {'banflesh': 'banflesh', 'banend': 'banend'})
 
 def banana_slices(seed): return G10.banana(seed)                     # chopped: the old slices
 
