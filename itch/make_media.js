@@ -1,7 +1,7 @@
 /* Makes the images for the game's itch.io page, from the game's own art, fonts and colours.
    Run from the repo root:  node itch/make_media.js
    Output (next to this file): logo.png (transparent), banner.png, cover.png, background.png (seamless tile),
-   shot-1..5.png (screenshots). Needs Playwright (preinstalled in the cloud sessions) and internet for the fonts. */
+   shot-1..5.png (screenshots), cover.gif (the animated cover: the dining room at lunchtime, made with Python and Pillow). Needs Playwright (preinstalled in the cloud sessions) and internet for the fonts. */
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path');
 const OUT = __dirname, GAME = 'file://' + path.resolve(__dirname, '../index.html');
@@ -72,6 +72,7 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
       x.drawImage(img, -s / 2, -s / 2, s, s); x.restore();
     };
     const icon = (id, k) => { const [c, x] = K(32, 32); sprFit(x, wholeKey(id, 0, 0), 16, 16, 30); return up(c, k) };
+    window.__A = { C, K, title, mask, tint, up, wood, tile, vignette };   // kept for the animated cover below
     const out = {};
 
     // logo (transparent): the pizza and the two-line title
@@ -143,5 +144,40 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
   await p.evaluate(() => { try { anim = null } catch (e) {} closeModal() });
   await shot(4, 'sala');
   await shot(5, 'concurso');
+  // ---- the animated cover (630 x 500): the title, the real dining room at lunchtime, the red band
+  await p.evaluate(() => { anim = null; closeModal(); Object.assign(state, { tier: 1, rep: 4.2, cooks: 3, ovens: 2, day: 6 });
+    state.room.items.push({ id: 'xadrez2', c: 1, r: 11 }, { id: 'xadrez2', c: 6, r: 11 }, { id: 'vaso', c: 12, r: 3 }, { id: 'vaso', c: 0, r: 13 });
+    state.tab = 'dia'; render(); window.scrollTo(0, 0) });
+  await p.waitForTimeout(1500);
+  await p.click('[data-act=open]'); await p.waitForTimeout(10500);                         // into the lunch rush
+  const tmp = fs.mkdtempSync(path.join(require('os').tmpdir(), 'pm-gif-')), N = 56, STEP = 110;
+  for (let i = 0; i < N; i++) {
+    const url = await p.evaluate(() => {
+      const A = window.__A, R = room; if (!R) return null;
+      const [c, x] = A.K(630, 500); x.drawImage(A.tile(630, 500, A.wood()), 0, 0); A.vignette(x, 630, 500, .6);
+      const t0 = A.title(['PIZZA MAGNA'], 'bold 20px Silkscreen'), T_ = A.up(t0, Math.max(1, Math.floor(600 / t0.width))); x.drawImage(T_, Math.round((630 - T_.width) / 2), Math.round((92 - T_.height) / 2) + 2);
+      const fy = 92, fh = 352;                                                              // the room in a wooden frame with a brass edge
+      x.fillStyle = A.C.brass; x.fillRect(4, fy, 622, fh); x.fillStyle = A.C.deep; x.fillRect(8, fy + 4, 614, fh - 8);
+      x.drawImage(R.low, 13, 120, 610, fh - 12, 10, fy + 6, 610, fh - 12);
+      const band = 52; x.fillStyle = A.C.tlo; x.fillRect(0, 500 - band - 4, 630, band + 4); x.fillStyle = A.C.tomato; x.fillRect(0, 500 - band, 630, band); x.fillStyle = A.C.brass; x.fillRect(0, 500 - band - 4, 630, 4);
+      const m = A.up(A.mask('PIZZERIA TYCOON · 90s PIXEL ART', 'bold 8px Silkscreen'), 2), tx = Math.round((630 - m.width) / 2), ty = 500 - band + Math.round((band - m.height) / 2) + 2;
+      x.drawImage(A.tint(m, A.C.deep), tx, ty + 2); x.drawImage(A.tint(m, A.C.parch), tx, ty);
+      return c.toDataURL('image/png');
+    });
+    if (url) fs.writeFileSync(path.join(tmp, `f${String(i).padStart(3, '0')}.png`), Buffer.from(url.split(',')[1], 'base64'));
+    await p.waitForTimeout(STEP);
+  }
+  // one shared palette for every frame (no flicker), no dithering (crisp pixels)
+  require('child_process').execFileSync('python3', ['-c', `
+import glob, sys
+from PIL import Image
+fs = sorted(glob.glob(sys.argv[1] + '/f*.png')); ims = [Image.open(f).convert('RGB') for f in fs]
+strip = Image.new('RGB', (630, 500 * 4)); [strip.paste(ims[k * len(ims) // 4], (0, 500 * k)) for k in range(4)]
+pal = strip.quantize(colors=160, method=Image.Quantize.MEDIANCUT)
+q = [im.quantize(palette=pal, dither=Image.Dither.NONE) for im in ims]
+q[0].save(sys.argv[2], save_all=True, append_images=q[1:], duration=${STEP}, loop=0, optimize=True, disposal=1)
+`, tmp, path.join(OUT, 'cover.gif')], { stdio: 'inherit' });
+  fs.rmSync(tmp, { recursive: true, force: true });
+  console.log('cover.gif', Math.round(fs.statSync(path.join(OUT, 'cover.gif')).size / 1024), 'KB');
   await b.close(); console.log('done');
 })();

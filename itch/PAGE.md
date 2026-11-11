@@ -6,7 +6,8 @@ Everything the itch.io page needs. The images are made by `node itch/make_media.
 
 | File | Where it goes on itch.io | Size |
 |---|---|---|
-| `cover.png` | Edit game › **Cover image** (shown in lists and search) | 630 × 500 |
+| `cover.gif` | Edit game › **Cover image**: the animated one, the room at lunchtime (itch.io plays a GIF cover when someone hovers over it in the lists; about 0.5 MB, 6 seconds, loops) | 630 × 500 |
+| `cover.png` | The still cover, if you prefer it (or to use elsewhere) | 630 × 500 |
 | `banner.png` | Edit game › Theme › **Banner** (the strip at the top of the page; itch scales it to the page width) | 1920 × 480 |
 | `background.png` | Edit game › Theme › **Background image**, set to *tiled* (a seamless wooden floor) | 512 × 512 |
 | `logo.png` | Transparent logo for the description, the devlog, social posts, Discord (not an itch field) | 1108 × 380 |
