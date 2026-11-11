@@ -34,6 +34,8 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 - **Analytics:** GoatCounter (`pizzamagna.goatcounter.com`). Buttons worth counting are in `TRACK` and arrive as `ev/<name>` events; a new button worth counting goes there. Never send names or recipes.
 - **Fonts:** body text is Pixelify Sans (the original font; the player tried VT323, Jersey 10 and Tiny5 and prefers it), but its digits muddle at small sizes (5 looks like S or 8, 2 like Z), so the digits 0-9 come from VT323: `'PM Digits'` (`assets/digits.woff2`, the ten digits only, `unicode-range`) goes first in `--f-body` and in canvas fonts. Titles and buttons Silkscreen; the green LCDs and the Menu figures VT323. Write ordinals as words (segunda, primeiro lugar).
 - Don't add dependencies or build steps.
+- Keep diffs surgical: every changed line should trace back to the request. Remove only what your own change made unused; flag other dead code, don't delete it unasked.
+- Before saying a change works, verify it: `node tools/test_ingredients.js` for toppings, Playwright on `index.html#sandbox` (or the full game) for screens.
 
 ## Testing
 - The public site (`pizzamagna.xyz`, GitHub Pages from `main`) runs the full game. It used to show only the bench, saved under the bench key; `load()` adopts that save for players who have no full-game save.
