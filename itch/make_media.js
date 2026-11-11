@@ -1,7 +1,7 @@
 /* Makes the images for the game's itch.io page, from the game's own art, fonts and colours.
    Run from the repo root:  node itch/make_media.js
    Output (next to this file): logo.png (transparent), banner.png, cover.png, background.png (seamless tile),
-   shot-1..5.png (screenshots). Needs Playwright (preinstalled in the cloud sessions) and internet for the fonts. */
+   shot-1..5.png (screenshots). Needs Playwright (preinstalled in the cloud sessions); the fonts are in assets/fonts. */
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path');
 const OUT = __dirname, GAME = 'file://' + path.resolve(__dirname, '../index.html');
