@@ -12,6 +12,7 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
   const p = await b.newPage({ viewport: { width: 1280, height: 720 } });
   p.on('pageerror', e => console.log('ERR', e.message));
   await p.goto(GAME); await p.waitForTimeout(1500);
+  await p.evaluate(() => roomArt()); await p.waitForFunction(() => roomArt());   // the dining room art (the game loads it on demand), for the background
 
   // ---- the art, drawn inside the game page (its fonts, sprites and palette)
   const art = await p.evaluate(async () => {
@@ -108,9 +109,24 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
       x.drawImage(d, tx, ty + 2); x.drawImage(f, tx, ty);
       out.cover = c.toDataURL('image/png');
     }
-    // background tile: dark planks, seamless
+    // background tile: the dining room seen from above, seamless. The red and white check floor
+    // with tables (and a pizza on each), a fountain, an olive tree, a lamp and a plant, at the game's 2x;
+    // no piece crosses the tile's edge
     {
-      const w = wood(128, 4), [c, x] = K(512, 512); x.drawImage(w, 0, 0); x.fillStyle = 'rgba(10,4,1,.25)'; x.fillRect(0, 0, 512, 512);
+      const A = ROOM_ART, im = new Image(); im.src = A.src; await im.decode();
+      const Z = 2, TW = 768, [c, x] = K(TW, TW), L = A.layout.items;
+      const fr = (k, X, Y) => { const f = A.frames[k]; x.drawImage(im, f[0], f[1], f[2], f[3], X, Y, f[2] * Z, f[3] * Z) };
+      for (let y = 0; y < TW; y += 256) for (let X = 0; X < TW; X += 256) fr('f_check', X, y);
+      x.fillStyle = 'rgba(20,8,2,.2)'; x.fillRect(0, 0, TW, TW);
+      const item = (k, X, Y, food) => {   // a room piece from its layout: parts and chairs in depth order
+        const it = L[k], ds = [];
+        (it.parts || []).forEach(q => ds.push([q[0] + (q[4] ? '_0' : ''), q[1], q[2], q[3]]));
+        (it.seats || []).forEach(s => { if (s.chair) ds.push(s.chair); if (s.back) ds.push(s.back) });
+        ds.sort((a, b) => a[3] - b[3]).forEach(d => fr(d[0], X + d[1] * Z, Y + d[2] * Z));
+        if (food && it.top) { const [tx, ty] = it.top; fr('plate', X + (tx - 12) * Z, Y + (ty - 7) * Z); fr('pizza', X + (tx - 12) * Z, Y + (ty - 9) * Z) }
+      };
+      item('xadrez4', 40, 40, 1); item('fonte', 480, 60); item('xadrez2', 300, 330, 1); item('vaso', 650, 360);
+      item('candeeiro', 60, 350); item('oliveira', 110, 520); item('redonda', 440, 480, 1);
       out.background = c.toDataURL('image/png');
     }
     // the pizza images, for the screenshots' menu

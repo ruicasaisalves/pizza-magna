@@ -8,7 +8,7 @@ Everything the itch.io page needs. The images are made by `node itch/make_media.
 |---|---|---|
 | `cover.png` | Edit game › **Cover image** (shown in lists and search) | 630 × 500 |
 | `banner.png` | Edit game › Theme › **Banner** (the strip at the top of the page; itch scales it to the page width) | 1920 × 480 |
-| `background.png` | Edit game › Theme › **Background image**, set to *tiled* (a seamless wooden floor) | 512 × 512 |
+| `background.png` | Edit game › Theme › **Background image**, set to *tiled* (the dining room from above: red and white check floor, tables, a fountain; seamless) | 768 × 768 |
 | `logo.png` | Transparent logo for the description, the devlog, social posts, Discord (not an itch field) | 1108 × 380 |
 | `shot-1.png` … `shot-5.png` | Edit game › **Screenshots**, in this order: kitchen, menu, the day, room, contest | 1280 × 720 |
 
