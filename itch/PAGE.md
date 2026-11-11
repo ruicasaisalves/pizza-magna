@@ -80,7 +80,10 @@ From the repo root:
 
 ```
 zip -r pizza-magna-itch.zip index.html music.js sw.js manifest.webmanifest assets
+zip -j pizza-magna-itch.zip itch/README.txt
 ```
+
+The second line puts `itch/README.txt` at the root of the zip, for players who download it: open `index.html` to play, and the link to this repo.
 
 On itch.io: Upload files › the zip › tick **This file will be played in the browser**. The game opens by itself from `index.html` at the root of the zip. (The zip is about 0.9 MB.) The game also lives at pizzamagna.xyz; players can use either, but the save is kept separately on each address.
 
