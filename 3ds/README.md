@@ -30,4 +30,4 @@ With [LÖVE](https://love2d.org) 11.4 or newer: `love 3ds/game`. The window show
 
 ## Not tested yet
 
-The prototype was tested with LÖVE 11.5 on a PC, not on a real 3DS. Things to check on the console: speed with many pieces (up to 300) on an old 3DS, the circular clip of big pieces (it uses a stencil; if the 3DS lacks it, a lobster's legs show past the crust), the touch coordinates, and the button names.
+Runs on a New 3DS (Homebrew Launcher, bundled with bundle.lovebrew.org). Still to check: speed with many pieces (up to 300) on an old 3DS, the circular clip of big pieces (it uses a stencil; if the 3DS lacks it, a lobster's legs show past the crust), the touch coordinates, and the button names.

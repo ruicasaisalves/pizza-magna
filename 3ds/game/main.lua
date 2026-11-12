@@ -154,6 +154,7 @@ local ONE_FONT = CONSOLE or (os.getenv and os.getenv("PM3DS_ONEFONT") ~= nil)
 local function mkFont(size)
   if ONE_FONT then
     local f = love.graphics.getFont()
+    pcall(f.setFilter, f, "linear", "linear")   -- scaled down with "nearest", thin letters (i, l) lost whole columns
     return { f = f, s = size * 1.2 / f:getHeight() }   -- getHeight is the line, about 1.2 times the size
   end
   return { f = love.graphics.newFont(size), s = 1 }
