@@ -862,7 +862,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.01a';
+const VERSION='0.01b';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1578,8 +1578,8 @@ const tileOf=a=>[Math.round(a.x/T),Math.round(a.y/T)];
 const toPx=p=>p.map(([c,r])=>({x:c*T,y:r*T}));
 function makeScene(){
   const map=buildMap();
-  const waiters=Array.from({length:waiterCount()},(_,i)=>{const [c,r]=WAITER_HOME[i];return {x:c*T,y:r*T,home:[c,r],path:[],job:null,carry:false,dir:'down',ph:0,look:{body:'#2a2a33',role:'waiter',hair:pick(HAIR),skin:pick(SKIN),long:i%2===1}}});
-  const cooks=COOK_POS.slice(0,state.cooks).map(([c,r],i)=>({x:c*T,y:r*T,dir:'down',look:{body:'#f4efe4',hat:true,role:'cook',hair:HAIR[i%HAIR.length],skin:SKIN[(i+1)%SKIN.length]}}));
+  const waiters=Array.from({length:waiterCount()},(_,i)=>{const [c,r]=WAITER_HOME[i];return {x:c*T,y:r*T,home:[c,r],path:[],job:null,carry:false,dir:'down',ph:0,v:i,look:{body:'#2a2a33',role:'waiter',hair:pick(HAIR),skin:pick(SKIN),long:i%2===1}}});
+  const cooks=COOK_POS.slice(0,state.cooks).map(([c,r],i)=>({x:c*T,y:r*T,dir:'down',v:i,look:{body:'#f4efe4',hat:true,role:'cook',hair:HAIR[i%HAIR.length],skin:SKIN[(i+1)%SKIN.length]}}));
   return {map,seats:map.seats,waiters,cooks};
 }
 let anim=null,room=null,idleScene=null;
@@ -1722,9 +1722,10 @@ function kitchenParts(f){const out=[];
   return out}
 // a person on foot, feet on the bottom of its tile: customers in their own look (w<look>_<dir>_<step>, the step
 // frame alternates while walking); the waiter and cook have one standing frame and bob a little instead
+const bobOf=a=>a.walking&&Math.floor(a.ph)%2?2:0;
 function drawChar(c,a,key){
-  const im=rspr(key),bob=!key.startsWith('w')&&a.walking&&Math.floor(a.ph)%2?2:0;
-  c.drawImage(im,Math.round(a.x),Math.round(a.y)+T-im.height-bob);
+  const im=rspr(key);
+  c.drawImage(im,Math.round(a.x),Math.round(a.y)+T-im.height-(/^w\d/.test(key)?0:bobOf(a)));
 }
 function drawRoom(){
   const R=roomSize();if(!R)return;const c=R.lc;
@@ -1745,8 +1746,9 @@ function drawRoom(){
     const tz=lay.parts.find(q=>q[0].startsWith('t_'))[3];
     add(y0+tz+.2,rspr(p.st==='eat'&&p.timer>1?'pizza':'plate'),x0+Math.round(qx)-12,y0+Math.round(qy)-8)}
   const person=(a,key)=>L.push({z:a.y+T,draw:()=>drawChar(c,a,key)});
-  for(const k of sc.cooks)person(k,'cook');
-  for(const w of sc.waiters){person(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2)}   // held in both hands, in front
+  const staff=(a,role)=>{const v=a.v%((L_.staff||{})[role]||1);person(a,v?role+'_'+v:role)};   // the atlas has a few of each, handed out in turn
+  for(const k of sc.cooks)staff(k,'cook');
+  for(const w of sc.waiters){staff(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2-bobOf(w))}   // held in both hands, in front
   if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;person(p,`w${p.rlook||0}_${p.dir}_${p.walking?[1,0,2,0][Math.floor(p.ph)%4]:0}`)}   // standing or walking; seated ones are drawn at their table
   for(const q of rugs)c.drawImage(q.img,q.x,q.y);
   L.sort((a,b)=>a.z-b.z).forEach(d=>d.draw?d.draw():c.drawImage(d.img,d.x,d.y));
