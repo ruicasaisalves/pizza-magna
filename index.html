@@ -1666,7 +1666,7 @@ function step(dt){
     if(anim.jobs.length&&(!w.job||w.phase==='back')){w.job=anim.jobs.shift();w.phase='pick';w.path=toPx(bfs(map,tileOf(w),PICK))}
     if(!w.job){w.walking=false;if(w.dir!=='down'&&!w.path.length)w.dir='down';continue}
     if(w.pause>0){w.pause-=dt;continue}
-    if(moveAlong(w,dt,164)){
+    if(moveAlong(w,dt,164*(1+Math.min(1.2,anim.jobs.length*.15)))){   // they hurry when tables are waiting: up to 2.2x with 8 or more
       const s=w.job.seat;
       if(w.phase==='pick'){w.carry=true;w.phase='go';w.dir='up';w.pause=.25;w.path=toPx(bfs(map,PICK,[s.cx,s.cy]).slice(0,-1))}
       else if(w.phase==='go'){w.job.served=true;w.carry=false;w.phase='back';w.path=toPx(bfs(map,tileOf(w),w.home))}
