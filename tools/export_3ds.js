@@ -7,13 +7,22 @@ const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.
 const cut=(a,b)=>{const i=html.indexOf(a),j=html.indexOf(b,i);if(i<0||j<0)throw new Error('marker not found: '+a+' / '+b);return html.slice(i,j)};
 const src=[
   cut('/* ================= LANGUAGE','/* ================= HELPERS'),
-  cut('// Prices: a plain thin pizza','const WD_EN='),
+  cut('// Prices: a plain thin pizza','const wdName='),
   cut('const GRATED_W=','const fmtG='),
   cut('const CATS=','function ingCat'),
   cut('const CAT_ICON=','function pantryHTML'),
+  'var state={day:1};',
+  cut('const OVEN_CAP=','const expectedCustomers='),
+  cut('const MANAGER_MARKUP=','/* Who runs'),cut('const TIER_FEE=','const gramPrice='),
+  cut('/* ---- restaurant room','let roomAC'),
+  // what the 3DS needs worked out here: the starter room's seats and atmosphere (no room editor there yet),
+  // and the topping, least wanted topping and combo of the week for the first 400 weeks (weekly() hashes with Math.imul)
+  `var RM=roomAnalyse(starterRoom(0)),ROOM={seats:RM.seats,tables:RM.tables,atm:RM.atm};
+   var WEEKS=[];for(var w=0;w<400;w++){var k=weekly(w*7+1);WEEKS.push({ing:k.ing,low:k.low,combo:k.combo.id})}`,
   'this.OUT={I18N,DOUGHS,SAUCES,ING,PACKS,COMBOS,SEG,CASA:[...CASA],EXOTIC:[...EXOTIC],WEEK_BONUS,VALUE_CAP,APPEAL_W,'+
   'GRATED_W,BIG_SHRED:[...BIG_SHRED],SHRED_W,WHOLE_W,CENTRED:[...CENTRED],GRAMS,GRAMS_GRATED,CATS,HERBS,FAV,EXTRAS,CAT_ICON,'+
-  'BASE_PRICE,MARKUP};'
+  'BASE_PRICE,MARKUP,SUPPLIER,STUDY_COST,RIVAL_BIAS,THEME_IDS:THEMES.map(x=>x.id),NPCS,WK_MUL,RENT,SALARY,ENTRY_FEE,'+
+  'WD,WD_EN,GOAL_MONEY,GOAL_REP,DAY_SECONDS,OVEN_CAP,COOK_CAP,MANAGER_MARKUP,ROOM,WEEKS};'
 ].join('\n');
 const ctx={navigator:{languages:['en'],language:'en'},localStorage:{getItem:()=>null,setItem(){}},
   document:{documentElement:{lang:''},querySelectorAll:()=>[]},window:{},console};
@@ -24,7 +33,7 @@ for(const k in O.ING)delete O.ING[k].n;for(const k in O.DOUGHS)delete O.DOUGHS[k
 for(const k in O.SEG)delete O.SEG[k].n;for(const c of O.COMBOS){delete c.n;delete c.quote}
 O.ING_ORDER=Object.keys(O.ING);O.DOUGH_ORDER=Object.keys(O.DOUGHS);O.SAUCE_ORDER=Object.keys(O.SAUCES);O.SEG_ORDER=Object.keys(O.SEG);
 const str=s=>'"'+String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n')+'"';
-const key=k=>/^[A-Za-z_][A-Za-z0-9_]*$/.test(k)&&!['and','or','not','end','if','then','do','for','in','local','function','nil','true','false','repeat','until','while','return','break','else','elseif'].includes(k)?k:'['+str(k)+']';
+const key=k=>/^[0-9]+$/.test(k)?'['+k+']':/^[A-Za-z_][A-Za-z0-9_]*$/.test(k)&&!['and','or','not','end','if','then','do','for','in','local','function','nil','true','false','repeat','until','while','return','break','else','elseif'].includes(k)?k:'['+str(k)+']';
 function lua(v,ind=''){
   if(v===null||v===undefined)return 'nil';
   if(typeof v==='number'||typeof v==='boolean')return String(v);

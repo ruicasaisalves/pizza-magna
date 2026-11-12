@@ -51,7 +51,11 @@ local function has(list, v) for _, x in ipairs(list) do if x == v then return tr
 P.has = has
 
 function P.ingName(id) return t("ing." .. id) end
-function P.ingC(id) return D.ING[id].c end   -- supplier 1 (the prototype has no shop yet)
+-- the world analyze() looks at, like state in the browser game: the day (topping and combo of the week) and the supplier
+P.world = { day = 1, supplier = 1 }
+function P.week(day) return D.WEEKS[math.floor(((day or P.world.day) - 1) / 7) % #D.WEEKS + 1] end
+local function sup() return D.SUPPLIER[P.world.supplier] or D.SUPPLIER[1] end
+function P.ingC(id) return D.ING[id].c * sup().m end   -- one portion from today's supplier
 
 -- sprites and turning pieces (see turned() in index.html; the export already holds the four turns)
 local F = A.frames
@@ -108,7 +112,8 @@ function P.analyze(p)
   n = round(n * 10) / 10
   local d = #ids
   local Dg, S, notes = D.DOUGHS[p.dough], D.SAUCES[p.sauce], {}
-  local function note(kind, k) notes[#notes + 1] = { kind, t("n." .. k) } end
+  -- a note: {kind, text, what a customer says about it (when there is a q.* line)}
+  local function note(kind, k) notes[#notes + 1] = { kind, t("n." .. k), D.I18N.en["q." .. k] and t("q." .. k) or nil } end
   local q = 45 + DOUGH_Q[p.dough]
   if p.sauce == "sem" then q = q - 12; note("bad", "dry") else q = q + SAUCE_Q[p.sauce] end
   if n < 6 then q = q - 25; note("bad", "empty")
@@ -145,9 +150,10 @@ function P.analyze(p)
       q = q + c.q
       for k, v in pairs(c.seg) do segMod[k] = segMod[k] + v end
       local nm = t("combo." .. c.id)
-      notes[#notes + 1] = c.q >= 0 and { "combo", t("n.combo", { x = nm }) } or { "bad", t("n.clash", { x = nm }) }
+      notes[#notes + 1] = c.q >= 0 and { "combo", t("n.combo", { x = nm }) } or { "bad", t("n.clash", { x = nm }), D.I18N.en["quote." .. c.id] and t("quote." .. c.id) or nil }
     end
   end
+  if n > 0 then q = q + sup().q end   -- the supplier's quality
   q = clamp(round(q), 0, 100)
   local cost = Dg.c + S.c + cost0
   local tags = {}
@@ -159,8 +165,10 @@ function P.analyze(p)
   end
   add(S.t); add(Dg.t)
   local appeal = {}
+  local wk, WB = P.week(), D.WEEK_BONUS
+  local wb = ((cnt[wk.ing] or 0) >= 2 and WB.ing or 0) + ((cnt[wk.low] or 0) >= 2 and WB.low or 0) + (has(combos, wk.combo) and WB.combo or 0)
   for _, k in ipairs(D.SEG_ORDER) do
-    local sg, tw = D.SEG[k], 0
+    local sg, tw = D.SEG[k], wb
     for _, tg in ipairs(tags) do tw = tw + (sg.w[tg] or 0) end
     tw = clamp(tw, -20, 18)
     local a = q + tw + sg.dough[p.dough] + segMod[k]
@@ -168,7 +176,34 @@ function P.analyze(p)
     if k == "estudante" and n >= 24 then a = a + 3 end
     appeal[k] = clamp(round(a), 0, 100)
   end
-  return { q = q, cost = r2(cost), appeal = appeal, notes = notes, combos = combos, n = n, d = d }
+  return { q = q, cost = r2(cost), appeal = appeal, notes = notes, combos = combos, n = n, d = d, ids = ids }
+end
+
+-- contestScore() from index.html: {s = points} or {s = 0, dq = why it was disqualified}
+local function tagCount(a, tg) local n = 0; for _, i in ipairs(a.ids) do if has(D.ING[i].t, tg) then n = n + 1 end end; return n end
+local function anyTag(a, tags) for _, i in ipairs(a.ids) do for _, tg in ipairs(tags) do if has(D.ING[i].t, tg) then return true end end end; return false end
+function P.contestScore(theme, p)
+  local a = P.analyze(p)
+  if theme == "classica" then
+    return { s = a.q + tagCount(a, "classico") * 4 + (has(a.combos, "margherita") and 10 or 0) + (p.sauce == "tomate" and 3 or 0) }
+  elseif theme == "doce" then
+    if p.sauce == "pesto" or anyTag(a, { "peixe" }) then return { s = 0, dq = t("ct.dq.sweet") } end
+    return { s = a.q * .85 + tagCount(a, "doce") * 6 }
+  elseif theme == "queijo" then return { s = a.q * .85 + tagCount(a, "queijo") * 6 }
+  elseif theme == "picante" then return { s = a.q * .85 + tagCount(a, "picante") * 7 }
+  elseif theme == "mar" then return { s = a.q * .85 + tagCount(a, "peixe") * 6 }
+  elseif theme == "veg" then
+    if anyTag(a, { "carne", "peixe" }) then return { s = 0, dq = t("ct.dq.meat") } end
+    return { s = a.q + tagCount(a, "vegetal") * 3 }
+  elseif theme == "criativa" then
+    local pos = 0
+    for _, id in ipairs(a.combos) do for _, c in ipairs(D.COMBOS) do if c.id == id and c.q > 0 then pos = pos + 1 end end end
+    return { s = a.q * .8 + pos * 9 + a.d * 2 }
+  elseif theme == "barata" then
+    if a.cost > 2.5 then return { s = 0, dq = t("ct.dq.cost") } end
+    return { s = a.q + (2.5 - a.cost) * 15 }
+  end
+  return { s = 0 }
 end
 
 -- quality colour on a dark background (qColor(q,true)): red up to 25, yellow around 55, green from 85
