@@ -1,0 +1,12 @@
+# Bundler settings (https://bundle.lovebrew.org): zip this file, icon.png and the game/ folder, upload, get a .3dsx.
+[metadata]
+title = "Pizza Magna"
+author = "Pizza Magna"
+description = "Build pizzas in 90s pixel art"
+version = "0.1.0"
+icons = { ctr = "icon.png" }
+
+[build]
+targets = ["ctr"]
+source = "game"
+packaged = true
