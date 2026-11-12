@@ -402,10 +402,11 @@ function love.mousereleased(_, _, _, istouch) if not CONSOLE and not istouch the
 --[[ Loading goes one step a frame, with the step's name on both screens: if the console crashes while
      loading, the screen shows which step it was (a crash dump alone doesn't say). ]]
 local BOOT = {}
+-- fonts first: the system font is one 3 MB block of memory, easier to find before the textures are in
+BOOT[#BOOT + 1] = { "fonts", function() fonts.tiny, fonts.small, fonts.body, fonts.big = mkFont(9), mkFont(11), mkFont(14), mkFont(26) end }
 for i = 1, A.pages do
   BOOT[#BOOT + 1] = { "texture " .. i .. "/" .. A.pages, function() pages[i] = love.graphics.newImage("gfx/atlas" .. i .. ".png") end }
 end
-BOOT[#BOOT + 1] = { "fonts", function() fonts.tiny, fonts.small, fonts.body, fonts.big = mkFont(9), mkFont(11), mkFont(14), mkFont(26) end }
 BOOT[#BOOT + 1] = { "save", function()
   math.randomseed(os.time())
   load()
