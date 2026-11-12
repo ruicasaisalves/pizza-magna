@@ -137,7 +137,7 @@ local function col(c, a) love.graphics.setColor(c[1], c[2], c[3], a or c[4] or 1
 local function spr(key, x, y, alpha, scale)
   local f = A.frames[key]; if not f then return end
   local q = quads[key]
-  if not q then q = love.graphics.newQuad(f[2], f[3], f[4], f[5], 1024, 1024); quads[key] = q end
+  if not q then q = love.graphics.newQuad(f[2], f[3], f[4], f[5], pages[f[1]]:getDimensions()); quads[key] = q end
   local s = scale or 1
   love.graphics.setColor(1, 1, 1, alpha or 1)
   love.graphics.draw(pages[f[1]], q, math.floor(x - f[4] * s / 2 + .5), math.floor(y - f[5] * s / 2 + .5), 0, s, s)
@@ -395,19 +395,40 @@ function love.mousemoved(x, y, _, _, istouch) if not CONSOLE and not istouch the
 function love.mousereleased(_, _, _, istouch) if not CONSOLE and not istouch then touchUp() end end
 
 -- ---------------------------------------------------------------- LÖVE callbacks
-function love.load()
-  love.graphics.setDefaultFilter("nearest", "nearest")
-  if love.graphics.set3D then pcall(love.graphics.set3D, false) end
-  for i = 1, A.pages do pages[i] = love.graphics.newImage("gfx/atlas" .. i .. ".png") end
-  fonts.tiny, fonts.small, fonts.body, fonts.big = mkFont(9), mkFont(11), mkFont(14), mkFont(26)
+--[[ Loading goes one step a frame, with the step's name on both screens: if the console crashes while
+     loading, the screen shows which step it was (a crash dump alone doesn't say). ]]
+local BOOT = {}
+for i = 1, A.pages do
+  BOOT[#BOOT + 1] = { "texture " .. i .. "/" .. A.pages, function() pages[i] = love.graphics.newImage("gfx/atlas" .. i .. ".png") end }
+end
+BOOT[#BOOT + 1] = { "fonts", function() fonts.tiny, fonts.small, fonts.body, fonts.big = mkFont(9), mkFont(11), mkFont(14), mkFont(26) end }
+BOOT[#BOOT + 1] = { "save", function()
   math.randomseed(os.time())
   load()
   P.setLang(S.lang or "en"); S.lang = P.lang()   -- English unless the player picked Portuguese (SELECT or the EN|pt button)
   buildCats()
   changed(); dirty = false
+end }
+BOOT[#BOOT + 1] = { "first frame", function() end }
+local bootStep, bootShown = 1, false
+
+function love.load()
+  love.graphics.setDefaultFilter("nearest", "nearest")
+  if love.graphics.set3D then pcall(love.graphics.set3D, false) end
+end
+
+local function drawBoot()
+  love.graphics.clear(0.1, 0.05, 0.02)
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.print("Pizza Magna", 10, 10)
+  love.graphics.print("Loading: " .. BOOT[bootStep][1] .. " (" .. bootStep .. "/" .. #BOOT .. ")", 10, 30)
 end
 
 function love.update(dt)
+  if BOOT[bootStep] then
+    if bootShown then BOOT[bootStep][2](); bootStep = bootStep + 1; bootShown = false end
+    return
+  end
   for b, left in pairs(held) do
     left = left - dt
     if left <= 0 then button(b); left = .08 end
@@ -418,6 +439,7 @@ function love.update(dt)
 end
 
 function love.draw(screen)
+  if BOOT[bootStep] then drawBoot(); bootShown = true; return end
   if screen == nil then   -- PC: top screen above, bottom screen centred below
     drawTop()
     love.graphics.push(); love.graphics.translate(BOTTOM_X, BOTTOM_Y)

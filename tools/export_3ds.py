@@ -51,6 +51,11 @@ for k in order:
 os.makedirs(os.path.join(OUT, 'gfx'), exist_ok=True)
 for f in os.listdir(os.path.join(OUT, 'gfx')):
     if re.match(r'atlas\d+\.png$', f): os.remove(os.path.join(OUT, 'gfx', f))
+# the last page is cut to the next power of two that holds what is on it (less memory on the console)
+used = pages[-1].getbbox()[3]
+h = 8
+while h < used: h *= 2
+pages[-1] = pages[-1].crop((0, 0, PAGE, h))
 for i, p in enumerate(pages, 1):
     p.save(os.path.join(OUT, 'gfx', f'atlas{i}.png'), optimize=True)
 with open(os.path.join(OUT, 'atlas.lua'), 'w') as f:
