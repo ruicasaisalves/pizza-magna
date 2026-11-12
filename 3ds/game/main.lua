@@ -402,12 +402,7 @@ function love.load()
   fonts.tiny, fonts.small, fonts.body, fonts.big = mkFont(9), mkFont(11), mkFont(14), mkFont(26)
   math.randomseed(os.time())
   load()
-  local lang = S.lang
-  if not lang then
-    local ok, locs = pcall(love.system.getPreferredLocales)
-    lang = (ok and type(locs) == "table" and locs[1] and locs[1]:lower():sub(1, 2) == "pt") and "pt" or "en"
-  end
-  P.setLang(lang); S.lang = P.lang()
+  P.setLang(S.lang or "en"); S.lang = P.lang()   -- English unless the player picked Portuguese (SELECT or the EN|pt button)
   buildCats()
   changed(); dirty = false
 end
