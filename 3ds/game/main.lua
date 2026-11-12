@@ -147,21 +147,27 @@ local function sprFit(key, x, y, box)
   local f = A.frames[key]; if not f then return end
   spr(key, x, y, nil, math.min(1, box / math.max(f[4], f[5])))
 end
+--[[ On the 3DS each new font copies the whole system font (about 3 MB), and four of them crashed the console
+     while loading. There the game uses only the default font, scaled to each size. On a PC each size is
+     its own font (PM3DS_ONEFONT=1 tries the console way). ]]
+local ONE_FONT = CONSOLE or (os.getenv and os.getenv("PM3DS_ONEFONT") ~= nil)
 local function mkFont(size)
-  if CONSOLE then
-    local ok, f = pcall(love.graphics.newFont, "standard", size)
-    if ok and f then return f end
+  if ONE_FONT then
+    local f = love.graphics.getFont()
+    return { f = f, s = size * 1.2 / f:getHeight() }   -- getHeight is the line, about 1.2 times the size
   end
-  return love.graphics.newFont(size)
+  return { f = love.graphics.newFont(size), s = 1 }
 end
+local function fw(font, s) local F = fonts[font]; return F.f:getWidth(s) * F.s end   -- width in pixels
+local function fprint(font, s, x, y) local F = fonts[font]; love.graphics.setFont(F.f); love.graphics.print(s, x, y, 0, F.s, F.s) end
 local function text(s, x, y, font, c, align, w)
-  love.graphics.setFont(fonts[font]); col(c)
-  if align then love.graphics.printf(s, x, y, w, align) else love.graphics.print(s, x, y) end
+  local F = fonts[font]
+  love.graphics.setFont(F.f); col(c)
+  if align then love.graphics.printf(s, x, y, w / F.s, align, 0, F.s, F.s) else love.graphics.print(s, x, y, 0, F.s, F.s) end
 end
 local function fitText(s, font, w)   -- cut a line that does not fit, with an ellipsis
-  local f = fonts[font]
-  if f:getWidth(s) <= w then return s end
-  while #s > 1 and f:getWidth(s .. "...") > w do s = s:sub(1, -2):gsub("[\192-\255][\128-\191]*$", "") end
+  if fw(font, s) <= w then return s end
+  while #s > 1 and fw(font, s .. "...") > w do s = s:sub(1, -2):gsub("[\192-\255][\128-\191]*$", "") end
   return s .. "..."
 end
 local function pxRect(x, y, w, h, c) col(c); love.graphics.rectangle("line", x + .5, y + .5, w - 1, h - 1) end
@@ -195,10 +201,9 @@ local function drawPizza(p, cx, cy)
 end
 
 local function benchLabel(s, x, y, c, hl)
-  love.graphics.setFont(fonts.tiny)
-  local w = fonts.tiny:getWidth(s)
-  col(hl or { 1, 1, 1, .55 }); love.graphics.print(s, math.floor(x - w / 2), y + 1)
-  col(c or C.ink); love.graphics.print(s, math.floor(x - w / 2), y)
+  local w = fw("tiny", s)
+  col(hl or { 1, 1, 1, .55 }); fprint("tiny", s, math.floor(x - w / 2), y + 1)
+  col(c or C.ink); fprint("tiny", s, math.floor(x - w / 2), y)
 end
 
 local function drawBottom()
@@ -215,7 +220,7 @@ local function drawBottom()
   love.graphics.push(); love.graphics.translate(0, OY)
   local cx = BOWLS[1].x + BOWL_W / 2
   local label = P.upper(P.ingName(sel))
-  local hw = math.min(BW - cx - 3, math.max(46, math.ceil(fonts.tiny:getWidth(label) / 2) + 6))
+  local hw = math.min(BW - cx - 3, math.max(46, math.ceil(fw("tiny", label) / 2) + 6))
   col(hex("#4a260f")); love.graphics.rectangle("fill", cx - hw, 6, hw * 2, 13)
   col(C.gold); love.graphics.rectangle("fill", cx - hw + 1, 7, hw * 2 - 2, 11)
   col(hex("#fbe39a")); love.graphics.rectangle("fill", cx - hw + 1, 7, hw * 2 - 2, 1)
@@ -246,12 +251,12 @@ local function drawBottom()
   local lx, ly, lw = BOWLS[1].x - 13, 154, BOWL_W + 26
   col(hex("#2a1407")); love.graphics.rectangle("fill", lx - 2, ly - 2, lw + 4, 44)
   col(hex("#081008")); love.graphics.rectangle("fill", lx, ly, lw, 40)
-  love.graphics.setFont(fonts.tiny); col(C.lcd)
+  col(C.lcd)
   local rows = { { "bench.c", P.eur(an.cost) }, { "bench.n", tostring(#S.pieces) }, { "bench.w", P.fmtG(P.pizzaGrams(S)) } }
   for k, r in ipairs(rows) do
     local y = ly + 3 + (k - 1) * 12
-    love.graphics.print(t(r[1]), lx + 3, y)
-    love.graphics.print(r[2], lx + lw - 3 - fonts.tiny:getWidth(r[2]), y)
+    fprint("tiny", t(r[1]), lx + 3, y)
+    fprint("tiny", r[2], lx + lw - 3 - fw("tiny", r[2]), y)
   end
   love.graphics.pop()
   -- language button
@@ -328,8 +333,7 @@ local function drawTop()
   -- toasts (combo found...)
   if toasts[1] then
     local s = toasts[1].s
-    love.graphics.setFont(fonts.body)
-    local w = math.min(380, fonts.body:getWidth(s) + 16)
+    local w = math.min(380, fw("body", s) + 16)
     col(hex("#000000", .85)); love.graphics.rectangle("fill", 200 - w / 2, 213, w, 24)
     pxRect(200 - w / 2, 213, w, 24, C.gold)
     text(fitText(s, "body", w - 8), 200 - w / 2, 217, "body", C.combo, "center", w)

@@ -22,7 +22,7 @@ After adding toppings or changing data in the browser game, run both exporters a
 2. Upload the zip to <https://bundle.lovebrew.org> and download the `.3dsx`. The bundler converts the PNGs to the 3DS texture format.
 3. Copy the `.3dsx` to `sdmc:/3ds/` and open it from the Homebrew Launcher.
 
-Text uses the console's system font. To use the game's own pixel fonts, they first have to be converted to TTF (they're stored as woff2), and the bundler then converts them for the 3DS.
+Text uses the console's system font, loaded once and scaled to each size (each new font copies the whole system font, about 3 MB, and four of them crashed a New 3DS). To use the game's own pixel fonts, they first have to be converted to TTF (they're stored as woff2), and the bundler then converts them for the 3DS.
 
 ## Trying it on a PC
 
