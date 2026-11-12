@@ -1,6 +1,8 @@
---[[ Pizza Magna for the Nintendo 3DS (LÖVE Potion), prototype: the Kitchen only.
-     Bottom screen (touch): the bench, as in the browser game (320 wide, title strip on top, pizza, bowls, LCD).
-     Top screen: the topping picker, dough and sauce, and the analysis (quality, cost, appeal, notes).
+--[[ Pizza Magna for the Nintendo 3DS (LÖVE Potion), prototype: the Kitchen and the Menu.
+     Kitchen. Bottom screen (touch): the bench, as in the browser game (320 wide, title strip on top, pizza,
+     bowls, LCD). Top screen: the topping picker, dough and sauce, and the analysis (quality, cost, appeal, notes).
+     Menu (SELECT). Top screen: the house menu, one row a pizza. Bottom screen: the chosen pizza, its price
+     (- / +), quality, cost and margin, and the buttons to edit, rename or remove it.
      On a PC (LÖVE 11/12) the window shows the top screen above the bottom one, and the mouse is the stylus. ]]
 local P = require("pizza")
 local D, A, t = P.D, P.A, P.t
@@ -11,34 +13,63 @@ local BOTTOM_X, BOTTOM_Y = 40, 240   -- where the bottom screen sits in the PC w
 -- text only the 3DS port has (the browser game has no buttons to explain)
 local L3 = {
   en = { keys1 = "</> topping   L/R group   Up dough   Down sauce",
-         keys2 = "A cut   X turn   B undo   Y clear   SELECT EN/PT   START quit" },
+         keys2 = "A cut   X turn   B undo   Y clear   SELECT menu   START quit",
+         mkeys1 = "Up/Down pizza   </> price   A edit   X rename   Y remove",
+         mkeys2 = "SELECT kitchen   START quit", rename = "RENAME" },
   pt = { keys1 = "</> ingrediente   L/R grupo   Cima massa   Baixo molho",
-         keys2 = "A picar   X rodar   B desfazer   Y limpar   SELECT EN/PT   START sair" },
+         keys2 = "A picar   X rodar   B desfazer   Y limpar   SELECT menu   START sair",
+         mkeys1 = "Cima/Baixo pizza   </> preço   A editar   X nome   Y remover",
+         mkeys2 = "SELECT cozinha   START sair", rename = "MUDAR NOME" },
 }
 local function l3(k) return L3[P.lang()][k] end
 
 -- ---------------------------------------------------------------- state and save
-local S = { dough = "napo", sauce = "tomate", pieces = {}, sel = "fiambre", cut = "w", rot = {}, found = {}, lang = nil }
+--[[ S.name/S.editing: the pizza on the bench (no name yet = "New pizza"; editing = id of the menu pizza it came from).
+     S.menu: the house menu, {id, name, dough, sauce, pieces, price}, as in the browser game. ]]
+local S = { dough = "napo", sauce = "tomate", pieces = {}, sel = "fiambre", cut = "w", rot = {}, found = {}, lang = nil,
+  name = nil, editing = nil, menu = nil, tab = "kitchen", msel = 1, nextId = 1 }
 local cleared = nil          -- the pizza the bin just cleared: undo on an empty bench brings it back
 local dirty, saveTimer = false, 0
 local toasts = {}
 local an                     -- analysis of the pizza on the bench (recomputed on every change)
 
+-- save.txt: one "key=value" a line; each menu pizza is a "pizza=" line of tab-separated fields
 local function save()
   local rot = {}
   for k, v in pairs(S.rot) do rot[#rot + 1] = k .. ":" .. v end
   local lines = {
     "lang=" .. P.lang(), "dough=" .. S.dough, "sauce=" .. S.sauce, "sel=" .. S.sel, "cut=" .. S.cut,
     "rot=" .. table.concat(rot, ","), "found=" .. table.concat(S.found, ","), "pieces=" .. P.packPieces(S.pieces),
+    "name=" .. (S.name or ""), "editing=" .. (S.editing or ""), "tab=" .. S.tab, "msel=" .. S.msel, "nextid=" .. S.nextId, "menu=1",
   }
+  for _, p in ipairs(S.menu) do
+    lines[#lines + 1] = "pizza=" .. table.concat({ p.id, string.format("%.2f", p.price), p.dough, p.sauce, p.name, P.packPieces(p.pieces) }, "\t")
+  end
   love.filesystem.write("save.txt", table.concat(lines, "\n") .. "\n")
   dirty = false
 end
 local function load()
   local ok, txt = pcall(love.filesystem.read, "save.txt")
   if not ok or not txt then return end
-  local v = {}
-  for k, val in txt:gmatch("(%w+)=([^\n]*)") do v[k] = val end
+  local v, menu = {}, {}
+  for line in txt:gmatch("[^\n]+") do
+    local k, val = line:match("^(%w+)=(.*)$")
+    if k == "pizza" then
+      local f = {}
+      for x in (val .. "\t"):gmatch("([^\t]*)\t") do f[#f + 1] = x end
+      if #f >= 6 and D.DOUGHS[f[3]] and D.SAUCES[f[4]] then
+        local pieces = {}
+        pcall(function() pieces = P.unpackPieces(f[6]) end)
+        menu[#menu + 1] = { id = f[1], price = tonumber(f[2]) or 9, dough = f[3], sauce = f[4], name = f[5], pieces = pieces }
+      end
+    elseif k then v[k] = val end
+  end
+  if v.menu then S.menu = menu end   -- saves from before the Menu get the starter pizzas
+  if v.name and v.name ~= "" then S.name = v.name end
+  if v.editing and v.editing ~= "" then S.editing = v.editing end
+  if v.tab == "menu" then S.tab = "menu" end
+  S.msel = tonumber(v.msel) or 1
+  S.nextId = tonumber(v.nextid) or 1
   if v.lang then S.lang = v.lang end
   if v.dough and D.DOUGHS[v.dough] then S.dough = v.dough end
   if v.sauce and D.SAUCES[v.sauce] then S.sauce = v.sauce end
@@ -49,7 +80,43 @@ local function load()
   if v.pieces and v.pieces ~= "" then pcall(function() S.pieces = P.unpackPieces(v.pieces) end) end
 end
 
-local function toast(s) toasts[#toasts + 1] = { s = s, time = 3 } end
+local function toast(s)   -- a new message cuts the one on screen short, so a "press again" never waits in a queue
+  if toasts[1] and toasts[1].time > .6 then toasts[1].time = .6 end
+  toasts[#toasts + 1] = { s = s, time = 3 }
+end
+local function r2(v) return math.floor(v * 100 + .5) / 100 end
+
+-- the three pizzas a new game starts with (freshState() in index.html; spread() lays a topping out in a spiral)
+local function spread(id, n, rad, seed)
+  local out = {}
+  local function fx(v, d) local m = 10 ^ d; return (v < 0 and -1 or 1) * math.floor(math.abs(v) * m + .5) / m end
+  for k = 0, n - 1 do
+    local a, r = (k + seed) * 2.39996, rad * math.sqrt((k + .5) / n)
+    out[#out + 1] = { i = id, x = fx(math.cos(a) * r, 3), y = fx(math.sin(a) * r, 3), r = fx((k * 1.7 + seed) % 6.28, 2) }
+  end
+  return out
+end
+local function join(...) local out = {}; for _, l in ipairs({ ... }) do for _, x in ipairs(l) do out[#out + 1] = x end end; return out end
+local function starterMenu()
+  local cheese = function() return spread("mozzarella", 11, .74, 0) end
+  S.menu = {
+    { id = "p1", name = "Margherita da Casa", dough = "napo", sauce = "tomate", price = 9, pieces = join(cheese(), spread("manjericao", 6, .62, 3)) },
+    { id = "p2", name = t("start.fc"), dough = "napo", sauce = "tomate", price = 9, pieces = join(cheese(), spread("fiambre", 7, .66, 1), spread("cogumelos", 7, .6, 4)) },
+    { id = "p3", name = t("start.pep"), dough = "napo", sauce = "tomate", price = 9, pieces = join(cheese(), spread("pepperoni", 9, .66, 2), spread("oregaos", 5, .55, 5)) },
+  }
+  S.nextId = 4
+end
+local function newId()
+  while true do
+    local id = "p" .. S.nextId; S.nextId = S.nextId + 1
+    local used = false
+    for _, p in ipairs(S.menu) do if p.id == id then used = true end end
+    if not used then return id end
+  end
+end
+-- each menu pizza keeps its analysis until it changes (p.an = nil)
+local function anOf(p) if not p.an then p.an = P.analyze(p) end; return p.an end
+local function copyPieces(ps) local out = {}; for k, x in ipairs(ps) do local c = {}; for kk, vv in pairs(x) do c[kk] = vv end; out[k] = c end; return out end
 
 -- ---------------------------------------------------------------- toppings by group (the pantry tabs)
 local catList = {}
@@ -124,7 +191,98 @@ local function pickCat(step)
   S.sel = catList[D.CATS[k]][1]; S.cut = "w"; dirty = true
 end
 local function cycle(order, cur, step) return order[(idxIn(order, cur) - 1 + step) % #order + 1] end
-local function setLang(l) P.setLang(l); S.lang = P.lang(); buildCats(); changed() end
+local function setLang(l)
+  P.setLang(l); S.lang = P.lang(); buildCats()
+  for _, p in ipairs(S.menu) do p.an = nil end   -- the notes are text in the language
+  changed()
+end
+
+-- ---------------------------------------------------------------- saving pizzas and the menu
+local armed = nil   -- a button pressed once that needs a second press: {what = "new" | "remove", time}
+local function arm(what) armed = { what = what, time = 3 } end
+local function isArmed(what) return armed and armed.what == what end
+local function clampSel() S.msel = math.max(1, math.min(S.msel, #S.menu + 1)) end   -- the row after the last is "+ Create new pizza"
+local function freshDraft()
+  S.pieces, S.name, S.editing, S.dough, S.sauce = {}, nil, nil, "napo", "tomate"
+  cleared = nil; changed()
+end
+local function newDraft()
+  if #S.pieces > 0 and not S.editing and not isArmed("new") then   -- never saved: ask before throwing it away
+    arm("new"); toast(t("k.unsaved.title") .. ". " .. t("k.unsaved.new") .. "?"); return
+  end
+  armed = nil; freshDraft(); S.tab = "kitchen"
+end
+local function savePizza()
+  if #S.pieces < 3 then toast(t("k.needmore")); return end
+  local ex
+  for k, p in ipairs(S.menu) do if p.id == S.editing then ex = k end end
+  local name = S.name
+  if not name then   -- no name given: the first combo on it, or "Pizza 4"
+    for _, id in ipairs(an.combos) do
+      for _, c in ipairs(D.COMBOS) do if c.id == id and c.q > 0 and not name then name = t("combo." .. id) end end
+    end
+    name = name or ("Pizza " .. (#S.menu + 1))
+  end
+  local pz = { name = name, dough = S.dough, sauce = S.sauce, pieces = copyPieces(S.pieces) }
+  if ex then
+    local p = S.menu[ex]
+    p.name, p.dough, p.sauce, p.pieces, p.an = pz.name, pz.dough, pz.sauce, pz.pieces, nil
+    toast(t("k.updated", { x = name })); S.msel = ex
+  else
+    pz.id, pz.price = newId(), P.suggestPrice(an.cost)
+    S.menu[#S.menu + 1] = pz
+    toast(t("k.added", { x = name, p = P.eur(pz.price) })); S.msel = #S.menu
+  end
+  freshDraft(); S.tab = "menu"   -- saved: the next pizza starts empty, and the Menu shows where it went
+end
+local function selPizza() return S.menu[S.msel] end
+local function editPizza()
+  local p = selPizza()
+  if not p then newDraft(); return end   -- the "+ Create new pizza" row
+  S.dough, S.sauce, S.pieces, S.name, S.editing = p.dough, p.sauce, copyPieces(p.pieces), p.name, p.id
+  cleared = nil; S.tab = "kitchen"; changed()
+end
+local function removePizza()
+  local p = selPizza(); if not p then return end
+  if not isArmed("remove") then arm("remove"); toast(t("menu.confirm") .. ": " .. p.name .. "?"); return end
+  armed = nil
+  table.remove(S.menu, S.msel)
+  if S.editing == p.id then S.editing = nil end
+  clampSel(); dirty = true
+end
+local function priceStep(d)
+  local p = selPizza(); if not p then return end
+  p.price = math.max(1, math.min(30, r2(p.price + d))); dirty = true
+end
+local function pickRow(step) armed = nil; S.msel = S.msel + step; clampSel(); dirty = true end
+
+-- names: the console's keyboard (one textinput with the whole name); on a PC the name is typed in place
+local renaming, renameBuf = nil, ""
+local function cleanName(s)
+  s = s:gsub("[%c|]", ""):gsub("^%s+", ""):gsub("%s+$", "")
+  if #s > 40 then s = s:sub(1, 40):gsub("[\192-\255][\128-\191]*$", "") end
+  return s
+end
+local function finishRename(s)
+  local set = renaming; renaming = nil
+  pcall(love.keyboard.setTextInput, false)
+  s = cleanName(s or "")
+  if set and s ~= "" then set(s); dirty = true end
+end
+local function askName(cur, set)
+  renaming, renameBuf = set, cur or ""
+  if CONSOLE then
+    local ok = pcall(love.keyboard.setTextInput, true, { type = "basic", hint = t("k.name"), maxLength = 28 })
+    if not ok then pcall(love.keyboard.setTextInput, true) end
+  else
+    love.keyboard.setTextInput(true)
+  end
+end
+local function renameDraft() askName(S.name or "", function(n) S.name = n end) end
+local function renamePizza()
+  local p = selPizza(); if not p then return end
+  askName(p.name, function(n) p.name = n; if S.editing == p.id then S.name = n end end)
+end
 
 -- ---------------------------------------------------------------- drawing helpers
 local pages, quads = {}, {}
@@ -172,6 +330,9 @@ local function fitText(s, font, w)   -- cut a line that does not fit, with an el
   return s .. "..."
 end
 local function pxRect(x, y, w, h, c) col(c); love.graphics.rectangle("line", x + .5, y + .5, w - 1, h - 1) end
+-- touch buttons: drawn with the bottom screen, and remembered for the next tap
+local hits = {}
+local function hit(x, y, w, h, fn) hits[#hits + 1] = { x = x, y = y, w = w, h = h, fn = fn } end
 
 local C = {
   ink = hex("#2c1a0b"), bg = hex("#2a170b"), panel = hex("#1a0d05"), cream = hex("#f6e7c8"), gold = hex("#e3b34a"),
@@ -206,16 +367,40 @@ local function benchLabel(s, x, y, c, hl)
   col(hl or { 1, 1, 1, .55 }); fprint("tiny", s, math.floor(x - w / 2), y + 1)
   col(c or C.ink); fprint("tiny", s, math.floor(x - w / 2), y)
 end
-
-local function drawBottom()
+-- a gold plate button (like the topping's name plate); returns its right edge
+local function plateBtn(label, x, y, fn, w, h, danger)
+  h = h or 14
+  w = w or math.ceil(fw("tiny", label)) + 10
+  col(hex("#4a260f")); love.graphics.rectangle("fill", x, y, w, h)
+  col(danger and hex("#e0603c") or C.gold); love.graphics.rectangle("fill", x + 1, y + 1, w - 2, h - 2)
+  col(danger and hex("#f59a7c") or hex("#fbe39a")); love.graphics.rectangle("fill", x + 1, y + 1, w - 2, 1)
+  benchLabel(label, x + w / 2, y + math.floor((h - 10) / 2), hex("#3a2706"), danger and hex("#f59a7c", .8) or hex("#fbe39a", .8))
+  hit(x, y, w, h, fn)
+  return x + w
+end
+local function langBtn()
+  local L = LANG_BTN
+  plateBtn(P.lang() == "pt" and "PT|en" or "EN|pt", L.x, L.y, function() setLang(P.lang() == "pt" and "en" or "pt") end, L.w, L.h)
+end
+local function nameStrip(name)   -- the pizza's name on the marble strip on top; tap it to rename
+  local s = renaming and not CONSOLE and (renameBuf .. "_") or name
+  benchLabel(fitText(P.upper(s), "tiny", BW - 8), BW / 2, 6, C.ink, { 1, 1, 1, .4 })
+end
+local function marble()
   love.graphics.setColor(1, 1, 1)
   spr("marble", BW / 2, 100); spr("marble", BW / 2, 140)
-  -- the pizza and its shadow on the marble
+end
+local function pizzaOnMarble(p)
   love.graphics.setColor(40 / 255, 30 / 255, 20 / 255, .32)
   love.graphics.ellipse("fill", PCX + 3, PCY + 4, PR + 1, PR)
-  drawPizza(S, PCX, PCY)
-  -- the name of the pizza on the strip on top
-  benchLabel(P.upper(t("k.newname")), BW / 2, 6, C.ink, { 1, 1, 1, .4 })
+  drawPizza(p, PCX, PCY)
+end
+
+local function drawKitchenBottom()
+  marble()
+  pizzaOnMarble(S)
+  nameStrip(S.name or t("k.newname"))
+  hit(0, 0, BW, OY, renameDraft)
   -- right side: name plate and two bowls (whole / chopped)
   local sel, cut = S.sel, curCut()
   love.graphics.push(); love.graphics.translate(0, OY)
@@ -260,11 +445,61 @@ local function drawBottom()
     fprint("tiny", r[2], lx + lw - 3 - fw("tiny", r[2]), y)
   end
   love.graphics.pop()
-  -- language button
-  local L = LANG_BTN
-  col(hex("#4a260f")); love.graphics.rectangle("fill", L.x, L.y, L.w, L.h)
-  col(C.gold); love.graphics.rectangle("fill", L.x + 1, L.y + 1, L.w - 2, L.h - 2)
-  benchLabel(P.lang() == "pt" and "PT|en" or "EN|pt", L.x + L.w / 2, L.y + 2, hex("#3a2706"), hex("#fbe39a", .8))
+  -- the strip at the bottom: new pizza, save to the menu, the menu, language
+  local x = plateBtn(P.upper(t("k.fresh")), 4, 224, newDraft, nil, nil, isArmed("new"))
+  x = plateBtn(P.upper(t(S.editing and "k.save.edit" or "k.save.new")), x + 4, 224, savePizza)
+  plateBtn(P.upper(t("nav.menu")), x + 4, 224, function() S.tab = "menu"; clampSel(); dirty = true end)
+  langBtn()
+end
+
+-- ---------------------------------------------------------------- bottom screen: the chosen menu pizza
+local function lcd(x, y, w, rows)
+  local h = #rows * 12 + 4
+  col(hex("#2a1407")); love.graphics.rectangle("fill", x - 2, y - 2, w + 4, h + 4)
+  col(hex("#081008")); love.graphics.rectangle("fill", x, y, w, h)
+  for k, r in ipairs(rows) do
+    local yy = y + 3 + (k - 1) * 12
+    col(C.lcd); fprint("tiny", r[1], x + 3, yy)
+    col(r[3] or C.lcd); fprint("tiny", r[2], x + w - 3 - fw("tiny", r[2]), yy)
+  end
+end
+local function drawMenuBottom()
+  marble()
+  local p = selPizza()
+  local strip = function()
+    local x = plateBtn(P.upper(t("nav.cozinha")), 4, 224, function() S.tab = "kitchen"; dirty = true end)
+    plateBtn(P.upper(t("k.fresh")), x + 4, 224, newDraft, nil, nil, isArmed("new"))
+    langBtn()
+  end
+  if not p then   -- the "+ Create new pizza" row (or an empty menu)
+    if #S.menu == 0 then text(t("menu.empty"), 20, 60, "body", C.ink, "center", 280) end
+    plateBtn(P.upper(t("menu.new", { n = #S.menu })), 60, 130, newDraft, 200, 24)
+    strip(); return
+  end
+  local a = anOf(p)
+  pizzaOnMarble(p)
+  nameStrip(p.name)
+  hit(0, 0, BW, OY, renamePizza)
+  -- right column: price with - and +, the figures, edit / rename / remove
+  local rx, rw = 222, 94
+  plateBtn("-", rx, 30, function() priceStep(-.5) end, 18, 22)
+  plateBtn("+", rx + rw - 18, 30, function() priceStep(.5) end, 18, 22)
+  text(P.eur(p.price), rx + 18, 33, "body", C.ink, "center", rw - 36)
+  local margin = p.price - a.cost
+  lcd(rx, 62, rw, {
+    { fitText(P.upper(t("k.q")), "tiny", 60), tostring(a.q), P.qColor(a.q) },
+    { t("bench.c"), P.eur(a.cost) },
+    { fitText(P.upper(t("menu.margin")), "tiny", 50), P.eur(margin), margin > 0 and C.good or C.bad },
+  })
+  plateBtn(P.upper(t("menu.edit")), rx, 114, editPizza, rw, 18)
+  plateBtn(l3("rename"), rx, 138, renamePizza, rw, 18)
+  plateBtn(fitText(P.upper(t(isArmed("remove") and "menu.confirm" or "menu.remove")), "tiny", rw - 6), rx, 162, removePizza, rw, 18, isArmed("remove"))
+  strip()
+end
+
+local function drawBottom()
+  hits = {}
+  if S.tab == "menu" then drawMenuBottom() else drawKitchenBottom() end
 end
 
 -- ---------------------------------------------------------------- top screen: picker and analysis
@@ -331,7 +566,51 @@ local function drawTop()
   -- buttons
   text(l3("keys1"), 0, 214, "tiny", C.dim, "center", 400)
   text(l3("keys2"), 0, 226, "tiny", C.dim, "center", 400)
-  -- toasts (combo found...)
+end
+
+-- a menu pizza drawn small (the whole 170 px pizza scaled)
+local function miniPizza(p, cx, cy, size)
+  love.graphics.push(); love.graphics.translate(cx, cy); love.graphics.scale(size / A.pizza)
+  drawPizza(p, 0, 0)
+  love.graphics.pop()
+end
+local ROW_H, ROWS = 34, 5
+local function drawMenuTop()
+  col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
+  col(C.panel); love.graphics.rectangle("fill", 0, 0, 400, 18)
+  text("PIZZA MAGNA", 6, 3, "small", C.gold)
+  text(t("menu.house") .. " (" .. #S.menu .. ")", 120, 3, "small", C.dim, "right", 274)
+  local sp = selPizza()
+  local loss = sp and sp.price < anOf(sp).cost
+  text(fitText(loss and t("menu.loss", { x = P.eur(anOf(sp).cost - sp.price) }) or t("menu.lead.easy"), "small", 388), 6, 21, "small", loss and C.bad or C.dim)
+  local n = #S.menu + 1
+  local first = math.max(1, math.min(S.msel - 2, n - ROWS + 1))
+  for row = 0, ROWS - 1 do
+    local k = first + row
+    if k > n then break end
+    local y = 38 + row * ROW_H
+    local on = k == S.msel
+    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, ROW_H - 3)
+    if on then pxRect(5, y - 1, 390, ROW_H - 1, C.gold) end
+    local p = S.menu[k]
+    if p then
+      local a = anOf(p)
+      miniPizza(p, 24, y + 15, 28)
+      text(fitText(p.name, "body", 200), 44, y + 1, "body", C.cream)
+      text(fitText(t("dough." .. p.dough) .. " · " .. t("sauce." .. p.sauce), "tiny", 200), 44, y + 18, "tiny", C.dim)
+      text(P.eur(p.price), 250, y + 1, "body", C.gold, "right", 138)
+      local margin = p.price - a.cost
+      text("Q" .. a.q, 250, y + 18, "tiny", P.qColor(a.q))
+      text(t("menu.margin") .. " " .. P.eur(margin), 280, y + 18, "tiny", margin > 0 and C.good or C.bad, "right", 108)
+    else
+      text(t("menu.new", { n = #S.menu }), 6, y + 8, "body", on and C.gold or C.dim, "center", 388)
+    end
+  end
+  text(l3("mkeys1"), 0, 214, "tiny", C.dim, "center", 400)
+  text(l3("mkeys2"), 0, 226, "tiny", C.dim, "center", 400)
+end
+
+local function drawToast()
   if toasts[1] then
     local s = toasts[1].s
     local w = math.min(380, fw("body", s) + 16)
@@ -340,13 +619,21 @@ local function drawTop()
     text(fitText(s, "body", w - 8), 200 - w / 2, 217, "body", C.combo, "center", w)
   end
 end
+local function drawTopScreen()
+  if S.tab == "menu" then drawMenuTop() else drawTop() end
+  drawToast()
+end
 
 -- ---------------------------------------------------------------- input
 local drag = nil
 local function benchPoint(x, y) return (x - PCX) / PR, (y - PCY) / PR end
 local function touchDown(x, y)
-  local L = LANG_BTN
-  if x >= L.x and x <= L.x + L.w and y >= L.y and y <= L.y + L.h then setLang(P.lang() == "pt" and "en" or "pt"); return end
+  if renaming and not CONSOLE then finishRename(renameBuf) end   -- PC: a tap elsewhere keeps what was typed
+  for k = #hits, 1, -1 do
+    local h = hits[k]
+    if x >= h.x and x < h.x + h.w and y >= h.y and y < h.y + h.h then h.fn(); return end
+  end
+  if S.tab ~= "kitchen" then return end
   for _, b in ipairs(BOWLS) do
     if x >= b.x - 6 and x <= b.x + BOWL_W + 6 and y - OY >= b.y - 4 and y - OY <= b.y + BOWL_H + 16 then setCut(b.g); return end
   end
@@ -363,7 +650,19 @@ end
 local function touchUp() drag = nil end
 
 local held = {}
+local function menuButton(b)
+  if b == "dpup" then pickRow(-1)
+  elseif b == "dpdown" then pickRow(1)
+  elseif b == "dpleft" then priceStep(-.5)
+  elseif b == "dpright" then priceStep(.5)
+  elseif b == "a" then editPizza()
+  elseif b == "x" then renamePizza()
+  elseif b == "y" then removePizza()
+  elseif b == "back" then S.tab = "kitchen"; dirty = true
+  elseif b == "start" then save(); love.event.quit() end
+end
 local function button(b)
+  if S.tab == "menu" then menuButton(b); return end
   if b == "dpleft" then pickTopping(-1)
   elseif b == "dpright" then pickTopping(1)
   elseif b == "leftshoulder" then pickCat(-1)
@@ -374,10 +673,10 @@ local function button(b)
   elseif b == "x" then rotatePiece()
   elseif b == "b" then undo()
   elseif b == "y" then clear()
-  elseif b == "back" then setLang(P.lang() == "pt" and "en" or "pt")
+  elseif b == "back" then S.tab = "menu"; clampSel(); dirty = true
   elseif b == "start" then save(); love.event.quit() end
 end
-local REPEAT = { dpleft = true, dpright = true }
+local REPEAT = { dpleft = true, dpright = true, dpup = true, dpdown = true }
 local function press(b) button(b); if REPEAT[b] then held[b] = .35 end end
 local function release(b) held[b] = nil end
 
@@ -386,7 +685,20 @@ function love.gamepadreleased(_, b) release(b) end
 -- PC keys: arrows, Q/W shoulders, Z=A, X=B, A=Y, S=X, Tab=SELECT, Esc=START
 local KEYS = { left = "dpleft", right = "dpright", up = "dpup", down = "dpdown", q = "leftshoulder", w = "rightshoulder",
   z = "a", x = "b", s = "x", a = "y", tab = "back", escape = "start" }
-function love.keypressed(k) if not CONSOLE and KEYS[k] then press(KEYS[k]) end end
+function love.keypressed(k)
+  if CONSOLE then return end
+  if renaming then   -- PC: typing a name
+    if k == "backspace" then renameBuf = renameBuf:gsub("[\1-\127\192-\255][\128-\191]*$", "")   -- the last letter, accents included
+    elseif k == "return" or k == "kpenter" then finishRename(renameBuf)
+    elseif k == "escape" then renaming = nil; love.keyboard.setTextInput(false) end
+    return
+  end
+  if KEYS[k] then press(KEYS[k]) end
+end
+function love.textinput(s)
+  if not renaming then return end
+  if CONSOLE then finishRename(s) elseif #renameBuf < 40 then renameBuf = renameBuf .. s end
+end
 function love.keyreleased(k) if not CONSOLE and KEYS[k] then release(KEYS[k]) end end
 function love.touchpressed(_, x, y) if CONSOLE then touchDown(x, y) end end
 function love.touchmoved(_, x, y) if CONSOLE then touchMove(x, y) end end
@@ -411,7 +723,9 @@ end
 BOOT[#BOOT + 1] = { "save", function()
   math.randomseed(os.time())
   load()
-  P.setLang(S.lang or "en"); S.lang = P.lang()   -- English unless the player picked Portuguese (SELECT or the EN|pt button)
+  P.setLang(S.lang or "en"); S.lang = P.lang()   -- English unless the player picked Portuguese (the EN|pt button)
+  if not S.menu then starterMenu() end
+  clampSel()
   buildCats()
   changed(); dirty = false
 end }
@@ -441,13 +755,14 @@ function love.update(dt)
     held[b] = left
   end
   if toasts[1] then toasts[1].time = toasts[1].time - dt; if toasts[1].time <= 0 then table.remove(toasts, 1) end end
+  if armed then armed.time = armed.time - dt; if armed.time <= 0 then armed = nil end end
   if dirty then saveTimer = saveTimer + dt; if saveTimer > 1 then save(); saveTimer = 0 end end
 end
 
 function love.draw(screen)
   if BOOT[bootStep] then drawBoot(); bootShown = true; return end
   if screen == nil then   -- PC: top screen above, bottom screen centred below
-    drawTop()
+    drawTopScreen()
     love.graphics.push(); love.graphics.translate(BOTTOM_X, BOTTOM_Y)
     love.graphics.setScissor(BOTTOM_X, BOTTOM_Y, 320, 240)
     col(hex("#000000")); love.graphics.rectangle("fill", 0, 0, 320, 240)
@@ -455,7 +770,7 @@ function love.draw(screen)
     love.graphics.setScissor(); love.graphics.pop()
     col(hex("#000000")); love.graphics.rectangle("fill", 0, 240, BOTTOM_X, 240); love.graphics.rectangle("fill", 360, 240, 40, 240)
   elseif screen == "bottom" then drawBottom()
-  else drawTop() end
+  else drawTopScreen() end
 end
 
 function love.quit() if dirty then save() end end

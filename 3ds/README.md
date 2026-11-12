@@ -1,11 +1,21 @@
 # Pizza Magna for the Nintendo 3DS (prototype)
 
-Homebrew port with [LÖVE Potion](https://lovebrew.org) 3 (LÖVE for the 3DS, in Lua). For now only the **Kitchen**:
+Homebrew port with [LÖVE Potion](https://lovebrew.org) 3 (LÖVE for the 3DS, in Lua). For now the **Kitchen** and the **Menu** (SELECT switches between them).
 
-- **Bottom screen (touch):** the bench, as in the browser game. Tap or drag on the pizza to put pieces, tap a bowl for whole / chopped (tapping whole again turns the next piece), and tap `EN|pt` to change language (English by default; the choice is saved).
+**Kitchen**
+- **Bottom screen (touch):** the bench, as in the browser game. Tap or drag on the pizza to put pieces, tap a bowl for whole / chopped (tapping whole again turns the next piece), tap the name on top to name the pizza. Buttons at the bottom: New pizza (press twice if the pizza was never saved), Add to menu (Save changes when editing a menu pizza), Menu, and `EN|pt` for the language (English by default; the choice is saved).
 - **Top screen:** the topping picker, dough and sauce, and the analysis (quality, cost, suggested price, appeal by customer type, notes). A toast shows each combo found.
-- **Buttons:** D-pad left/right picks a topping (hold to scroll), L/R picks a group, D-pad up picks the dough, D-pad down picks the sauce, A switches whole/chopped, X turns the piece, B undoes (on an empty pizza it brings back what Y cleared), Y clears, SELECT switches language, START saves and quits.
-- The pizza and the combos found are saved to `save.txt`, with pieces in the same compact format as the browser game (`packPieces`, recipe links `#p=`).
+- **Buttons:** D-pad left/right picks a topping (hold to scroll), L/R picks a group, D-pad up picks the dough, D-pad down picks the sauce, A switches whole/chopped, X turns the piece, B undoes (on an empty pizza it brings back what Y cleared), Y clears, SELECT opens the Menu, START saves and quits.
+- Adding a pizza needs at least 3 pieces. It goes on the menu at the suggested price; with no name it takes the name of its first combo, or "Pizza N".
+
+**Menu**
+- **Top screen:** the house menu, one row a pizza (small picture, name, dough and sauce, price, quality, margin), and a last row to create a new pizza. A pizza sold at a loss shows the warning on top.
+- **Bottom screen:** the chosen pizza, its price with - and +, quality, cost and margin, and Edit recipe, Rename and Remove (press twice).
+- **Buttons:** D-pad up/down picks a pizza, left/right changes the price by $0.50 ($1 to $30, as in the browser game), A edits (or creates, on the last row), X renames, Y removes (press twice), SELECT goes back to the Kitchen.
+- Names use the console's keyboard (on a PC, type and press Enter).
+- A new game starts with the three starter pizzas of the browser game.
+
+Everything is saved to `save.txt`: the pizza on the bench, the menu and the combos found. Pieces are stored in the same compact format as the browser game (`packPieces`, recipe links `#p=`).
 
 ## Files
 
