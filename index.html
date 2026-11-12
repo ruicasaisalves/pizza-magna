@@ -1722,9 +1722,10 @@ function kitchenParts(f){const out=[];
   return out}
 // a person on foot, feet on the bottom of its tile: customers in their own look (w<look>_<dir>_<step>, the step
 // frame alternates while walking); the waiter and cook have one standing frame and bob a little instead
+const bobOf=a=>a.walking&&Math.floor(a.ph)%2?2:0;
 function drawChar(c,a,key){
-  const im=rspr(key),bob=!key.startsWith('w')&&a.walking&&Math.floor(a.ph)%2?2:0;
-  c.drawImage(im,Math.round(a.x),Math.round(a.y)+T-im.height-bob);
+  const im=rspr(key);
+  c.drawImage(im,Math.round(a.x),Math.round(a.y)+T-im.height-(/^w\d/.test(key)?0:bobOf(a)));
 }
 function drawRoom(){
   const R=roomSize();if(!R)return;const c=R.lc;
@@ -1747,7 +1748,7 @@ function drawRoom(){
   const person=(a,key)=>L.push({z:a.y+T,draw:()=>drawChar(c,a,key)});
   const staff=(a,role)=>{const v=a.v%((L_.staff||{})[role]||1);person(a,v?role+'_'+v:role)};   // the atlas has a few of each, handed out in turn
   for(const k of sc.cooks)staff(k,'cook');
-  for(const w of sc.waiters){staff(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2)}   // held in both hands, in front
+  for(const w of sc.waiters){staff(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2-bobOf(w))}   // held in both hands, in front
   if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;person(p,`w${p.rlook||0}_${p.dir}_${p.walking?[1,0,2,0][Math.floor(p.ph)%4]:0}`)}   // standing or walking; seated ones are drawn at their table
   for(const q of rugs)c.drawImage(q.img,q.x,q.y);
   L.sort((a,b)=>a.z-b.z).forEach(d=>d.draw?d.draw():c.drawImage(d.img,d.x,d.y));
