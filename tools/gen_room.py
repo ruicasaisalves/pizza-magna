@@ -1298,7 +1298,8 @@ def sprites():
     # the people come from pilot_people.py (cel shaded, three views, a real walk); person(), walker() and standing()
     # above are the first people, kept for its comparison sheets
     import pilot_people as PP
-    put('waiter', PP.staff('waiter')); put('cook', PP.staff('cook'))
+    for role, n in (('waiter', len(PP.WAITERS)), ('cook', len(PP.COOKS))):
+        for i in range(n): put(role + (f'_{i}' if i else ''), PP.staff(role, i))      # 'waiter', 'waiter_1' ...
     for i, L in enumerate(PP.LOOKS):
         for d in ('down', 'up', 'right', 'left'):
             put(f'p{i}_{d}', PP.seated(L, d))                    # seated
@@ -1307,6 +1308,7 @@ def sprites():
 
 def layout_json(imgs):
     import json
+    import pilot_people as PP
     items = dict(LAYOUT)
     for id_, (k, w, h, frames) in DECOR.items():
         im = imgs[k + ('_0' if frames > 1 else '')]
@@ -1316,7 +1318,7 @@ def layout_json(imgs):
     walls = {id_: [k + ('_1' if k == 'w_neon' else ''), x, y] for id_, (k, x, y) in WALLPIECES.items()}
     kitchen = [['k_oven', 414, 42, 128, 2], ['k_logs', 606, 104, 128], ['k_counter', 382, 202, 256], ['k_register', 388, 178, 256.1],
                ['k_boxes', 606, 190, 256.2], ['cook', 456, 58, 129]]
-    return json.dumps({'items': items, 'walls': walls, 'kitchen': kitchen, 'looks': 21, 'plain': PLAIN}, separators=(',', ':'))
+    return json.dumps({'items': items, 'walls': walls, 'kitchen': kitchen, 'looks': 21, 'staff': {'waiter': len(PP.WAITERS), 'cook': len(PP.COOKS)}, 'plain': PLAIN}, separators=(',', ':'))
 
 def pack(imgs, width=1024):
     order = sorted(imgs, key=lambda k: (-imgs[k].height, -imgs[k].width))
