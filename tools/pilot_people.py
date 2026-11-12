@@ -92,7 +92,7 @@ def curls(c, pts, r=3.7):
 
 def hair(c, L, o, side=False):
     """paints the hair of a head centred on (HX, 11 + o)"""
-    st = L.get('style', 'short'); hy = 11 + o; hx = c.xs + .5 - HX; col = L['hair']; skin = L['skin']
+    st = L.get('style', 'short'); und = L.get('under'); hy = 11 + o; hx = c.xs + .5 - HX; col = L['hair']; skin = L['skin']
     cap = c.ell(HX - (1 if side else 0), hy - 1.2, 10.6, 9.9)
     ear = c.ell(HX - 2, hy + 2, 2, 2.6)
     shine = (np.abs(np.hypot((c.xs + .5 - HX + 1.5) / 1.1, c.ys + .5 - hy + 1.5) - 6.4) < .75) & (c.xs < HX + 3) & (c.ys < hy - 2)
@@ -137,8 +137,8 @@ def hair(c, L, o, side=False):
         return
     if side:
         m = cap & ((c.ys < hy - 3.5 + (c.xs > HX + 4) * 1.5) | (c.xs < HX - 3) | ((c.xs < HX + 1) & (c.ys < hy)))
-        if st == 'long': m |= c.ell(HX - 6, hy + 8, 5.5, 12) & (c.ys > hy - 2)
-        if st == 'bob': m |= c.ell(HX - 6, hy + 3, 5.6, 7.4) & (c.ys > hy - 2)
+        if 'long' in (st, und): m |= c.ell(HX - 6, hy + 8, 5.5, 12) & (c.ys > hy - 2)
+        if 'bob' in (st, und): m |= c.ell(HX - 6, hy + 3, 5.6, 7.4) & (c.ys > hy - 2)
         if st == 'quiff': m |= c.ell(HX + 5, hy - 8.6, 5.4, 3.8) & (c.ys >= 0)
         if st == 'afro': m = c.ell(HX - 2, hy - 1.5, 11.6, 10) & ~(c.ell(HX + 4, hy + 3, 7, 8) & (c.ys > hy - 5))
         if st == 'cap': m = cap & (c.xs < HX - 4) & (c.ys > hy - 2) & (c.ys < hy + 5)
@@ -146,13 +146,13 @@ def hair(c, L, o, side=False):
     else:
         fringe = c.ys < hy - 3.6 + 1.6 * np.abs(np.sin(hx * .5 + .6))
         m = cap & (fringe | (np.abs(hx) > 8.6) & (c.ys < hy + 3))
-        if st == 'long': m |= (c.ell(HX - 9, hy + 8, 3.2, 11) | c.ell(HX + 9, hy + 8, 3.2, 11)) & (c.ys > hy - 3)
-        if st == 'bob': m |= (c.ell(HX - 9, hy + 3.5, 3.4, 6.4) | c.ell(HX + 9, hy + 3.5, 3.4, 6.4)) & (c.ys > hy - 3)
+        if 'long' in (st, und): m |= (c.ell(HX - 9, hy + 8, 3.2, 11) | c.ell(HX + 9, hy + 8, 3.2, 11)) & (c.ys > hy - 3)
+        if 'bob' in (st, und): m |= (c.ell(HX - 9, hy + 3.5, 3.4, 6.4) | c.ell(HX + 9, hy + 3.5, 3.4, 6.4)) & (c.ys > hy - 3)
         if st == 'quiff': m |= c.ell(HX + 1.5, hy - 9.4, 6.4, 3.4) & (c.ys >= 0)
         if st == 'afro': m = (c.ell(HX, hy - 1.5, 12.6, 10) & (c.ys >= 0)) & ~(c.ell(HX, hy + 4.5, 8.6, 8.5) & (c.ys > hy - 4.4))
         if st == 'cap': m = cap & (np.abs(hx) > 8.4) & (c.ys > hy - 2) & (c.ys < hy + 4)
     if st == 'afro': lit = band(c, HX, hy - 2, 12.6, 10, .15, .75) + (G.noise(c.h, c.w, 2, G.rng(31)) - .5) * .35
-    if st == 'long' and not side: lit = np.where((c.ys > hy + 1) & (np.abs(hx) < 9), .2, np.where(c.ys > hy + 1, np.where(hx < 0, .7, .45), lit))
+    if 'long' in (st, und) and not side: lit = np.where((c.ys > hy + 1) & (np.abs(hx) < 9), .2, np.where(c.ys > hy + 1, np.where(hx < 0, .7, .45), lit))
     c.paint(m, col, np.clip(lit, 0, 1), part=9)
     if st == 'bun': bun(c, col, *((HX - 10, hy - 8.5) if side else (HX, hy - 10.5)))
     if st == 'buns':                                                                                          # two little buns
@@ -630,10 +630,21 @@ def walk(L, d='down', f=None):
     im = side(L, f)
     return ImageOps.mirror(im) if d == 'left' else im
 
-# the staff, standing and facing down (the game shows them like this)
-WAITER = dict(skin='skinB', hair='hairB', eye='irisBr', shirt='apron', pants='vest', top='waiter', style='short')
-COOK = dict(skin='skinA', hair='hairK', eye='irisGr', shirt='apron', pants='pantsK', top='cook', style='toque')
-def staff(role): return front(WAITER if role == 'waiter' else COOK)
+# the staff, standing and facing down (the game shows them like this). The first of each list is the atlas's
+# 'waiter' / 'cook'; the others are 'waiter_1', 'cook_1' ... and the game hands them out in turn
+def _waiter(**k): return dict(dict(eye='irisBr', shirt='apron', pants='vest', top='waiter', style='short'), **k)
+def _cook(**k): return dict(dict(eye='irisBr', shirt='apron', pants='pantsK', top='cook', style='toque'), **k)
+WAITERS = [_waiter(skin='skinB', hair='hairB'),
+           _waiter(skin='skinA', hair='hairY', eye='irisBl', style='long'),            # a blonde waitress
+           _waiter(skin='skinA', hair='hairK', eye='irisDk'),                          # a Chinese waiter
+           _waiter(skin='skinC', hair='hairK', eye='irisDk', style='afro')]
+COOKS = [_cook(skin='skinA', hair='hairK', eye='irisGr'),
+         _cook(skin='skinD', hair='hairB', eye='irisHz', under='long'),                # a woman, long hair under the hat
+         _cook(skin='skinC', hair='hairK', eye='irisDk', extras=('moustache',)),
+         _cook(skin='skinB', hair='hairK', extras=('beard',)),
+         _cook(skin='skinA', hair='hairR', eye='irisGr', under='bob')]                 # a redhead with a bob
+WAITER, COOK = WAITERS[0], COOKS[0]
+def staff(role, i=0): return front((WAITERS if role == 'waiter' else COOKS)[i])
 
 LOOKS = [
     dict(skin='skinA', hair='hairY', eye='irisBl', shirt='sweater', pants='denim', top='sweater', style='long', shoe='boot'),

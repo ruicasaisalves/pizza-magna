@@ -38,6 +38,9 @@ local function segMix()
   for k in pairs(m) do m[k] = m[k] / tot end
   return m
 end
+-- happy quotes per customer group (qh.<group>1 … qh.<group>N in I18N; QH_N in index.html)
+local QH_N = 0
+while D.I18N.en["qh.estudante" .. (QH_N + 1)] do QH_N = QH_N + 1 end
 local function pizzaNeeds(p) local n = {}; for _, x in ipairs(p.pieces) do n[x.i] = (n[x.i] or 0) + P.pieceGrams(x) end; return n end
 local function gramPrice(id) return P.ingC(id) / (D.GRAMS[id] or 10) end
 
@@ -108,7 +111,7 @@ function G.simulateDay(S)
         local sat = ap + noise() * 5 - math.max(0, over) * 7 + (atm[seg] - 35) / 7
         if sat >= 62 then
           res.happy = res.happy + 1; res.repDelta = res.repDelta + .008; e.out = "happy"
-          if math.random() < .25 then quote(seg, t("qh." .. seg .. (math.random() < .5 and 1 or 2), { x = m.p.name })) end
+          if math.random() < .25 then quote(seg, t("qh." .. seg .. math.random(QH_N), { x = m.p.name })) end
         else
           res.unhappy = res.unhappy + 1; res.repDelta = res.repDelta - .03; e.out = "meh"
           local bad
@@ -195,8 +198,10 @@ function G.finishDay(S, res)
   for k = #nw, 1, -1 do table.insert(S.news, 1, nw[k]) end
   while #S.news > 8 do table.remove(S.news) end
   if S.money < -500 then S.over = true end
-  local q = shuffle(res.quotes)
-  local quotes = { q[1], q[2], q[3] }
+  local quotes, seen = {}, {}
+  for _, x in ipairs(shuffle(res.quotes)) do   -- no line twice
+    if not seen[x[2]] and #quotes < 3 then seen[x[2]] = true; quotes[#quotes + 1] = x end
+  end
   local goal = false
   if not S.goalDone and S.money >= D.GOAL_MONEY and S.rep >= D.GOAL_REP then S.goalDone = true; goal = true end
   return { res = res, profit = profit, sal = sal, repBefore = repBefore, repAfter = S.rep, contest = contest, quotes = quotes, day = S.day - 1, goal = goal }
