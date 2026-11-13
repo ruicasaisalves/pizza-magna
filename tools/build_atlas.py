@@ -195,7 +195,6 @@ ROTATE = {
     'coxa': lambda: G20.drumstick(1, ang=0),       # 4: the bone sticks out at one end
     'banana': lambda: G20.banana(1, ang=0),        # 4: a smile, a frown, or on its side
     'cereja': lambda: G21.cherry(1, ang=0),        # 4: the stem points one way
-    'tbone': lambda: G21.tbone(1, ang=0),           # 4: the bone's long arm is on one side
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}

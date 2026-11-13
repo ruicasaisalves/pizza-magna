@@ -6,9 +6,10 @@ Same method as gen_ingredients.py (see tools/CLAUDE.md).
   Doesn't rotate. Chopped: grated carrot, thin orange shreds.
 - Cherry (cereja): a whole glossy cherry with its stem curving off to the right.
   Rotates with 4 positions. Chopped: pitted halves, cut side up.
-- T-bone steak (bife com osso): a big grilled steak (as big as the whole beef) with the
-  T-shaped bone and a strip of fat; with ang=0 the bone's long arm is on the right.
-  Rotates with 4 positions. Chopped: one beef slice, like the beef's (gen_ingredients17.py).
+- T-bone steak (bife com osso): a big thick grilled steak (as big as the whole beef) seen at
+  three quarters, with the T bone in the middle, grill marks, fat round the big side and the
+  seared side below. Doesn't rotate (it has a side); 3 variants. Chopped: one beef slice,
+  like the beef's (gen_ingredients17.py).
 - Green pepper (pimento): replaces the old arc from gen_ingredients3.py with a whole
   sliced ring, three or four lobes and pale ribs pointing in from the folds. Doesn't rotate.
 Usage: python3 tools/gen_ingredients21.py <folder>"""
@@ -122,32 +123,45 @@ def cherry_halves(seed, n=4, W=24, H=22, D=9):
     return img
 
 # ---------------- T-BONE STEAK (bone's long arm to the right) ----------------
-def tbone(seed, ang=None, L=50, T=38):
-    a = 0 if ang is None else ang
-    W, H = turn(L + 4, T + 4, ang)
-    u, v = axes(W, H, a)
+def tbone(seed, ang=None, W=50, H=42):
+    """seen at three quarters: the grilled top with the T bone in the middle, and the thick seared side below.
+    It has a side, so it doesn't turn; the variants mirror it or change its proportions"""
     rng = np.random.default_rng(seed + 6900)
+    flip = -1 if seed % 3 == 2 else 1
+    k = 1 + (seed % 3 == 0) * .08                                # the third variant: a bit rounder
+    TH = 6                                                       # thickness of the side, in px
+    ys, xs = np.mgrid[0:H, 0:H * 0 + W].astype(float)
+    fx = (xs - (W - 1) / 2) * flip
+    fy = (ys - (H - TH - 1) / 2) / .74                           # the top seen from above at an angle
     n = noise(H, W, 4, rng)
-    edge = 1 + (n - .5) * .12
-    d = ((np.abs(u) / (L / 2)) ** 2.4 + (np.abs(v + (u / (L / 2)) * 2) / (T / 2)) ** 2.4) ** (1 / 2.4) / edge
-    meat = d <= 1
-    # the T: the long arm crosses the steak top to bottom, the short bar runs along the top edge
-    arm = (np.abs(u - 9 - v * .12) <= 1.7) & (v > -T / 2 + 3)
-    bar = (np.abs(v + T / 2 - 4.5) <= 1.8) & (u > 0) & (u < 20)
-    bone = (arm | bar) & (d <= 1.04)
-    fat = meat & ~bone & (d > .8) & (v > 2) & (u < 6)          # a strip of fat on the bottom-left edge
-    crust = meat & ~erode(erode(meat)) & ~fat
-    marks = meat & ~bone & ~fat & (np.abs(((u * .7 - v) % 11) - 5.5) < .9)   # diagonal grill marks
-    mask = meat | bone
-    height = np.clip(1 - d ** 2, 0, 1) * 2.4 + (noise(H, W, 3, rng) - .5) * .5 + np.where(bone, .9, 0)
+    # one teardrop: round and wide on the left (the strip loin), narrower towards the right (the fillet)
+    t = np.clip((fx + 22) / 44, 0, 1)
+    half = (15.5 - 6 * t ** 1.6) * k * np.sqrt(np.clip(1 - (fx / 22.5) ** 4, 0, 1)) * (1 + (n - .5) * .08)
+    top = (np.abs(fx) <= 22.5) & (np.abs(fy - 1 + t * 2) <= half)
+    side = np.zeros_like(top)
+    for d in range(1, TH + 1): side[d:] |= top[:-d]
+    side &= ~top
+    # the T: the stem runs down between the two pieces, the bar along the top edge
+    stem = top & (np.abs(fx - 5 + fy * .15) <= 2.0) & (fy > -9 * k)
+    bar = top & (np.abs(fy + 10 * k) <= 2.2) & (fx > -6) & (fx < 16)
+    bone = stem | bar
+    rim = top & ~erode(erode(top))
+    fat = top & ~bone & ~erode(erode(top)) & (fx < 0) & (fy > -12)       # a thin band of fat round the big piece
+    marks = top & ~bone & ~fat & (np.abs(((fx * .55 + fy * .9) % 7) - 3.5) < .75)   # parallel grill marks
+    streak = side & (np.sin(fx * 1.7 + n * 4) > .35)              # the fibres on the cut side
+    mask = top | side
+    dome = np.clip(1 - (((fx - 1) / 24) ** 2 + (fy / 17) ** 2), 0, 1) * 3
+    height = np.where(top, dome + np.where(bone, .7, 0) + (noise(H, W, 2, rng) - .5) * .4, 0)
     def m(y, x):
+        if side[y, x]: return 'steak'
         if bone[y, x]: return 'bone'
         if fat[y, x]: return 'tfat'
         if marks[y, x]: return 'grill'
         return 'steak'
     mat = [[m(y, x) for x in range(W)] for y in range(H)]
-    light = np.clip(shade(height, mask) * .7 + .3 + np.where(crust, -.1, 0), 0, 1) * mask
-    return render(mat, light, mask, {'steakin': 'steak', 'grill': 'grill', 'tfat': 'tfat', 'bone': 'bone', 'steak': 'steak'})
+    light = np.where(top, shade(height, top) * .55 + .45, .12 + np.where(streak, .16, 0))
+    light = np.clip(light - np.where(rim & ~fat & ~bone, .08, 0), 0, 1) * mask
+    return render(mat, light, mask, {'grill': 'grill', 'tfat': 'tfat', 'bone': 'bone', 'steak': 'steak'})
 
 def tbone_slice(seed): return G17.beef_cubes(seed)              # chopped: one beef slice
 
