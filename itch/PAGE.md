@@ -74,7 +74,11 @@ Fonts, if itch.io lets you pick them: headings a pixel font (Silkscreen or "Pres
 
 > Pizza Magna is on itch.io. It is a pizzeria tycoon in 90s pixel art: invent pizzas, set prices, decorate the room and beat the rival next door. It runs in the browser, saves automatically and works on phones. Play it, share your best recipe, and tell us what is missing.
 
-## Making the upload zip
+## Automatic upload
+
+Every push to `main` sends the browser game to itch.io by itself (`.github/workflows/itch.yml`, with butler, the itch.io tool): the files below go to the `html5` channel of `aruvez/pizza-magna`, with the game's `VERSION` as the version shown on itch. It needs the repo secret `BUTLER_API_KEY`, an itch.io API key (itch.io › Settings › API keys; GitHub › repo Settings › Secrets and variables › Actions); without it the job sends nothing. After the first automatic upload, tick **This file will be played in the browser** on the new `html5` file in the game's Edit page (once) and delete the old hand-made upload. The workflow can also be run by hand from the Actions tab.
+
+## Making the upload zip by hand
 
 From the repo root:
 
