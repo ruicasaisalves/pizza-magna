@@ -597,9 +597,20 @@ local function drawTop()
   local cat = catOf(S.sel)
   local list = catList[cat]
   local k = idxIn(list, S.sel)
-  text("L <", 6, 23, "small", C.dim)
-  text(t("cat." .. cat) .. "  " .. k .. "/" .. #list, 6, 23, "small", C.cream, "center", 188)
-  text("> R", 6, 23, "small", C.dim, "right", 188)
+  -- the groups as tabs with their symbols (as on phones): L/R change group, the open one is light and raised
+  col(C.panel); love.graphics.rectangle("fill", 6, 20, 188, 20)
+  text("L", 8, 25, "small", C.dim); text("R", 6, 25, "small", C.dim, "right", 186)
+  for i, c in ipairs(D.CATS) do
+    local tx = 18 + (i - 1) * 24
+    if c == cat then
+      col(hex("#f3e6c6")); love.graphics.rectangle("fill", tx, 20, 23, 20)
+      pxRect(tx, 20, 23, 20, C.gold)
+      spr("cat_" .. c, tx + 11.5, 30)
+    else
+      col(hex("#7a4520")); love.graphics.rectangle("fill", tx + 1, 23, 21, 16)
+      spr("cat_" .. c, tx + 11.5, 31, .7)
+    end
+  end
   for s = -2, 2 do
     local id = list[(k - 1 + s) % #list + 1]
     local cx, cy = 100 + s * 38, 58
