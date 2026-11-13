@@ -1,5 +1,6 @@
-# Publishes the browser game to itch.io (aruvez/pizza-magna, channel html5) after every push to main.
-# Same files as the upload zip in itch/PAGE.md; butler sends only what changed. The version shown on itch
+# Publishes the game to itch.io (aruvez/pizza-magna) after every push to main: channel html5 is played in the
+# browser, channel offline-windows-linux-mac is the same files as a download (unzip and open index.html; itch tags
+# the platforms from the channel name). Same files as the upload zip in itch/PAGE.md; butler sends only what changed. The version shown on itch
 # is VERSION from index.html. Needs the repo secret BUTLER_API_KEY (an itch.io API key); without it the
 # job only prints a notice and passes.
 name: Publish to itch.io
@@ -34,4 +35,6 @@ jobs:
           unzip -q butler.zip -d butler && chmod +x butler/butler && ./butler/butler -V
       - name: Push to itch.io
         if: env.BUTLER_API_KEY != ''
-        run: ./butler/butler push build aruvez/pizza-magna:html5 --userversion "$VERSION"
+        run: |
+          ./butler/butler push build aruvez/pizza-magna:html5 --userversion "$VERSION"
+          ./butler/butler push build aruvez/pizza-magna:offline-windows-linux-mac --userversion "$VERSION"
