@@ -99,23 +99,29 @@ const ITEMS={   // a sample of each category, for the mock only
   extras:['azeite','balsamico','maionese','natas_azedas','ovo','nozes','pinhoes','batata_palha']};
 
 /* Symbolic category icons, 16x16, one letter per pixel (palette below) */
-const PAL={O:'#2a1407',Y:'#ffcf4a',y:'#ffe9a0',h:'#c99419',B:'#4f7fb0',b:'#cfe0ee',W:'#ffffff',R:'#b8322a',F:'#f2b8a8',d:'#c9a070',w:'#f4ecd8',
-  C:'#e8781e',c:'#b5520f',G:'#3e8f2e',g:'#7cc24a',S:'#4b6b22',X:'#ffb0a0',D:'#7e1d14',K:'#8a5a2b',P:'#f3e6c6',Q:'#6b7a1a',q:'#a9b33a'};
+const PAL={O:'#2a1407',
+  Y:'#ffcf4a',y:'#ffe9a0',h:'#b8860f',H:'#fff3c4',d:'#e0a82a',                 // cheese: face, top, hole, hole's lit edge, shade
+  R:'#b8322a',r:'#e05a50',M:'#7e1d14',F:'#f2c8b8',w:'#f4ecd8',W:'#ffffff',     // steak: meat, light, dark, fat, bone
+  B:'#4f7fb0',b:'#cfe0ee',l:'#a8cdee',k:'#2e5680',                             // fish
+  C:'#e8781e',c:'#b5520f',e:'#ffb25a',                                         // carrot
+  G:'#3e8f2e',g:'#7cc24a',V:'#235a1c',S:'#4b6b22',                             // greens and stems
+  X:'#ffb0a0',D:'#6e1018',                                                     // cherry light and dark (red is R)
+  J:'#6a4220',K:'#a8743a',P:'#f3e6c6',Q:'#6b7a1a',q:'#a9b33a',Z:'#3e4a0e'};    // bottle: cork, label, oil
 const SYM={
-  queijo:['................','................','..........OO....','........OOyyO...','......OOyyyyyO..','....OOyyyyyyyyO.','..OOyyyyyyyyyyyO',
-    '.OYYYYYYYYYYYYYO','.OYYhYYYYYYhhYYO','.OYhhYYYYYYhhYYO','.OYYYYYhhYYYYYYO','.OYYYYYhhYYYYhYO','.OYhYYYYYYYYYYYO','.OhhhhhhhhhhhhhO','..OOOOOOOOOOOOO.','................'],
-  carne:['................','................','................','....OOOOOOO.....','..OOFRRRRRROO...','.OFRRRRRRRRRROO.','.OFRRRwwRRRRRRRO','OFRRRwddwRRRRRRO',
-    'OFRRRwddwRRRRRRO','OFRRRRwwRRRRRRO.','.OFRRRRRRRRRRO..','.OFFRRRRRRRRO...','..OOFFFFFFOO....','....OOOOOO......','................','................'],
-  peixe:['................','................','................','................','.....OOOOOO...OO','...OOBBBBBBO.OBO','..OBWOBBBBBBOOBO','.OBBBBBBBBBBBBBO',
-    '.ObbbbbbbbbbOOBO','..ObbbbbbbbO.OBO','...OOOOOOOO...OO','................','................','................','................','................'],
-  vegetal:['....g..g..g.....','.....gGgGg......','......GGG.......','....OOOOOOOO....','....OCCCCCCO....','....OCcCCCCO....','.....OCCCCCO....','.....OCcCCO.....',
-    '......OCCCO.....','......OCcCO.....','......OCCO......','.......OCO......','.......OO.......','................','................','................'],
-  ervas:['................','......OOOO......','.....OGggGO.....','.....OGggGO.....','..OO..OGGO..OO..','.OGgO..SS..OgGO.','.OGggO.SS.OggGO.','..OGGGOSSOGGGO..',
-    '...OOOOSSOOOO...','.......SS.......','.......SS.......','......SS........','................','................','................','................'],
-  doce:['................','..........SS....','.........S.S....','........S...S...','.......S....S...','......S.....S...','...OOOO....OOOO.','..ORXRRO..ORXRRO',
-    '..ORRRRO..ORRRRO','..ORRRRO..ORRRRO','..ODRRDO..ODRRDO','...OOOO....OOOO.','................','................','................','................'],
-  extras:['......OOO.......','......OKO.......','......OOO.......','......OQO.......','......OQO.......','.....OQQQO......','....OQQqQQO.....','....OQQqQQO.....',
-    '....OPPPPPO.....','....OPYYYPO.....','....OPPPPPO.....','....OQQQQQO.....','....OQQQQQO.....','....OOOOOOO.....','................','................']};
+  queijo:['................','................','..........OO....','........OOyyO...','......OOyyyyOO..','....OOyyyyhyyyO.','..OOyyyyyyyyyyyO',
+    '.OYYYYYYYYYYYYYO','.OYhhYYYYYYYYYdO','.OYhHYYYYYhhYYdO','.OYYYYYYYYYhHYdO','.OYYYYhhYYYYYYdO','.OYYYYhHYYYYYYdO','.OdddddddddddddO','..OOOOOOOOOOOOO.','................'],
+  carne:['................','................','................','....OOOOOOO.....','..OOFFFFFFFOO...','.OFFRRRRRRRFFOO.','.OFRrrRRRRRRRFFO','OFRrRRRwwRRRRRFO',
+    'OFRrRRWwwwRRRRFO','OFRRRRwwwwRRRRFO','OFRRRRRwwRRRMRO.','.OFRRRRRRRMMRO..','.OFFMRRRRRRRO...','..OOFFFFFFOO....','....OOOOOO......','................'],
+  peixe:['................','................','................','......OOOO....OO','....OOBBBBOO.OBO','..OOBBlBlBBBOBBO','.OBWOBkBBlBBBBO.','OBBBBBkBBBBBBBO.',
+    'ObbbbbkbbbbbOBBO','.ObbbbbbbbbO.OBO','..OOOObbOOO...OO','......OO........','................','................','................','................'],
+  vegetal:['....G..g..G.....','.....GggGgG.....','......GGGG......','....OOOOOOOO....','....OeCCCCcO....','....OeCcCCCO....','.....OeCCCCO....','.....OCCccO.....',
+    '......OeCCO.....','......OCcCO.....','......OeCO......','.......OCO......','.......OO.......','................','................','................'],
+  ervas:['................','.......OO.......','......OggO......','.....OggVgO.....','.....OgVGgO.....','.OOO..OVGO..OOO.','OggVO..SS..OVgGO','OgVGGO.SS.OGVGGO',
+    '.OGGGGOSSOGGGGO.','..OOOOOSSOOOOO..','.......SS.......','......SS........','.....SS.........','................','................','................'],
+  doce:['...........gG...','..........SgGG..','.........S.S....','........S...S...','.......S....S...','......S.....S...','...OOSOO...OSOO.','..ORXRRO..ORXRRO',
+    '..OXRRRO..OXRRRO','..ORRRDO..ORRRDO','..ODRDDO..ODRDDO','...OOOO....OOOO.','................','................','................','................'],
+  extras:['......OOO.......','......OKO.......','......OJO.......','......OOO.......','......OQO.......','.....OQqQO......','....OQqQQQO.....','....OqQQQZO.....',
+    '....OPPPPPO.....','....OPYGYPO.....','....OPPPPPO.....','....OqQQQZO.....','....OqQQQZO.....','....OOOOOOO.....','................','................']};
 function drawSym(cv,cat){const c=cv.getContext('2d');c.clearRect(0,0,32,32);
   const rows=SYM[cat],h=rows.length,top=Math.round((16-h)/2);
   // centre the drawing vertically and horizontally from its painted bounds
