@@ -29,6 +29,7 @@ import gen_ingredients as G
 import gen_ingredients2 as G2
 import gen_ingredients3 as G3
 import gen_ingredients20 as G20
+import gen_ingredients21 as G21
 import gen_ingredients4 as G4
 import gen_ingredients5 as G5
 import gen_ingredients6 as G6
@@ -69,7 +70,7 @@ INGS = {
     'cogumelos':    (G2.mushroom,   ('gill', 'flake', 40)),
     'azeitonas':    (G3.olive,      ('olive', 'flake', 40)),
     'cebola':       (G3.onion,      ('onion', 'flake', 44)),
-    'pimento':      (G3.pepper,     ('pepper', 'flake', 40)),
+    'pimento':      (G21.pepper_ring, ('pepperg', 'flake', 40)),   # a sliced ring (batch 21 replaced the arc)
     'tomate':       (G.tomato,      ('flesh', 'cube', 11)),
     'rucula':       (G4.rocket,     ('rocket', 'flake', 44)),
     'manjericao':   (G3.basil,      ('basil', 'flake', 46)),
@@ -158,6 +159,9 @@ INGS = {
     'mirtilo':      (G19.blueberry, G19.blueberry_halves),
     'framboesa':    (G19.raspberry, G19.raspberry_halves),
     'coxa':         (G20.drumstick, G20.drumstick_chunk),
+    'cenoura':      (G21.carrot_whole, G21.carrot_slice),
+    'cereja':       (G21.cherry,    G21.cherry_halves),
+    'bife_osso':    (G21.bone_steak, G21.bone_steak_slice),
 }
 # chopped forms that lie flat (melted cheese): no drop shadow, so handfuls side by side make one even surface
 NO_DROP = {'mozzarella'}
@@ -190,6 +194,8 @@ ROTATE = {
     'ribs': lambda: G17.rib(1, ang=0),             # 4: the bone sticks out at one end
     'coxa': lambda: G20.drumstick(1, ang=0),       # 4: the bone sticks out at one end
     'banana': lambda: G20.banana(1, ang=0),        # 4: a smile, a frown, or on its side
+    'cenoura': lambda: G21.carrot_whole(1, ang=0), # 4: thick at one end, a point at the other
+    'cereja': lambda: G21.cherry(1, ang=0),        # 4: the stem points one way
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
 SAUCES = {'tomate': 'Tomate', 'natas': 'Natas', 'pesto': 'Pesto', 'sem': 'Sem molho'}
