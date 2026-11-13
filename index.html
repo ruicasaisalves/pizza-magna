@@ -148,13 +148,15 @@ html.phone .stage{gap:6px}
 .tools.ptools{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;width:100%}
 .ptools .tc{grid-column:2;display:flex;gap:6px}
 .ptools .tr{grid-column:3;justify-self:end}
-/* mini pantry (phone): a row of category pictures and a strip of topping pictures, two rows high, scrolling sideways */
-.pantry.mini{padding:6px;display:flex;flex-direction:column;gap:6px}
-.mcats{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.mcats button{border:2px solid var(--line);background:#fbf3df;border-radius:2px;padding:2px 0;display:grid;place-items:center}
-.mcats button.on{background:var(--wood);border-color:var(--wood-deep)}
-.mcats canvas{width:32px;height:32px}
-.mings{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,50px);grid-auto-columns:50px;gap:4px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:2px}
+/* mini pantry (phone): a row of group tabs and a strip of topping pictures, two rows high, scrolling sideways */
+.pantry.mini{padding:0;display:flex;flex-direction:column;overflow:hidden}
+/* the group tabs look like folder tabs on a dark strip, the open one joined to the panel, so they don't read as toppings */
+.mcats{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;background:var(--wood-deep);padding:5px 5px 0;box-shadow:inset 0 -2px 0 var(--wood-deep)}
+.mcats button{border:2px solid var(--wood-lo);border-bottom:0;border-radius:5px 5px 0 0;background:var(--wood);padding:3px 0 2px;display:grid;place-items:center;margin:5px 0 2px}
+.mcats canvas{width:24px;height:24px;opacity:.75}
+.mcats button.on{background:var(--parch);border-color:var(--wood-deep);margin:0;padding:5px 0 6px}
+.mcats button.on canvas{width:32px;height:32px;opacity:1}
+.mings{margin:6px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,50px);grid-auto-columns:50px;gap:4px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:2px}
 .mings .ing{padding:0;justify-content:center}
 .mings .ing canvas{width:40px;height:40px}
 .stage .hint{color:#fff4dc;font-size:.85rem;text-shadow:1px 1px 0 var(--wood-deep);text-align:center}
@@ -1056,6 +1058,35 @@ const EXTRAS=['azeite','balsamico','maionese','natas_azedas','ovo','nozes','pinh
 function ingCat(id){const t=ING[id].t;if(HERBS.includes(id))return 'ervas';if(EXTRAS.includes(id))return 'extras';
   for(const c of ['queijo','carne','peixe','doce','vegetal'])if(t.includes(c))return c;return 'extras'}
 const CAT_ICON={queijo:'cheddar',carne:'coxa',peixe:'sardinha',vegetal:'cogumelos',ervas:'manjericao',doce:'banana',extras:'ovo'};
+/* Phone tabs: a symbol for each group, not one of its toppings (players read a row of toppings as more toppings).
+   16x16, one letter per pixel from CAT_PAL, drawn at 2x. */
+const CAT_PAL={O:'#2a1407',
+  Y:'#ffcf4a',y:'#ffe9a0',h:'#b8860f',H:'#fff3c4',d:'#e0a82a',                 // cheese: face, top, hole, hole's lit edge, shade
+  R:'#b8322a',r:'#e05a50',M:'#7e1d14',F:'#f2c8b8',w:'#f4ecd8',W:'#ffffff',     // steak: meat, light, dark, fat, bone
+  B:'#4f7fb0',b:'#cfe0ee',l:'#a8cdee',k:'#2e5680',                             // fish
+  C:'#e8781e',c:'#b5520f',e:'#ffb25a',                                         // carrot
+  G:'#3e8f2e',g:'#7cc24a',V:'#235a1c',S:'#4b6b22',T:'#9cbc4c',                 // greens, stems, the cherries' light stems
+  X:'#ffb0a0',D:'#6e1018',                                                     // cherry light and dark (red is R)
+  J:'#6a4220',K:'#a8743a',P:'#f3e6c6',Q:'#6b7a1a',q:'#a9b33a',Z:'#3e4a0e'};    // bottle: cork, label, oil
+const CAT_SYM={
+  queijo:['................','................','..........OO....','........OOyyO...','......OOyyyyOO..','....OOyyyyhyyyO.','..OOyyyyyyyyyyyO',
+    '.OYYYYYYYYYYYYYO','.OYhhYYYYYYYYYdO','.OYhHYYYYYhhYYdO','.OYYYYYYYYYhHYdO','.OYYYYhhYYYYYYdO','.OYYYYhHYYYYYYdO','.OdddddddddddddO','..OOOOOOOOOOOOO.','................'],
+  carne:['................','................','................','....OOOOOOO.....','..OOFFFFFFFOO...','.OFFRRRRRRRFFOO.','.OFRrrRRRRRRRFFO','OFRrRRRwwRRRRRFO',
+    'OFRrRRWwwwRRRRFO','OFRRRRwwwwRRRRFO','OFRRRRRwwRRRMRO.','.OFRRRRRRRMMRO..','.OFFMRRRRRRRO...','..OOFFFFFFOO....','....OOOOOO......','................'],
+  peixe:['................','................','......OOO.......','.....OkkkO....OO','...OOBBBBBOO.OBO','..OBBlBlBBBBOOBO','.OBWOBkBBlBBBBO.','OBBBBBkBBBBBBBO.',
+    'ObbbbbkbbbbbbbO.','.ObbbbbbbbbbOOBO','..OObbbbbbOO.OBO','....OOkkOO....OO','......OO........','................','................','................'],
+  vegetal:['....G..g..G.....','.....GggGgG.....','......GGGG......','....OOOOOOOO....','....OeCCCCcO....','....OeCcCCCO....','.....OeCCCCO....','.....OCCccO.....',
+    '......OeCCO.....','......OCcCO.....','......OeCO......','.......OCO......','.......OO.......','................','................','................'],
+  ervas:['................','.......OO.......','......OggO......','.....OggVgO.....','.....OgVGgO.....','.OOO..OVGO..OOO.','OggVO..SS..OVgGO','OgVGGO.SS.OGVGGO',
+    '.OGGGGOSSOGGGGO.','..OOOOOSSOOOOO..','.......SS.......','......SS........','.....SS.........','................','................','................'],
+  doce:['...........gG...','..........TgGG..','.........T.T....','........T...T...','.......T....T...','......T.....T...','...OOTOO...OTOO.','..ORXRRO..ORXRRO',
+    '..OXRRRO..OXRRRO','..ORRRDO..ORRRDO','..ODRDDO..ODRDDO','...OOOO....OOOO.','................','................','................','................'],
+  extras:['......OOO.......','......OKO.......','......OJO.......','......OOO.......','......OQO.......','.....OQqQO......','....OQqQQQO.....','....OqQQQZO.....',
+    '....OPPPPPO.....','....OPYGYPO.....','....OPPPPPO.....','....OqQQQZO.....','....OqQQQZO.....','....OOOOOOO.....','................','................']};
+function drawCatIcon(cv){const c=cv.getContext('2d'),rows=CAT_SYM[cv.dataset.cat];c.clearRect(0,0,32,32);
+  let x0=16,x1=-1,y0=16,y1=-1;rows.forEach((r,y)=>[...r].forEach((ch,x)=>{if(ch!=='.'){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}}));
+  const dx=Math.floor((16-(x1-x0+1))/2)-x0,dy=Math.floor((16-(y1-y0+1))/2)-y0;   // centred from the painted bounds
+  rows.forEach((r,y)=>[...r].forEach((ch,x)=>{if(CAT_PAL[ch]){c.fillStyle=CAT_PAL[ch];c.fillRect((x+dx)*2,(y+dy)*2,2,2)}}))}
 function pantryHTML(){
   const cat=CATS.includes(state.cat)?state.cat:ingCat(state.sel);
   if(MINI_PANTRY)return miniPantryHTML(cat);
@@ -1066,7 +1097,7 @@ function pantryHTML(){
 }
 // phone: pictures only, so a child can pick everything on the first screen; names stay in tooltips and for screen readers
 function miniPantryHTML(cat){
-  const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}" role="tab" aria-selected="${c===cat}" aria-label="${esc(t('cat.'+c))}" title="${esc(t('cat.'+c))}"><canvas data-ing="${CAT_ICON[c]}" width="32" height="32"></canvas></button>`).join('');
+  const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}" role="tab" aria-selected="${c===cat}" aria-label="${esc(t('cat.'+c))}" title="${esc(t('cat.'+c))}"><canvas data-cat="${c}" width="32" height="32"></canvas></button>`).join('');
   const ids=Object.keys(ING).filter(k=>ingCat(k)===cat).sort((a,b)=>(FAV.includes(b)-FAV.includes(a))||FAV.indexOf(a)-FAV.indexOf(b)||ING[a].n.localeCompare(ING[b].n,LANG));
   const ings=ids.map(k=>{const v=ING[k],lbl=`${v.n} · ${eur(ingC(k))}`;
     return `<button class="ing ${state.sel===k?'on':''}" data-act="ing" data-v="${k}" aria-label="${esc(v.n)}" title="${esc(lbl)}"><canvas data-ing="${k}" width="32" height="32"></canvas></button>`}).join('');
@@ -1261,7 +1292,7 @@ function updateAnalysis(){
   </div>`;
   save();
 }
-function drawIngIcons(){document.querySelectorAll('canvas[data-ing]').forEach(cv=>{const c=cv.getContext('2d');c.clearRect(0,0,32,32);sprFit(c,wholeKey(cv.dataset.ing,0,0),16,16,31)})}
+function drawIngIcons(){document.querySelectorAll('canvas[data-ing]').forEach(cv=>{const c=cv.getContext('2d');c.clearRect(0,0,32,32);sprFit(c,wholeKey(cv.dataset.ing,0,0),16,16,31)});document.querySelectorAll('canvas[data-cat]').forEach(drawCatIcon)}
 
 /* ================= UI: MENU ================= */
 function menuHTML(){
