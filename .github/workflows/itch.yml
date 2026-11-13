@@ -1,0 +1,37 @@
+# Publishes the browser game to itch.io (aruvez/pizza-magna, channel html5) after every push to main.
+# Same files as the upload zip in itch/PAGE.md; butler sends only what changed. The version shown on itch
+# is VERSION from index.html. Needs the repo secret BUTLER_API_KEY (an itch.io API key); without it the
+# job only prints a notice and passes.
+name: Publish to itch.io
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: itch
+  cancel-in-progress: true
+jobs:
+  itch:
+    runs-on: ubuntu-latest
+    env:
+      BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+    steps:
+      - name: No itch.io key
+        if: env.BUTLER_API_KEY == ''
+        run: echo "::notice::BUTLER_API_KEY is not set, so nothing was sent to itch.io"
+      - uses: actions/checkout@v4
+        if: env.BUTLER_API_KEY != ''
+      - name: Make the upload folder
+        if: env.BUTLER_API_KEY != ''
+        run: |
+          mkdir build
+          cp -r index.html music.js sw.js manifest.webmanifest assets build/
+          echo "VERSION=$(grep -oP "const VERSION='\K[^']+" index.html)" >> "$GITHUB_ENV"
+      - name: Install butler
+        if: env.BUTLER_API_KEY != ''
+        run: |
+          curl -sSfL -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
+          unzip -q butler.zip -d butler && chmod +x butler/butler && ./butler/butler -V
+      - name: Push to itch.io
+        if: env.BUTLER_API_KEY != ''
+        run: ./butler/butler push build aruvez/pizza-magna:html5 --userversion "$VERSION"
