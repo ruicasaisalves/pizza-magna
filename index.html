@@ -2176,7 +2176,7 @@ async function sharePizza(p,name){
   modal(`<h2>${esc(name)}</h2><img src="${url}" alt="${esc(name)}" style="width:100%;image-rendering:pixelated;border:3px solid var(--wood-deep)">
     <p class="sub" style="margin:0">${t('share.manual')}</p><div class="row"><button class="btn ghost" data-act="close">${t('share.close')}</button></div>`);
 }
-function modal(html){$('#mbox').innerHTML=html;$('#modal').hidden=false;const b=$('#mbox button');if(b)b.focus()}
+function modal(html){$('#mbox').innerHTML=html;delete $('#mbox').dataset.report;$('#modal').hidden=false;const b=$('#mbox button');if(b)b.focus()}
 function closeModal(){$('#modal').hidden=true}
 // the day's sales by pizza: how many, takings and what each one left after its ingredients (best seller first)
 function salesTable(r){
@@ -2196,6 +2196,7 @@ function showReport(r){
   ${c?`<h3>${t('ct.res',{t:c.th.n,n:c.pos})}${c.prize?' · +'+eur(c.prize):''}</h3>${c.dq?`<p class="sub">${t('ct.dq',{x:c.dq})}</p>`:''}<table class="rank">${c.rows.map((x,i)=>`<tr class="${x.me?'me':''}"><td>${i+1}. ${esc(x.n)}</td><td>${x.s}</td></tr>`).join('')}</table>`:''}
   ${(r.nostock||0)>3?`<p class="sub">${t('st.tip.soldout')}</p>`:(r.noseat||0)>3?`<p class="sub">${t('rep.tip.seats')}</p>`:r.full>3?`<p class="sub">${t('rep.tip.queue')}</p>`:r.toRival>r.served?`<p class="sub">${t('rep.tip.rival')}</p>`:''}
   <button class="btn primary big" data-act="closereport">${t('rep.go')}</button><button class="btn ghost" data-act="reporthist">${t('hist.btn')}</button>`);
+  $('#mbox').dataset.report='1';tap2.t=0;   // a double click or double tap anywhere on it closes it (see tap2)
 }
 function afterReport(){
   closeModal();
@@ -2321,6 +2322,16 @@ document.addEventListener('click',e=>{
   const g=e.target.closest('[data-tab-go]');if(g){go(g.dataset.tabGo);return}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=ACT[b.dataset.act];if(f)f(b);
   const tr=TRACK[b.dataset.act];if(tr)track(typeof tr==='function'?tr(b):tr);   // after the action, so toggles report their new state
+});
+// the end-of-day report closes with a double click or double tap anywhere on it, without scrolling down to the button;
+// buttons keep their own action and a drag (scrolling) is not a tap
+const tap2={t:0,x:0,y:0,dx:0,dy:0};
+document.addEventListener('pointerdown',e=>{tap2.dx=e.clientX;tap2.dy=e.clientY});
+document.addEventListener('pointerup',e=>{
+  const mb=e.target.closest&&e.target.closest('#mbox');if(!mb||!mb.dataset.report||e.target.closest('button,a,input,select'))return;
+  if(Math.hypot(e.clientX-tap2.dx,e.clientY-tap2.dy)>10)return;
+  if(e.timeStamp-tap2.t<400&&Math.hypot(e.clientX-tap2.x,e.clientY-tap2.y)<40){tap2.t=0;e.preventDefault();ACT.closereport();return}
+  Object.assign(tap2,{t:e.timeStamp,x:e.clientX,y:e.clientY});
 });
 document.addEventListener('input',e=>{if(e.target.id==='pname'){state.draft.name=e.target.value;drawBench()}
   if(e.target.id==='chefName'||e.target.id==='shopName'){const b=$('[data-start]');if(b)b.disabled=!($('#chefName').value.trim()&&$('#shopName').value.trim())}});
