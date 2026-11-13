@@ -6,8 +6,7 @@
 <title>Pizza Magna · Pantry tabs draft</title>
 <!-- Draft: the phone pantry's category tabs. A player read the top row (one topping per category) as more
      toppings. Shows the current tabs next to two proposals:
-       A) the tabs look like folder tabs (shorter, darker, the open one joined to the panel) and the open
-          category is named above the toppings;
+       A) the tabs look like folder tabs (shorter, darker, the open one joined to the panel);
        B) the same, with symbolic category icons drawn here (16x16, shown at 2x) instead of a topping.
      Standalone: it reads only assets/ingredients.js and the fonts, and saves nothing. -->
 <style>
@@ -56,8 +55,6 @@ h1{font-size:1.1rem}h2{font-size:.9rem;margin-bottom:6px}
 .ftabs button.on{background:var(--parch);border-color:var(--wood-deep);margin-top:0;padding:5px 0 6px;margin-bottom:-2px;position:relative}
 .ftabs button.on canvas{width:32px;height:32px;opacity:1}
 .panel{padding:8px 10px 10px;border-top:2px solid var(--wood-deep)}
-.cname{font-family:var(--f-pixel);font-weight:700;font-size:.72rem;text-transform:uppercase;color:var(--muted);margin:0 0 6px;display:flex;justify-content:space-between}
-.cname b{color:var(--ink)}
 .lang{margin-bottom:14px}
 .lang button{font-family:var(--f-pixel);font-size:.7rem;color:var(--brass-ink);background:linear-gradient(var(--brass-hi),var(--brass) 45%,var(--brass-lo));border:2px solid var(--brass-ink);border-radius:3px;padding:5px 9px}
 </style>
@@ -75,15 +72,15 @@ h1{font-size:1.1rem}h2{font-size:.9rem;margin-bottom:6px}
 <script>
 const TX={
   en:{lead:'A player read the top row as more toppings. Tap the tabs to try each version (phone layout).',
-    h0:'Now',h1:'A · folder tabs + name',h2:'B · A + symbolic icons',
+    h0:'Now',h1:'A · folder tabs',h2:'B · A + symbolic icons',
     p0:'Tabs and toppings share the same box: the row reads as seven more toppings.',
-    p1:'Same pictures, but the tabs sit on a dark strip, the open one joins the panel, and the category is named.',
+    p1:'Same pictures, but the tabs sit on a dark strip, and the open one joins the panel.',
     p2:'As A, with icons that stand for a group instead of being one topping.',
     cat:{queijo:'Cheese',carne:'Meat',peixe:'Fish & seafood',vegetal:'Vegetables',ervas:'Herbs & spices',doce:'Sweet & fruit',extras:'Extras'}},
   pt:{lead:'Um jogador leu a fila de cima como mais ingredientes. Toca nos separadores para experimentar cada versão (formato telemóvel).',
-    h0:'Atual',h1:'A · separadores + nome',h2:'B · A + ícones simbólicos',
+    h0:'Atual',h1:'A · separadores',h2:'B · A + ícones simbólicos',
     p0:'Separadores e ingredientes usam a mesma caixa: a fila parece mais sete ingredientes.',
-    p1:'Mesmas imagens, mas os separadores ficam numa faixa escura, o aberto liga-se ao painel e a categoria tem nome.',
+    p1:'Mesmas imagens, mas os separadores ficam numa faixa escura, e o aberto liga-se ao painel.',
     p2:'Como A, com ícones que representam um grupo em vez de serem um ingrediente.',
     cat:{queijo:'Queijo',carne:'Carne',peixe:'Peixe e marisco',vegetal:'Legumes',ervas:'Ervas e especiarias',doce:'Doce e fruta',extras:'Extras'}}};
 let L=(navigator.language||'').startsWith('pt')?'pt':'en';
@@ -145,7 +142,7 @@ function render(){
   document.getElementById('cur').innerHTML=`<div class="mcats">${CATS.map(x=>`<button class="${x===c?'on':''}" data-cat="${x}" title="${T.cat[x]}"><canvas data-i="${CAT_ICON[x]}" width="32" height="32"></canvas></button>`).join('')}</div>${grid(c,'cur')}`;
   for(const id of ['pa','pb']){const c=st[id];
     document.getElementById(id).innerHTML=`<div class="ftabs" role="tablist">${CATS.map(x=>`<button role="tab" aria-selected="${x===c}" class="${x===c?'on':''}" data-cat="${x}" title="${T.cat[x]}" aria-label="${T.cat[x]}"><canvas ${id==='pb'?`data-s="${x}"`:`data-i="${CAT_ICON[x]}"`} width="32" height="32"></canvas></button>`).join('')}</div>
-      <div class="panel"><div class="cname"><b>${T.cat[c]}</b><span>${ITEMS[c].filter(key).length}</span></div>${grid(c,id)}</div>`}
+      <div class="panel">${grid(c,id)}</div>`}
   document.querySelectorAll('canvas[data-i]').forEach(cv=>drawIng(cv,cv.dataset.i));
   document.querySelectorAll('canvas[data-s]').forEach(cv=>drawSym(cv,cv.dataset.s));
 }
