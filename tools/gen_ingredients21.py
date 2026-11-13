@@ -2,8 +2,8 @@
 """Pizza Magna: twenty-first batch. Carrot, cherry, bone-in steak, and a new green pepper.
 Same method as gen_ingredients.py (see tools/CLAUDE.md).
 
-- Carrot (cenoura): a whole carrot, the tapering orange root with rings across it and the
-  green tops fanning out; with ang=0 the tops are on the right. Rotates with 4 positions.
+- Carrot (cenoura): a whole carrot without its tops, the tapering orange root with rings
+  across it; with ang=0 the thick end is on the right. Rotates with 4 positions.
   Chopped: one round slice, orange rim and a paler core with faint rays.
 - Cherry (cereja): a whole glossy cherry with its stem curving off to the right.
   Rotates with 4 positions. Chopped: pitted halves, cut side up.
@@ -84,32 +84,24 @@ def carrot(seed, D=16):
     return render(mat, light, mask, {'carrotin': 'carrot', 'carrot': 'carrot'})
 
 def carrot_whole(seed, ang=None, L=34, T=13):
-    """a whole carrot: tapering orange root with rings across it, the green tops fanning out on the right"""
+    """a whole carrot: tapering orange root with rings across it, the thick end on the right"""
     a = 0 if ang is None else ang
-    LV = 16                                                      # length of the leaves
-    W, H = turn(L + LV + 4, 26, ang)
+    W, H = turn(L + 4, 16, ang)
     u, v = axes(W, H, a)
     rng = np.random.default_rng(seed + 6760)
     n = noise(H, W, 3, rng)
-    x0 = -(L + LV) / 2                                           # the tip, on the left
+    x0 = -L / 2                                           # the tip, on the left
     t = np.clip((u - x0) / L, 0, 1)                              # 0 at the tip, 1 at the top of the root
     w = (T / 2) * np.clip(t * 1.05 + .04, 0, 1) ** .5 * (1 + (n - .5) * .1)
     root = (u >= x0) & (u <= x0 + L) & (np.abs(v) <= w + .3)
-    root &= ~((u > x0 + L - 1.5) & (np.abs(v) > w - 1))          # round off the top
-    # the tops: four thin fronds fanning from the top of the root, with little leaves
-    leaf = np.zeros_like(root)
-    top = x0 + L
-    for k, ang_f in enumerate((-.7, -.25, .2, .65)):
-        du = u - top; dvv = v - ang_f * du * 1.1
-        stalk = (du > -1) & (du < LV - abs(ang_f) * 3) & (np.abs(dvv) <= .7 + (du > LV * .45) * (1.6 + .8 * np.sin(du * 1.4 + k)))
-        leaf |= stalk
-    leaf &= ~root
+    cap = u > x0 + L - 5                                       # round off the thick end
+    root &= ~cap | (((u - (x0 + L - 5)) / 5) ** 2 + (v / (w + .3)) ** 2 <= 1)
     rings = root & (np.abs(np.sin((u - x0) * 1.3 + n * 2)) < .22) & (t > .1)   # the little rings across the root
-    mask = root | leaf
-    height = np.where(root, np.sqrt(np.clip(1 - (v / (w + .4)) ** 2, 0, 1)) * 2.5, np.where(leaf, .7, 0))
-    mat = [['basil' if leaf[y, x] else 'carrot' for x in range(W)] for y in range(H)]
+    mask = root
+    height = np.where(root, np.sqrt(np.clip(1 - (v / (w + .4)) ** 2, 0, 1)) * 2.5, 0)
+    mat = [['carrot'] * W for _ in range(H)]
     light = np.clip(shade(height, mask) * .75 + .25 - np.where(rings, .2, 0), 0, 1) * mask
-    return render(mat, light, mask, {'carrot': 'carrot', 'basil': 'basil'})
+    return render(mat, light, mask, {'carrot': 'carrot'})
 
 def carrot_slice(seed): return carrot(seed, D=13)                 # chopped: one round slice
 

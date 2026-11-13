@@ -194,7 +194,7 @@ ROTATE = {
     'ribs': lambda: G17.rib(1, ang=0),             # 4: the bone sticks out at one end
     'coxa': lambda: G20.drumstick(1, ang=0),       # 4: the bone sticks out at one end
     'banana': lambda: G20.banana(1, ang=0),        # 4: a smile, a frown, or on its side
-    'cenoura': lambda: G21.carrot_whole(1, ang=0), # 4: the green tops are at one end
+    'cenoura': lambda: G21.carrot_whole(1, ang=0), # 4: thick at one end, a point at the other
     'cereja': lambda: G21.cherry(1, ang=0),        # 4: the stem points one way
 }
 DOUGHS = {'fina': 'Fina', 'napo': 'Napolitana', 'alta': 'Alta'}
