@@ -354,7 +354,7 @@ en:{
   'ing.espinafres':'Spinach','ing.tomate_cherry':'Cherry tomato','ing.jalapenos':'Jalapeños','ing.anchovas':'Anchovies','ing.ricotta':'Ricotta','ing.pera':'Pear',
   'ing.cabra':'Goat’s cheese','ing.alho':'Garlic','ing.grelos':'Turnip greens','ing.sardinha':'Sardine','ing.salmao':'Smoked salmon','ing.polvo':'Octopus',
   'ing.burrata':'Burrata','ing.lulas':'Squid','ing.beringela':'Aubergine','ing.morcela':'Morcela','ing.nozes':'Walnuts','ing.batata':'Potato',
-  'ing.cenoura':'Carrot','ing.cereja':'Cherry','ing.tbone':'T-bone steak',
+  'ing.cenoura':'Carrot','ing.cereja':'Cherry','ing.bife_osso':'Bone-in steak',
   'ing.parmesao':'Parmesan','ing.alcachofra':'Artichoke','ing.curgete':'Courgette','ing.salsicha':'Italian sausage','ing.frankfurt':'Frankfurter','ing.vaca':'Beef','ing.amora':'Blackberry','ing.mirtilo':'Blueberry','ing.framboesa':'Raspberry','combo.silvestres':'Forest Berries','combo.ricottaamora':'Ricotta & Blackberries','combo.mirtilochoc':'Blueberry & Chocolate','combo.briefram':'Brie & Raspberry','combo.x_anchovamirtilo':'Anchovy & Blueberry','quote.x_anchovamirtilo':'Anchovies with blueberries? The sea and the forest don’t talk.','ing.ribs':'Ribs','ing.lagosta':'Lobster','combo.bife':'Portuguese Steak','combo.thermidor':'Lobster Thermidor','combo.ribsbbq':'BBQ Ribs','combo.x_lagostanutella':'Lobster & Nutella','quote.x_lagostanutella':'Lobster with Nutella? That’s a crime.','combo.cachorro':'Hot Dog','combo.x_frankfurttrufa':'Canned Sausage & Truffle','quote.x_frankfurttrufa':'Truffle on a canned sausage? What a waste.','ing.padron':'Padrón peppers','ing.pinhoes':'Pine nuts',
   'ing.nutella':'Nutella','ing.banana':'Banana','ing.feta':'Feta','ing.farinheira':'Farinheira','ing.ameijoas':'Clams','ing.oregaos':'Oregano',
   'ing.prosciutto':'Prosciutto','ing.azeite':'Olive oil','ing.balsamico':'Balsamic','ing.maionese':'Mayonnaise','ing.cheddar':'Cheddar','ing.coentros':'Coriander',
@@ -424,7 +424,7 @@ pt:{
   'ing.espinafres':'Espinafres','ing.tomate_cherry':'Tomate cherry','ing.jalapenos':'Jalapeños','ing.anchovas':'Anchovas','ing.ricotta':'Ricotta','ing.pera':'Pera',
   'ing.cabra':'Queijo de cabra','ing.alho':'Alho','ing.grelos':'Grelos','ing.sardinha':'Sardinha','ing.salmao':'Salmão fumado','ing.polvo':'Polvo',
   'ing.burrata':'Burrata','ing.lulas':'Lulas','ing.beringela':'Beringela','ing.morcela':'Morcela','ing.nozes':'Nozes','ing.batata':'Batata',
-  'ing.cenoura':'Cenoura','ing.cereja':'Cereja','ing.tbone':'Bife com osso',
+  'ing.cenoura':'Cenoura','ing.cereja':'Cereja','ing.bife_osso':'Bife com osso',
   'ing.parmesao':'Parmesão','ing.alcachofra':'Alcachofra','ing.curgete':'Curgete','ing.salsicha':'Salsicha italiana','ing.frankfurt':'Salsicha','ing.vaca':'Carne de vaca','ing.amora':'Amora','ing.mirtilo':'Mirtilo','ing.framboesa':'Framboesa','combo.silvestres':'Frutos Silvestres','combo.ricottaamora':'Ricotta com Amoras','combo.mirtilochoc':'Mirtilo e Chocolate','combo.briefram':'Brie com Framboesa','combo.x_anchovamirtilo':'Anchova com Mirtilo','quote.x_anchovamirtilo':'Anchovas com mirtilos? O mar e o bosque não se falam.','ing.ribs':'Ribs','ing.lagosta':'Lagosta','combo.bife':'Bife à Portuguesa','combo.thermidor':'Lagosta Thermidor','combo.ribsbbq':'Ribs BBQ','combo.x_lagostanutella':'Lagosta com Nutella','quote.x_lagostanutella':'Lagosta com Nutella? Isso é crime.','combo.cachorro':'Cachorro-Quente','combo.x_frankfurttrufa':'Salsicha de Lata com Trufa','quote.x_frankfurttrufa':'Trufa numa salsicha de lata? Que desperdício.','ing.padron':'Pimentos padrón','ing.pinhoes':'Pinhões',
   'ing.nutella':'Nutella','ing.banana':'Banana','ing.feta':'Feta','ing.farinheira':'Farinheira','ing.ameijoas':'Amêijoas','ing.oregaos':'Orégãos',
   'ing.prosciutto':'Prosciutto','ing.azeite':'Azeite','ing.balsamico':'Balsâmico','ing.maionese':'Maionese','ing.cheddar':'Cheddar','ing.coentros':'Coentros',
@@ -615,7 +615,7 @@ const ING={
   brie:{n:'Brie',c:.15,t:['queijo','gourmet'],pack:'gourmet',rot:4},
   lagosta:{n:'Lagosta',c:.20,t:['peixe','gourmet'],pack:'gourmet',rot:4},
   framboesa:{n:'Framboesa',c:.14,t:['doce','gourmet'],pack:'gourmet'},
-  tbone:{n:'Bife com osso',c:.18,t:['carne','gourmet'],pack:'gourmet'}
+  bife_osso:{n:'Bife com osso',c:.18,t:['carne','gourmet'],pack:'gourmet'}
 };
 const PACKS={local:'Mercado Local',gourmet:'Delicatessen'};   // where a topping comes from (flavour only: nothing is locked)
 /* The supplier sets the quality of every topping (state.supplier 1/2/3): a better one adds quality points to every
@@ -712,7 +712,7 @@ const COMBOS=[
   {id:'coxapiri',n:'Frango Piri-piri',req:['coxa','piripiri'],q:12,seg:{familia:5,turista:7,estudante:4}},
   {id:'cenouramel',n:'Cenoura com Mel',req:['cenoura','mel'],q:5,seg:{gourmet:3,turista:2}},
   {id:'florestanegra',n:'Floresta Negra',req:['cereja','chocolate'],q:7,seg:{familia:4,estudante:3,turista:2}},
-  {id:'bistecca',n:'Bistecca',req:['tbone','rucula','parmesao'],q:9,seg:{gourmet:6,turista:4}},
+  {id:'bistecca',n:'Bistecca',req:['bife_osso','rucula','parmesao'],q:9,seg:{gourmet:6,turista:4}},
   {id:'bitoque',n:'Bitoque',req:['fiambre','ovo'],q:7,seg:{familia:6,estudante:3}},
   {id:'x_ananasbac',n:'Ananás com Bacalhau',req:['ananas','bacalhau'],q:-22,seg:{},quote:'Ananás com bacalhau? Nunca mais.'},
   {id:'x_melatum',n:'Mel com Atum',req:['mel','atum'],q:-18,seg:{},quote:'O mel e o atum não se falam.'},
@@ -1035,8 +1035,8 @@ const GRATED_W=.7;
 const BIG_SHRED=new Set(['mozzarella','burrata','parmesao','cheddar','provolone','sao_jorge','emmental','flamengo','brie']),SHRED_W=1.5;
 // big whole pieces count as several portions (cost, weight, how full the pizza is): a whole lobster covers the pizza (8),
 // a whole beef slice is four ordinary slices (4), a supermarket slice of flamengo is two portions (2),
-// a whole banana is eight slices (8), a drumstick five chunks (5), a T-bone steak four beef slices (4)
-const WHOLE_W={lagosta:8,vaca:4,tbone:4,flamengo:2,banana:8,coxa:5},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
+// a whole banana is eight slices (8), a drumstick five chunks (5), a bone-in steak four beef slices (4)
+const WHOLE_W={lagosta:8,vaca:4,bife_osso:4,flamengo:2,banana:8,coxa:5},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
 const portion=x=>x.g?(BIG_SHRED.has(x.i)?SHRED_W:GRATED_W):(WHOLE_W[x.i]||1);
 const GRAMS={mozzarella:8,fiambre:12,pepperoni:4,cogumelos:8,azeitonas:4,pimento:8,cebola:6,ananas:12,manjericao:1,atum:10,bacon:10,tomate:18,milho:4,frango:12,
   salame:5,espinafres:3,tomate_cherry:10,jalapenos:3,alho:3,beringela:12,batata:12,curgete:10,salsicha:10,frankfurt:28,vaca:12,ribs:30,lagosta:40,amora:5,mirtilo:2,framboesa:4,nutella:15,banana:10,coxa:15,feta:10,oregaos:.5,
@@ -1044,7 +1044,7 @@ const GRAMS={mozzarella:8,fiambre:12,pepperoni:4,cogumelos:8,azeitonas:4,pimento
   tofu:10,edamame:5,frango_teriyaki:12,calabresa:6,frango_tikka:12,grao:4,parmesao:5,chourico:5,piripiri:1,alheira:12,anchovas:4,grelos:6,sardinha:20,polvo:12,
   lulas:10,morcela:10,padron:8,farinheira:12,ameijoas:6,coentros:.5,alecrim:.5,maca:10,sao_jorge:12,leitao:15,couve_galega:5,flamengo:12,marmelada:12,
   mejillones:8,ovo:50,bacalhau:12,queijo_serra:15,presunto:10,mel:6,rucula:2,gorgonzola:12,figo:15,espargos:12,camarao:8,ricotta:15,pera:10,cabra:12,
-  salmao:12,burrata:40,cenoura:5,cereja:6,tbone:14,nozes:4,alcachofra:12,pinhoes:2,prosciutto:10,balsamico:4,natas_azedas:12,trufa:2,char_siu:12,catupiry:15,brie:15};
+  salmao:12,burrata:40,cenoura:5,cereja:6,bife_osso:14,nozes:4,alcachofra:12,pinhoes:2,prosciutto:10,balsamico:4,natas_azedas:12,trufa:2,char_siu:12,catupiry:15,brie:15};
 const GRAMS_GRATED={burrata:12,banana:14};   // one grated portion, when it differs from the whole piece (a whole burrata is a 40 g ball, a grated handful is like mozzarella; a banana slice is 10 g)
 const pieceGrams=x=>((x.g&&GRAMS_GRATED[x.i])||GRAMS[x.i]||10)*portion(x);
 const pizzaGrams=p=>Math.round(p.pieces.reduce((t,x)=>t+pieceGrams(x),0));

@@ -161,7 +161,7 @@ INGS = {
     'coxa':         (G20.drumstick, G20.drumstick_chunk),
     'cenoura':      (G21.carrot,    G21.carrot_grated),
     'cereja':       (G21.cherry,    G21.cherry_halves),
-    'tbone':        (G21.tbone,     G21.tbone_slice),
+    'bife_osso':    (G21.bone_steak, G21.bone_steak_slice),
 }
 # chopped forms that lie flat (melted cheese): no drop shadow, so handfuls side by side make one even surface
 NO_DROP = {'mozzarella'}
