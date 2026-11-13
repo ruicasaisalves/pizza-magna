@@ -541,7 +541,7 @@ const ING={
   ribs:{n:'Ribs',c:.12,t:['carne'],pack:'base',rot:4},
   nutella:{n:'Nutella',c:.10,t:['doce'],pack:'base'},
   banana:{n:'Banana',c:.04,t:['doce'],pack:'base',rot:4},
-  cenoura:{n:'Cenoura',c:.03,t:['vegetal'],pack:'base'},
+  cenoura:{n:'Cenoura',c:.03,t:['vegetal'],pack:'base',rot:4},
   cereja:{n:'Cereja',c:.08,t:['doce'],pack:'base',rot:4},
   mirtilo:{n:'Mirtilo',c:.12,t:['doce'],pack:'base'},
   feta:{n:'Feta',c:.10,t:['queijo'],pack:'base'},
@@ -1035,8 +1035,8 @@ const GRATED_W=.7;
 const BIG_SHRED=new Set(['mozzarella','burrata','parmesao','cheddar','provolone','sao_jorge','emmental','flamengo','brie']),SHRED_W=1.5;
 // big whole pieces count as several portions (cost, weight, how full the pizza is): a whole lobster covers the pizza (8),
 // a whole beef slice is four ordinary slices (4), a supermarket slice of flamengo is two portions (2),
-// a whole banana is eight slices (8), a drumstick five chunks (5), a bone-in steak four beef slices (4)
-const WHOLE_W={lagosta:8,vaca:4,bife_osso:4,flamengo:2,banana:8,coxa:5},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
+// a whole banana is eight slices (8), a drumstick five chunks (5), a bone-in steak four beef slices (4), a whole carrot six slices (6)
+const WHOLE_W={lagosta:8,vaca:4,bife_osso:4,cenoura:6,flamengo:2,banana:8,coxa:5},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
 const portion=x=>x.g?(BIG_SHRED.has(x.i)?SHRED_W:GRATED_W):(WHOLE_W[x.i]||1);
 const GRAMS={mozzarella:8,fiambre:12,pepperoni:4,cogumelos:8,azeitonas:4,pimento:8,cebola:6,ananas:12,manjericao:1,atum:10,bacon:10,tomate:18,milho:4,frango:12,
   salame:5,espinafres:3,tomate_cherry:10,jalapenos:3,alho:3,beringela:12,batata:12,curgete:10,salsicha:10,frankfurt:28,vaca:12,ribs:30,lagosta:40,amora:5,mirtilo:2,framboesa:4,nutella:15,banana:10,coxa:15,feta:10,oregaos:.5,

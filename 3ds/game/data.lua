@@ -1663,7 +1663,7 @@ D.ING={
  ribs={c=0.12,t={"carne"},pack="base",rot=4},
  nutella={c=0.1,t={"doce"},pack="base"},
  banana={c=0.04,t={"doce"},pack="base",rot=4},
- cenoura={c=0.03,t={"vegetal"},pack="base"},
+ cenoura={c=0.03,t={"vegetal"},pack="base",rot=4},
  cereja={c=0.08,t={"doce"},pack="base",rot=4},
  mirtilo={c=0.12,t={"doce"},pack="base"},
  feta={c=0.1,t={"queijo"},pack="base"},
@@ -1782,7 +1782,15 @@ D.APPEAL_W=0.1
 D.GRATED_W=0.7
 D.BIG_SHRED={"mozzarella","burrata","parmesao","cheddar","provolone","sao_jorge","emmental","flamengo","brie"}
 D.SHRED_W=1.5
-D.WHOLE_W={lagosta=8,vaca=4,bife_osso=4,flamengo=2,banana=8,coxa=5}
+D.WHOLE_W={
+ lagosta=8,
+ vaca=4,
+ bife_osso=4,
+ cenoura=6,
+ flamengo=2,
+ banana=8,
+ coxa=5
+}
 D.CENTRED={"lagosta"}
 D.GRAMS={
  mozzarella=8,
