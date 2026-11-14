@@ -248,10 +248,10 @@ const MUSIC = (() => {
     const song = asked || ORDER[lastIdx];
     current = song;
     bus = ctx.createGain(); bus.gain.setValueAtTime(0, ctx.currentTime); bus.gain.linearRampToValueAtTime(song.calm ? .7 : 1, ctx.currentTime + .1); bus.connect(master);   // calm tunes play a little quieter
-    const endAt = ctx.currentTime + schedule(song);
-    // after the tune (by the audio clock, which stops while the phone suspends sound), a quiet break of 60–120 s, then another one
+    const startAt = ctx.currentTime, endAt = startAt + schedule(song);
+    // after the tune (by the audio clock, which stops while the phone suspends sound), a quiet break: a new tune starts every 2 minutes
     const done = () => { if (ctx.currentTime < endAt) { timer = setTimeout(done, 2000); return }
-      stopAll(); timer = setTimeout(() => { if (prefOn() && !current) play() }, (60 + Math.random() * 60) * 1000) };
+      stopAll(); timer = setTimeout(() => { if (prefOn() && !current) play() }, Math.max(2, 120 - (ctx.currentTime - startAt)) * 1000) };
     timer = setTimeout(done, (endAt - ctx.currentTime) * 1000 + 300);
     document.dispatchEvent(new CustomEvent('pm-music', { detail: song.title }));
   }

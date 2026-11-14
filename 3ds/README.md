@@ -11,8 +11,8 @@ Homebrew port with [LÖVE Potion](https://lovebrew.org) 3 (LÖVE for the 3DS, in
 - Adding a pizza needs at least 3 pieces. It goes on the menu at the suggested price; with no name it takes the name of its first combo, or "Pizza N".
 
 **Menu**
-- **Top screen:** the house menu, one row a pizza (small picture, name, dough and sauce, price, quality, margin), and a last row to create a new pizza. A pizza sold at a loss shows the warning on top.
-- **Bottom screen:** the chosen pizza, its price with - and +, quality, cost and margin, and Edit recipe, Rename and Remove (press twice).
+- **Top screen:** the house menu, one row a pizza (small picture, name, dough and sauce, price, quality, margin), and a last row to create a new pizza. A pizza sold at a loss shows the warning on top; otherwise, when the chosen pizza is not the first choice of the customer group it suits best, the top line says why (as the browser game's Menu).
+- **Bottom screen:** the chosen pizza, its price with - and +, quality, cost and margin, Edit recipe, Rename and Remove (press twice), and who picks it (the share of each customer group that would choose it).
 - **Buttons:** D-pad up/down picks a pizza, left/right changes the price by $0.50 ($1 to $30, as in the browser game), A edits (or creates, on the last row), X renames, Y removes (press twice), SELECT goes back to the Kitchen.
 - Names use the console's keyboard (on a PC, type and press Enter).
 - A new game starts with the three starter pizzas of the browser game.
@@ -20,7 +20,7 @@ Homebrew port with [LÖVE Potion](https://lovebrew.org) 3 (LÖVE for the 3DS, in
 **Day** ("Open")
 - **Top screen:** the LCD (day, clock, popularity, customers expected / in the street, served, went to the rival, gave up, local share, pizzaiolos, ovens, tables and seats, capacity, the rival's price, takings, cash), the contest banner on contest days, the neighbourhood news and the manager's notes.
 - **Bottom screen:** the street, with our pizzeria and the rival's. A opens the doors: customers walk down the street in their group's colour and go into one of the doors or walk past; a bubble shows each sale. x1/x2/x4 (or left/right) set the speed, Skip to closing (or A) ends the day.
-- **Report:** sales, toppings, rent, wages and the result, customers served, lost to the rival, in the queue or for a seat, reputation before and after, the topping, least wanted topping and combo of the week; on the bottom screen what some customers said, the contest result and a tip. Bankrupt (debts over $500) starts a new game; the goal ($4000 and 3 stars) is announced once.
+- **Report:** sales, toppings, rent, wages and the result, customers served, lost to the rival, in the queue or for a seat, reputation before and after, the topping, least wanted topping and combo of the week; on the bottom screen who bought what (each pizza by customer group), what some customers said, the contest result and a tip. Bankrupt (debts over $500) starts a new game; the goal ($4000 and 3 stars) is announced once.
 - The simulation is the browser game's `simulateDay()` and `finishDay()` (same averages over 400 days). For now the 3DS has one room (the browser game's starter room: 5 tables, 10 seats), no Pantry (toppings are bought on the day at +25%, as the browser game's manager does, with no manager fee) and no manager setting prices or hiring.
 
 **Contest**

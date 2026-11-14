@@ -44,11 +44,68 @@ while D.I18N.en["qh.estudante" .. (QH_N + 1)] do QH_N = QH_N + 1 end
 local function pizzaNeeds(p) local n = {}; for _, x in ipairs(p.pieces) do n[x.i] = (n[x.i] or 0) + P.pieceGrams(x) end; return n end
 local function gramPrice(id) return P.ingC(id) / (D.GRAMS[id] or 10) end
 
+-- How a customer chooses among the pizzas they'd have (utilities u): each with a chance that grows with u (a logit,
+-- PICK_T wide), so the best pizza for them sells most, but one a little behind still sells some. Only pizzas within
+-- SLACK of the best count. pickPizza() in index.html.
+local PICK_T, SLACK = 1.2, 3
+local function pickW(us)
+  local mx, w = -1e9, {}
+  for _, u in ipairs(us) do mx = math.max(mx, u) end
+  for i, u in ipairs(us) do w[i] = u >= mx - SLACK and math.exp((u - mx) / PICK_T) or 0 end
+  return w
+end
+local function pickPizza(pool)
+  if #pool == 0 then return nil end
+  local us = {}; for i, o in ipairs(pool) do us[i] = o.u end
+  local w, tot = pickW(us), 0
+  for _, x in ipairs(w) do tot = tot + x end
+  local x = math.random() * tot
+  for i, o in ipairs(pool) do x = x - w[i]; if x <= 0 then return o end end
+  return pool[#pool]
+end
+-- Who picks each pizza: for each customer group, the share of those who come in that would choose each pizza of
+-- the menu (as pickPizza() does, noise included; its own fixed-seed generator so the game's random stays untouched),
+-- and the group each pizza suits best. menuShares() in index.html.
+function G.menuShares(S, anOf)
+  local M, A, sh = S.menu, {}, {}
+  for j, p in ipairs(M) do A[j] = anOf(p) end
+  local sd = 777
+  local function rnd() sd = (sd * 1103515245 + 12345) % 2147483648; return sd / 2147483648 end
+  local function nz() return (rnd() + rnd() + rnd() - 1.5) * 1.6 end
+  local K = 100
+  for _, g in ipairs(D.SEG_ORDER) do
+    local n = {}; for j = 1, #M do n[j] = 0 end
+    for _ = 1, K do
+      local us = {}; for j, p in ipairs(M) do us[j] = custU(g, A[j].appeal[g], p.price, A[j].cost) + nz() end
+      local w, tot = pickW(us), 0
+      for _, x in ipairs(w) do tot = tot + x end
+      for j, x in ipairs(w) do n[j] = n[j] + x / tot end
+    end
+    for j = 1, #M do n[j] = n[j] / K end
+    sh[g] = n
+  end
+  return { A = A, sh = sh }
+end
+-- why pizza i is not the first choice of the group it suits best (nil when it is): menu.why.* in I18N
+function G.menuWhy(S, W, i)
+  local M, A, sh = S.menu, W.A, W.sh
+  if #M < 2 then return nil end
+  local function edge(g) local o = -1e9; for j, b in ipairs(A) do if j ~= i then o = math.max(o, b.appeal[g]) end end; return A[i].appeal[g] - o end
+  local g = D.SEG_ORDER[1]
+  for _, k in ipairs(D.SEG_ORDER) do if edge(k) > edge(g) then g = k end end
+  local w
+  for j = 1, #M do if j ~= i and (not w or sh[g][j] > sh[g][w]) then w = j end end
+  if sh[g][w] <= sh[g][i] then return nil end
+  local dA, dP = A[w].appeal[g] - A[i].appeal[g], M[i].price - M[w].price
+  local k = dA >= 3 and dP > .25 and "both" or dA >= 3 and "taste" or dP > .25 and dA > -3 and "price" or dP > .25 and "dear" or "value"
+  return t("menu.why." .. k, { g = t("seg." .. g), x = M[w].name, p = P.eur(dP) })
+end
+
 function G.simulateDay(S)
   local menuA = {}
   for _, p in ipairs(S.menu) do menuA[#menuA + 1] = { p = p, a = P.analyze(p), need = pizzaNeeds(p), base = D.DOUGHS[p.dough].c + D.SAUCES[p.sauce].c } end
   local mix, cap, r, N = segMix(), G.capacity(S), S.rival, G.expected(S)
-  local TH, REGULARS, CURIOUS, SLACK = 4.2, .45, .2, 3
+  local TH, REGULARS = 4.2, .45
   local atm, EAT, WAIT = D.ROOM.atm, .18, .04
   local seatFree = {}; for k = 1, D.ROOM.seats do seatFree[k] = 0 end
   local bought = 0
@@ -65,7 +122,7 @@ function G.simulateDay(S)
   end
   table.sort(arrivals)
   local res = { events = {}, served = 0, toRival = 0, full = 0, noseat = 0, nostock = 0, passed = 0, revenue = 0, ingCost = 0,
-    repDelta = 0, happy = 0, unhappy = 0, sales = {}, quotes = {}, N = N, cap = cap, seats = D.ROOM.seats }
+    repDelta = 0, happy = 0, unhappy = 0, sales = {}, bySeg = {}, quotes = {}, N = N, cap = cap, seats = D.ROOM.seats }
   local function pickSeg()
     local x = math.random()
     for _, k in ipairs(D.SEG_ORDER) do x = x - mix[k]; if x <= 0 then return k end end
@@ -87,14 +144,10 @@ function G.simulateDay(S)
     local bar = regular and TH - 2.5 or math.max(ru, TH)
     if best and bu >= bar then
       e.target = "ours"
-      local pk
-      for _, o in ipairs(opts) do if o.u >= bar then pk = o; break end end
-      -- some newcomers are curious and pick any pizza not far below what they'd accept
-      if not regular and math.random() < CURIOUS then
-        local pool = {}
-        for _, o in ipairs(opts) do if o.u >= bar - SLACK then pool[#pool + 1] = o end end
-        if #pool > 1 then pk = pool[math.random(#pool)] end
-      end
+      -- which pizza: any within SLACK of what they'd accept, by chance weighted on how much they like it
+      local pool = {}
+      for _, o in ipairs(opts) do if o.u >= bar - SLACK then pool[#pool + 1] = o end end
+      local pk = pickPizza(pool)
       local m = pk and pk.m
       local k
       for j = 1, #seatFree do if not k or seatFree[j] < seatFree[k] then k = j end end   -- the seat that frees up first
@@ -106,6 +159,7 @@ function G.simulateDay(S)
         seatFree[k] = math.max(at, seatFree[k]) + EAT
         res.served = res.served + 1; res.revenue = res.revenue + m.p.price; res.ingCost = res.ingCost + m.base + useStock(m)
         res.sales[m.p.id] = (res.sales[m.p.id] or 0) + 1; e.price = m.p.price
+        res.bySeg[seg] = res.bySeg[seg] or {}; res.bySeg[seg][m.p.id] = (res.bySeg[seg][m.p.id] or 0) + 1
         local ap = m.a.appeal[seg]
         local over = m.p.price - G.fairPrice(ap, m.a.cost)
         local sat = ap + noise() * 5 - math.max(0, over) * 7 + (atm[seg] - 35) / 7
