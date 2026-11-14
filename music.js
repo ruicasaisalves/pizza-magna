@@ -227,80 +227,12 @@ const MUSIC = (() => {
     return t - start;
   }
 
-  /* ---- street sounds for the quiet break between tunes, so the break is not dead silence: a city heard from
-     inside the pizzeria, very low (a traffic rumble, now and then a car or a scooter going by, people talking
-     outside, muffled). All synthesised. makeAmbient(ac, out) works on any audio context; fill(until) schedules
-     what happens up to that time on the audio clock (in the game a timer calls it every second). ---- */
-  function makeAmbient(ac, out) {
-    const R = Math.random, t0 = ac.currentTime, srcs = [];
-    const bus = ac.createGain(); bus.gain.setValueAtTime(0, t0); bus.gain.linearRampToValueAtTime(1, t0 + 4); bus.connect(out);
-    const pan = (v, t) => { if (!ac.createStereoPanner) return null; const p = ac.createStereoPanner(); p.pan.setValueAtTime(v, t); p.connect(bus); return p };
-    // brown noise (white noise, integrated), made to loop without a click: the ends are pulled together
-    const len = ac.sampleRate * 3, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
-    let last = 0; for (let i = 0; i < len; i++) { last = (last + .02 * (R() * 2 - 1)) / 1.02; d[i] = last * 3.5 }
-    const drift = d[len - 1] - d[0]; for (let i = 0; i < len; i++) d[i] -= drift * i / (len - 1);
-    const noise = t => { const s = ac.createBufferSource(); s.buffer = buf; s.loop = true; s.loopStart = 0; s.start(t, R() * 2.5); srcs.push(s); return s };
-    // the rumble of the town, slowly swelling and fading
-    { const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 220;
-      const g = ac.createGain(); g.gain.value = .12; noise(t0).connect(lp); lp.connect(g); g.connect(bus);
-      const lfo = ac.createOscillator(), dg = ac.createGain(); lfo.frequency.value = .07; dg.gain.value = .05; lfo.connect(dg); dg.connect(g.gain); lfo.start(t0); srcs.push(lfo) }
-    // a car (or a scooter, higher and buzzier) passing in front: tyres hiss and engine rise and fall, the pitch drops as it goes by
-    const bell = (n, peak) => Float32Array.from({ length: n }, (_, i) => peak * Math.exp(-Math.pow((i / (n - 1) - .5) * 4.2, 2)));
-    function car(t) {
-      const D = 4 + R() * 3, dir = R() < .5 ? -1 : 1, moto = R() < .3, peak = .22 + R() * .18;
-      const p = pan(-.6 * dir, t); if (p) p.pan.linearRampToValueAtTime(.6 * dir, t + D);
-      const g = ac.createGain(); g.gain.setValueAtTime(0, t); g.gain.setValueCurveAtTime(bell(64, peak), t, D); g.connect(p || bus);
-      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = .8;
-      bp.frequency.setValueAtTime(300, t); bp.frequency.linearRampToValueAtTime(650, t + D / 2); bp.frequency.linearRampToValueAtTime(260, t + D);
-      const s = noise(t); s.connect(bp); bp.connect(g); s.stop(t + D + .1);
-      const o = ac.createOscillator(), lp = ac.createBiquadFilter(), og = ac.createGain(), f = moto ? 110 + R() * 40 : 50 + R() * 25;
-      o.type = 'sawtooth'; lp.type = 'lowpass'; lp.frequency.value = moto ? 900 : 320; og.gain.value = moto ? .1 : .18;
-      o.frequency.setValueAtTime(f * 1.05, t); o.frequency.setValueAtTime(f * 1.05, t + D * .44); o.frequency.linearRampToValueAtTime(f * .95, t + D * .56);
-      o.connect(lp); lp.connect(og); og.connect(g); o.start(t); o.stop(t + D + .1); srcs.push(o);
-    }
-    // people talking outside: a buzzing voice through two moving vowel filters, in phrases and pauses, muffled by the wall
-    const wall = ac.createBiquadFilter(); wall.type = 'lowpass'; wall.frequency.value = 900; wall.connect(bus);
-    const voices = [0, 1, 2, 3].map(i => {
-      const o = ac.createOscillator(), f1 = ac.createBiquadFilter(), f2 = ac.createBiquadFilter(), g2 = ac.createGain(), g = ac.createGain(), p = ac.createStereoPanner ? ac.createStereoPanner() : null;
-      o.type = 'sawtooth'; const f0 = i % 2 ? 105 + R() * 25 : 185 + R() * 45; o.frequency.value = f0;
-      f1.type = f2.type = 'bandpass'; f1.Q.value = 5; f2.Q.value = 7; g2.gain.value = .5; g.gain.value = 0;
-      o.connect(f1); f1.connect(g); o.connect(f2); f2.connect(g2); g2.connect(g);
-      if (p) { p.pan.value = R() - .5; g.connect(p); p.connect(wall) } else g.connect(wall);
-      o.start(t0); srcs.push(o);
-      return { o, f0, f1, f2, g, next: t0 + 1 + R() * 4 };
-    });
-    function talk(v, until) {
-      while (v.next < until) {
-        let t = v.next; const n = 4 + Math.floor(R() * 9), amp = .04 + R() * .04;
-        for (let k = 0; k < n; k++) {
-          const dur = .12 + R() * .18, pitch = v.f0 * (1.1 - .2 * k / n) * (1 + (R() - .5) * .2);
-          v.o.frequency.setTargetAtTime(pitch, t, .04);
-          v.f1.frequency.setTargetAtTime(300 + R() * 500, t, .02); v.f2.frequency.setTargetAtTime(900 + R() * 1300, t, .02);
-          v.g.gain.setTargetAtTime(amp, t, .025); v.g.gain.setTargetAtTime(amp * .15, t + dur * .65, .03);
-          t += dur;
-        }
-        v.g.gain.setTargetAtTime(0, t, .05);
-        v.next = t + .6 + R() * 4;
-      }
-    }
-    let nextCar = t0 + 2 + R() * 6;
-    return {
-      fill(until) { while (nextCar < until) { car(nextCar); nextCar += 5 + R() * 14 } voices.forEach(v => talk(v, until)) },
-      stop(at, fade = 1.5) { bus.gain.cancelScheduledValues(at); bus.gain.setValueAtTime(bus.gain.value, at); bus.gain.linearRampToValueAtTime(0, at + fade);
-        srcs.forEach(s => { try { s.stop(at + fade + .05) } catch (_) {} }); setTimeout(() => { try { bus.disconnect() } catch (_) {} }, (fade + .3) * 1000) },
-    };
-  }
-  let amb = null, ambT = null;
-  function ambientOn() { ambientOff(); amb = makeAmbient(ctx, master); const tick = () => { if (!amb) return; amb.fill(ctx.currentTime + 3); ambT = setTimeout(tick, 1000) }; tick() }
-  function ambientOff() { clearTimeout(ambT); ambT = null; if (amb) { amb.stop(ctx.currentTime); amb = null } }
-
   // each song plays through its own bus: cutting the bus silences every note still scheduled, even if the
   // audio clock was suspended (phones) and the wall-clock timer ran ahead of it
   // fade the old tune out over 80 ms before cutting it: stopping notes mid-wave was a click
   function stopAll() { clearTimeout(timer); timer = null; clearTimeout(pumpT); pumpT = null; queue = []; qi = 0;
     const vs = voices, b = bus; voices = []; bus = null; current = null;
     if (!ctx) return;
-    ambientOff();
     const now = ctx.currentTime;
     if (b) { b.gain.cancelScheduledValues(now); b.gain.setValueAtTime(b.gain.value, now); b.gain.linearRampToValueAtTime(0, now + .08) }
     vs.forEach(v => { try { v.stop(now + .1) } catch (_) {} });
@@ -316,10 +248,10 @@ const MUSIC = (() => {
     const song = asked || ORDER[lastIdx];
     current = song;
     bus = ctx.createGain(); bus.gain.setValueAtTime(0, ctx.currentTime); bus.gain.linearRampToValueAtTime(song.calm ? .7 : 1, ctx.currentTime + .1); bus.connect(master);   // calm tunes play a little quieter
-    const endAt = ctx.currentTime + schedule(song);
-    // after the tune (by the audio clock, which stops while the phone suspends sound), a break of 60–120 s with street sounds, then another one
+    const startAt = ctx.currentTime, endAt = startAt + schedule(song);
+    // after the tune (by the audio clock, which stops while the phone suspends sound), a quiet break: a new tune starts every 2 minutes
     const done = () => { if (ctx.currentTime < endAt) { timer = setTimeout(done, 2000); return }
-      stopAll(); ambientOn(); timer = setTimeout(() => { if (prefOn() && !current) play() }, (60 + Math.random() * 60) * 1000) };
+      stopAll(); timer = setTimeout(() => { if (prefOn() && !current) play() }, Math.max(2, 120 - (ctx.currentTime - startAt)) * 1000) };
     timer = setTimeout(done, (endAt - ctx.currentTime) * 1000 + 300);
     document.dispatchEvent(new CustomEvent('pm-music', { detail: song.title }));
   }
