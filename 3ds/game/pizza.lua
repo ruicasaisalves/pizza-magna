@@ -167,14 +167,16 @@ function P.analyze(p)
   local appeal = {}
   local wk, WB = P.week(), D.WEEK_BONUS
   local wb = ((cnt[wk.ing] or 0) >= 2 and WB.ing or 0) + ((cnt[wk.low] or 0) >= 2 and WB.low or 0) + (has(combos, wk.combo) and WB.combo or 0)
+  -- appeal = part quality, shared by everyone (Q_W), part how well the pizza fits this group (FIT_W): a pizza made
+  -- for a group should win that group even against a better pizza made for another one (Q_W, FIT_W as in index.html)
+  local Q_W, FIT_W = .6, 1.6
   for _, k in ipairs(D.SEG_ORDER) do
     local sg, tw = D.SEG[k], wb
     for _, tg in ipairs(tags) do tw = tw + (sg.w[tg] or 0) end
-    tw = clamp(tw, -20, 18)
-    local a = q + tw + sg.dough[p.dough] + segMod[k]
-    if k == "gourmet" and n > 34 then a = a - 8 end
-    if k == "estudante" and n >= 24 then a = a + 3 end
-    appeal[k] = clamp(round(a), 0, 100)
+    local fit = clamp(tw, -24, 24) + sg.dough[p.dough] + segMod[k]
+    if k == "gourmet" and n > 34 then fit = fit - 8 end
+    if k == "estudante" and n >= 24 then fit = fit + 3 end
+    appeal[k] = clamp(round(50 + Q_W * (q - 50) + FIT_W * fit), 0, 100)
   end
   return { q = q, cost = r2(cost), appeal = appeal, notes = notes, combos = combos, n = n, d = d, ids = ids }
 end

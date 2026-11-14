@@ -172,6 +172,15 @@ local function newId()
 end
 -- each menu pizza keeps its analysis until it changes (p.an = nil)
 local function anOf(p) if not p.an then p.an = P.analyze(p) end; return p.an end
+-- who picks each menu pizza (G.menuShares), worked out again only when a pizza, its price or its analysis changes
+local sharesKey, sharesW
+local function shares()
+  local k = {}
+  for _, p in ipairs(S.menu) do k[#k + 1] = p.id .. ":" .. p.price .. ":" .. tostring(anOf(p)) end
+  k = table.concat(k, ",")
+  if k ~= sharesKey then sharesKey, sharesW = k, G.menuShares(S, anOf) end
+  return sharesW
+end
 local function copyPieces(ps) local out = {}; for k, x in ipairs(ps) do local c = {}; for kk, vv in pairs(x) do c[kk] = vv end; out[k] = c end; return out end
 
 -- ---------------------------------------------------------------- toppings by group (the pantry tabs)
@@ -556,6 +565,14 @@ local function drawMenuBottom()
   plateBtn(P.upper(t("menu.edit")), rx, 114, editPizza, rw, 18)
   plateBtn(l3("rename"), rx, 138, renamePizza, rw, 18)
   plateBtn(fitText(P.upper(t(isArmed("remove") and "menu.confirm" or "menu.remove")), "tiny", rw - 6), rx, 162, removePizza, rw, 18, isArmed("remove"))
+  -- who picks it: the share of each customer group that would choose this pizza
+  text(fitText(t("menu.who"), "tiny", rw), rx, 184, "tiny", C.ink)
+  local W, i = shares(), S.msel
+  for j, g in ipairs(D.SEG_ORDER) do
+    local x, y, v = rx - 2 + ((j - 1) % 2) * 52, 196 + math.floor((j - 1) / 2) * 12, math.floor(W.sh[g][i] * 100 + .5)
+    col(hex(D.SEG[g].col), v > 0 and 1 or .4); love.graphics.rectangle("fill", x, y + 3, 6, 6)
+    text(t("seg." .. g):sub(1, 3) .. " " .. v .. "%", x + 8, y, "tiny", v > 0 and C.ink or hex("#9a8a70"))
+  end
   strip()
 end
 
@@ -671,7 +688,9 @@ local function drawMenuTop()
   local sp = selPizza()
   local loss = sp and sp.price < anOf(sp).cost
   local lead = t("menu.house") .. " (" .. #S.menu .. ")  ·  " .. t("k.book", { n = #S.found, t = #D.COMBOS })
-  text(fitText(loss and t("menu.loss", { x = P.eur(anOf(sp).cost - sp.price) }) or lead, "small", 388), 6, 21, "small", loss and C.bad or C.dim)
+  local why = sp and not loss and G.menuWhy(S, shares(), S.msel)   -- why it is not the first choice of the group it suits best
+  if why then text(fitText(why, "tiny", 388), 6, 23, "tiny", C.combo)
+  else text(fitText(loss and t("menu.loss", { x = P.eur(anOf(sp).cost - sp.price) }) or lead, "small", 388), 6, 21, "small", loss and C.bad or C.dim) end
   local n = #S.menu + 1
   local first = math.max(1, math.min(S.msel - 2, n - ROWS + 1))
   for row = 0, ROWS - 1 do
@@ -959,6 +978,23 @@ local function drawReportBottom()
   if r.goal then
     text(t("goal.title") .. " " .. t("goal.lead", { m = P.eur(S.money), r = string.format("%.1f", S.rep), d = r.day }), 8, y, "tiny", hex("#1f7a3a"), "left", 304)
     y = y + 34
+  end
+  -- who bought what: each pizza sold, by customer group
+  local bs = r.res and r.res.bySeg
+  if bs and next(bs) then
+    text(t("rep.byseg"), 8, y, "tiny", C.ink)
+    for j, g in ipairs(D.SEG_ORDER) do text(t("seg." .. g):sub(1, 3), 160 + (j - 1) * 38, y, "tiny", hex(D.SEG[g].col), "right", 34) end
+    y = y + 12
+    for _, p in ipairs(S.menu) do
+      local any = false
+      for _, g in ipairs(D.SEG_ORDER) do if (bs[g] or {})[p.id] then any = true end end
+      if any then
+        text(fitText(p.name, "tiny", 148), 8, y, "tiny", C.ink)
+        for j, g in ipairs(D.SEG_ORDER) do text(tostring((bs[g] or {})[p.id] or 0), 160 + (j - 1) * 38, y, "tiny", C.ink, "right", 34) end
+        y = y + 11
+      end
+    end
+    y = y + 4
   end
   local F = fonts.tiny
   for _, q in ipairs(r.quotes) do
