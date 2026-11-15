@@ -803,7 +803,7 @@ const THEMES=['classica','doce','veg','criativa','queijo','picante','mar','barat
 const NPCS=['Trattoria Bella','Forno do Zé','Casa Nápoles','La Brasa','Pizza Rápida'];
 const WD=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const WK_MUL=[1,1,1,1.05,1.12,1.3,1.25];
-const RENT=40, SALARY=30, ENTRY_FEE=50, GOAL_MONEY=4000, GOAL_REP=3;
+const RENT=40, SALARY=30, ENTRY_FEE=50, GOAL_MONEY=4000, GOAL_REP=3, GOAL_ON=false;   // GOAL_ON: the goal (cash and stars for a second shop) is off for now
 const DAY_SECONDS=26;
 
 /* The news are saved as finished text, so after a language change old lines stayed in the old language. When
@@ -879,7 +879,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.02d';
+const VERSION='0.02e';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1029,7 +1029,7 @@ function renderHeader(){
       <div class="stat"><span class="lbl">${t('hdr.cash')}</span><b>${eur(state.money)}</b></div>
       <div class="stat"><span class="lbl">${t('hdr.rep')}</span><b class="stars" aria-label="${t('hdr.of5',{x:state.rep.toFixed(1)})}">${starsHTML(state.rep)} ${LANG==='pt'?state.rep.toFixed(1).replace('.',','):state.rep.toFixed(1)}</b></div>
     </div>
-    <div class="goal"><span>${t('hdr.goal',{m:'$'+GOAL_MONEY.toLocaleString('en-US'),r:GOAL_REP})}</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>`}
+    ${GOAL_ON?`<div class="goal"><span>${t('hdr.goal',{m:'$'+GOAL_MONEY.toLocaleString('en-US'),r:GOAL_REP})}</span><span class="bar"><span style="width:${Math.round((pm+pr)/2*100)}%"></span></span></div>`:''}`}
   </div>`;
   $('#hdr').append(...corner);   // corner buttons ride in the header, not over the page
 }
@@ -2242,11 +2242,11 @@ function showReport(r){
 function afterReport(){
   closeModal();
   if(state.over){modal(`<h2>${t('end.title')}</h2><p>${t('end.lead',{d:state.day-1})}</p><button class="btn primary big" data-act="hardreset">${t('end.again')}</button>`);return}
-  if(!state.goalDone&&state.money>=GOAL_MONEY&&state.rep>=GOAL_REP){state.goalDone=true;save();modal(`<h2>${t('goal.title')}</h2><p>${t('goal.lead',{m:eur(state.money),r:state.rep.toFixed(1),d:state.day-1})}</p><p class="sub">${t('goal.more')}</p><button class="btn primary big" data-act="close">${t('rep.go')}</button>`)}
+  if(GOAL_ON&&!state.goalDone&&state.money>=GOAL_MONEY&&state.rep>=GOAL_REP){state.goalDone=true;save();modal(`<h2>${t('goal.title')}</h2><p>${t('goal.lead',{m:eur(state.money),r:state.rep.toFixed(1),d:state.day-1})}</p><p class="sub">${t('goal.more')}</p><button class="btn primary big" data-act="close">${t('rep.go')}</button>`)}
 }
 function showIntro(){modal(`<h2>${t('in.title')}</h2><p style="margin:0">${t('in.lead')}</p>
   <ol>${['k','m','o','s'].map(k=>`<li>${t('in.'+k)}</li>`).join('')}</ol>
-  <p class="sub" style="margin:0">${t('hdr.goal',{m:'$'+GOAL_MONEY.toLocaleString('en-US'),r:GOAL_REP})}</p>
+  ${GOAL_ON?`<p class="sub" style="margin:0">${t('hdr.goal',{m:'$'+GOAL_MONEY.toLocaleString('en-US'),r:GOAL_REP})}</p>`:''}
   <button class="btn primary big" data-act="close">${t('in.go')}</button>`)}
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 

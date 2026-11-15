@@ -1947,6 +1947,7 @@ D.WD={"Seg","Ter","Qua","Qui","Sex","Sáb","Dom"}
 D.WD_EN={"Mon","Tue","Wed","Thu","Fri","Sat","Sun"}
 D.GOAL_MONEY=4000
 D.GOAL_REP=3
+D.GOAL_ON=false
 D.DAY_SECONDS=26
 D.OVEN_CAP=36
 D.COOK_CAP=30

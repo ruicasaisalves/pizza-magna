@@ -257,7 +257,7 @@ function G.finishDay(S, res)
     if not seen[x[2]] and #quotes < 3 then seen[x[2]] = true; quotes[#quotes + 1] = x end
   end
   local goal = false
-  if not S.goalDone and S.money >= D.GOAL_MONEY and S.rep >= D.GOAL_REP then S.goalDone = true; goal = true end
+  if D.GOAL_ON and not S.goalDone and S.money >= D.GOAL_MONEY and S.rep >= D.GOAL_REP then S.goalDone = true; goal = true end
   return { res = res, profit = profit, sal = sal, repBefore = repBefore, repAfter = S.rep, contest = contest, quotes = quotes, day = S.day - 1, goal = goal }
 end
 G.news = news
