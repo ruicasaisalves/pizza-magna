@@ -2292,7 +2292,8 @@ function savePizza(stay){
     else{id=uid();state.menu.push({id,name,dough:d.dough,sauce:d.sauce,pieces:d.pieces.map(x=>({...x})),price:suggestPrice(a),...sign});toast(stay?t('k.quick.added'):t('k.added',{x:name,p:eur(suggestPrice(a))}))}
     track(stay?'save-pizza-quick':ex?'save-pizza-edit':'save-pizza');
     if(stay){Object.assign(d,{name,editing:id,...sign});save();render();setTimeout(maybeAskInstall,2800);return}
-    state.draft={name:t('k.newname'),dough:'napo',sauce:'tomate',pieces:[],editing:null};cleared=null;save();go('menu');   // saved: next time the bench starts a new pizzasetTimeout(maybeAskInstall,2800);   // after the 'added to the menu' toast is gone
+    state.draft={name:t('k.newname'),dough:'napo',sauce:'tomate',pieces:[],editing:null};cleared=null;save();go('menu');   // saved: next time the bench starts a new pizza
+    setTimeout(maybeAskInstall,2800);   // after the 'added to the menu' toast is gone
 }
 function renameDraft(){const d=state.draft;
   modal(`<h2>${t('k.rename')}</h2><div class="field"><input id="rname" maxlength="28" value="${esc(isNewName(d.name)?'':d.name)}" placeholder="${esc(t('k.newname'))}"></div><button class="btn primary big" data-act="renamedraft">${t('k.rename.ok')}</button>`);
