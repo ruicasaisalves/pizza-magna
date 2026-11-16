@@ -867,10 +867,22 @@ function freshState(){
     draft:{name:'',dough:'napo',sauce:'tomate',pieces:[],editing:null},   // the kitchen starts with an empty pizza
     sel:'fiambre',cut:'w',rot:{},rival:{name:'Pizza Rápida',q:52,price:7,promo:false},
     news:[t('nw.start')],
-    discovered:[],contestEntry:null,contestLog:[],lastSales:{},tips:[],studyWeek:-1,hist:[],banana2:true,seenIntro:false,goalDone:false,over:false,chef:'',shop:''
+    discovered:[],contestEntry:null,contestLog:[],lastSales:{},tips:[],studyWeek:-1,hist:[],banana2:true,seenIntro:false,goalDone:false,over:false,chef:'',shop:'',
+    shops:[{name:'',hood:null,lot:null,data:null}],cur:0
   };
 }
 let state;
+/* ---- Several shops. The shop being run lives at the root of state (SHOP_KEYS), so every screen and the day work on it
+   as they always did; the other shops wait in state.shops[i].data. state.shops[i] = {name, hood, lot, data}: name ''
+   is the chain's own name (state.shop), hood the neighbourhood (null: the first shop, with the original customer mix),
+   lot its place on the city map. state.cur is the shop open now. Old saves become shop 1 (ensureShops). ---- */
+const SHOP_KEYS=['rep','ovens','cooks','deco','ads','menu','rival','lastSales','room','stock','tier','restockDays','supplier','hist'];
+const shopData=()=>Object.fromEntries(SHOP_KEYS.map(k=>[k,state[k]]));
+function ensureShops(st){if(!Array.isArray(st.shops)||!st.shops.length){st.shops=[{name:'',hood:null,lot:null,data:null}];st.cur=0}
+  if(!(st.cur>=0&&st.cur<st.shops.length))st.cur=0;return st}
+// put the open shop away and open shop i
+function openShop(i){if(i===state.cur||!state.shops[i]||!state.shops[i].data)return false;
+  state.shops[state.cur].data=shopData();Object.assign(state,state.shops[i].data);state.shops[i].data=null;state.cur=i;roomAC=null;return true}
 // test bench: only Kitchen and Menu, its own save (window.PM_SANDBOX or #sandbox)
 // the public site used to show only this bench (until the restaurant went live); its players' saves are adopted in load()
 const SANDBOX=!!window.PM_SANDBOX||/^#sandbox(&|$)/.test(location.hash);
@@ -897,7 +909,7 @@ function unpackPieces(str,max=Infinity){const [ids,b]=String(str).split('|'),idl
     if(u[k+4]&4)x.g=1;if(u[k+4]&8)x.a=(u[k+4]>>4)&3;if(Math.hypot(x.x,x.y)<=.82)out.push(x)}
   return out}
 const packState=st=>JSON.stringify(st,(k,v)=>k==='pieces'&&Array.isArray(v)?packPieces(v):v);
-function unpackState(st){for(const p of [...(st.menu||[]),st.draft].filter(Boolean))if(typeof p.pieces==='string'){try{p.pieces=unpackPieces(p.pieces)}catch(_){p.pieces=[]}}return st}
+function unpackState(st){for(const p of [...(st.menu||[]),...(st.shops||[]).flatMap(sh=>sh&&sh.data&&sh.data.menu||[]),st.draft].filter(Boolean))if(typeof p.pieces==='string'){try{p.pieces=unpackPieces(p.pieces)}catch(_){p.pieces=[]}}return st}
 function save(){try{state.savedAt=Date.now();state.version=VERSION;localStorage.setItem(SAVE_KEY,packState(state))}catch(e){}}
 function load(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&s.v===1)return unpackState(s)}catch(e){}
   // the public site was bench-only and saved under the bench key: a player with no full-game save keeps their
@@ -2157,7 +2169,7 @@ function importSave(file){
   const fr=new FileReader();
   fr.onload=()=>{try{const d=JSON.parse(fr.result);const st=d&&d.game==='pizza-magna'?d.state:d;   // also accepts a bare state
       if(!st||st.v!==1||!Array.isArray(st.menu))throw 0;
-      state=unpackState(st);track('save-import');save();closeModal();render();toast(t('opt.imported',{c:state.chef||DEF_CHEF}))}
+      state=ensureShops(unpackState(st));track('save-import');save();closeModal();render();toast(t('opt.imported',{c:state.chef||DEF_CHEF}))}
     catch(_){toast(t('opt.badfile'))}};
   fr.readAsText(file);
 }
@@ -2436,6 +2448,7 @@ function start(data){
   document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n)});   // static labels (nav)
   state=(data&&data.state)||load()||freshState();
   if(state.over){state=freshState();state.seenIntro=true}
+  ensureShops(state);
   if(!state.room||!Array.isArray(state.room.items))state.room=starterRoom(state.deco||0);
   if(!state.banana2){for(const p of [...state.menu,state.draft])for(const x of p.pieces||[])if(x.i==='banana'&&!x.g)x.g=1;state.banana2=true}   // the whole banana used to be a slice: those become chopped
   if(!Array.isArray(state.hist))state.hist=[];if(!state.tips)state.tips=[];if(state.studyWeek==null)state.studyWeek=-1;
