@@ -893,6 +893,7 @@ let state;
 // test bench: only Kitchen and Menu, its own save (window.PM_SANDBOX or #sandbox)
 // the public site used to show only this bench (until the restaurant went live); its players' saves are adopted in load()
 const SANDBOX=!!window.PM_SANDBOX||/^#sandbox(&|$)/.test(location.hash);
+const DEV=!!window.PM_DEV||/^#dev(&|$)/.test(location.hash);   // pizzamagna.xyz/dev (dev/index.html sets PM_DEV) or #dev: features still being tried (the City)
 // phone: a finger is the main input and the screen is small; #phone (or #sandbox&phone) forces it for testing on a PC
 const PHONE=/[#&]phone(&|$)/.test(location.hash)||(matchMedia('(pointer: coarse)').matches&&Math.min(screen.width,screen.height)<600);
 document.documentElement.classList.toggle('phone',PHONE);
@@ -2153,7 +2154,7 @@ function shopHTML(){
   <div class="shop">${state.tier===1?'':`<div class="card"><div class="row" style="justify-content:space-between"><h3>${t('st.title')}</h3><span class="tag">${t('mg.t'+state.tier)}</span></div><p class="sub">${t('st.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="stock">${t('st.title')}</button></div></div>`}<div class="card"><div class="row" style="justify-content:space-between"><h3>${t('rm.title')}</h3><span class="tag">${t('rm.seats',{n:roomA().seats})}</span></div><p class="sub">${t('rm.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="sala">${t('rm.title')}</button></div></div>${SHOP.map(it=>{const c=it.cost(),byMgr=it.mgr&&state.tier===1;const ok=it.ok()&&!byMgr;return `<div class="card"><div class="row" style="justify-content:space-between"><h3>${it.n}</h3><span class="tag">${byMgr?t('mg.hires'):it.lvl()}</span></div><p class="sub">${it.d}</p>
     <div class="foot"><b class="num">${ok?eur(c):''}</b><div class="row">${it.id==='cook'&&state.cooks>1?`<button class="btn sm ghost" data-act="fire">${t('shop.fire')}</button>`:''}<button class="btn ${ok?'primary':''}" data-act="buy" data-id="${it.id}" ${ok&&state.money>=c?'':'disabled'}>${t(ok?'shop.buy':'shop.done')}</button></div></div></div>`}).join('')}
   </div>
-  <div class="card"><h3>${t('city.title')}</h3><p class="sub">${t('city.card')}</p><div class="row"><button class="btn primary" data-tab-go="cidade">${t('city.open')}</button></div></div>
+  ${DEV?`<div class="card"><h3>${t('city.title')}</h3><p class="sub">${t('city.card')}</p><div class="row"><button class="btn primary" data-tab-go="cidade">${t('city.open')}</button></div></div>`:''}
   <div class="card"><h3>${t('shop.soon')}</h3><p class="sub">${t('shop.soonlead')}</p></div>
   <div class="row"><button class="btn danger" data-act="reset">${t('shop.reset')}</button></div></div>`;
 }
@@ -2396,6 +2397,7 @@ function render(){
   renderHeader();drawNextDay();
   const V={cozinha:kitchenHTML,menu:menuHTML,dia:dayHTML,loja:shopHTML,concurso:contestHTML,sala:roomEdHTML,stock:stockHTML,hist:histHTML,cidade:cityHTML};
   if(anim)state.tab='dia';
+  if(state.tab==='cidade'&&!DEV)state.tab='loja';   // the City is only on the dev build for now
   $('#view').innerHTML=V[state.tab]();
   document.querySelectorAll('#nav button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===state.tab||((state.tab==='sala'||state.tab==='stock'||state.tab==='cidade')&&b.dataset.tab==='loja')||(state.tab==='hist'&&b.dataset.tab==='menu'));b.disabled=!!anim&&b.dataset.tab!=='dia'});
   pz=null;room=null;
