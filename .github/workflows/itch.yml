@@ -26,7 +26,7 @@ jobs:
         if: env.BUTLER_API_KEY != ''
         run: |
           mkdir build
-          cp -r index.html music.js sw.js manifest.webmanifest assets build/
+          cp -r index.html music.js city.js sw.js manifest.webmanifest assets build/
           echo "VERSION=$(grep -oP "const VERSION='\K[^']+" index.html)" >> "$GITHUB_ENV"
       - name: Install butler
         if: env.BUTLER_API_KEY != ''
