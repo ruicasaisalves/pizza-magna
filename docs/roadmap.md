@@ -19,7 +19,8 @@ The public site runs the full game (it showed only the Kitchen and the Menu unti
 ## Missing
 
 ### 1. City and property
-The biggest block. A first visual draft of the map is in `docs/drafts/city.html` (standalone, not wired to the game): 6×5 square blocks, drag to move, zoom and a minimap.
+- **Done (first version):** Shop › City shows Porto Magno (`city.js`, also used by `docs/drafts/city.html`). With $4000 of your own money you can rent a lot (rent per day) or buy one; the new shop opens empty, with its neighbourhood's customers, its street's traffic and the nearest rival. Each shop has its own menu (the other shops' pizzas are offered as a recipe book), room, staff, pantry, reputation and history; the header arrows switch shops; one day runs every shop (the others in the background with their manager) and the report shows each one and the total. A bank lends up to $3000 per shop at 0.5% a day.
+- Still to do: the number of tables of a lot, selling a shop, the painted map showing your new shop open, rivals' strategies per neighbourhood, the 3DS.
 - A pixel-art city map with neighbourhoods (university, tourist, residential, upmarket). Each has its own mix of the 4 customer groups.
 - Shops to **rent** (monthly rent, cheap to start) or **buy** (expensive, gains value, can be sold).
 - Each property has a size, a number of tables, street traffic, rent and condition (new or needing work).
