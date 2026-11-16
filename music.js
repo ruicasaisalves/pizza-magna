@@ -115,8 +115,8 @@ const MUSIC = (() => {
   const ORDER = SONGS;
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
   let lastIdx = Math.floor(Math.random() * ORDER.length) - 1, ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;   // the first tune is random (then the fixed order carries on from it)
-  const VOL = 'pm-music-vol', LEVELS = [.25, .5, 1, 1.6, 2.3];   // 1 = low ... 5 = max; 3 (the middle) is the default
-  const getVol = () => { try { const v = +localStorage.getItem(VOL); return v >= 1 && v <= 5 ? v : 3 } catch (_) { return 3 } };
+  const VOL = 'pm-music-vol', LEVELS = [.25, .5, 1, 1.6, 2.3];   // 1 = low ... 5 = max; 2 is the default
+  const getVol = () => { try { const v = +localStorage.getItem(VOL); return v >= 1 && v <= 5 ? v : 2 } catch (_) { return 2 } };
   const gainFor = v => .16 * LEVELS[v - 1];
   const prefOn = () => { try { return localStorage.getItem(PREF) !== 'off' } catch (_) { return true } };
   const setPref = on => { try { localStorage.setItem(PREF, on ? 'on' : 'off') } catch (_) {} };
@@ -249,9 +249,9 @@ const MUSIC = (() => {
     current = song;
     bus = ctx.createGain(); bus.gain.setValueAtTime(0, ctx.currentTime); bus.gain.linearRampToValueAtTime(song.calm ? .7 : 1, ctx.currentTime + .1); bus.connect(master);   // calm tunes play a little quieter
     const startAt = ctx.currentTime, endAt = startAt + schedule(song);
-    // after the tune (by the audio clock, which stops while the phone suspends sound), a quiet break: a new tune starts every 2 minutes
+    // after the tune (by the audio clock, which stops while the phone suspends sound), a quiet break: a new tune starts every 3 minutes
     const done = () => { if (ctx.currentTime < endAt) { timer = setTimeout(done, 2000); return }
-      stopAll(); timer = setTimeout(() => { if (prefOn() && !current) play() }, Math.max(2, 120 - (ctx.currentTime - startAt)) * 1000) };
+      stopAll(); timer = setTimeout(() => { if (prefOn() && !current) play() }, Math.max(2, 180 - (ctx.currentTime - startAt)) * 1000) };
     timer = setTimeout(done, (endAt - ctx.currentTime) * 1000 + 300);
     document.dispatchEvent(new CustomEvent('pm-music', { detail: song.title }));
   }
