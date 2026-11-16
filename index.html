@@ -2128,10 +2128,10 @@ function shopHTML(){
    tables, no menu, an empty pantry, one oven and one pizzaiolo; its neighbourhood's customer mix and foot traffic,
    the nearest rival (RIVAL_HOOD by neighbourhood) and a reputation of 1★ plus a fifth of the chain's best. */
 const CITY_CASH=4000;
-/* The bank: borrow in steps up to BANK_PER_SHOP per shop you have; BANK_RATE of what you owe is charged every day
+/* The bank: borrow in steps up to BANK_MAX; BANK_RATE of what you owe is charged every day
    (finishDay). Opening another shop needs CITY_CASH of your own money: cash minus what you owe. */
-const BANK_RATE=.005,BANK_PER_SHOP=3000;
-const ownMoney=()=>r2(state.money-(state.loan||0)),bankLimit=()=>BANK_PER_SHOP*state.shops.length;
+const BANK_RATE=.005,BANK_MAX=20000;
+const ownMoney=()=>r2(state.money-(state.loan||0)),bankLimit=()=>BANK_MAX;
 const RIVAL_HOOD={uni:{q:50,price:6},baixa:{q:62,price:8.5},resid:{q:56,price:7.5},chique:{q:72,price:11}};
 const CV={z:2,s:2,cam:null,sel:null,hood:null,raf:0,armed:null};
 const CSEG=['estudante','familia','turista','gourmet'];
@@ -2153,7 +2153,7 @@ function openLot(i,buy){const l=CITY.LOTS[i];if(anim||lotKind(l,i)!==(buy?'sale'
 function bankHTML(){const owe=state.loan||0,room=Math.max(0,bankLimit()-owe);
   return `<div class="card"><div class="row" style="justify-content:space-between"><h3>${t('bank.title')}</h3><span class="tag">${t('bank.owe')} ${eur(owe)}</span></div><p class="sub">${t('bank.lead',{r:(BANK_RATE*100).toLocaleString(LANG)})}</p>
     <dl class="kv"><dt>${t('bank.today')}</dt><dd>${eur(owe*BANK_RATE)}</dd><dt>${t('bank.limit')}</dt><dd>${eur(bankLimit())}</dd></dl>
-    <div class="row">${[500,2000].map(v=>`<button class="btn sm primary" data-act="borrow" data-v="${v}" ${room>=v?'':'disabled'}>${t('bank.borrow',{x:eur(v).replace('.00','')})}</button>`).join('')}
+    <div class="row">${[500,2000,5000].map(v=>`<button class="btn sm primary" data-act="borrow" data-v="${v}" ${room>=v?'':'disabled'}>${t('bank.borrow',{x:eur(v).replace('.00','')})}</button>`).join('')}
     <button class="btn sm" data-act="repay" data-v="500" ${owe>0&&state.money>=Math.min(500,owe)?'':'disabled'}>${t('bank.repay',{x:eur(Math.min(500,owe)||500).replace('.00','')})}</button><button class="btn sm ghost" data-act="repay" data-v="all" ${owe>0&&state.money>=owe?'':'disabled'}>${t('bank.all')}</button></div></div>`}
 function cityHTML(){return `<div class="stack"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>${t('city.title')} · Porto Magno</h2><p class="sub" style="color:var(--on-wood)">${t('city.lead',{m:eur(CITY_CASH).replace('.00','')})}</p></div><button class="btn ghost" data-tab-go="loja">${t('rm.back')}</button></div>
   <div class="cityv"><div class="frame cmap"><canvas id="city" aria-label="${esc(t('city.title'))}"></canvas><div class="rzoom"><button class="btn sm ibtn" data-act="czoom" data-v="-1" aria-label="${esc(t('rz.out'))}">−</button><button class="btn sm ibtn" data-act="czoom" data-v="1" aria-label="${esc(t('rz.in'))}">+</button></div></div>
