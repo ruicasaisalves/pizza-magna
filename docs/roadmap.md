@@ -19,7 +19,7 @@ The public site runs the full game (it showed only the Kitchen and the Menu unti
 ## Missing
 
 ### 1. City and property
-The biggest block. A first visual draft of the map is in `docs/drafts/city.html` (standalone, not wired to the game): 6×5 square blocks, drag to move, zoom and a minimap.
+The biggest block. **Done (first step):** Shop › City shows the map of Porto Magno in the game (`assets/city.js`, from the draft in `docs/drafts/city.html`): 6×5 square blocks, drag to move, zoom and a minimap, the four neighbourhoods with their customer mix, your pizzeria, the five rivals and the shops for rent or for sale with their tables, foot traffic, rent, price and condition. It is only to look at: the rest of this section is still to do.
 - A pixel-art city map with neighbourhoods (university, tourist, residential, upmarket). Each has its own mix of the 4 customer groups.
 - Shops to **rent** (monthly rent, cheap to start) or **buy** (expensive, gains value, can be sold).
 - Each property has a size, a number of tables, street traffic, rent and condition (new or needing work).
