@@ -881,7 +881,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.02g';
+const VERSION='0.03a';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1308,12 +1308,12 @@ function drawIngIcons(){document.querySelectorAll('canvas[data-ing]').forEach(cv
 function menuHTML(){
   if(!state.menu.length)return `<div class="stack"><h2>${t('nav.menu')}</h2><div class="empty">${t('menu.empty')}<br><br><button class="btn primary" data-tab-go="cozinha">${t('menu.gokitchen')}</button> <button class="btn ghost" data-act="recimport">${t('rec.import')}</button></div></div>`;
   return `<div class="stack"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>${t('menu.house')}</h2><p class="sub">${t(ADV.on()?'menu.lead':'menu.lead.easy')}</p></div>${(state.hist||[]).length?`<button class="btn sm" data-tab-go="hist">${t('hist.btn')}</button>`:''}</div>
-  <div class="menu-list">${(()=>{const W=menuShares();return state.menu.map((p,i)=>{const a=W.A[i];const sold=state.lastSales[p.id]||0;const margin=p.price-a.cost;return `<div class="card mcard">
+  <div class="menu-list">${(()=>{const W=ADV.on()?menuShares():{A:state.menu.map(p=>analyze(p))};return state.menu.map((p,i)=>{const a=W.A[i];const sold=state.lastSales[p.id]||0;const margin=p.price-a.cost;return `<div class="card mcard">
     <canvas data-pz="${p.id}"></canvas>
     <div><h3>${esc(p.name)}</h3><span class="sub">${DOUGHS[p.dough].n} · ${SAUCES[p.sauce].n}</span>
       <div class="price"><button data-act="pdn" data-id="${p.id}" aria-label="${t('menu.pdn')}" ${state.tier===1?'disabled':''}>−</button><b>${eur(p.price)}</b><button data-act="pup" data-id="${p.id}" aria-label="${t('menu.pup')}" ${state.tier===1?'disabled':''}>+</button></div>${state.tier===1?`<span class="dctext">${t('mg.prices')}</span>`:''}
       ${ADV.on()?`<canvas class="dcurve" data-dc="${p.id}" aria-label="${esc(t('menu.dc.lbl'))}"></canvas><span class="dctext" data-dct="${p.id}"></span>`:''}
-      <dl class="kv"><dt>${t('k.q')}</dt><dd style="color:${qColor(a.q)}">${a.q}/100</dd><dt>${t('menu.cost')}</dt><dd>${eur(a.cost)}</dd><dt>${t('menu.margin')}</dt><dd style="color:${margin>0?'var(--good)':'var(--bad)'}">${eur(margin)}</dd>${ADV.on()?`<dt>${t('menu.fair')}</dt><dd>${eur(suggestPrice(a))}</dd>`:''}<dt>${t('menu.sold')}</dt><dd>${sold}</dd></dl>${whoHTML(i,W)}${margin<0?`<p class="sub" style="color:var(--bad);font-weight:700;margin:0 0 6px">${t('menu.loss',{x:eur(-margin)})}</p>`:''}
+      <dl class="kv"><dt>${t('k.q')}</dt><dd style="color:${qColor(a.q)}">${a.q}/100</dd><dt>${t('menu.cost')}</dt><dd>${eur(a.cost)}</dd><dt>${t('menu.margin')}</dt><dd style="color:${margin>0?'var(--good)':'var(--bad)'}">${eur(margin)}</dd>${ADV.on()?`<dt>${t('menu.fair')}</dt><dd>${eur(suggestPrice(a))}</dd>`:''}<dt>${t('menu.sold')}</dt><dd>${sold}</dd></dl>${ADV.on()?whoHTML(i,W):''}${margin<0?`<p class="sub" style="color:var(--bad);font-weight:700;margin:0 0 6px">${t('menu.loss',{x:eur(-margin)})}</p>`:''}
       <div class="row"><button class="btn sm" data-act="edit" data-id="${p.id}">${t('menu.edit')}</button><button class="btn sm" data-act="share" data-id="${p.id}">${t('share.btn')}</button><button class="btn sm" data-act="recshare" data-id="${p.id}">${t('rec.btn')}</button><button class="btn sm danger" data-act="rm" data-id="${p.id}">${t('menu.remove')}</button></div>
     </div></div>`}).join('')})()}
   <button class="empty" data-act="newdraft" style="background:transparent;font-weight:800">${t('menu.new',{n:state.menu.length})}</button><button class="btn ghost" data-act="recimport">${t('rec.import')}</button>
@@ -2240,7 +2240,7 @@ function salesTable(r){
   return `<h3 style="margin:4px 0 0">${t('rep.sales')}</h3><table class="rank sales"><tr><th></th><th>${t('rep.n')}</th><th>${t('rep.v')}</th><th>${t('rep.m')}</th></tr>${rows.map(x=>`<tr><td>${esc(x.p.name)}<i style="width:${Math.round(x.n/top*100)}%"></i></td><td>${x.n}</td><td>${eur(x.v)}</td><td style="color:${x.m>=0?'var(--good)':'var(--bad)'}">${eur(x.m)}</td></tr>`).join('')}</table>`}
 // the day's sales by customer group: how many of each pizza each group bought
 function segTable(r){
-  if(!r.bySeg||!state.menu.length)return '';const G=Object.keys(SEG);
+  if(!ADV.on()||!r.bySeg||!state.menu.length)return '';const G=Object.keys(SEG);   // Advanced analytics only
   return `<h3 style="margin:4px 0 0">${t('rep.byseg')}</h3><table class="rank sales"><tr><th></th>${G.map(g=>`<th><span class="sw" style="--c:${SEG[g].col}" title="${esc(SEG[g].n)}">${esc(SEG[g].n.slice(0,4))}.</span></th>`).join('')}</tr>${state.menu.map(p=>`<tr><td>${esc(p.name)}</td>${G.map(g=>`<td>${(r.bySeg[g]||{})[p.id]||0}</td>`).join('')}</tr>`).join('')}</table>`}
 function showReport(r){
   const c=r.contest;
