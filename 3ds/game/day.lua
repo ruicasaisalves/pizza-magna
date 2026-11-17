@@ -103,8 +103,8 @@ end
 
 -- Reputation gets harder as it grows (as in index.html): happy at HAPPY_BASE + HAPPY_STAR a star, and a good day's
 -- gain shrinks near the top (repGain); losses are not softened.
--- On the web it is still being tried out at pizzamagna.xyz/dev (DEV); here it stays off until it goes public (HARD_REP).
-local HARD_REP, HAPPY_BASE, HAPPY_STAR, REP_TOP = false, 55, 5, 5.25
+-- HARD_REP: on since 0.03e, as on the web (false would go back to happy at 62 and no shrinking gains).
+local HARD_REP, HAPPY_BASE, HAPPY_STAR, REP_TOP = true, 55, 5, 5.25
 function G.happyAt(S) if not HARD_REP then return 62 end return HAPPY_BASE + S.rep * HAPPY_STAR end
 function G.repGain(S, d) if HARD_REP and d > 0 then return d * math.max(.12, (REP_TOP - S.rep) / (REP_TOP - 1)) end return d end
 

@@ -30,6 +30,7 @@ const SPECIAL={'1,0':'campus','0,1':'sports','3,0':'church','2,1':'square','1,3'
 const HSTREET=['Rua do Sol','Rua Larga','Avenida Central','Rua das Flores','Rua Nova','Rua do Mar'];
 const VSTREET=['Rua das Escolas','Rua da Sé','Rua Direita','Avenida da Ribeira','Rua Velha','Rua do Cais','Rua do Rio'];
 const AVENUE_H=2,AVENUE_V=3;
+const RENT_BASE=38;   // $ a day: about 30 in Residential, 45 at the University, 75 in the Old Town, 85-95 by the river
 function rngOf(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let r=Math.imul(seed^seed>>>15,1|seed);r=r+Math.imul(r^r>>>7,61|r)^r;return((r^r>>>14)>>>0)/4294967296}}
 const D=28,FH=14,RH=BLK-FH;   // perimeter wing depth, façade height, roof height of a perimeter block
 
@@ -73,7 +74,7 @@ for(const l of LOTS){
   const onAvenue=hi===AVENUE_H||vi===AVENUE_V;
   const nearSquare=Math.abs(cx-2)+Math.abs(cy-1)===1;
   l.traffic=Math.max(1,Math.min(5,H.traffic+(onAvenue?1:0)+(nearSquare?1:0)-(r()<.3?1:0)-(shop?0:1)));
-  l.rent=Math.round(H.rent*l.tables*3.5*(.7+l.traffic*.15));
+  l.rent=Math.round(RENT_BASE*H.rent*(.7+l.traffic*.15));   // by place only: the neighbourhood and the street's traffic
   l.price=Math.round(l.rent*90/500)*500;
   const c=r();l.cond=c<.3?'new':c<.7?'good':'works';l.works=Math.round((300+r()*900)/50)*50;
   l.addr=`${l.street}, ${2+Math.floor(((l.side==='W'||l.side==='E'?l.y:l.x)%STEP)/6)*2+(l.side==='N'||l.side==='E'?1:0)}`;
