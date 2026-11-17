@@ -1520,6 +1520,11 @@ const PICK_T=1.2,SLACK=3;
 const pickW=us=>{const mx=Math.max(...us);return us.map(u=>u>=mx-SLACK?Math.exp((u-mx)/PICK_T):0)};
 function pickPizza(pool,rnd=Math.random){if(!pool.length)return null;const w=pickW(pool.map(o=>o.u));let x=rnd()*w.reduce((a,b)=>a+b,0);
   for(let i=0;i<pool.length;i++){x-=w[i];if(x<=0)return pool[i]}return pool[pool.length-1]}
+/* Reputation gets harder as it grows: a customer is happy at HAPPY_BASE + HAPPY_STAR a star (60 at 1★, 80 at 5★), and
+   a good day's gain shrinks near the top (repGain: all of it at 1★, about a fifth at 4.5★). Losses are not softened. */
+const HAPPY_BASE=55,HAPPY_STAR=5,REP_TOP=5.25;
+const happyAt=()=>HAPPY_BASE+state.rep*HAPPY_STAR;
+const repGain=d=>d>0?d*Math.max(.12,(REP_TOP-state.rep)/(REP_TOP-1)):d;
 function simulateDay(){
   const s=state,menuA=s.menu.map(p=>({p,a:analyze(p),need:pizzaNeeds(p),base:baseCostOf(p)})),mix=segMix(),cap=capacity(),r=s.rival;
   const N=expectedCustomers();const TH=4.2,REGULARS=.45;const events=[];
@@ -1559,7 +1564,7 @@ function simulateDay(){
         seatFree[k]=Math.max(t,seatFree[k])+EAT;
         served++;revenue+=m.p.price;ingCost+=m.base+useStock(m);sales[m.p.id]=(sales[m.p.id]||0)+1;(bySeg[seg]||(bySeg[seg]={}))[m.p.id]=(bySeg[seg][m.p.id]||0)+1;e.price=m.p.price;e.pid=m.p.id;
         const ap=m.a.appeal[seg],over=m.p.price-fairPrice(ap,m.a.cost);const sat=ap+noise()*5-Math.max(0,over)*7+(atm[seg]-35)/7;
-        if(sat>=62){happy++;repDelta+=.008;e.out='happy';if(Math.random()<.25)quotes.push([seg,happyQuote(seg,m.p.name)])}
+        if(sat>=happyAt()){happy++;repDelta+=.008;e.out='happy';if(Math.random()<.25)quotes.push([seg,happyQuote(seg,m.p.name)])}
         else{unhappy++;repDelta-=.03;e.out='meh';const bad=m.a.notes.find(n=>n[0]==='bad'&&n[2]);quotes.push([seg,over>1.5?tx('qt.dear',{p:eur(m.p.price)}):bad?bad[2]:tx('qt.meh')])}
       }else{full++;repDelta-=.012;e.out='full';if(Math.random()<.3)quotes.push([seg,tx('qt.full')])}
     }else if(ru>=TH){e.target='rival';toRival++;if(best&&Math.random()<.12)quotes.push([seg,tx(r.promo?'qt.promo':best.p.price>r.price+1.5?'qt.cheaper':'qt.taste',{r:r.name})])}
@@ -1600,7 +1605,7 @@ function shopDay(res,day,watched){
   const s=state,r=s.rival,sal=s.cooks*SALARY,news=[];
   const fee=TIER_FEE[s.tier]||0,rent=shopRent(),profit=r2(res.revenue-res.ingCost-rent-sal-fee);
   s.money=r2(s.money+profit+(res.paidBefore||0));   // toppings from the pantry were paid when bought
-  if(res.stockAfter)s.stock=res.stockAfter;const repBefore=s.rep;s.rep=clamp(s.rep+clamp(res.repDelta,-.4,.25),0,5);
+  if(res.stockAfter)s.stock=res.stockAfter;const repBefore=s.rep;s.rep=r2(clamp(s.rep+repGain(clamp(res.repDelta,-.4,.25)),0,5));
   s.lastSales=res.sales;
   // the day goes into the history (HIST_DAYS days kept): pizzas by name, so a pizza taken off the menu keeps its past
   s.hist=[...(s.hist||[]),{d:day,n:res.served,N:res.N,rv:res.toRival,p:profit,v:res.revenue,r:+s.rep.toFixed(2),
@@ -2141,7 +2146,7 @@ function shopHTML(){
    Shop › City: Porto Magno (city.js). Drag the map, tap a building. With CITY_CASH in cash the player can rent a shop
    (its rent every day, works paid now) or buy one (price and works now, no rent). The new shop opens empty: no
    tables, no menu, an empty pantry, one oven and one pizzaiolo; its neighbourhood's customer mix and foot traffic,
-   the nearest rival (RIVAL_HOOD by neighbourhood) and a reputation of 1★ plus a fifth of the chain's best. */
+   the nearest rival (RIVAL_HOOD by neighbourhood) and a reputation of 1★ plus a tenth of the chain's best. */
 const CITY_CASH=4000;
 /* The bank: borrow in steps up to BANK_MAX; BANK_RATE of what you owe is charged every day
    (finishDay). Opening another shop needs CITY_CASH of your own money: cash minus what you owe. */
@@ -2155,7 +2160,7 @@ const lotKind=(l,i)=>lotShop(i)>=0?'mine':l.kind==='mine'?'taken':l.kind;
 function newShopData(l,buy){
   const best=Math.max(...state.shops.map((sh,i)=>i===state.cur?state.rep:sh.data?sh.data.rep:1));
   const rv=CITY.LOTS.filter(x=>x.kind==='rival').sort((a,b)=>Math.hypot(a.x-l.x,a.y-l.y)-Math.hypot(b.x-l.x,b.y-l.y))[0];
-  return {rep:r2(1+(best-1)*.2),ovens:1,cooks:1,deco:0,ads:false,menu:[],rival:{name:rv.name,...RIVAL_HOOD[l.hood],style:HOOD_STYLE[l.hood],promo:false},lastSales:{},
+  return {rep:r2(1+(best-1)*.1),ovens:1,cooks:1,deco:0,ads:false,menu:[],rival:{name:rv.name,...RIVAL_HOOD[l.hood],style:HOOD_STYLE[l.hood],promo:false},lastSales:{},
     room:{...starterRoom(0),items:[]},stock:{},tier:2,restockDays:3,supplier:1,hist:[],rent:buy?0:l.rent}}
 const SELL_SHARE=.7;
 function closeShop(k){const n=state.shops.length;if(anim||n<2||!state.shops[k])return;
