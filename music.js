@@ -256,10 +256,11 @@ const MUSIC = (() => {
     document.dispatchEvent(new CustomEvent('pm-music', { detail: song.title }));
   }
 
-  // browsers only allow sound after the player touches the page: start on the first tap or key
+  // browsers only allow sound after the player touches the page: the first tune comes FIRST_WAIT seconds after the first tap or key
+  const FIRST_WAIT = 60;
   function arm() {
     if (armed) return; armed = true;
-    const go = () => { window.removeEventListener('pointerdown', go); window.removeEventListener('keydown', go); if (prefOn()) setTimeout(() => { if (!current) play() }, 1500) };
+    const go = () => { window.removeEventListener('pointerdown', go); window.removeEventListener('keydown', go); if (prefOn()) setTimeout(() => { if (!current) play() }, FIRST_WAIT * 1000) };
     window.addEventListener('pointerdown', go); window.addEventListener('keydown', go);
   }
 
