@@ -79,6 +79,9 @@ for(const l of LOTS){
   l.addr=`${l.street}, ${2+Math.floor(((l.side==='W'||l.side==='E'?l.y:l.x)%STEP)/6)*2+(l.side==='N'||l.side==='E'?1:0)}`;
   l.paint=Math.floor(r()*5);l.tone=Math.floor(r()*3);
 }
+// every neighbourhood has a few free places (Riverside's villas came out all taken): two to rent and one for sale
+for(const h in HOODS){const free=k=>LOTS.filter(l=>l.hood===h&&l.kind===k).length,pool=LOTS.filter(l=>l.hood===h&&l.kind==='taken');
+  let i=0;while(free('rent')<2&&i<pool.length)pool[i++].kind='rent';while(free('sale')<1&&i<pool.length)pool[i++].kind='sale'}
 const lotAt=(x,y)=>LOTS.find(l=>x>=l.x&&x<l.x+l.w&&y>=l.y&&y<l.y+l.h)||null;
 
 /* ================= DRAWING ================= */
