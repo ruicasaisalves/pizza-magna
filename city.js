@@ -6,8 +6,10 @@
      base foot traffic (1-5).
    - LOTS: every building; shop lots have kind (mine: the player's first shop, rival, rent, sale, taken, land),
      street address, traffic, rent per day, sale price and condition (new, good, works with its cost).
-   - paint(): the still map (roads, blocks, roofs, landmarks, river) as a canvas, drawn once.
-   - life(ctx, dt): cars, boats and walkers, drawn on top every frame. */
+   - paint(owned): the still map (roads, blocks, roofs, landmarks, river) as a canvas; owned is the list of the
+     lots (indices into LOTS) where the player has a pizzeria, painted with its red-and-white awning. It is drawn
+     again only when that list changes.
+   - life(ctx, dt): cars, boats and walkers, drawn on top every frame, at LIFE_SPEED of their own speed. */
 const CITY=(()=>{
 /* ================= CITY LAYOUT ================= */
 const ROAD=24,BLK=112,STEP=BLK+ROAD,NBX=6,NBY=5,RIVER=64;
@@ -120,6 +122,8 @@ function hip(w,h,ramp,hole){
 }
 const WALLS={uni:['#b04a2e','#c9604a','#a0503a','#b86a4a','#9a4630'],baixa:['#f2d27a','#eaa79c','#9fc7d8','#f6eedf','#c9e0b0'],resid:['#f6eedf','#efe3c8','#f2d9c0','#e8eef0','#f6eedf'],chique:['#fbf6ec','#fbf6ec','#efe9dc','#fbf6ec','#f4efe4']};
 // shop or house front: upper windows, then the ground floor (shopfront, boarded up, or door and windows)
+let OWN=new Set();   // lots the player has opened a pizzeria in (set by paint)
+const K=l=>OWN.has(l)?'mine':l.kind;
 function facade(x,y,w,h,l,shop){
   const wall=WALLS[l.hood][l.paint];
   R(wall,x,y,w,h);R('rgba(255,255,255,.3)',x,y,w,1);R('rgba(0,0,0,.3)',x,y+h-1,w,1);
@@ -127,14 +131,14 @@ function facade(x,y,w,h,l,shop){
   const up=h>=12;
   if(up)for(let i=x+3;i+3<=x+w-2;i+=6){R('#2b1b14',i,y+2,3,4);R('#9ccbe6',i,y+2,3,2);if(l.hood==='baixa')R('#2a6328',i-1,y+2,1,4)}
   const gy=up?y+7:y+2,gh=h-(up?8:3);
-  const empty=l.kind==='rent'||l.kind==='sale';
+  const k=K(l),empty=k==='rent'||k==='sale';
   if(!shop){const dx=x+Math.floor(w/2)-2;R('#4a2a14',dx,gy,4,gh);if(w>12){R('#2b1b14',x+3,gy+1,3,3);R('#9ccbe6',x+3,gy+1,3,2);R('#2b1b14',x+w-6,gy+1,3,3);R('#9ccbe6',x+w-6,gy+1,3,2)}}
   else if(empty){for(let i=x+2;i<x+w-2;i+=3)R(i%2?'#6e3c1a':'#9a5a2c',i,gy,3,gh);R('#4a2a14',x+Math.floor(w/2)-2,gy,4,gh)}
   else{R('#2b1b14',x+2,gy,w-4,gh);R('#5b8fae',x+3,gy+1,w-6,gh-1);R('#9ccbe6',x+3,gy+1,Math.floor((w-6)/2),1);R('#4a2a14',x+Math.floor(w/2)-2,gy+1,4,gh-1);
-    const aw=l.kind==='mine'?['#c4352a','#f6eedf']:l.kind==='rival'?['#e0861e','#4a2a14']:[['#2e7b2c','#f6eedf'],['#2f68c8','#f6eedf'],['#7a2e6e','#f2d27a'],['#c4352a','#2a6328']][l.tone+(l.paint%2)];
+    const aw=k==='mine'?['#c4352a','#f6eedf']:k==='rival'?['#e0861e','#4a2a14']:[['#2e7b2c','#f6eedf'],['#2f68c8','#f6eedf'],['#7a2e6e','#f2d27a'],['#c4352a','#2a6328']][l.tone+(l.paint%2)];
     for(let i=0;i<w-2;i++)R(i%4<2?aw[0]:aw[1],x+1+i,gy-2,1,3);R('rgba(0,0,0,.25)',x+1,gy+1,w-2,1);
-    if(l.kind==='mine'){disc(x+w-6,gy-5,2,'#dc9b4e');R('#c9381f',x+w-7,gy-6,2,2);R('#f8e2a0',x+w-6,gy-5,1,1)}}
-  if(empty){R('#2b1b14',x+w-9,y+h-9,8,6);R(KCOL[l.kind],x+w-8,y+h-8,6,4)}
+    if(k==='mine'){disc(x+w-6,gy-5,2,'#dc9b4e');R('#c9381f',x+w-7,gy-6,2,2);R('#f8e2a0',x+w-6,gy-5,1,1)}}
+  if(empty){R('#2b1b14',x+w-9,y+h-9,8,6);R(KCOL[k],x+w-8,y+h-8,6,4)}
 }
 function courtyard(x,y,w,h,hood,rnd){
   if(hood==='uni'){R('#6c6359',x,y,w,h);for(let i=x+3;i<x+w-3;i+=6){R('#e9e4d4',i,y+FH+3,1,6);R('#e9e4d4',i,y+h-9,1,6)}R('#e9e4d4',x+3,y+FH+9,w-6,1);R('#e9e4d4',x+3,y+h-10,w-6,1)}
@@ -156,7 +160,9 @@ function blockPerim(b){
     if(l.blk.hood==='baixa'&&l.paint===2){R('#2b1b14',l.x+l.w-9,l.y+(l.side==='S'?D-10:4),5,6);R('#7e3220',l.x+l.w-8,l.y+(l.side==='S'?D-9:5),3,4)}   // chimney
   }
   for(const l of b.lots)if(l.side==='S')facade(l.x,by+RH,l.w,FH,l,true);
-  for(const l of b.lots)if(l.side==='N'){const x0=Math.max(l.x,bx+D),x1=Math.min(l.x+l.w,bx+BLK-D);if(x1-x0>3)facade(x0,by+D,x1-x0,FH,{...l,kind:'taken'},false)}
+  for(const l of b.lots)if(l.side==='N'){const x0=Math.max(l.x,bx+D),x1=Math.min(l.x+l.w,bx+BLK-D),mine=K(l)==='mine';if(x1-x0>3)facade(x0,by+D,x1-x0,FH,{...l,kind:mine?'mine':'taken'},mine)}
+  // a pizzeria of the player's on a side street: its red-and-white awning along the wing's outer edge
+  for(const l of b.lots)if((l.side==='W'||l.side==='E')&&K(l)==='mine'){const x=l.side==='W'?l.x:l.x+l.w-3;for(let y=l.y+1;y<l.y+l.h-1;y++)R((y>>1)%2?'#c4352a':'#f6eedf',x,y,3,1)}
 }
 function blockHouses(b){
   const {bx,by}=b,rnd=rngOf(b.cx*17+b.cy*29);
@@ -168,7 +174,7 @@ function blockHouses(b){
     const w=l.w-4,rh=16;R('rgba(0,0,0,.3)',l.x+5,l.y+5,w,rh+10);
     X.drawImage(hip(w,rh,[ROOFS.slate,ROOFS.terra2,ROOFS.terra][l.tone]),l.x+2,l.y+2);
     facade(l.x+2,l.y+2+rh,w,10,l,false);
-    if(l.kind==='mine'||l.kind==='rival')facade(l.x+2,l.y+2+rh,w,10,l,true);
+    if(K(l)==='mine'||K(l)==='rival')facade(l.x+2,l.y+2+rh,w,10,l,true);
     R('#e2d4ba',l.x+l.w/2-1,l.y+28,3,2);
   }
 }
@@ -177,7 +183,7 @@ function blockVillas(b){
   R('#6fae52',bx,by,BLK,BLK);
   for(const l of b.lots){
     R('#2a6328',l.x,l.y,l.w,2);R('#2a6328',l.x,l.y,2,l.h);R('#82c060',l.x+3,l.y+3,l.w-6,1);
-    R('rgba(0,0,0,.3)',l.x+9,l.y+10,30,32);X.drawImage(hip(30,22,ROOFS.slate),l.x+6,l.y+7);facade(l.x+6,l.y+29,30,10,l,l.kind==='rival'||l.kind==='mine');
+    R('rgba(0,0,0,.3)',l.x+9,l.y+10,30,32);X.drawImage(hip(30,22,ROOFS.slate),l.x+6,l.y+7);facade(l.x+6,l.y+29,30,10,l,K(l)==='rival'||K(l)==='mine');
     R('#e2d4ba',l.x+39,l.y+7,13,26);R('#2f68c8',l.x+40,l.y+8,11,24);R('#5fb6e0',l.x+41,l.y+9,9,22);R('#d6edf8',l.x+43,l.y+12,3,1);R('#d6edf8',l.x+45,l.y+20,3,1);
     palm(l.x+44,l.y+38);R('#e2d4ba',l.x+20,l.y+39,3,15);
   }
@@ -248,7 +254,9 @@ const cars=[],walkers=[],boats=[];
   for(let i=0;i<160;i++){const v=r()<.5,line=Math.floor(r()*(v?NBX:NBY)),side=r()<.5;
     walkers.push({v,c:ROAD+line*STEP+(side?-4:BLK+2)+Math.floor(r()*2),p:r()*(v?LH:RX),sp:(4+r()*5)*(r()<.5?-1:1),col:['#c0392b','#3d8ee0','#e0b048','#3f8f3a','#f6eedf','#8a55d0','#f08a3b'][Math.floor(r()*7)]})}
   for(let i=0;i<3;i++)boats.push({x:RX+18+i*12,p:r()*LH,sp:(8+r()*6)*(i%2?1:-1)})}
+const LIFE_SPEED=.25;   // a quarter of the speeds above: a calm town seen from high up
 function drawLife(dt){
+  dt*=LIFE_SPEED;
   X=low;
   for(const w of walkers){const lim=w.v?LH:RX;w.p=(w.p+w.sp*dt+lim)%lim;const x=w.v?w.c:w.p,y=w.v?w.p:w.c;
     R('rgba(0,0,0,.25)',x+1,y+3,2,1);R(w.col,x,y+1,2,2);R('#eaa79c',x,y,2,1)}
@@ -258,8 +266,9 @@ function drawLife(dt){
     if(c.v){const x=c.c,y=p;R('rgba(0,0,0,.3)',x+1,y+2,6,10);R('#2b1b14',x-1,y-1,7,11);R(c.col,x,y,5,9);R('#9ccbe6',x+1,y+(c.dir>0?6:1),3,2);R('rgba(255,255,255,.35)',x,y,5,1)}
     else{const x=p,y=c.c;R('rgba(0,0,0,.3)',x+2,y+1,10,6);R('#2b1b14',x-1,y-1,11,7);R(c.col,x,y,9,5);R('#9ccbe6',x+(c.dir>0?6:1),y+1,2,3);R('rgba(255,255,255,.35)',x,y,9,1)}}
 }
-let painted=null;
+let paintedKey=null;
 return {ROAD,BLK,STEP,NBX,NBY,LW,LH,RX,D,HOODS,SEGS,KCOL,BLOCKS,LOTS,lotAt,
-  paint(){if(!painted){drawBG();painted=BG}return painted},
+  paint(owned=[]){const key=[...owned].sort((a,b)=>a-b).join(',');
+    if(key!==paintedKey){OWN=new Set(owned.map(i=>LOTS[i]).filter(Boolean));drawBG();paintedKey=key}return BG},
   life(ctx,dt){low=ctx;drawLife(dt)}};
 })();
