@@ -944,6 +944,9 @@ function openShop(i){if(i===state.cur||!state.shops[i]||!state.shops[i].data)ret
 // test bench: only Kitchen and Menu, its own save (window.PM_SANDBOX or #sandbox)
 // the public site used to show only this bench (until the restaurant went live); its players' saves are adopted in load()
 const SANDBOX=!!window.PM_SANDBOX||/^#sandbox(&|$)/.test(location.hash);
+// pizzamagna.xyz/dev (window.PM_DEV, set by dev/index.html) or #dev: features still being tried out (the City, the bank,
+// the harder reputation); the public site and itch.io run without them. Both share the same save.
+const DEV=!!window.PM_DEV||/[#&]dev(&|$)/.test(location.hash);
 // phone: a finger is the main input and the screen is small; #phone (or #sandbox&phone) forces it for testing on a PC
 const PHONE=/[#&]phone(&|$)/.test(location.hash)||(matchMedia('(pointer: coarse)').matches&&Math.min(screen.width,screen.height)<600);
 document.documentElement.classList.toggle('phone',PHONE);
@@ -1523,8 +1526,8 @@ function pickPizza(pool,rnd=Math.random){if(!pool.length)return null;const w=pic
 /* Reputation gets harder as it grows: a customer is happy at HAPPY_BASE + HAPPY_STAR a star (60 at 1★, 80 at 5★), and
    a good day's gain shrinks near the top (repGain: all of it at 1★, about a fifth at 4.5★). Losses are not softened. */
 const HAPPY_BASE=55,HAPPY_STAR=5,REP_TOP=5.25;
-const happyAt=()=>HAPPY_BASE+state.rep*HAPPY_STAR;
-const repGain=d=>d>0?d*Math.max(.12,(REP_TOP-state.rep)/(REP_TOP-1)):d;
+const happyAt=()=>DEV?HAPPY_BASE+state.rep*HAPPY_STAR:62;   // without DEV: the rule of 0.03a
+const repGain=d=>DEV&&d>0?d*Math.max(.12,(REP_TOP-state.rep)/(REP_TOP-1)):d;
 function simulateDay(){
   const s=state,menuA=s.menu.map(p=>({p,a:analyze(p),need:pizzaNeeds(p),base:baseCostOf(p)})),mix=segMix(),cap=capacity(),r=s.rival;
   const N=expectedCustomers();const TH=4.2,REGULARS=.45;const events=[];
@@ -2135,7 +2138,7 @@ function shopHTML(){
     ${(state.tips||[]).length?`<ul class="sub" style="margin:6px 0 0;padding-left:18px">${state.tips.slice(0,6).flatMap(tipText).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
     <div class="foot"><span></span><button class="btn primary" data-act="study" ${state.studyWeek===weekOf(state.day)||state.money<STUDY_COST?'disabled':''}>${state.studyWeek===weekOf(state.day)?t('study.done'):t('study.btn')}</button></div></div>
   <div class="card"><div><h3>${t('sup.title')}</h3><p class="sub">${t('sup.lead')}</p><div class="modepick" style="margin-top:8px">${[1,2,3].map(k=>`<button data-act="supplier" data-v="${k}" aria-pressed="${state.supplier===k}"><b>${t('sup.'+k)}</b><span>${t(k===1?'sup.d1':'sup.d',{q:SUPPLIER[k].q,m:Math.round((SUPPLIER[k].m-1)*100)})}</span></button>`).join('')}</div></div></div>
-  <div class="shop">${state.tier===1?'':`<div class="card"><div class="row" style="justify-content:space-between"><h3>${t('st.title')}</h3><span class="tag">${t('mg.t'+state.tier)}</span></div><p class="sub">${t('st.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="stock">${t('st.title')}</button></div></div>`}<div class="card"><div class="row" style="justify-content:space-between"><h3>${t('rm.title')}</h3><span class="tag">${t('rm.seats',{n:roomA().seats})}</span></div><p class="sub">${t('rm.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="sala">${t('rm.title')}</button></div></div><div class="card"><div class="row" style="justify-content:space-between"><h3>${t('city.title')}</h3><span class="tag">${state.shops.length}</span></div><p class="sub">${t('city.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="cidade">${t('city.title')}</button></div></div>${bankHTML()}${SHOP.map(it=>{const c=it.cost(),byMgr=it.mgr&&state.tier===1;const ok=it.ok()&&!byMgr;return `<div class="card"><div class="row" style="justify-content:space-between"><h3>${it.n}</h3><span class="tag">${byMgr?t('mg.hires'):it.lvl()}</span></div><p class="sub">${it.d}</p>
+  <div class="shop">${state.tier===1?'':`<div class="card"><div class="row" style="justify-content:space-between"><h3>${t('st.title')}</h3><span class="tag">${t('mg.t'+state.tier)}</span></div><p class="sub">${t('st.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="stock">${t('st.title')}</button></div></div>`}<div class="card"><div class="row" style="justify-content:space-between"><h3>${t('rm.title')}</h3><span class="tag">${t('rm.seats',{n:roomA().seats})}</span></div><p class="sub">${t('rm.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="sala">${t('rm.title')}</button></div></div>${DEV?`<div class="card"><div class="row" style="justify-content:space-between"><h3>${t('city.title')}</h3><span class="tag">${state.shops.length}</span></div><p class="sub">${t('city.card')}</p><div class="foot"><span></span><button class="btn primary" data-tab-go="cidade">${t('city.title')}</button></div></div>${bankHTML()}`:''}${SHOP.map(it=>{const c=it.cost(),byMgr=it.mgr&&state.tier===1;const ok=it.ok()&&!byMgr;return `<div class="card"><div class="row" style="justify-content:space-between"><h3>${it.n}</h3><span class="tag">${byMgr?t('mg.hires'):it.lvl()}</span></div><p class="sub">${it.d}</p>
     <div class="foot"><b class="num">${ok?eur(c):''}</b><div class="row">${it.id==='cook'&&state.cooks>1?`<button class="btn sm ghost" data-act="fire">${t('shop.fire')}</button>`:''}<button class="btn ${ok?'primary':''}" data-act="buy" data-id="${it.id}" ${ok&&state.money>=c?'':'disabled'}>${t(ok?'shop.buy':'shop.done')}</button></div></div></div>`}).join('')}
   </div>
   <div class="card"><h3>${t('shop.soon')}</h3><p class="sub">${t('shop.soonlead')}</p></div>
