@@ -955,7 +955,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.03f';
+const VERSION='0.03g';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -2212,39 +2212,40 @@ function cityInfo(){const el=$('#cinfo');if(!el)return;const i=CV.sel,l=i!=null?
   el.querySelectorAll('[data-shopgo]').forEach(b=>b.onclick=()=>{if(anim)return;openShop(+b.dataset.shopgo);CV.sel=null;save();render();toast(t('shop.now',{x:shopName()}))});
   el.querySelectorAll('[data-lot]').forEach(b=>b.onclick=()=>{const n=+b.dataset.lot;if(CV.armed!==n){CV.armed=n;cityInfo();setTimeout(()=>{if(CV.armed===n){CV.armed=null;cityInfo()}},3000);return}CV.armed=null;openLot(n,!!b.dataset.buy)});
   el.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{const n=+b.dataset.close,key='c'+n;if(CV.armed!==key){CV.armed=key;cityInfo();setTimeout(()=>{if(CV.armed===key){CV.armed=null;cityInfo()}},3000);return}CV.armed=null;closeShop(n)});
-  const bk=el.querySelector('[data-cback]');if(bk)bk.onclick=()=>{CV.sel=null;CV.armed=null;cityInfo()}}
-function setupCity(){const cv=$('#city');if(!cv)return;cancelAnimationFrame(CV.raf);
+  const bk=el.querySelector('[data-cback]');if(bk)bk.onclick=()=>{CV.sel=null;CV.armed=null;cityInfo()}
+  if(CV.draw)CV.draw()}
+// the map is drawn only when something changes (CV.draw: a drag, the zoom, a building or a neighbourhood picked); nothing moves
+function setupCity(){const cv=$('#city');if(!cv)return;cancelAnimationFrame(CV.raf);CV.raf=0;
   const C=CITY,bg=C.paint(state.shops.map(sh=>sh.lot)),low=document.createElement('canvas');low.width=C.LW;low.height=C.LH;const lc=low.getContext('2d'),m=cv.getContext('2d');
   const vw=()=>cv.width/CV.s,vh=()=>cv.height/CV.s;
   const keep=()=>{const c=CV.cam;c.x=Math.max(0,Math.min(C.LW-vw(),c.x));c.y=Math.max(0,Math.min(C.LH-vh(),c.y));if(vw()>C.LW)c.x=(C.LW-vw())/2;if(vh()>C.LH)c.y=(C.LH-vh())/2};
   const centre=(x,y)=>{CV.cam.x=x-vw()/2;CV.cam.y=y-vh()/2;keep()};
   const fit=()=>{const dpr=Math.min(devicePixelRatio||1,3),cw=cv.clientWidth,ch=Math.round(Math.min(560,Math.max(300,cw*.75)));cv.style.height=ch+'px';cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr);CV.s=Math.max(1,Math.round(CV.z*dpr));keep()};
   if(!CV.cam){CV.cam={x:0,y:0};fit();const me=C.LOTS[curShop().lot];centre(me.x+me.w/2,me.y+me.h/2)}else fit();
-  CV.zoom=d=>{const cx=CV.cam.x+vw()/2,cy=CV.cam.y+vh()/2;CV.z=Math.max(1,Math.min(3,CV.z+d*.5));fit();centre(cx,cy)};
-  CV.focus=h=>{const bl=C.BLOCKS.filter(x=>x.hood===h);centre(bl.reduce((a,x)=>a+x.bx,0)/bl.length+C.BLK/2,bl.reduce((a,x)=>a+x.by,0)/bl.length+C.BLK/2)};
+  CV.zoom=d=>{const cx=CV.cam.x+vw()/2,cy=CV.cam.y+vh()/2;CV.z=Math.max(1,Math.min(3,CV.z+d*.5));fit();centre(cx,cy);CV.draw()};
+  CV.focus=h=>{const bl=C.BLOCKS.filter(x=>x.hood===h);centre(bl.reduce((a,x)=>a+x.bx,0)/bl.length+C.BLK/2,bl.reduce((a,x)=>a+x.by,0)/bl.length+C.BLK/2);CV.draw()};
   const ribbon=(text,x,y,fs,fg,bgc)=>{m.font=`700 ${fs}px Silkscreen, monospace`;const tw=m.measureText(text).width+fs*.9,bx=Math.round(x-tw/2);
     m.fillStyle='#120a04';m.fillRect(bx-2,Math.round(y-2),Math.round(tw+4),Math.round(fs*1.5+4));m.fillStyle=bgc;m.fillRect(bx,Math.round(y),Math.round(tw),Math.round(fs*1.5));
     m.fillStyle=fg;m.textBaseline='middle';m.textAlign='left';m.fillText(text,bx+fs*.45,y+fs*.8)};
-  let last=performance.now();
-  const frame=now=>{if(!cv.isConnected){CV.raf=0;return}const dt=Math.min(.05,(now-last)/1000);last=now;
-    lc.drawImage(bg,0,0);C.life(lc,dt);
+  const frame=()=>{CV.raf=0;if(!cv.isConnected)return;
+    lc.drawImage(bg,0,0);C.life(lc,0);
     if(CV.hood){lc.fillStyle='rgba(18,10,4,.55)';for(const b of C.BLOCKS)if(b.hood!==CV.hood)lc.fillRect(b.bx-6,b.by-6,C.BLK+12,C.BLK+12)}
     const sx=Math.round(CV.cam.x*CV.s)/CV.s,sy=Math.round(CV.cam.y*CV.s)/CV.s,P=(x,y)=>[(x-sx)*CV.s,(y-sy)*CV.s],dpr=cv.width/cv.clientWidth,fs=Math.round(Math.max(8*dpr,Math.min(13*dpr,CV.s*4.2)));
     m.imageSmoothingEnabled=false;m.fillStyle='#2a1407';m.fillRect(0,0,cv.width,cv.height);m.drawImage(low,sx,sy,vw(),vh(),0,0,cv.width,cv.height);
     for(const b of C.BLOCKS)if(b.land){const [x,y]=P(b.bx+C.BLK/2,b.by+3);ribbon(t('land.'+b.land).toUpperCase(),x,y,fs*.85,'#fbe39a','rgba(42,20,7,.85)')}
     C.LOTS.forEach((l,i)=>{const k=lotKind(l,i);if(!['mine','rival','rent','sale'].includes(k)||(CV.z<1.5&&(k==='rent'||k==='sale')))return;
       const [x,y]=P(l.x+l.w/2,l.y+(l.side==='S'?C.D*.45:l.h*.38));ribbon(t('city.pin.'+k)+(k==='mine'&&lotShop(i)===state.cur?' ★':''),x,y-fs*.75,fs*.8,'#fff',C.KCOL[k])});
-    if(CV.sel!=null){const l=C.LOTS[CV.sel],[x,y]=P(l.x,l.y),wd=Math.max(2,dpr*2);m.strokeStyle='#120a04';m.lineWidth=wd*2;m.strokeRect(x,y,l.w*CV.s,l.h*CV.s);m.strokeStyle=Math.floor(now/400)%2?'#ffcf4a':'#fbe39a';m.lineWidth=wd;m.strokeRect(x,y,l.w*CV.s,l.h*CV.s)}
-    CV.raf=requestAnimationFrame(frame)};
+    if(CV.sel!=null){const l=C.LOTS[CV.sel],[x,y]=P(l.x,l.y),wd=Math.max(2,dpr*2);m.strokeStyle='#120a04';m.lineWidth=wd*2;m.strokeRect(x,y,l.w*CV.s,l.h*CV.s);m.strokeStyle='#ffcf4a';m.lineWidth=wd;m.strokeRect(x,y,l.w*CV.s,l.h*CV.s)}};
+  CV.draw=()=>{if(!CV.raf)CV.raf=requestAnimationFrame(frame)};
   // drag to move, tap a building to see it
   const drag={on:false,moved:false};const toMap=e=>{const r=cv.getBoundingClientRect();return [CV.cam.x+(e.clientX-r.left)/r.width*vw(),CV.cam.y+(e.clientY-r.top)/r.height*vh()]};
   cv.onpointerdown=e=>{Object.assign(drag,{on:true,moved:false,x:e.clientX,y:e.clientY,cx:CV.cam.x,cy:CV.cam.y});try{cv.setPointerCapture(e.pointerId)}catch(_){}};
   cv.onpointermove=e=>{if(!drag.on)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>6)drag.moved=true;
-    if(drag.moved){const k=vw()/cv.getBoundingClientRect().width;CV.cam.x=drag.cx-dx*k;CV.cam.y=drag.cy-dy*k;keep()}};
+    if(drag.moved){const k=vw()/cv.getBoundingClientRect().width;CV.cam.x=drag.cx-dx*k;CV.cam.y=drag.cy-dy*k;keep();CV.draw()}};
   cv.onpointerup=e=>{if(drag.on&&!drag.moved){const l=C.lotAt(...toMap(e));CV.sel=l?C.LOTS.indexOf(l):null;CV.armed=null;CV.hood=null;cityInfo()}drag.on=false};
   cv.onpointercancel=()=>{drag.on=false};
   cv.onwheel=e=>{e.preventDefault();CV.zoom(e.deltaY<0?1:-1)};
-  cityInfo();CV.raf=requestAnimationFrame(frame)}
+  cityInfo();CV.draw();if(document.fonts)document.fonts.ready.then(CV.draw)}   // again once the pixel fonts are in, for the labels
 
 /* ================= UI: HISTORY =================
    Sales history (Menu > Sales history, or from the end-of-day report): state.hist keeps the last HIST_DAYS days. */

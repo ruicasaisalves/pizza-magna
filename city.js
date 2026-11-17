@@ -9,7 +9,7 @@
    - paint(owned): the still map (roads, blocks, roofs, landmarks, river) as a canvas; owned is the list of the
      lots (indices into LOTS) where the player has a pizzeria, painted with its red-and-white awning. It is drawn
      again only when that list changes.
-   - life(ctx, dt): cars, boats and walkers, drawn on top every frame, at LIFE_SPEED of their own speed. */
+   - life(ctx, dt): cars, boats and walkers drawn on top, moving at LIFE_SPEED of their own speed (0: parked). */
 const CITY=(()=>{
 /* ================= CITY LAYOUT ================= */
 const ROAD=24,BLK=112,STEP=BLK+ROAD,NBX=6,NBY=5,RIVER=64;
@@ -258,7 +258,7 @@ const cars=[],walkers=[],boats=[];
   for(let i=0;i<160;i++){const v=r()<.5,line=Math.floor(r()*(v?NBX:NBY)),side=r()<.5;
     walkers.push({v,c:ROAD+line*STEP+(side?-4:BLK+2)+Math.floor(r()*2),p:r()*(v?LH:RX),sp:(4+r()*5)*(r()<.5?-1:1),col:['#c0392b','#3d8ee0','#e0b048','#3f8f3a','#f6eedf','#8a55d0','#f08a3b'][Math.floor(r()*7)]})}
   for(let i=0;i<3;i++)boats.push({x:RX+18+i*12,p:r()*LH,sp:(8+r()*6)*(i%2?1:-1)})}
-const LIFE_SPEED=.08;   // a small part of the speeds above: a calm town seen from high up, cars and people barely moving
+const LIFE_SPEED=0;   // parked: cars, boats and people stay where they are (the game's City screen draws only when something changes)
 function drawLife(dt){
   dt*=LIFE_SPEED;
   X=low;
