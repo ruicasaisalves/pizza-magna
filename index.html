@@ -954,7 +954,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.03b';
+const VERSION='0.03c';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -2486,6 +2486,7 @@ function render(){
   renderHeader();drawNextDay();
   const V={cozinha:kitchenHTML,menu:menuHTML,dia:dayHTML,loja:shopHTML,concurso:contestHTML,sala:roomEdHTML,stock:stockHTML,hist:histHTML,cidade:cityHTML};
   if(anim)state.tab='dia';
+  if(state.tab==='cidade'&&!DEV)state.tab='loja';   // the City is only on the dev build for now
   $('#view').innerHTML=V[state.tab]();
   document.querySelectorAll('#nav button').forEach(b=>{b.classList.toggle('on',b.dataset.tab===state.tab||((state.tab==='sala'||state.tab==='stock'||state.tab==='cidade')&&b.dataset.tab==='loja')||(state.tab==='hist'&&b.dataset.tab==='menu'));b.disabled=!!anim&&b.dataset.tab!=='dia'});
   pz=null;room=null;
