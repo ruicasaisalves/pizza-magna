@@ -101,6 +101,13 @@ function G.menuWhy(S, W, i)
   return t("menu.why." .. k, { g = t("seg." .. g), x = M[w].name, p = P.eur(dP) })
 end
 
+-- Reputation gets harder as it grows (as in index.html): happy at HAPPY_BASE + HAPPY_STAR a star, and a good day's
+-- gain shrinks near the top (repGain); losses are not softened.
+-- On the web it is still being tried out at pizzamagna.xyz/dev (DEV); here it stays off until it goes public (HARD_REP).
+local HARD_REP, HAPPY_BASE, HAPPY_STAR, REP_TOP = false, 55, 5, 5.25
+function G.happyAt(S) if not HARD_REP then return 62 end return HAPPY_BASE + S.rep * HAPPY_STAR end
+function G.repGain(S, d) if HARD_REP and d > 0 then return d * math.max(.12, (REP_TOP - S.rep) / (REP_TOP - 1)) end return d end
+
 function G.simulateDay(S)
   local menuA = {}
   for _, p in ipairs(S.menu) do menuA[#menuA + 1] = { p = p, a = P.analyze(p), need = pizzaNeeds(p), base = D.DOUGHS[p.dough].c + D.SAUCES[p.sauce].c } end
@@ -163,7 +170,7 @@ function G.simulateDay(S)
         local ap = m.a.appeal[seg]
         local over = m.p.price - G.fairPrice(ap, m.a.cost)
         local sat = ap + noise() * 5 - math.max(0, over) * 7 + (atm[seg] - 35) / 7
-        if sat >= 62 then
+        if sat >= G.happyAt(S) then
           res.happy = res.happy + 1; res.repDelta = res.repDelta + .008; e.out = "happy"
           if math.random() < .25 then quote(seg, t("qh." .. seg .. math.random(QH_N), { x = m.p.name })) end
         else
@@ -227,7 +234,7 @@ function G.finishDay(S, res)
   local profit = r2(res.revenue - res.ingCost - D.RENT - sal)
   S.money = r2(S.money + profit)
   local repBefore = S.rep
-  S.rep = clamp(S.rep + clamp(res.repDelta, -.4, .25), 0, 5)
+  S.rep = r2(clamp(S.rep + G.repGain(S, clamp(res.repDelta, -.4, .25)), 0, 5))
   S.lastSales = res.sales
   local contest
   if S.day % 5 == 0 then if S.contestEntry then contest = G.resolveContest(S) end; S.contestEntry = nil end

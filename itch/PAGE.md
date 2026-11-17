@@ -83,7 +83,7 @@ Every push to `main` sends the browser game to itch.io by itself (`.github/workf
 From the repo root:
 
 ```
-zip -r pizza-magna-itch.zip index.html music.js sw.js manifest.webmanifest assets
+zip -r pizza-magna-itch.zip index.html music.js city.js sw.js manifest.webmanifest assets
 ```
 
 On itch.io: Upload files › the zip › tick **This file will be played in the browser**. The game opens by itself from `index.html` at the root of the zip. (The zip is about 0.9 MB.) The game also lives at pizzamagna.xyz; players can use either, but the save is kept separately on each address.
