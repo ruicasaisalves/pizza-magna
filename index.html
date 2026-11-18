@@ -432,7 +432,7 @@ en:{
   'city.pick':'Drag the map to look around and tap a building to see it.','city.yours':'Your pizzerias','city.hoods':'Neighbourhoods','city.from':'from {x}/day','city.here':'You are here','city.go':'Go to this shop',
   'hood.uni':'University','hood.baixa':'Old Town','hood.resid':'Residential','hood.chique':'Riverside',
   'city.k.mine':'Your pizzeria','city.k.rival':'Rival','city.k.rent':'For rent','city.k.sale':'For sale','city.k.taken':'Occupied','city.k.land':'Landmark',
-  'city.pin.mine':'YOU','city.pin.rival':'VS','city.pin.rent':'RENT','city.pin.sale':'SALE',
+  'city.pin.mine':'YOU','city.pin.rival':'VS','city.sign.rent':'TO RENT','city.sign.sale':'FOR SALE',
   'city.traffic':'Foot traffic','city.cond':'Condition','city.rent':'Rent','city.price':'Price','city.perday':'/day','city.mix':'Customers here','city.works':'Works',
   'city.c.new':'Like new','city.c.good':'Good','city.c.works':'Needs work',
   'city.bRent':'Rent','city.bBuy':'Buy','city.sure':'Sure? Tap again','city.need':'You need {m} of your own (cash minus bank loans) to open another shop.',
@@ -518,7 +518,7 @@ pt:{
   'city.pick':'Arrasta o mapa para veres a cidade e toca num edifício.','city.yours':'As tuas pizzarias','city.hoods':'Bairros','city.from':'desde {x}/dia','city.here':'Estás aqui','city.go':'Ir para esta loja',
   'hood.uni':'Universidade','hood.baixa':'Baixa','hood.resid':'Residencial','hood.chique':'Beira-Rio',
   'city.k.mine':'A tua pizzaria','city.k.rival':'Rival','city.k.rent':'Para arrendar','city.k.sale':'À venda','city.k.taken':'Ocupado','city.k.land':'Ponto de interesse',
-  'city.pin.mine':'TU','city.pin.rival':'VS','city.pin.rent':'ARRENDA','city.pin.sale':'VENDE',
+  'city.pin.mine':'TU','city.pin.rival':'VS','city.sign.rent':'ARRENDA-SE','city.sign.sale':'VENDE-SE',
   'city.traffic':'Movimento','city.cond':'Estado','city.rent':'Renda','city.price':'Preço','city.perday':'/dia','city.mix':'Clientes aqui','city.works':'Obras',
   'city.c.new':'Como novo','city.c.good':'Bom','city.c.works':'Precisa de obras',
   'city.bRent':'Arrendar','city.bBuy':'Comprar','city.sure':'De certeza? Toca outra vez','city.need':'Precisas de {m} teus (caixa menos empréstimos) para abrir outra loja.',
@@ -2224,6 +2224,11 @@ function setupCity(){const cv=$('#city');if(!cv)return;cancelAnimationFrame(CV.r
   if(!CV.cam){CV.cam={x:0,y:0};fit();const me=C.LOTS[curShop().lot];centre(me.x+me.w/2,me.y+me.h/2)}else fit();
   CV.zoom=d=>{const cx=CV.cam.x+vw()/2,cy=CV.cam.y+vh()/2;CV.z=Math.max(1,Math.min(3,CV.z+d*.5));fit();centre(cx,cy);CV.draw()};
   CV.focus=h=>{const bl=C.BLOCKS.filter(x=>x.hood===h);centre(bl.reduce((a,x)=>a+x.bx,0)/bl.length+C.BLK/2,bl.reduce((a,x)=>a+x.by,0)/bl.length+C.BLK/2);CV.draw()};
+  const sign=(text,x,y,fs,bgc)=>{m.font=`700 ${fs}px Silkscreen, monospace`;const tw=Math.round(m.measureText(text).width+fs*1.2),th=Math.round(fs*1.9),post=Math.round(fs*1.1),bx=Math.round(x-tw/2),by=Math.round(y-post-th),u=Math.max(1,Math.round(fs/8));
+    m.fillStyle='rgba(0,0,0,.35)';m.fillRect(bx+u*2,by+u*2,tw,th);   // shadow
+    m.fillStyle='#3a2410';m.fillRect(Math.round(x-u*1.5),by+th,u*3,post);   // the post
+    m.fillStyle='#120a04';m.fillRect(bx-u,by-u,tw+u*2,th+u*2);m.fillStyle='#fff8e6';m.fillRect(bx,by,tw,th);m.fillStyle=bgc;m.fillRect(bx+u*2,by+u*2,tw-u*4,th-u*4);   // frame, white rim, board
+    m.fillStyle='#fff';m.textBaseline='middle';m.textAlign='center';m.fillText(text,x,by+th/2+u*.5);m.textAlign='left'};
   const ribbon=(text,x,y,fs,fg,bgc)=>{m.font=`700 ${fs}px Silkscreen, monospace`;const tw=m.measureText(text).width+fs*.9,bx=Math.round(x-tw/2);
     m.fillStyle='#120a04';m.fillRect(bx-2,Math.round(y-2),Math.round(tw+4),Math.round(fs*1.5+4));m.fillStyle=bgc;m.fillRect(bx,Math.round(y),Math.round(tw),Math.round(fs*1.5));
     m.fillStyle=fg;m.textBaseline='middle';m.textAlign='left';m.fillText(text,bx+fs*.45,y+fs*.8)};
@@ -2233,8 +2238,10 @@ function setupCity(){const cv=$('#city');if(!cv)return;cancelAnimationFrame(CV.r
     const sx=Math.round(CV.cam.x*CV.s)/CV.s,sy=Math.round(CV.cam.y*CV.s)/CV.s,P=(x,y)=>[(x-sx)*CV.s,(y-sy)*CV.s],dpr=cv.width/cv.clientWidth,fs=Math.round(Math.max(8*dpr,Math.min(13*dpr,CV.s*4.2)));
     m.imageSmoothingEnabled=false;m.fillStyle='#2a1407';m.fillRect(0,0,cv.width,cv.height);m.drawImage(low,sx,sy,vw(),vh(),0,0,cv.width,cv.height);
     for(const b of C.BLOCKS)if(b.land){const [x,y]=P(b.bx+C.BLK/2,b.by+3);ribbon(t('land.'+b.land).toUpperCase(),x,y,fs*.85,'#fbe39a','rgba(42,20,7,.85)')}
-    C.LOTS.forEach((l,i)=>{const k=lotKind(l,i);if(!['mine','rival','rent','sale'].includes(k)||(CV.z<1.5&&(k==='rent'||k==='sale')))return;
-      const [x,y]=P(l.x+l.w/2,l.y+(l.side==='S'?C.D*.45:l.h*.38));ribbon(t('city.pin.'+k)+(k==='mine'&&lotShop(i)===state.cur?' ★':''),x,y-fs*.75,fs*.8,'#fff',C.KCOL[k])});
+    C.LOTS.forEach((l,i)=>{const k=lotKind(l,i);if(!['mine','rival','rent','sale'].includes(k))return;
+      const [x,y]=P(l.x+l.w/2,l.y+(l.side==='S'?C.D*.45:l.h*.38));
+      if(k==='rent'||k==='sale')sign(t('city.sign.'+k),x,y,fs*(CV.z<1.5?.7:.85),C.KCOL[k]);
+      else ribbon(t('city.pin.'+k)+(k==='mine'&&lotShop(i)===state.cur?' ★':''),x,y-fs*.75,fs*.8,'#fff',C.KCOL[k])});
     if(CV.sel!=null){const l=C.LOTS[CV.sel],[x,y]=P(l.x,l.y),wd=Math.max(2,dpr*2);m.strokeStyle='#120a04';m.lineWidth=wd*2;m.strokeRect(x,y,l.w*CV.s,l.h*CV.s);m.strokeStyle='#ffcf4a';m.lineWidth=wd;m.strokeRect(x,y,l.w*CV.s,l.h*CV.s)}};
   CV.draw=()=>{if(!CV.raf)CV.raf=requestAnimationFrame(frame)};
   // drag to move, tap a building to see it
