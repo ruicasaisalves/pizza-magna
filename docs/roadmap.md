@@ -21,7 +21,7 @@ The public site runs the full game (it showed only the Kitchen and the Menu unti
 ### 1. City and property
 - **Done (first version):** Shop › City shows Porto Magno (`city.js`, also used by `docs/drafts/city.html`). With $4000 of your own money you can rent a lot (rent per day) or buy one; the new shop opens empty, with its neighbourhood's customers, its street's traffic and the nearest rival. Each shop has its own menu (the other shops' pizzas are offered as a recipe book), room, staff, pantry, reputation and history; the header arrows switch shops; one day runs every shop (the others in the background with their manager) and the report shows each one and the total. A bank lends up to $20,000 at 0.5% a day.
 - Your shops are painted as open pizzerias; a rented shop can be closed, a bought one sold for 70%.
-- Still to do: the number of tables of a lot, rivals' strategies per neighbourhood, the 3DS.
+- Still to do: the number of tables of a lot. (Rivals have a strategy per neighbourhood; the 3DS has the City since 0.04f.)
 - A pixel-art city map with neighbourhoods (university, tourist, residential, upmarket). Each has its own mix of the 4 customer groups.
 - Shops to **rent** (monthly rent, cheap to start) or **buy** (expensive, gains value, can be sold).
 - Each property has a size, a number of tables, street traffic, rent and condition (new or needing work).
@@ -39,7 +39,7 @@ The public site runs the full game (it showed only the Kitchen and the Menu unti
 
 ### 3. Staff
 - **Done (first version):** pizzaiolos and waiters are people with a name, two skills from 1 to 5 (pizzaiolos: speed and cooking; waiters: speed and charm) and their own wage; new candidates every day in the Shop's Team card; speed sets how many pizzas the kitchen makes and how many customers the waiters serve, cooking and charm make customers happier. Waiters are paid now (they used to be free, one more than the pizzaiolos).
-- Still to do: cashier and dishwasher, morale, training and raises, the 3DS.
+- Still to do: cashier and dishwasher, morale, training and raises. (The 3DS has the staff since 0.04f, without the manager hiring.)
 - **Roles**: pizzaiolo, waiter, cashier, dishwasher/cleaner. Today there are only pizzaiolos, as a count.
 - **Individual profiles**: name, skill, speed, salary and morale. Different candidates every day.
 - Training, raises and firing.

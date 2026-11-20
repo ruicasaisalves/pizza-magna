@@ -21,15 +21,23 @@ local L3 = {
          mkeys1 = "Up/Down pizza   </> price   A edit   X rename   Y remove",
          nav = "L/R or SELECT other screens   START quit", rename = "RENAME",
          dkeys = "A open the doors", drun = "</> speed   A skip to closing", rkeys = "A continue",
-         ckeys = "Up/Down pizza   A enter it", skeys = "Up/Down choose   A buy / choose" },
+         ckeys = "Up/Down pizza   A enter it", skeys = "Up/Down choose   A buy / choose   touch: hire, let go, bank",
+         hkeys = "Y sales history", hback = "Y back to the day",
+         citykeys = "D-pad or map: move   A rent, buy, go   Y close, sell   X zoom",
+         },
   pt = { keys1 = "</> ingrediente   L/R grupo   Cima massa   Baixo molho",
          keys2 = "A picar   X rodar   B desfazer   Y limpar   SELECT ecrã seguinte   START sair",
          mkeys1 = "Cima/Baixo pizza   </> preço   A editar   X nome   Y remover",
          nav = "L/R ou SELECT outros ecrãs   START sair", rename = "MUDAR NOME",
          dkeys = "A abrir portas", drun = "</> velocidade   A saltar para o fecho", rkeys = "A continuar",
-         ckeys = "Cima/Baixo pizza   A inscrever", skeys = "Cima/Baixo escolher   A comprar / escolher" },
+         ckeys = "Cima/Baixo pizza   A inscrever", skeys = "Cima/Baixo escolher   A comprar / escolher   toque: contratar, dispensar, banco",
+         hkeys = "Y histórico de vendas", hback = "Y voltar ao dia",
+         citykeys = "Cruz ou mapa: mover   A arrendar, comprar, ir   Y fechar, vender   X zoom",
+         },
 }
 local function l3(k) return L3[P.lang()][k] end
+local MINE_LOT = 1   -- the first shop's lot on the city map
+for i, l in ipairs(D.CITY.LOTS) do if l.kind == "mine" then MINE_LOT = i end end
 
 -- ---------------------------------------------------------------- state and save
 --[[ S.name/S.editing: the pizza on the bench (no name yet = "New pizza"; editing = id of the menu pizza it came from).
@@ -37,12 +45,57 @@ local function l3(k) return L3[P.lang()][k] end
 local S = { dough = "napo", sauce = "tomate", pieces = {}, sel = "fiambre", cut = "w", rot = {}, found = {}, lang = nil,
   name = nil, editing = nil, menu = nil, tab = "kitchen", msel = 1, nextId = 1, csel = 1, ssel = 1 }
 local anim, report = nil, nil   -- the day running in the street; the close-of-day report on screen
+local histOn = false             -- the Day's top screen shows the sales history instead of the LCD (Y)
 local cleared = nil          -- the pizza the bin just cleared: undo on an empty bench brings it back
 local dirty, saveTimer = false, 0
 local toasts = {}
 local an                     -- analysis of the pizza on the bench (recomputed on every change)
 
 -- save.txt: one "key=value" a line; each menu pizza is a "pizza=" line of tab-separated fields
+-- the shops on one "shops=" line, as a Lua table literal (the parked ones carry their data; pieces packed)
+local function ser(v)
+  local ty = type(v)
+  if ty == "number" then return string.format("%.4g", v) == tostring(v) and tostring(v) or string.format("%.6f", v) end
+  if ty == "boolean" then return tostring(v) end
+  if ty == "string" then return '"' .. v:gsub("\\", "\\\\"):gsub('"', '\\"'):gsub("\n", "\\n"):gsub("\r", "") .. '"' end
+  if ty ~= "table" then return "nil" end
+  local out = {}
+  for k, x in pairs(v) do
+    if k ~= "an" then out[#out + 1] = (type(k) == "number" and ("[" .. k .. "]") or ("[" .. ser(k) .. "]")) .. "=" .. ser(x) end
+  end
+  return "{" .. table.concat(out, ",") .. "}"
+end
+local function shopsLine()
+  local list = {}
+  for i, sh in ipairs(S.shops) do
+    local x = { hood = sh.hood, lot = sh.lot, traffic = sh.traffic, owned = sh.owned }
+    if sh.data then
+      local d = {}
+      for k, v in pairs(sh.data) do d[k] = v end
+      d.menu = {}
+      for _, p in ipairs(sh.data.menu) do d.menu[#d.menu + 1] = { id = p.id, name = p.name, dough = p.dough, sauce = p.sauce, price = p.price, pk = P.packPieces(p.pieces) } end
+      x.data = d
+    end
+    list[i] = x
+  end
+  return "shops=" .. ser(list)
+end
+local function readShops(val)
+  local f = (loadstring or load)("return " .. val)
+  local ok, list = pcall(f or error)
+  if not ok or type(list) ~= "table" then return nil end
+  for _, sh in ipairs(list) do
+    if sh.data then
+      for _, p in ipairs(sh.data.menu or {}) do
+        local pieces = {}
+        pcall(function() pieces = P.unpackPieces(p.pk or "") end)
+        p.pieces, p.pk = pieces, nil
+      end
+      sh.data.hist, sh.data.lastSales, sh.data.staff = sh.data.hist or {}, sh.data.lastSales or {}, sh.data.staff or {}
+    end
+  end
+  return list
+end
 local function save()
   local rot = {}
   for k, v in pairs(S.rot) do rot[#rot + 1] = k .. ":" .. v end
@@ -51,17 +104,26 @@ local function save()
     "rot=" .. table.concat(rot, ","), "found=" .. table.concat(S.found, ","), "pieces=" .. P.packPieces(S.pieces),
     "name=" .. (S.name or ""), "editing=" .. (S.editing or ""), "tab=" .. S.tab, "msel=" .. S.msel, "nextid=" .. S.nextId, "menu=1",
     "day=" .. S.day, "money=" .. string.format("%.2f", S.money), "rep=" .. string.format("%.4f", S.rep), "ovens=" .. S.ovens,
-    "cooks=" .. S.cooks, "ads=" .. (S.ads and 1 or 0), "supplier=" .. S.supplier, "entry=" .. (S.contestEntry or ""),
+    "loan=" .. string.format("%.2f", S.loan or 0), "candday=" .. (S.candDay or ""), "ads=" .. (S.ads and 1 or 0), "supplier=" .. S.supplier, "entry=" .. (S.contestEntry or ""),
     "studyweek=" .. S.studyWeek, "over=" .. (S.over and 1 or 0), "goal=" .. (S.goalDone and 1 or 0),
     "rival=" .. table.concat({ S.rival.name, S.rival.q, string.format("%.2f", S.rival.price), S.rival.promo and 1 or 0 }, "\t"),
   }
   local sales = {}
   for id, n in pairs(S.lastSales) do sales[#sales + 1] = id .. ":" .. n end
   lines[#lines + 1] = "sales=" .. table.concat(sales, ",")
+  lines[#lines + 1] = "cur=" .. S.cur
+  lines[#lines + 1] = shopsLine()
   for _, n in ipairs(S.news) do
     local f = { n.k }
     for k, v in pairs(n.v) do f[#f + 1] = k .. "=" .. tostring(v):gsub("[\t\n]", " ") end
     lines[#lines + 1] = "news=" .. table.concat(f, "\t")
+  end
+  -- people: id, name, role, speed, second skill, wage, look (staff = the team, cand = today's candidates)
+  for _, l in ipairs({ { "staff", S.staff }, { "cand", S.cands or {} } }) do
+    for _, x in ipairs(l[2]) do lines[#lines + 1] = l[1] .. "=" .. table.concat({ x.id, x.n, x.r, x.sp, x.sk, x.w, x.v }, "\t") end
+  end
+  for _, h in ipairs(S.hist) do
+    lines[#lines + 1] = "hist=" .. table.concat({ h.d, h.n, h.N, h.rv, string.format("%.2f", h.p), string.format("%.2f", h.v), string.format("%.2f", h.r), (h.top or ""):gsub("[\t\n]", " "), h.topN or 0 }, "\t")
   end
   for _, c in ipairs(S.contestLog) do lines[#lines + 1] = "ctlog=" .. table.concat({ c.day, c.theme, c.pizza, c.pos, c.prize }, "\t") end
   for _, x in ipairs(S.tips) do lines[#lines + 1] = "tip=" .. table.concat({ x.day, x.seg, x.ing, x.combo or "" }, "\t") end
@@ -74,7 +136,7 @@ end
 local function load()
   local ok, txt = pcall(love.filesystem.read, "save.txt")
   if not ok or not txt then return end
-  local v, menu, news, ctlog, tips = {}, {}, {}, {}, {}
+  local v, menu, news, ctlog, tips, people, hist = {}, {}, {}, {}, {}, { staff = {}, cand = {} }, {}
   local function fields(val) local f = {}; for x in (val .. "\t"):gmatch("([^\t]*)\t") do f[#f + 1] = x end; return f end
   for line in txt:gmatch("[^\n]+") do
     local k, val = line:match("^(%w+)=(.*)$")
@@ -86,6 +148,16 @@ local function load()
     elseif k == "ctlog" then
       local f = fields(val)
       ctlog[#ctlog + 1] = { day = tonumber(f[1]) or 0, theme = f[2], pizza = f[3], pos = tonumber(f[4]) or 0, prize = tonumber(f[5]) or 0 }
+    elseif k == "staff" or k == "cand" then
+      local f = fields(val)
+      if f[3] == "cook" or f[3] == "waiter" then
+        local n = function(i, d) return math.max(1, math.min(5, tonumber(f[i]) or d)) end
+        people[k][#people[k] + 1] = { id = f[1], n = f[2], r = f[3], sp = n(4, 3), sk = n(5, 3), w = tonumber(f[6]) or 30, v = tonumber(f[7]) or 0 }
+      end
+    elseif k == "hist" then
+      local f = fields(val)
+      local n = function(i) return tonumber(f[i]) or 0 end
+      hist[#hist + 1] = { d = n(1), n = n(2), N = n(3), rv = n(4), p = n(5), v = n(6), r = n(7), top = f[8] or "", topN = n(9) }
     elseif k == "tip" then
       local f = fields(val)
       if D.SEG[f[2]] and D.ING[f[3]] then tips[#tips + 1] = { day = tonumber(f[1]) or 1, seg = f[2], ing = f[3], combo = f[4] ~= "" and f[4] or nil } end
@@ -97,6 +169,7 @@ local function load()
         pcall(function() pieces = P.unpackPieces(f[6]) end)
         menu[#menu + 1] = { id = f[1], price = tonumber(f[2]) or 9, dough = f[3], sauce = f[4], name = f[5], pieces = pieces }
       end
+    elseif k == "shops" then v.shops = readShops(val)
     elseif k then v[k] = val end
   end
   if v.menu then S.menu = menu end   -- saves from before the Menu get the starter pizzas
@@ -107,7 +180,15 @@ local function load()
   S.nextId = tonumber(v.nextid) or 1
   if v.day then   -- saves from before the restaurant start a new game in load (S.day stays nil)
     S.day, S.money, S.rep = tonumber(v.day) or 1, tonumber(v.money) or 1000, tonumber(v.rep) or 1
-    S.ovens, S.cooks, S.ads = tonumber(v.ovens) or 1, tonumber(v.cooks) or 1, v.ads == "1"
+    S.ovens, S.ads, S.loan = tonumber(v.ovens) or 1, v.ads == "1", tonumber(v.loan) or 0
+    -- the team; saves from before the staff profiles had a count of pizzaiolos (waiters were free): average people
+    if #people.staff > 0 then S.staff = people.staff
+    else local n = tonumber(v.cooks) or 1; S.staff = G.startStaff(S, n, math.ceil(n * 2 / 3)) end
+    S.cands, S.candDay, S.hist = people.cand, tonumber(v.candday), hist
+    -- the shops (saves from before the City: one shop on the first lot)
+    S.shops = type(v.shops) == "table" and #v.shops > 0 and v.shops or { { lot = MINE_LOT } }
+    S.cur = math.max(1, math.min(#S.shops, tonumber(v.cur) or 1))
+    S.shops[S.cur].data = nil
     S.supplier = D.SUPPLIER[tonumber(v.supplier)] and tonumber(v.supplier) or 1
     S.contestEntry = v.entry ~= "" and v.entry or nil
     S.studyWeek, S.over, S.goalDone = tonumber(v.studyweek) or -1, v.over == "1", v.goal == "1"
@@ -117,7 +198,7 @@ local function load()
     for id, n in (v.sales or ""):gmatch("([%w_]+):(%d+)") do S.lastSales[id] = tonumber(n) end
     S.news, S.contestLog, S.tips = news, ctlog, tips
   end
-  if not ({ kitchen = 1, menu = 1, day = 1, contest = 1, shop = 1 })[S.tab] then S.tab = "kitchen" end
+  if not ({ kitchen = 1, menu = 1, day = 1, contest = 1, shop = 1, city = 1 })[S.tab] then S.tab = "kitchen" end
   if v.lang then S.lang = v.lang end
   if v.dough and D.DOUGHS[v.dough] then S.dough = v.dough end
   if v.sauce and D.SAUCES[v.sauce] then S.sauce = v.sauce end
@@ -156,7 +237,10 @@ local function starterMenu()
 end
 -- the restaurant at the start of a game (freshState() in index.html)
 local function freshGame()
-  S.day, S.money, S.rep, S.ovens, S.cooks, S.ads, S.supplier = 1, 1000, 1, 1, 1, false, 1
+  S.day, S.money, S.rep, S.ovens, S.ads, S.supplier, S.loan = 1, 1000, 1, 1, false, 1, 0
+  S.staff, S.cands, S.candDay, S.hist = {}, {}, nil, {}
+  S.staff = G.startStaff(S, 1, 1)   -- one pizzaiolo and one waiter
+  S.shops, S.cur = { { lot = MINE_LOT } }, 1
   S.rival = { name = "Pizza Rápida", q = 52, price = 7, promo = false }
   S.news = { G.news("nw.start") }
   S.contestEntry, S.contestLog, S.lastSales, S.tips, S.studyWeek = nil, {}, {}, {}, -1
@@ -586,8 +670,8 @@ end
 
 local drawHeader
 -- the screens, in the order SELECT goes through them, and the header that names them
-local TABS = { "kitchen", "menu", "day", "contest", "shop" }
-local TAB_KEY = { kitchen = "nav.cozinha", menu = "nav.menu", day = "nav.dia", contest = "nav.concurso", shop = "nav.loja" }
+local TABS = { "kitchen", "menu", "day", "contest", "shop", "city" }
+local TAB_KEY = { kitchen = "nav.cozinha", menu = "nav.menu", day = "nav.dia", contest = "nav.concurso", shop = "nav.loja", city = "nav.cidade" }
 local function goTab(step)
   if anim or report then return end   -- the day runs to its end, and its report is read first
   local k = (idxIn(TABS, S.tab) - 1 + step) % #TABS + 1
@@ -736,7 +820,7 @@ local DOOR_OURS, DOOR_RIVAL, WALK = 86, 238, 70   -- door positions in the stree
 local function startDay()
   if anim or report then return end
   if #S.menu == 0 then toast(t("ct.need")); return end
-  syncWorld()
+  syncWorld(); histOn = false
   anim = { res = G.simulateDay(S), t = 0, speed = 1, idx = 1, cnt = { served = 0, rival = 0, left = 0, rev = 0 }, walkers = {}, bubbles = {} }
 end
 local function endDay()
@@ -807,10 +891,11 @@ local function lcdRows()
     { t("lcd.left"), tostring(c.left) },
     { t("lcd.share"), share },
     false,
-    { t("lcd.cooks"), tostring(S.cooks) },
+    { t("lcd.cooks"), tostring(#G.crew(S, "cook")) },
+    { t("lcd.waiters"), tostring(#G.crew(S, "waiter")) },
     { t("lcd.ovens"), tostring(S.ovens) },
     { t("lcd.tables"), D.ROOM.tables .. " · " .. D.ROOM.seats },
-    { t("lcd.cap"), c.served .. "/" .. G.capacity(S) },
+    { t("lcd.cap"), c.served .. "/" .. math.min(G.capacity(S), G.serviceCap(S)) },
     { t("lcd.rv"), (S.rival.promo and "2X1 " or "") .. P.eur(S.rival.price) },
     false,
     { t("lcd.rev"), P.eur(c.rev) },
@@ -828,7 +913,7 @@ local function drawDayTop()
     if r then
       text(fitText(r[1], "tiny", 130), 10, y, "tiny", C.lcd)
       text(r[2], 10, y, "tiny", C.lcd, "right", 184)
-      y = y + 11
+      y = y + 10
     else
       col(C.lcd, .35); love.graphics.rectangle("fill", 10, y + 4, 184, 1); y = y + 9
     end
@@ -848,7 +933,7 @@ local function drawDayTop()
   text(t("day.news"), x, y, "small", C.gold); y = y + 15
   local notes = {}
   if D.ROOM.seats * 3 < G.expected(S) then notes[#notes + 1] = t("day.seats") end
-  if G.capacity(S) < G.expected(S) * .6 then notes[#notes + 1] = t("day.queue") end
+  if math.min(G.capacity(S), G.serviceCap(S)) < G.expected(S) * .6 then notes[#notes + 1] = t("day.queue") end
   local lines = {}
   for _, n in ipairs(S.news) do lines[#lines + 1] = { G.newsText(n), C.cream } end
   for _, n in ipairs(notes) do table.insert(lines, 1, { t("day.warn") .. ": " .. n, C.bad }) end
@@ -870,7 +955,54 @@ local function drawDayTop()
     text(s, lx + 9, 203, "tiny", C.dim)
     lx = lx + 20 + fw("tiny", s)
   end
-  text((anim and l3("drun") or l3("dkeys")) .. "   " .. l3("nav"), 0, 222, "tiny", C.dim, "center", 400)
+  text(anim and l3("drun") or (l3("dkeys") .. "   " .. l3("hkeys")), 0, 214, "tiny", C.dim, "center", 400)
+  text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
+end
+
+-- the sales history (as Menu › Sales history in the browser game): totals, profit by day, the last days
+local function drawHistTop()
+  col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
+  drawHeader()
+  local H = S.hist
+  text(t("hist.title"), 8, 22, "small", C.gold)
+  if #H == 0 then
+    text(t("hist.none"), 8, 44, "small", C.cream, "left", 384)
+  else
+    local served, takings, profit, best = 0, 0, 0, H[1]
+    for _, h in ipairs(H) do served = served + h.n; takings = takings + h.v; profit = profit + h.p; if h.p > best.p then best = h end end
+    local sum = {
+      { t("hist.sum.days"), tostring(#H) }, { t("hist.sum.served"), tostring(served) }, { t("hist.sum.takings"), P.eur(takings) },
+      { t("hist.sum.profit"), P.eur(profit) }, { t("hist.sum.avg"), P.eur(profit / #H) }, { t("hist.sum.best"), t("hist.day") .. " " .. best.d .. " · " .. P.eur(best.p) },
+    }
+    for k, x in ipairs(sum) do
+      local cx, cy = 8 + ((k - 1) % 3) * 130, 38 + math.floor((k - 1) / 3) * 22
+      text(fitText(x[1], "tiny", 124), cx, cy, "tiny", C.dim); text(fitText(x[2], "small", 124), cx, cy + 9, "small", C.cream)
+    end
+    -- profit by day: the last 30 days, a bar each, green above the line, red below
+    text(t("hist.chart"), 8, 84, "tiny", C.dim)
+    local from = math.max(1, #H - 29)
+    local mx = 1
+    for k = from, #H do mx = math.max(mx, math.abs(H[k].p)) end
+    local x0, y0, bw, hh = 8, 126, math.floor(384 / 30), 28
+    col(C.dim, .5); love.graphics.rectangle("fill", x0, y0, 384, 1)
+    for k = from, #H do
+      local h = math.floor(math.abs(H[k].p) / mx * hh + .5)
+      col(H[k].p >= 0 and C.good or C.bad)
+      love.graphics.rectangle("fill", x0 + (k - from) * bw, H[k].p >= 0 and y0 - h or y0 + 1, bw - 2, h)
+    end
+    -- day by day, the newest first
+    local cols = { 8, 60, 120, 190 }
+    local y = 162
+    for k, s2 in ipairs({ t("hist.day"), t("hist.served"), t("hist.profit"), t("hist.top") }) do text(s2, cols[k], y, "tiny", C.dim) end
+    for k = #H, math.max(1, #H - 3), -1 do
+      local h = H[k]
+      y = y + 11
+      text(tostring(h.d), cols[1], y, "tiny", C.cream); text(h.n .. "/" .. h.N, cols[2], y, "tiny", C.cream)
+      text(P.eur(h.p), cols[3], y, "tiny", h.p >= 0 and C.good or C.bad)
+      text(fitText(h.top ~= "" and (h.top .. " ×" .. h.topN) or "—", "tiny", 200), cols[4], y, "tiny", C.cream)
+    end
+  end
+  text(l3("hback") .. "   " .. l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
 end
 
 -- the street: our pizzeria and the rival's, and the people walking by
@@ -886,7 +1018,7 @@ end
 local function drawStreet()
   col(hex("#7fb6d6")); love.graphics.rectangle("fill", 0, 0, 320, 170)
   col(hex("#a7c9de")); love.graphics.rectangle("fill", 0, 0, 320, 20)
-  shopFront(DOOR_OURS - 66, 132, "Pizza Magna", hex("#c96f3b"), hex("#2f8f4e"), C.gold)
+  shopFront(DOOR_OURS - 66, 132, G.shopName(S), hex("#c96f3b"), hex("#2f8f4e"), C.gold)
   shopFront(DOOR_RIVAL - 60, 120, S.rival.name, hex("#8d8f96"), hex("#c4352a"), hex("#ff8a6a"))
   col(hex("#b9a58a")); love.graphics.rectangle("fill", 0, 170, 320, 30)
   col(hex("#9c8a72")); for x = 0, 320, 20 do love.graphics.rectangle("fill", x, 170, 1, 30) end
@@ -928,7 +1060,8 @@ local function drawReportTop()
   drawHeader()
   local r, res = report, report.res
   text(t("rep.close", { d = r.day, w = G.weekday(r.day) }), 8, 22, "small", C.dim)
-  text(t(r.profit >= 0 and "rep.good" or "rep.bad") .. ": " .. P.eur(r.profit), 8, 36, "body", r.profit >= 0 and C.good or C.bad)
+  local net = r2(r.profit - (r.interest or 0))   -- the day's result after the bank's interest
+  text(t(net >= 0 and "rep.good" or "rep.bad") .. ": " .. P.eur(net), 8, 36, "body", net >= 0 and C.good or C.bad)
   local rows = {
     { t("rep.served"), t("rep.ofN", { n = res.served, N = res.N }) },
     { t("rep.rival", { x = S.rival.name }), tostring(res.toRival) },
@@ -939,16 +1072,17 @@ local function drawReportTop()
   local money = {
     { t("rep.revenue"), P.eur(res.revenue) },
     { t("rep.ing"), P.eur(-res.ingCost) },
-    { t("rep.rent"), P.eur(-D.RENT) },
+    { t("rep.rent"), P.eur(-r.rent) },
     { t("rep.sal"), P.eur(-r.sal) },
-    { t("rep.result"), P.eur(r.profit), r.profit >= 0 and C.good or C.bad },
   }
+  if (r.interest or 0) > 0 then money[#money + 1] = { t("rep.interest"), P.eur(-r.interest) } end
+  money[#money + 1] = { t("rep.result"), P.eur(net), net >= 0 and C.good or C.bad }
   for k, row in ipairs(rows) do
     local y = 60 + (k - 1) * 15
     text(fitText(row[1], "small", 180 - fw("small", row[2])), 8, y, "small", C.cream); text(row[2], 8, y, "small", C.cream, "right", 186)
   end
   for k, row in ipairs(money) do
-    local y = 60 + (k - 1) * 15
+    local y = 60 + (k - 1) * (#money > 5 and 13 or 15)
     text(row[1], 208, y, "small", row[3] or C.cream); text(row[2], 208, y, "small", row[3] or C.cream, "right", 186)
   end
   local f = function(v) local s = string.format("%.2f", v); return P.lang() == "pt" and s:gsub("%.", ",") or s end
@@ -979,6 +1113,23 @@ local function drawReportBottom()
     text(t("goal.title") .. " " .. t("goal.lead", { m = P.eur(S.money), r = string.format("%.1f", S.rep), d = r.day }), 8, y, "tiny", hex("#1f7a3a"), "left", 304)
     y = y + 34
   end
+  -- with several shops: how each did today (the open one first) and the day's total
+  if r.others and #r.others > 0 then
+    text(t("rep.shops"), 8, y, "tiny", C.ink); text(t("rep.n"), 200, y, "tiny", C.ink, "right", 50); text(t("rep.result"), 250, y, "tiny", C.ink, "right", 60)
+    y = y + 11
+    local rows = { { name = G.shopName(S), open = true, served = r.res.served, N = r.res.N, profit = r.profit } }
+    for _, x in ipairs(r.others) do rows[#rows + 1] = x end
+    local tot = 0
+    for _, x in ipairs(rows) do
+      tot = tot + x.profit
+      text(fitText(x.name .. (x.open and "" or (" · " .. t("rep.closed"))), "tiny", 190), 8, y, "tiny", C.ink)
+      text(x.open and (x.served .. "/" .. x.N) or "-", 200, y, "tiny", C.ink, "right", 50)
+      text(P.eur(x.profit), 250, y, "tiny", x.profit >= 0 and hex("#1f7a3a") or C.bad, "right", 60)
+      y = y + 10
+    end
+    text(t("rep.total"), 8, y, "tiny", C.ink); text(P.eur(r2(tot - (r.interest or 0))), 250, y, "tiny", C.ink, "right", 60)
+    y = y + 14
+  end
   -- who bought what: each pizza sold, by customer group
   local bs = r.res and r.res.bySeg
   if bs and next(bs) then
@@ -998,6 +1149,7 @@ local function drawReportBottom()
   end
   local F = fonts.tiny
   for _, q in ipairs(r.quotes) do
+    if y > 160 then break end   -- leave room for the contest and the button
     local s = t("seg." .. q[1]) .. ": “" .. q[2] .. "”"
     local _, wrapped = F.f:getWrap(s, 304 / F.s)
     text(s, 8, y, "tiny", C.ink, "left", 304)
@@ -1090,7 +1242,7 @@ local function drawContestBottom()
 end
 
 -- ---------------------------------------------------------------- the shop
-local SHOP_ROWS = { "oven", "cook", "ads", "supplier", "study", "reset" }
+local SHOP_ROWS = { "oven", "team", "hire", "ads", "supplier", "study", "bank", "reset" }
 local function shopItem(id) for _, it in ipairs(G.SHOP) do if it.id == id then return it end end end
 local function buyItem(it)
   if not it.ok(S) then return end
@@ -1124,6 +1276,9 @@ local function shopRow(id)   -- name, state, price
   if it then return t("shop." .. id), it.lvl(S), it.ok(S) and P.eur(it.cost(S)) or t("shop.done") end
   if id == "supplier" then return t("sup.title"), t("sup." .. S.supplier), "" end
   if id == "study" then return t("study.title"), S.studyWeek == G.weekOf(S.day) and t("study.done") or "", P.eur(D.STUDY_COST) end
+  if id == "team" then return t("staff.title"), t("staff.pay", { w = P.eur(G.wages(S)) }), "" end
+  if id == "hire" then return t("staff.cands"), "", P.eur(D.HIRE_COST) end
+  if id == "bank" then return t("bank.title"), t("bank.owe") .. " " .. P.eur(S.loan or 0), "" end
   return t("shop.reset"), "", ""
 end
 local function drawShopTop()
@@ -1132,14 +1287,14 @@ local function drawShopTop()
   text(fitText(t("shop.lead", { m = P.eur(S.money) }), "small", 388), 6, 21, "small", C.dim)
   S.ssel = math.max(1, math.min(S.ssel, #SHOP_ROWS))
   for k, id in ipairs(SHOP_ROWS) do
-    local y = 38 + (k - 1) * 24
+    local y = 38 + (k - 1) * 21
     local on = k == S.ssel
-    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, 21)
-    if on then pxRect(5, y - 1, 390, 23, C.gold) end
+    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, 19)
+    if on then pxRect(5, y - 1, 390, 21, C.gold) end
     local n, l, c = shopRow(id)
-    text(n, 12, y + 4, "small", id == "reset" and C.bad or C.cream)
-    text(l, 180, y + 5, "tiny", C.dim)
-    text(c, 12, y + 4, "small", C.gold, "right", 376)
+    text(fitText(n, "small", 166), 12, y + 3, "small", id == "reset" and C.bad or C.cream)
+    text(fitText(l, "tiny", 150), 180, y + 4, "tiny", C.dim)
+    text(c, 12, y + 3, "small", C.gold, "right", 376)
   end
   text(l3("skeys"), 0, 214, "tiny", C.dim, "center", 400)
   text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
@@ -1157,9 +1312,53 @@ local function drawShopBottom()
     local ok = it.ok(S)
     local lbl = ok and (P.upper(t("shop.buy")) .. "  " .. P.eur(it.cost(S))) or P.upper(t("shop.done"))
     plateBtn(lbl, 10, 96, function() buyItem(it) end, 150, 24, ok and S.money < it.cost(S))
-    if id == "cook" and S.cooks > 1 then
-      plateBtn(P.upper(t("shop.fire")), 170, 96, function() S.cooks = S.cooks - 1; toast(t("ts.fired")); dirty = true end, 140, 24)
+  elseif id == "team" then
+    -- the team, two lines a person: name, role and wage; speed and the second skill (cooking or charm) as n/5
+    local y = 26
+    for _, p in ipairs(S.staff) do
+      text(fitText(p.n .. " · " .. t("staff." .. p.r) .. " · " .. t("staff.wage", { w = P.eur(p.w) }), "tiny", 230), 10, y, "tiny", C.ink)
+      text(t("staff.sp") .. " " .. p.sp .. "/5 · " .. t("staff.sk." .. p.r) .. " " .. p.sk .. "/5", 10, y + 10, "tiny", brown)
+      if #G.crew(S, p.r) > 1 then
+        local who = p
+        plateBtn(P.upper(t("staff.fire")), 246, y + 2, function() local x = G.letGo(S, who.id); if x then toast(t("ts.fired2", { x = x.n })); dirty = true end end, 64, 16)
+      end
+      y = y + 22
     end
+  elseif id == "hire" then
+    local day = S.candDay
+    local cands = G.candidates(S)
+    if day ~= S.candDay then dirty = true end   -- a new day brought new people
+    text(t("staff.candlead", { c = P.eur(D.HIRE_COST) }), 10, 26, "tiny", brown, "left", 300)
+    local y = 52
+    if #cands == 0 then text(t("staff.none"), 10, y, "small", C.ink, "left", 300) end
+    for _, p in ipairs(cands) do
+      text(fitText(p.n .. " · " .. t("staff." .. p.r) .. " · " .. t("staff.wage", { w = P.eur(p.w) }), "tiny", 222), 10, y, "tiny", C.ink)
+      text(t("staff.sp") .. " " .. p.sp .. "/5 · " .. t("staff.sk." .. p.r) .. " " .. p.sk .. "/5", 10, y + 10, "tiny", brown)
+      local full, who = #G.crew(S, p.r) >= D.MAX_STAFF[p.r], p
+      plateBtn(P.upper(t(full and "staff.full" or "staff.hire")), 238, y + 2, function()
+        if full then return end
+        local x = G.hire(S, who.id); if x then toast(t("ts.hired", { x = x.n })); dirty = true end
+      end, 72, 16, not full and S.money < D.HIRE_COST)
+      y = y + 25
+    end
+  elseif id == "bank" then
+    local owe = S.loan or 0
+    text(t("bank.lead", { r = (P.lang() == "pt" and "0,5" or "0.5") }), 10, 26, "tiny", brown, "left", 300)
+    local rows = { { t("bank.owe"), P.eur(owe) }, { t("bank.today"), P.eur(owe * D.BANK_RATE) }, { t("bank.limit"), P.eur(D.BANK_MAX) } }
+    for k, r in ipairs(rows) do
+      text(r[1], 10, 52 + (k - 1) * 14, "small", C.ink); text(r[2], 10, 52 + (k - 1) * 14, "small", C.ink, "right", 300)
+    end
+    local x = 10
+    for _, v in ipairs({ 500, 2000, 5000 }) do
+      local amt = v
+      x = plateBtn(P.upper(t("bank.borrow", { x = P.eur(v):gsub("%.00$", "") })), x, 100, function()
+        if G.borrow(S, amt) then toast(t("bank.got", { x = P.eur(amt):gsub("%.00$", "") })); dirty = true
+        else toast(t("bank.max", { x = P.eur(D.BANK_MAX):gsub("%.00$", "") })) end
+      end, 96, 20) + 6
+    end
+    local function pay(v) local x = G.repay(S, v); if x then toast(t("bank.paid", { x = P.eur(x) })); dirty = true end end
+    plateBtn(P.upper(t("bank.repay", { x = "$500" })), 10, 128, function() pay(500) end, 140, 20, owe > 0 and S.money < math.min(500, owe))
+    plateBtn(P.upper(t("bank.all")), 160, 128, function() pay(nil) end, 140, 20, owe > 0 and S.money < owe)
   elseif id == "supplier" then
     text(t("sup.lead"), 10, 28, "tiny", brown, "left", 300)
     for k = 1, 3 do
@@ -1187,6 +1386,207 @@ local function drawShopBottom()
   langBtn()
 end
 
+-- ---------------------------------------------------------------- the city
+--[[ Porto Magno (city.js): the streets and houses on top (gfx/city.png, painted by tools/export_3ds_city.js, 904x704),
+     and on the touch screen a navigator (the whole town small, gfx/city_mini.png) next to the chosen building. Touch
+     or drag on the navigator to look somewhere, or use the D-pad to jump to the next building worth seeing in that
+     direction (to rent, for sale, a rival, your shops, the landmarks); A rents, buys or goes to your shop (press
+     twice), Y closes or sells it, X zooms in. ]]
+local CL = D.CITY.LOTS
+local cityImg, cityMini
+local city = { sel = nil, z = 1, armed = nil, cam = nil, drag = false }
+local CITY_MINI_W, MINI_X, MINI_Y = 152, 4, 4   -- the navigator (as made by tools/export_3ds_city.js)
+local CITY_MINI_H = math.floor(CITY_MINI_W * D.CITY.LH / D.CITY.LW + .5)
+local MINI_K = CITY_MINI_W / D.CITY.LW
+local CITY_TOP = 18   -- below the header
+local function cityShown(i) local k = G.lotKind(S, i); return k == "rent" or k == "sale" or k == "rival" or k == "mine" or k == "land" end
+local function cityPick(dx, dy)   -- the nearest building worth seeing in that direction
+  local a = CL[city.sel]
+  local ax, ay = a.x + a.w / 2, a.y + a.h / 2
+  local best, bs
+  for i, l in ipairs(CL) do
+    if i ~= city.sel and cityShown(i) then
+      local x, y = l.x + l.w / 2 - ax, l.y + l.h / 2 - ay
+      local along, across = x * dx + y * dy, math.abs(x * dy - y * dx)
+      if along > 4 then
+        local sc = along + across * 2
+        if not bs or sc < bs then best, bs = i, sc end
+      end
+    end
+  end
+  if best then city.sel, city.armed = best, nil end
+end
+local function cityPickAt(mx, my)   -- the building worth seeing nearest to a point of the map
+  local best, bd
+  for i, l in ipairs(CL) do
+    if cityShown(i) then
+      local d = (l.x + l.w / 2 - mx) ^ 2 + (l.y + l.h / 2 - my) ^ 2
+      if not bd or d < bd then best, bd = i, d end
+    end
+  end
+  if best and best ~= city.sel then city.sel, city.armed = best, nil end
+end
+local function inMini(x, y) return x >= MINI_X and x < MINI_X + CITY_MINI_W and y >= MINI_Y and y < MINI_Y + CITY_MINI_H end
+local function cityTouch(x, y) cityPickAt((x - MINI_X) / MINI_K, (y - MINI_Y) / MINI_K) end
+local function cityAct(close)   -- A: rent / buy / go to the shop; Y: close or sell your shop (each pressed twice)
+  local i = city.sel
+  local k = G.lotKind(S, i)
+  if close then
+    if k ~= "mine" or #S.shops < 2 then return end
+    if city.armed ~= "c" .. i then city.armed = "c" .. i; toast(t("city.sure")); return end
+    city.armed = nil
+    local name, gain = G.closeShop(S, G.lotShop(S, i))
+    if name then toast(gain > 0 and t("city.sold", { x = name, p = P.eur(gain):gsub("%.00$", "") }) or t("city.closed", { x = name })); syncWorld(); dirty = true end
+    return
+  end
+  if k == "mine" then
+    local own = G.lotShop(S, i)
+    if own ~= S.cur and G.openShop(S, own) then clampSel(); syncWorld(); dirty = true; toast(t("shop.now", { x = G.shopName(S) })) end
+  elseif k == "rent" or k == "sale" then
+    if G.ownMoney(S) < D.CITY_CASH then toast(t("city.need", { m = P.eur(D.CITY_CASH):gsub("%.00$", "") })); return end
+    if city.armed ~= i then city.armed = i; toast(t("city.sure")); return end
+    city.armed = nil
+    local ok, why = G.openLot(S, i, k == "sale")
+    if ok then clampSel(); syncWorld(); dirty = true; toast(t("city.open.t", { x = G.shopName(S) }))
+    elseif why then toast(t(why, { m = P.eur(D.CITY_CASH):gsub("%.00$", "") })) end
+  end
+end
+local function drawCityTop()
+  col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
+  if not cityImg then cityImg = love.graphics.newImage("gfx/city.png") end
+  city.sel = city.sel or S.shops[S.cur].lot
+  local z, l = city.z, CL[city.sel]
+  local vw, vh = 400 / z, (240 - CITY_TOP - 22) / z
+  local cx = math.max(0, math.min(D.CITY.LW - vw, l.x + l.w / 2 - vw / 2))
+  local cy = math.max(0, math.min(D.CITY.LH - vh, l.y + l.h / 2 - vh / 2))
+  if vw > D.CITY.LW then cx = (D.CITY.LW - vw) / 2 end
+  city.cam = { x = cx, y = cy, w = vw, h = vh }   -- shown as a frame on the navigator
+  local function P2(x, y) return math.floor((x - cx) * z), math.floor((y - cy) * z) + CITY_TOP end
+  love.graphics.setScissor(0, CITY_TOP, 400, 240 - CITY_TOP - 22)
+  local ix, iy = P2(0, 0)
+  col({ 1, 1, 1 }); love.graphics.draw(cityImg, ix, iy, 0, z, z)
+  -- signs and pins: to rent / for sale, rivals, your shops (* the one open), the landmarks
+  for i, x in ipairs(CL) do
+    local k = G.lotKind(S, i)
+    local px, py = P2(x.x + x.w / 2, x.y + x.h / 2)
+    if k == "rent" or k == "sale" or k == "rival" or k == "mine" or k == "land" then
+      local s2 = k == "land" and P.upper(t("land." .. x.land)) or k == "rent" and t("city.sign.rent") or k == "sale" and t("city.sign.sale")
+        or k == "rival" and t("city.pin.rival") or (t("city.pin.mine") .. (G.lotShop(S, i) == S.cur and " *" or ""))
+      local c = hex(D.CITY.KCOL[k] or "#2a1407")
+      do
+        local w = fw("tiny", s2) + 6
+        col(hex("#120a04")); love.graphics.rectangle("fill", px - w / 2 - 1, py - 7, w + 2, 13)
+        col(k == "land" and hex("#2a1407", .85) or c); love.graphics.rectangle("fill", px - w / 2, py - 6, w, 11)
+        text(s2, px - w / 2, py - 6, "tiny", k == "land" and C.combo or hex("#ffffff"), "center", w)
+      end
+    end
+  end
+  local x0, y0 = P2(l.x, l.y)
+  col(hex("#120a04")); love.graphics.setLineWidth(3); love.graphics.rectangle("line", x0, y0, l.w * z, l.h * z)
+  col(C.combo); love.graphics.setLineWidth(1); love.graphics.rectangle("line", x0 + .5, y0 + .5, l.w * z - 1, l.h * z - 1)
+  love.graphics.setScissor()
+  drawHeader()
+  text(l3("citykeys"), 0, 220, "tiny", C.dim, "center", 400)
+  text(l3("nav"), 0, 230, "tiny", C.dim, "center", 400)
+end
+local function drawCityBottom()
+  col(hex("#f3ead3")); love.graphics.rectangle("fill", 0, 0, 320, 240)
+  if not cityMini then cityMini = love.graphics.newImage("gfx/city_mini.png") end
+  city.sel = city.sel or S.shops[S.cur].lot
+  local i = city.sel
+  local l, k = CL[i], G.lotKind(S, i)
+  local own = G.lotShop(S, i)
+  local brown = hex("#6c5233")
+  -- the navigator: the whole town, a dot on each building worth seeing, the top screen's view as a frame
+  col(hex("#120a04")); love.graphics.rectangle("fill", MINI_X - 2, MINI_Y - 2, CITY_MINI_W + 4, CITY_MINI_H + 4)
+  col({ 1, 1, 1 }); love.graphics.draw(cityMini, MINI_X, MINI_Y)
+  for j, x in ipairs(CL) do
+    local kk = G.lotKind(S, j)
+    if kk == "rent" or kk == "sale" or kk == "rival" or kk == "mine" then
+      local px, py = MINI_X + (x.x + x.w / 2) * MINI_K, MINI_Y + (x.y + x.h / 2) * MINI_K
+      col(hex("#120a04")); love.graphics.rectangle("fill", math.floor(px) - 2, math.floor(py) - 2, 5, 5)
+      col(hex(D.CITY.KCOL[kk])); love.graphics.rectangle("fill", math.floor(px) - 1, math.floor(py) - 1, 3, 3)
+    end
+  end
+  if city.cam then
+    local c = city.cam
+    local fx, fy = math.floor(MINI_X + c.x * MINI_K), math.floor(MINI_Y + c.y * MINI_K)   -- the camera stays inside the map
+    local fw2, fh2 = math.floor(c.w * MINI_K), math.floor(c.h * MINI_K)
+    col(hex("#120a04")); love.graphics.rectangle("line", fx - .5, fy - .5, fw2 + 1, fh2 + 1)
+    col(C.combo); love.graphics.rectangle("line", fx + .5, fy + .5, fw2 - 1, fh2 - 1)
+  end
+  -- the building
+  local RX, RW = 164, 150
+  local title = k == "land" and t("land." .. l.land) or k == "rival" and l.name or k == "mine" and G.shopName(S, own)
+    or k == "taken" and t("biz." .. l.biz) or l.addr
+  local chip = t("city.k." .. k)
+  local cw = fw("tiny", chip) + 8
+  col(hex(D.CITY.KCOL[k] or "#7a6a55")); love.graphics.rectangle("fill", RX, 3, cw, 12)
+  text(chip, RX, 4, "tiny", hex("#ffffff"), "center", cw)
+  text(t("hood." .. l.hood), RX + cw + 6, 4, "tiny", brown)
+  local F = fonts.tiny
+  local function wrapped(str, y, c)   -- a paragraph in the right column; returns the next y
+    local _, lines = F.f:getWrap(str, RW / F.s)
+    text(str, RX, y, "tiny", c or brown, "left", RW)
+    return y + #lines * F.f:getHeight() * F.s + 2
+  end
+  local y = wrapped(title, 18, C.ink) + 2
+  local function row(a2, b2) text(a2, RX, y, "tiny", C.ink); text(b2, RX, y, "tiny", C.ink, "right", RW); y = y + 11 end
+  if k == "land" then
+    y = wrapped(t("land.d." .. l.land), y)
+    if l.land == "square" then y = wrapped(t("city.contest"), y + 2) end
+  else
+    if title ~= l.addr then y = wrapped(l.addr, y) end
+    if k == "rival" then
+      y = wrapped(t("rv.style") .. ": " .. t("rv." .. (l.name == "Pizza Rápida" and "classic" or D.HOOD_STYLE[l.hood])), y)
+    else
+      row(t("city.traffic"), l.traffic .. "/5")
+      if k == "rent" or k == "sale" then
+        row(t("city.cond"), t("city.c." .. l.cond) .. (l.cond == "works" and (" · " .. P.eur(l.works):gsub("%.00$", "")) or ""))
+      end
+      if k == "sale" then row(t("city.price"), (P.eur(l.price):gsub("%.00$", "")))
+      elseif k ~= "taken" then row(t("city.rent"), P.eur(own and G.rentOf(S, own) or l.rent):gsub("%.00$", "") .. t("city.perday")) end
+    end
+  end
+  -- who comes in this neighbourhood, under the navigator
+  y = MINI_Y + CITY_MINI_H + 6
+  text(t("city.mix"), 10, y, "tiny", C.ink); y = y + 11
+  local mix, bx = D.CITY.HOODS[l.hood].mix, 10
+  for j, g in ipairs(D.SEG_ORDER) do
+    local w = math.floor(mix[j] / 100 * 300 + .5)
+    col(hex(D.SEG[g].col)); love.graphics.rectangle("fill", bx, y, w, 8); bx = bx + w
+  end
+  y = y + 10
+  local lx = 10
+  for j, g in ipairs(D.SEG_ORDER) do
+    local s2 = t("seg." .. g) .. " " .. mix[j] .. "%"
+    text(s2, lx, y, "tiny", hex(D.SEG[g].col)); lx = lx + fw("tiny", s2) + 8
+  end
+  y = y + 15
+  -- what you can do here
+  if k == "rent" or k == "sale" then
+    local buy = k == "sale"
+    local can = G.ownMoney(S) >= D.CITY_CASH
+    local lbl = city.armed == i and t("city.sure") or buy and (t("city.bBuy") .. " · " .. P.eur(G.lotCost(l, true)):gsub("%.00$", ""))
+      or (t("city.bRent") .. " · " .. P.eur(l.rent):gsub("%.00$", "") .. t("city.perday"))
+    plateBtn(P.upper(lbl), 10, y, function() cityAct(false) end, 300, 20, not can)
+    y = y + 23
+    local w = l.cond == "works" and P.eur(l.works):gsub("%.00$", "") or "$0"
+    text(can and (buy and t("city.cost.buy", { p = P.eur(l.price):gsub("%.00$", ""), w = w }) or t("city.cost.rent", { w = w, r = P.eur(l.rent):gsub("%.00$", "") }))
+      or t("city.need", { m = P.eur(D.CITY_CASH):gsub("%.00$", "") }), 10, y, "tiny", brown, "left", 300)
+  elseif k == "mine" then
+    if own == S.cur then text(t("city.here"), 10, y + 4, "small", hex("#8a5a00"))
+    else plateBtn(P.upper(t("city.go")), 10, y, function() cityAct(false) end, 145, 20) end
+    if #S.shops > 1 then
+      local sh = S.shops[own]
+      local lbl = city.armed == "c" .. i and t("city.sure") or sh.owned and t("city.sell", { x = P.eur(math.floor(l.price * D.SELL_SHARE + .5)):gsub("%.00$", "") }) or t("city.close")
+      plateBtn(P.upper(fitText(lbl, "tiny", 135)), 165, y, function() cityAct(true) end, 145, 20, true)
+    end
+  end
+  text(t("city.yours") .. ": " .. #S.shops, 10, 226, "tiny", brown)
+  langBtn()
+end
+
 drawBottom = function()
   hits = {}
   if report then drawReportBottom()
@@ -1194,14 +1594,17 @@ drawBottom = function()
   elseif S.tab == "day" then drawDayBottom()
   elseif S.tab == "contest" then drawContestBottom()
   elseif S.tab == "shop" then drawShopBottom()
+  elseif S.tab == "city" then drawCityBottom()
   else drawKitchenBottom() end
 end
 drawTopScreen = function()
   if report then drawReportTop()
   elseif S.tab == "menu" then drawMenuTop()
+  elseif S.tab == "day" and histOn and not anim then drawHistTop()
   elseif S.tab == "day" then drawDayTop()
   elseif S.tab == "contest" then drawContestTop()
   elseif S.tab == "shop" then drawShopTop()
+  elseif S.tab == "city" then drawCityTop()
   else drawTop() end
   drawToast()
 end
@@ -1211,6 +1614,7 @@ local drag = nil
 local function benchPoint(x, y) return (x - PCX) / PR, (y - PCY) / PR end
 local function touchDown(x, y)
   if renaming and not CONSOLE then finishRename(renameBuf) end   -- PC: a tap elsewhere keeps what was typed
+  if S.tab == "city" and not report and inMini(x, y) then city.drag = true; cityTouch(x, y); return end
   for k = #hits, 1, -1 do
     local h = hits[k]
     if x >= h.x and x < h.x + h.w and y >= h.y and y < h.y + h.h then h.fn(); return end
@@ -1225,11 +1629,12 @@ local function touchDown(x, y)
   if addPiece(px, py) then drag = { x = px, y = py } end
 end
 local function touchMove(x, y)
+  if city.drag then if inMini(x, y) then cityTouch(x, y) end; return end
   if not drag then return end
   local px, py = benchPoint(x, y)
   if math.sqrt((px - drag.x) ^ 2 + (py - drag.y) ^ 2) > .2 and addPiece(px, py) then drag = { x = px, y = py } end
 end
-local function touchUp() drag = nil end
+local function touchUp() drag = nil; city.drag = false end
 
 local held = {}
 local function navButton(b)   -- outside the Kitchen: L/R and SELECT go through the screens, START quits
@@ -1244,11 +1649,21 @@ local function otherButton(b)
       if b == "a" then skipDay()
       elseif b == "dpleft" then anim.speed = math.max(1, anim.speed / 2)
       elseif b == "dpright" then anim.speed = math.min(4, anim.speed * 2) end
-    elseif b == "a" then startDay() else navButton(b) end
+    elseif b == "a" then startDay()
+    elseif b == "y" then histOn = not histOn
+    else navButton(b) end
   elseif S.tab == "contest" then
     if b == "dpup" then S.csel = math.max(1, S.csel - 1)
     elseif b == "dpdown" then S.csel = math.min(#S.menu, S.csel + 1)
     elseif b == "a" and S.menu[S.csel] then enterContest(S.menu[S.csel])
+    else navButton(b) end
+  elseif S.tab == "city" then
+    city.sel = city.sel or S.shops[S.cur].lot
+    if b == "dpleft" then cityPick(-1, 0) elseif b == "dpright" then cityPick(1, 0)
+    elseif b == "dpup" then cityPick(0, -1) elseif b == "dpdown" then cityPick(0, 1)
+    elseif b == "a" then cityAct(false)
+    elseif b == "y" then cityAct(true)
+    elseif b == "x" then city.z = city.z == 1 and 2 or 1
     else navButton(b) end
   elseif S.tab == "shop" then
     if b == "dpup" then S.ssel = math.max(1, S.ssel - 1); armed = nil
@@ -1268,7 +1683,7 @@ local function menuButton(b)
   else navButton(b) end
 end
 local function button(b)
-  if report or S.tab == "day" or S.tab == "contest" or S.tab == "shop" then otherButton(b); return end
+  if report or S.tab == "day" or S.tab == "contest" or S.tab == "shop" or S.tab == "city" then otherButton(b); return end
   if S.tab == "menu" then menuButton(b); return end
   if b == "dpleft" then pickTopping(-1)
   elseif b == "dpright" then pickTopping(1)

@@ -12,7 +12,8 @@ const src=[
   cut('const CATS=','function ingCat'),
   cut('const CAT_ICON=','function pantryHTML'),
   'var state={day:1};',
-  cut('const OVEN_CAP=','const expectedCustomers='),
+  cut('const OVEN_CAP=','const expectedCustomers='),cut('const BANK_RATE=','const ownMoney='),
+  cut('const CITY_CASH=','/* The bank'),cut('const RIVAL_HOOD=','const CV='),cut('const HOOD_STYLE=','// one shop'),cut('const SELL_SHARE=','function closeShop'),
   cut('const MANAGER_MARKUP=','/* Who runs'),cut('const TIER_FEE=','const gramPrice='),
   cut('/* ---- restaurant room','let roomAC'),
   // what the 3DS needs worked out here: the starter room's seats and atmosphere (no room editor there yet),
@@ -22,14 +23,21 @@ const src=[
   'this.OUT={I18N,DOUGHS,SAUCES,ING,PACKS,COMBOS,SEG,CASA:[...CASA],EXOTIC:[...EXOTIC],WEEK_BONUS,VALUE_CAP,APPEAL_W,'+
   'GRATED_W,BIG_SHRED:[...BIG_SHRED],SHRED_W,WHOLE_W,CENTRED:[...CENTRED],GRAMS,GRAMS_GRATED,CATS,HERBS,FAV,EXTRAS,CAT_ICON,'+
   'BASE_PRICE,MARKUP,SUPPLIER,STUDY_COST,RIVAL_BIAS,THEME_IDS:THEMES.map(x=>x.id),NPCS,WK_MUL,RENT,SALARY,ENTRY_FEE,'+
-  'WD,WD_EN,GOAL_MONEY,GOAL_REP,GOAL_ON,DAY_SECONDS,OVEN_CAP,COOK_CAP,MANAGER_MARKUP,ROOM,WEEKS};'
+  'WD,WD_EN,GOAL_MONEY,GOAL_REP,GOAL_ON,DAY_SECONDS,OVEN_CAP,COOK_CAP,MANAGER_MARKUP,ROOM,WEEKS,'+
+  'WAITER_CAP,WAITER_SALARY,HIRE_COST,MAX_STAFF,STAFF_NAMES,BANK_RATE,BANK_MAX,HIST_DAYS,CITY_CASH,RIVAL_HOOD,HOOD_STYLE,SELL_SHARE};'
 ].join('\n');
 const ctx={navigator:{languages:['en'],language:'en'},localStorage:{getItem:()=>null,setItem(){}},
   document:{documentElement:{lang:''},querySelectorAll:()=>[]},window:{},console};
 vm.createContext(ctx);vm.runInContext(src.replace(/^(const|let) /gm,'var '),ctx);
 const O=ctx.OUT;
-// The handheld still uses the count-only staffing model.
-O.COOK_CAP=30;
+// the city (city.js: every lot from fixed seeds) for the 3DS City screen; its map picture is made by tools/export_3ds_city.js.
+// city.js makes a canvas when it loads, so it runs here with a canvas that draws nothing
+{const nop=new Proxy(function(){},{get:()=>nop,apply:()=>nop});
+  const cctx={document:{createElement:()=>({width:0,height:0,getContext:()=>nop})},Math,console};vm.createContext(cctx);
+  vm.runInContext(fs.readFileSync(path.join(root,'city.js'),'utf8').replace(/^const CITY=/m,'this.CITY=')+';this.CITY=CITY;',cctx);
+  const C=cctx.CITY;
+  O.CITY={LW:C.LW,LH:C.LH,HOODS:C.HOODS,KCOL:C.KCOL,LOTS:C.LOTS.map(l=>{const o={x:l.x,y:l.y,w:l.w,h:l.h,hood:l.hood,kind:l.kind,side:l.side};
+    for(const k of ['name','land','biz','addr','traffic','rent','price','cond','works'])if(l[k]!=null)o[k]=l[k];return o})};}
 // the names are filled from I18N at runtime in the 3DS game; keep the data language-free
 for(const k in O.ING)delete O.ING[k].n;for(const k in O.DOUGHS)delete O.DOUGHS[k].n;for(const k in O.SAUCES)delete O.SAUCES[k].n;
 for(const k in O.SEG)delete O.SEG[k].n;for(const c of O.COMBOS){delete c.n;delete c.quote}
