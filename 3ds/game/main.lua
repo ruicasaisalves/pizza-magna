@@ -23,7 +23,7 @@ local L3 = {
          dkeys = "A open the doors", drun = "</> speed   A skip to closing", rkeys = "A continue",
          ckeys = "Up/Down pizza   A enter it", skeys = "Up/Down choose   A buy / choose   touch: hire, let go, bank",
          hkeys = "Y sales history", hback = "Y back to the day",
-         citykeys = "D-pad: next building   A rent / buy / go   Y close / sell   X zoom",
+         citykeys = "D-pad or map: move   A rent, buy, go   Y close, sell   X zoom",
          },
   pt = { keys1 = "</> ingrediente   L/R grupo   Cima massa   Baixo molho",
          keys2 = "A picar   X rodar   B desfazer   Y limpar   SELECT ecrã seguinte   START sair",
@@ -32,7 +32,7 @@ local L3 = {
          dkeys = "A abrir portas", drun = "</> velocidade   A saltar para o fecho", rkeys = "A continuar",
          ckeys = "Cima/Baixo pizza   A inscrever", skeys = "Cima/Baixo escolher   A comprar / escolher   toque: contratar, dispensar, banco",
          hkeys = "Y histórico de vendas", hback = "Y voltar ao dia",
-         citykeys = "Cruz: edifício seguinte   A arrendar / comprar / ir   Y fechar / vender   X zoom",
+         citykeys = "Cruz ou mapa: mover   A arrendar, comprar, ir   Y fechar, vender   X zoom",
          },
 }
 local function l3(k) return L3[P.lang()][k] end
@@ -1387,12 +1387,17 @@ local function drawShopBottom()
 end
 
 -- ---------------------------------------------------------------- the city
---[[ Porto Magno (city.js): the map on top (gfx/city.png, painted by tools/export_3ds_city.js, 904x704), the chosen
-     building below. The D-pad jumps to the next building worth seeing in that direction (to rent, for sale, a rival,
-     your shops, the landmarks); A rents, buys or goes to your shop (press twice), Y closes or sells it, X zooms. ]]
+--[[ Porto Magno (city.js): the streets and houses on top (gfx/city.png, painted by tools/export_3ds_city.js, 904x704),
+     and on the touch screen a navigator (the whole town small, gfx/city_mini.png) next to the chosen building. Touch
+     or drag on the navigator to look somewhere, or use the D-pad to jump to the next building worth seeing in that
+     direction (to rent, for sale, a rival, your shops, the landmarks); A rents, buys or goes to your shop (press
+     twice), Y closes or sells it, X zooms in. ]]
 local CL = D.CITY.LOTS
-local cityImg
-local city = { sel = nil, z = 1, armed = nil }
+local cityImg, cityMini
+local city = { sel = nil, z = 1, armed = nil, cam = nil, drag = false }
+local CITY_MINI_W, MINI_X, MINI_Y = 152, 4, 4   -- the navigator (as made by tools/export_3ds_city.js)
+local CITY_MINI_H = math.floor(CITY_MINI_W * D.CITY.LH / D.CITY.LW + .5)
+local MINI_K = CITY_MINI_W / D.CITY.LW
 local CITY_TOP = 18   -- below the header
 local function cityShown(i) local k = G.lotKind(S, i); return k == "rent" or k == "sale" or k == "rival" or k == "mine" or k == "land" end
 local function cityPick(dx, dy)   -- the nearest building worth seeing in that direction
@@ -1411,6 +1416,18 @@ local function cityPick(dx, dy)   -- the nearest building worth seeing in that d
   end
   if best then city.sel, city.armed = best, nil end
 end
+local function cityPickAt(mx, my)   -- the building worth seeing nearest to a point of the map
+  local best, bd
+  for i, l in ipairs(CL) do
+    if cityShown(i) then
+      local d = (l.x + l.w / 2 - mx) ^ 2 + (l.y + l.h / 2 - my) ^ 2
+      if not bd or d < bd then best, bd = i, d end
+    end
+  end
+  if best and best ~= city.sel then city.sel, city.armed = best, nil end
+end
+local function inMini(x, y) return x >= MINI_X and x < MINI_X + CITY_MINI_W and y >= MINI_Y and y < MINI_Y + CITY_MINI_H end
+local function cityTouch(x, y) cityPickAt((x - MINI_X) / MINI_K, (y - MINI_Y) / MINI_K) end
 local function cityAct(close)   -- A: rent / buy / go to the shop; Y: close or sell your shop (each pressed twice)
   local i = city.sel
   local k = G.lotKind(S, i)
@@ -1443,6 +1460,7 @@ local function drawCityTop()
   local cx = math.max(0, math.min(D.CITY.LW - vw, l.x + l.w / 2 - vw / 2))
   local cy = math.max(0, math.min(D.CITY.LH - vh, l.y + l.h / 2 - vh / 2))
   if vw > D.CITY.LW then cx = (D.CITY.LW - vw) / 2 end
+  city.cam = { x = cx, y = cy, w = vw, h = vh }   -- shown as a frame on the navigator
   local function P2(x, y) return math.floor((x - cx) * z), math.floor((y - cy) * z) + CITY_TOP end
   love.graphics.setScissor(0, CITY_TOP, 400, 240 - CITY_TOP - 22)
   local ix, iy = P2(0, 0)
@@ -1451,12 +1469,11 @@ local function drawCityTop()
   for i, x in ipairs(CL) do
     local k = G.lotKind(S, i)
     local px, py = P2(x.x + x.w / 2, x.y + x.h / 2)
-    if k == "rent" or k == "sale" or k == "rival" or k == "mine" or (k == "land" and z >= 1) then
+    if k == "rent" or k == "sale" or k == "rival" or k == "mine" or k == "land" then
       local s2 = k == "land" and P.upper(t("land." .. x.land)) or k == "rent" and t("city.sign.rent") or k == "sale" and t("city.sign.sale")
         or k == "rival" and t("city.pin.rival") or (t("city.pin.mine") .. (G.lotShop(S, i) == S.cur and " *" or ""))
       local c = hex(D.CITY.KCOL[k] or "#2a1407")
-      if z < 1 then col(c); love.graphics.rectangle("fill", px - 3, py - 3, 6, 6); col(hex("#120a04")); love.graphics.rectangle("line", px - 3.5, py - 3.5, 7, 7)
-      else
+      do
         local w = fw("tiny", s2) + 6
         col(hex("#120a04")); love.graphics.rectangle("fill", px - w / 2 - 1, py - 7, w + 2, 13)
         col(k == "land" and hex("#2a1407", .85) or c); love.graphics.rectangle("fill", px - w / 2, py - 6, w, 11)
@@ -1474,28 +1491,54 @@ local function drawCityTop()
 end
 local function drawCityBottom()
   col(hex("#f3ead3")); love.graphics.rectangle("fill", 0, 0, 320, 240)
+  if not cityMini then cityMini = love.graphics.newImage("gfx/city_mini.png") end
   city.sel = city.sel or S.shops[S.cur].lot
   local i = city.sel
   local l, k = CL[i], G.lotKind(S, i)
   local own = G.lotShop(S, i)
   local brown = hex("#6c5233")
+  -- the navigator: the whole town, a dot on each building worth seeing, the top screen's view as a frame
+  col(hex("#120a04")); love.graphics.rectangle("fill", MINI_X - 2, MINI_Y - 2, CITY_MINI_W + 4, CITY_MINI_H + 4)
+  col({ 1, 1, 1 }); love.graphics.draw(cityMini, MINI_X, MINI_Y)
+  for j, x in ipairs(CL) do
+    local kk = G.lotKind(S, j)
+    if kk == "rent" or kk == "sale" or kk == "rival" or kk == "mine" then
+      local px, py = MINI_X + (x.x + x.w / 2) * MINI_K, MINI_Y + (x.y + x.h / 2) * MINI_K
+      col(hex("#120a04")); love.graphics.rectangle("fill", math.floor(px) - 2, math.floor(py) - 2, 5, 5)
+      col(hex(D.CITY.KCOL[kk])); love.graphics.rectangle("fill", math.floor(px) - 1, math.floor(py) - 1, 3, 3)
+    end
+  end
+  if city.cam then
+    local c = city.cam
+    local fx, fy = math.floor(MINI_X + c.x * MINI_K), math.floor(MINI_Y + c.y * MINI_K)   -- the camera stays inside the map
+    local fw2, fh2 = math.floor(c.w * MINI_K), math.floor(c.h * MINI_K)
+    col(hex("#120a04")); love.graphics.rectangle("line", fx - .5, fy - .5, fw2 + 1, fh2 + 1)
+    col(C.combo); love.graphics.rectangle("line", fx + .5, fy + .5, fw2 - 1, fh2 - 1)
+  end
+  -- the building
+  local RX, RW = 164, 150
   local title = k == "land" and t("land." .. l.land) or k == "rival" and l.name or k == "mine" and G.shopName(S, own)
     or k == "taken" and t("biz." .. l.biz) or l.addr
-  text(t("hood." .. l.hood), 10, 4, "tiny", brown)
   local chip = t("city.k." .. k)
   local cw = fw("tiny", chip) + 8
-  col(hex(D.CITY.KCOL[k] or "#7a6a55")); love.graphics.rectangle("fill", 310 - cw, 3, cw, 12)
-  text(chip, 310 - cw, 4, "tiny", hex("#ffffff"), "center", cw)
-  text(fitText(title, "body", 300), 10, 16, "body", C.ink)
-  local y = 36
-  local function row(a, b) text(a, 10, y, "small", C.ink); text(b, 10, y, "small", C.ink, "right", 300); y = y + 14 end
+  col(hex(D.CITY.KCOL[k] or "#7a6a55")); love.graphics.rectangle("fill", RX, 3, cw, 12)
+  text(chip, RX, 4, "tiny", hex("#ffffff"), "center", cw)
+  text(t("hood." .. l.hood), RX + cw + 6, 4, "tiny", brown)
+  local F = fonts.tiny
+  local function wrapped(str, y, c)   -- a paragraph in the right column; returns the next y
+    local _, lines = F.f:getWrap(str, RW / F.s)
+    text(str, RX, y, "tiny", c or brown, "left", RW)
+    return y + #lines * F.f:getHeight() * F.s + 2
+  end
+  local y = wrapped(title, 18, C.ink) + 2
+  local function row(a2, b2) text(a2, RX, y, "tiny", C.ink); text(b2, RX, y, "tiny", C.ink, "right", RW); y = y + 11 end
   if k == "land" then
-    text(t("land.d." .. l.land), 10, y, "small", brown, "left", 300); y = y + 30
-    if l.land == "square" then text(t("city.contest"), 10, y, "small", brown, "left", 300); y = y + 30 end
+    y = wrapped(t("land.d." .. l.land), y)
+    if l.land == "square" then y = wrapped(t("city.contest"), y + 2) end
   else
-    if title ~= l.addr then text(l.addr, 10, y, "tiny", brown); y = y + 12 end
+    if title ~= l.addr then y = wrapped(l.addr, y) end
     if k == "rival" then
-      text(t("rv.style") .. ": " .. t("rv." .. (l.name == "Pizza Rápida" and "classic" or D.HOOD_STYLE[l.hood])), 10, y, "tiny", brown, "left", 300); y = y + 24
+      y = wrapped(t("rv.style") .. ": " .. t("rv." .. (l.name == "Pizza Rápida" and "classic" or D.HOOD_STYLE[l.hood])), y)
     else
       row(t("city.traffic"), l.traffic .. "/5")
       if k == "rent" or k == "sale" then
@@ -1505,7 +1548,8 @@ local function drawCityBottom()
       elseif k ~= "taken" then row(t("city.rent"), P.eur(own and G.rentOf(S, own) or l.rent):gsub("%.00$", "") .. t("city.perday")) end
     end
   end
-  -- who comes in this neighbourhood
+  -- who comes in this neighbourhood, under the navigator
+  y = MINI_Y + CITY_MINI_H + 6
   text(t("city.mix"), 10, y, "tiny", C.ink); y = y + 11
   local mix, bx = D.CITY.HOODS[l.hood].mix, 10
   for j, g in ipairs(D.SEG_ORDER) do
@@ -1518,25 +1562,25 @@ local function drawCityBottom()
     local s2 = t("seg." .. g) .. " " .. mix[j] .. "%"
     text(s2, lx, y, "tiny", hex(D.SEG[g].col)); lx = lx + fw("tiny", s2) + 8
   end
-  y = y + 16
+  y = y + 15
   -- what you can do here
   if k == "rent" or k == "sale" then
     local buy = k == "sale"
     local can = G.ownMoney(S) >= D.CITY_CASH
     local lbl = city.armed == i and t("city.sure") or buy and (t("city.bBuy") .. " · " .. P.eur(G.lotCost(l, true)):gsub("%.00$", ""))
       or (t("city.bRent") .. " · " .. P.eur(l.rent):gsub("%.00$", "") .. t("city.perday"))
-    plateBtn(P.upper(lbl), 10, y, function() cityAct(false) end, 300, 22, not can)
-    y = y + 26
+    plateBtn(P.upper(lbl), 10, y, function() cityAct(false) end, 300, 20, not can)
+    y = y + 23
     local w = l.cond == "works" and P.eur(l.works):gsub("%.00$", "") or "$0"
     text(can and (buy and t("city.cost.buy", { p = P.eur(l.price):gsub("%.00$", ""), w = w }) or t("city.cost.rent", { w = w, r = P.eur(l.rent):gsub("%.00$", "") }))
       or t("city.need", { m = P.eur(D.CITY_CASH):gsub("%.00$", "") }), 10, y, "tiny", brown, "left", 300)
   elseif k == "mine" then
     if own == S.cur then text(t("city.here"), 10, y + 4, "small", hex("#8a5a00"))
-    else plateBtn(P.upper(t("city.go")), 10, y, function() cityAct(false) end, 145, 22) end
+    else plateBtn(P.upper(t("city.go")), 10, y, function() cityAct(false) end, 145, 20) end
     if #S.shops > 1 then
       local sh = S.shops[own]
       local lbl = city.armed == "c" .. i and t("city.sure") or sh.owned and t("city.sell", { x = P.eur(math.floor(l.price * D.SELL_SHARE + .5)):gsub("%.00$", "") }) or t("city.close")
-      plateBtn(P.upper(fitText(lbl, "tiny", 135)), 165, y, function() cityAct(true) end, 145, 22, true)
+      plateBtn(P.upper(fitText(lbl, "tiny", 135)), 165, y, function() cityAct(true) end, 145, 20, true)
     end
   end
   text(t("city.yours") .. ": " .. #S.shops, 10, 226, "tiny", brown)
@@ -1570,6 +1614,7 @@ local drag = nil
 local function benchPoint(x, y) return (x - PCX) / PR, (y - PCY) / PR end
 local function touchDown(x, y)
   if renaming and not CONSOLE then finishRename(renameBuf) end   -- PC: a tap elsewhere keeps what was typed
+  if S.tab == "city" and not report and inMini(x, y) then city.drag = true; cityTouch(x, y); return end
   for k = #hits, 1, -1 do
     local h = hits[k]
     if x >= h.x and x < h.x + h.w and y >= h.y and y < h.y + h.h then h.fn(); return end
@@ -1584,11 +1629,12 @@ local function touchDown(x, y)
   if addPiece(px, py) then drag = { x = px, y = py } end
 end
 local function touchMove(x, y)
+  if city.drag then if inMini(x, y) then cityTouch(x, y) end; return end
   if not drag then return end
   local px, py = benchPoint(x, y)
   if math.sqrt((px - drag.x) ^ 2 + (py - drag.y) ^ 2) > .2 and addPiece(px, py) then drag = { x = px, y = py } end
 end
-local function touchUp() drag = nil end
+local function touchUp() drag = nil; city.drag = false end
 
 local held = {}
 local function navButton(b)   -- outside the Kitchen: L/R and SELECT go through the screens, START quits
@@ -1617,7 +1663,7 @@ local function otherButton(b)
     elseif b == "dpup" then cityPick(0, -1) elseif b == "dpdown" then cityPick(0, 1)
     elseif b == "a" then cityAct(false)
     elseif b == "y" then cityAct(true)
-    elseif b == "x" then city.z = city.z == 1 and .5 or 1
+    elseif b == "x" then city.z = city.z == 1 and 2 or 1
     else navButton(b) end
   elseif S.tab == "shop" then
     if b == "dpup" then S.ssel = math.max(1, S.ssel - 1); armed = nil
