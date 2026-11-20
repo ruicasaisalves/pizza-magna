@@ -35,7 +35,7 @@ Everything is saved to `save.txt`: the pizza on the bench, the menu, the combos 
 
 - `game/main.lua`: screens, input and drawing. `game/pizza.lua`: the pizza rules (`analyze()` with the topping of the week and the supplier, `contestScore()`, portions, weights, `packPieces`) and `game/day.lua`: the restaurant (`simulateDay()`, `finishDay()`, `resolveContest()`, the shop, the market study), both ported by hand from `index.html`. **When those change in the browser game, change them here too.**
 - `game/data.lua`: toppings, doughs, sauces, combos, customer groups, weights, the economy constants, the starter room's seats and atmosphere, the topping and combo of the week for 400 weeks, and the whole `I18N` table. **Generated** from `index.html` by `node tools/export_3ds.js`; never edit it by hand.
-- `game/atlas.lua` and `game/gfx/atlas*.png`: the toppings atlas packed again in 1024x1024 pages (the 3DS limit), with the turning pieces already turned and shadowed (`<id>_q0..q3`) and the group symbols (`cat_<group>`, from `CAT_SYM` in `index.html`). `icon.png` (48x48). **Generated** from `assets/ingredients.js` by `python3 tools/export_3ds.py`.
+- `game/atlas.lua` and `game/gfx/atlas*.png`: the toppings atlas packed again in 1024x1024 pages (the 3DS limit), with the turning pieces already turned and shadowed (`<id>_q0..q3`) and the group symbols (`cat_<group>`, from `assets/menu-art.js`). `icon.png` (48x48). **Generated** from `assets/ingredients.js` by `python3 tools/export_3ds.py`.
 - `lovebrew.toml`: settings for the bundler.
 
 After adding toppings or changing data in the browser game, run both exporters again.

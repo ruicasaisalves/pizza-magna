@@ -157,7 +157,11 @@ html.phone .stage{gap:6px}
 /* the group tabs look like folder tabs on a dark strip, the open one joined to the panel, so they don't read as toppings */
 .mcats{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;background:var(--wood-deep);padding:5px 5px 0;box-shadow:inset 0 -2px 0 var(--wood-deep)}
 .mcats button{border:2px solid var(--wood-lo);border-bottom:0;border-radius:5px 5px 0 0;background:var(--wood);padding:3px 0 2px;display:grid;place-items:center;margin:5px 0 2px}
-.mcats canvas{width:24px;height:24px;opacity:.75}
+.mcats canvas{width:24px;height:24px}
+.mcats button{min-width:0;color:var(--parch)}
+.mcats button.on{color:var(--wood-deep)}
+.mcats button span{font:clamp(8px,2.1vw,11px)/1 var(--f-body)}
+.cats canvas{width:24px;height:24px;vertical-align:middle;margin-right:3px}
 .mcats button.on{background:var(--parch);border-color:var(--wood-deep);margin:0;padding:5px 0 6px}
 .mcats button.on canvas{width:32px;height:32px;opacity:1}
 .mings{margin:6px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,50px);grid-auto-columns:50px;gap:4px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:2px}
@@ -349,6 +353,7 @@ table.sales td:first-child i{display:block;height:4px;margin-top:3px;background:
 <button id="nextday" type="button" data-act="nextday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M10 13l4 2.5-4 2.5z" fill="currentColor"/></svg></button>
 <button id="fs" type="button" data-act="fullscreen" hidden></button>
 
+<script src="assets/menu-art.js"></script>
 <script src="assets/ingredients.js"></script>
 <script src="music.js"></script>
 <script src="city.js"></script>
@@ -430,7 +435,8 @@ en:{
   'k.empty':'Empty pizza. Start with the cheese.','k.needname':'Give the pizza a name.','k.needmore':'Add a few toppings first.',
   'k.updated':'{x} updated.','k.quicksave':'Save to the menu','k.quick.added':'Pizza saved and put on the menu.','k.quick.updated':'Changes saved to the menu.','k.rename':'Rename the pizza','k.rename.ok':'OK','k.added':'{x} is on the menu at {p}.',
   'k.newname':'New pizza','k.rotate':'Rotate {x}','k.rotatetip':'Turns the next piece you put down. With a mouse, right-click the pizza to turn it.','k.norotate':'{x} doesn’t need turning.',
-  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte.drizzle':'DRIZZLE','bench.nograte.spread':'SPREAD','bench.nograte.small':'SMALL','bench.q':'PRICE','bench.c':'COST','cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','chef.title':'Welcome, chef!','chef.lead':'What should we call you? Your name signs every pizza you share.','chef.name':'Chef’s name','chef.shop':'Pizzeria name','chef.defshop':'Pizzeria {c}','chef.save':'Start cooking','chef.need':'Fill in the chef’s name and the pizzeria’s name.','chef.or':'or','chef.quick':'Quick start','chef.hello':'Saved. Good luck, chef {c}!','fs.enter':'Full screen','fs.exit':'Leave full screen','fs.no':'This browser does not allow full screen here.','lang.title':'Language','lang.auto':'Automatic (browser)','lang.en':'English','lang.pt':'Português','mus.title':'Music','mus.vol':'Volume','mus.v1':'Low','mus.v2':'Quiet','mus.v3':'Medium','mus.v4':'Loud','mus.v5':'Max','mus.on':'Turn music on','mus.off':'Turn music off','mus.next':'Next song','rep.interest':'Bank interest','bank.title':'Bank','bank.lead':'Borrow to open or furnish a shop. Interest is charged every day: {r}% of what you owe.','bank.owe':'You owe','bank.today':'Interest per day','bank.limit':'Limit','bank.borrow':'Borrow {x}','bank.repay':'Repay {x}','bank.all':'Repay all','bank.got':'The bank lent you {x}.','bank.paid':'You repaid {x}.','bank.max':'The bank won’t lend more than {x}.','rep.shops':'Your shops today','rep.closed':'closed (no menu or tables)','rep.total':'Total for the day','book.title':'Recipe book','book.lead':'Pizzas from your other shops. Each shop has its own menu and prices.','book.add':'Put on this menu','book.added':'{x} is on this menu at {p}.','city.title':'City','city.back':'← Back','city.contest':'Every five days the pizza contest is held here.','ct.back':'← City','rv.style':'Strategy','rv.classic':'classic: cuts prices or improves its pizzas; 2-for-1 every six days.','rv.cheap':'cheap: cuts prices often and runs a 2-for-1 every four days.','rv.tourist':'for tourists: 2-for-1 on Fridays and Saturdays.','rv.family':'for families: steady prices, 2-for-1 on Sundays.','rv.gourmet':'gourmet: better and dearer pizzas when you beat it; never discounts.','city.close':'Close this shop','city.sell':'Sell this shop · {x}','city.closed':'{x} closed.','city.sold':'{x} sold for {p}.','city.closenote':'A rented shop just ends its lease; a bought one sells for 70% of its price. Its room, staff and pantry are lost; its pizzas stay in the recipe book.','city.card':'Porto Magno: look for a place for another pizzeria, rent it or buy it.','city.lead':'Drag the map and tap a building. You need {m} of your own (cash minus loans) to open another shop.',
+  'bench.whole':'WHOLE','bench.grated':'GRATED','bench.chopped':'CHOPPED','bench.nograte.drizzle':'DRIZZLE','bench.nograte.spread':'SPREAD','bench.nograte.small':'SMALL','bench.q':'PRICE','bench.c':'COST','shortcat.queijo':'Cheese','shortcat.carne':'Meat','shortcat.peixe':'Fish','shortcat.vegetal':'Veg','shortcat.ervas':'Herbs','shortcat.doce':'Sweet','shortcat.extras':'Extras',
+  'cat.queijo':'Cheese','cat.carne':'Meat','cat.peixe':'Fish & seafood','cat.vegetal':'Vegetables','cat.ervas':'Herbs & spices','cat.doce':'Sweet & fruit','cat.extras':'Extras','chef.title':'Welcome, chef!','chef.lead':'What should we call you? Your name signs every pizza you share.','chef.name':'Chef’s name','chef.shop':'Pizzeria name','chef.defshop':'Pizzeria {c}','chef.save':'Start cooking','chef.need':'Fill in the chef’s name and the pizzeria’s name.','chef.or':'or','chef.quick':'Quick start','chef.hello':'Saved. Good luck, chef {c}!','fs.enter':'Full screen','fs.exit':'Leave full screen','fs.no':'This browser does not allow full screen here.','lang.title':'Language','lang.auto':'Automatic (browser)','lang.en':'English','lang.pt':'Português','mus.title':'Music','mus.vol':'Volume','mus.v1':'Low','mus.v2':'Quiet','mus.v3':'Medium','mus.v4':'Loud','mus.v5':'Max','mus.on':'Turn music on','mus.off':'Turn music off','mus.next':'Next song','rep.interest':'Bank interest','bank.title':'Bank','bank.lead':'Borrow to open or furnish a shop. Interest is charged every day: {r}% of what you owe.','bank.owe':'You owe','bank.today':'Interest per day','bank.limit':'Limit','bank.borrow':'Borrow {x}','bank.repay':'Repay {x}','bank.all':'Repay all','bank.got':'The bank lent you {x}.','bank.paid':'You repaid {x}.','bank.max':'The bank won’t lend more than {x}.','rep.shops':'Your shops today','rep.closed':'closed (no menu or tables)','rep.total':'Total for the day','book.title':'Recipe book','book.lead':'Pizzas from your other shops. Each shop has its own menu and prices.','book.add':'Put on this menu','book.added':'{x} is on this menu at {p}.','city.title':'City','city.back':'← Back','city.contest':'Every five days the pizza contest is held here.','ct.back':'← City','rv.style':'Strategy','rv.classic':'classic: cuts prices or improves its pizzas; 2-for-1 every six days.','rv.cheap':'cheap: cuts prices often and runs a 2-for-1 every four days.','rv.tourist':'for tourists: 2-for-1 on Fridays and Saturdays.','rv.family':'for families: steady prices, 2-for-1 on Sundays.','rv.gourmet':'gourmet: better and dearer pizzas when you beat it; never discounts.','city.close':'Close this shop','city.sell':'Sell this shop · {x}','city.closed':'{x} closed.','city.sold':'{x} sold for {p}.','city.closenote':'A rented shop just ends its lease; a bought one sells for 70% of its price. Its room, staff and pantry are lost; its pizzas stay in the recipe book.','city.card':'Porto Magno: look for a place for another pizzeria, rent it or buy it.','city.lead':'Drag the map and tap a building. You need {m} of your own (cash minus loans) to open another shop.',
   'city.pick':'Drag the map to look around and tap a building to see it.','city.yours':'Your pizzerias','city.hoods':'Neighbourhoods','city.from':'from {x}/day','city.here':'You are here','city.go':'Go to this shop',
   'hood.uni':'University','hood.baixa':'Old Town','hood.resid':'Residential','hood.chique':'Riverside',
   'city.k.mine':'Your pizzeria','city.k.rival':'Rival','city.k.rent':'For rent','city.k.sale':'For sale','city.k.taken':'Occupied','city.k.land':'Landmark',
@@ -516,7 +522,8 @@ pt:{
   'k.empty':'Pizza vazia. Começa pelo queijo.','k.needname':'Dá um nome à pizza.','k.needmore':'Põe pelo menos alguns ingredientes.',
   'k.updated':'{x} atualizada.','k.quicksave':'Guardar no menu','k.quick.added':'Pizza salva e posta no menu.','k.quick.updated':'Alterações guardadas no menu.','k.rename':'Mudar o nome da pizza','k.rename.ok':'OK','k.added':'{x} entrou no menu por {p}.',
   'k.newname':'Nova pizza','k.rotate':'Rodar {x}','k.rotatetip':'Roda a próxima peça que puseres. Com o rato, clica com o botão direito na pizza para a rodar.','k.norotate':'{x} não precisa de rodar.',
-  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte.drizzle':'EM FIO','bench.nograte.spread':'ESPALHA-SE','bench.nograte.small':'JÁ É MIÚDO','bench.q':'PREÇO','bench.c':'CUSTO','cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','chef.title':'Bem-vindo, chef!','chef.lead':'Como te chamas? O teu nome assina todas as pizzas que partilhares.','chef.name':'Nome do chef','chef.shop':'Nome da pizzaria','chef.defshop':'Pizzaria {c}','chef.save':'Começar a cozinhar','chef.need':'Preenche o nome do chef e o da pizzaria.','chef.or':'ou','chef.quick':'Começo rápido','chef.hello':'Guardado. Bom trabalho, chef {c}!','fs.enter':'Ecrã inteiro','fs.exit':'Sair do ecrã inteiro','fs.no':'Este browser não deixa usar o ecrã inteiro aqui.','lang.title':'Língua','lang.auto':'Automática (do browser)','lang.en':'English','lang.pt':'Português','mus.title':'Música','mus.vol':'Volume','mus.v1':'Baixo','mus.v2':'Suave','mus.v3':'Médio','mus.v4':'Alto','mus.v5':'Máximo','mus.on':'Ligar a música','mus.off':'Desligar a música','mus.next':'Próxima música','rep.interest':'Juros do banco','bank.title':'Banco','bank.lead':'Pede emprestado para abrir ou equipar uma loja. Os juros cobram-se todos os dias: {r}% do que deves.','bank.owe':'Deves','bank.today':'Juros por dia','bank.limit':'Limite','bank.borrow':'Pedir {x}','bank.repay':'Pagar {x}','bank.all':'Pagar tudo','bank.got':'O banco emprestou-te {x}.','bank.paid':'Pagaste {x}.','bank.max':'O banco não empresta mais de {x}.','rep.shops':'As tuas lojas hoje','rep.closed':'fechada (sem menu ou mesas)','rep.total':'Total do dia','book.title':'Livro de receitas','book.lead':'Pizzas das tuas outras lojas. Cada loja tem o seu menu e os seus preços.','book.add':'Pôr neste menu','book.added':'{x} entrou neste menu por {p}.','city.title':'Cidade','city.back':'← Voltar','city.contest':'De cinco em cinco dias, o concurso de pizzas é aqui.','ct.back':'← Cidade','rv.style':'Estratégia','rv.classic':'clássica: baixa preços ou melhora as pizzas; 2 por 1 de seis em seis dias.','rv.cheap':'barata: baixa preços muitas vezes e faz 2 por 1 de quatro em quatro dias.','rv.tourist':'para turistas: 2 por 1 às sextas e aos sábados.','rv.family':'para famílias: preços estáveis, 2 por 1 aos domingos.','rv.gourmet':'gourmet: pizzas melhores e mais caras quando lhe ganhas; nunca faz descontos.','city.close':'Fechar esta loja','city.sell':'Vender esta loja · {x}','city.closed':'{x} fechou.','city.sold':'{x} vendida por {p}.','city.closenote':'Uma loja arrendada só acaba o arrendamento; uma comprada vende-se por 70% do preço. A sala, o pessoal e a despensa perdem-se; as pizzas ficam no livro de receitas.','city.card':'Porto Magno: procura um sítio para outra pizzaria, arrenda-o ou compra-o.','city.lead':'Arrasta o mapa e toca num edifício. Precisas de {m} teus (caixa menos empréstimos) para abrir outra loja.',
+  'bench.whole':'INTEIRO','bench.grated':'RALADO','bench.chopped':'PICADO','bench.nograte.drizzle':'EM FIO','bench.nograte.spread':'ESPALHA-SE','bench.nograte.small':'JÁ É MIÚDO','bench.q':'PREÇO','bench.c':'CUSTO','shortcat.queijo':'Queijo','shortcat.carne':'Carne','shortcat.peixe':'Peixe','shortcat.vegetal':'Legumes','shortcat.ervas':'Ervas','shortcat.doce':'Doces','shortcat.extras':'Extras',
+  'cat.queijo':'Queijos','cat.carne':'Carnes','cat.peixe':'Peixe e marisco','cat.vegetal':'Vegetais','cat.ervas':'Ervas e especiarias','cat.doce':'Doces e fruta','cat.extras':'Extras','chef.title':'Bem-vindo, chef!','chef.lead':'Como te chamas? O teu nome assina todas as pizzas que partilhares.','chef.name':'Nome do chef','chef.shop':'Nome da pizzaria','chef.defshop':'Pizzaria {c}','chef.save':'Começar a cozinhar','chef.need':'Preenche o nome do chef e o da pizzaria.','chef.or':'ou','chef.quick':'Começo rápido','chef.hello':'Guardado. Bom trabalho, chef {c}!','fs.enter':'Ecrã inteiro','fs.exit':'Sair do ecrã inteiro','fs.no':'Este browser não deixa usar o ecrã inteiro aqui.','lang.title':'Língua','lang.auto':'Automática (do browser)','lang.en':'English','lang.pt':'Português','mus.title':'Música','mus.vol':'Volume','mus.v1':'Baixo','mus.v2':'Suave','mus.v3':'Médio','mus.v4':'Alto','mus.v5':'Máximo','mus.on':'Ligar a música','mus.off':'Desligar a música','mus.next':'Próxima música','rep.interest':'Juros do banco','bank.title':'Banco','bank.lead':'Pede emprestado para abrir ou equipar uma loja. Os juros cobram-se todos os dias: {r}% do que deves.','bank.owe':'Deves','bank.today':'Juros por dia','bank.limit':'Limite','bank.borrow':'Pedir {x}','bank.repay':'Pagar {x}','bank.all':'Pagar tudo','bank.got':'O banco emprestou-te {x}.','bank.paid':'Pagaste {x}.','bank.max':'O banco não empresta mais de {x}.','rep.shops':'As tuas lojas hoje','rep.closed':'fechada (sem menu ou mesas)','rep.total':'Total do dia','book.title':'Livro de receitas','book.lead':'Pizzas das tuas outras lojas. Cada loja tem o seu menu e os seus preços.','book.add':'Pôr neste menu','book.added':'{x} entrou neste menu por {p}.','city.title':'Cidade','city.back':'← Voltar','city.contest':'De cinco em cinco dias, o concurso de pizzas é aqui.','ct.back':'← Cidade','rv.style':'Estratégia','rv.classic':'clássica: baixa preços ou melhora as pizzas; 2 por 1 de seis em seis dias.','rv.cheap':'barata: baixa preços muitas vezes e faz 2 por 1 de quatro em quatro dias.','rv.tourist':'para turistas: 2 por 1 às sextas e aos sábados.','rv.family':'para famílias: preços estáveis, 2 por 1 aos domingos.','rv.gourmet':'gourmet: pizzas melhores e mais caras quando lhe ganhas; nunca faz descontos.','city.close':'Fechar esta loja','city.sell':'Vender esta loja · {x}','city.closed':'{x} fechou.','city.sold':'{x} vendida por {p}.','city.closenote':'Uma loja arrendada só acaba o arrendamento; uma comprada vende-se por 70% do preço. A sala, o pessoal e a despensa perdem-se; as pizzas ficam no livro de receitas.','city.card':'Porto Magno: procura um sítio para outra pizzaria, arrenda-o ou compra-o.','city.lead':'Arrasta o mapa e toca num edifício. Precisas de {m} teus (caixa menos empréstimos) para abrir outra loja.',
   'city.pick':'Arrasta o mapa para veres a cidade e toca num edifício.','city.yours':'As tuas pizzarias','city.hoods':'Bairros','city.from':'desde {x}/dia','city.here':'Estás aqui','city.go':'Ir para esta loja',
   'hood.uni':'Universidade','hood.baixa':'Baixa','hood.resid':'Residencial','hood.chique':'Beira-Rio',
   'city.k.mine':'A tua pizzaria','city.k.rival':'Rival','city.k.rent':'Para arrendar','city.k.sale':'À venda','city.k.taken':'Ocupado','city.k.land':'Ponto de interesse',
@@ -959,7 +966,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.04b';
+const VERSION='0.04c';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1022,15 +1029,15 @@ function segMix(){const atm=roomA().atm,sh=state.shops&&curShop(),H=sh&&sh.hood&
 // quality colour, a smooth gradient: red up to 25, yellow around 55, green from 85 (darker on light backgrounds)
 const qColor=(q,dark)=>{const h=Math.round(clamp((q-25)/60,0,1)*120);return dark?`hsl(${h},90%,62%)`:`hsl(${h},${h>30&&h<90?95:80}%,${h>30&&h<=60?40:h<90?33:38}%)`};
 const suggestPrice=a=>costPrice(a.cost);   // to the cent: dough, sauce and every topping move it
-const OVEN_CAP=36,COOK_CAP=30;   // pizzas a day per oven / per pizzaiolo
+const OVEN_CAP=36,COOK_CAP=27;   // pizzas a day per oven / per pizzaiolo
 /* ---- Staff (state.staff, per shop): pizzaiolos ('cook') and waiters ('waiter'), each a person with a name, speed sp
    and skill sk (1-5 stars) and a daily wage w that follows them a little. A cook's speed sets how many pizzas they
    make (COOK_CAP at 3 stars), a waiter's how many customers they serve (WAITER_CAP); skill (a cook's hand, a waiter's
    manners) adds to each customer's satisfaction. Every morning brings new people to hire (state.cands, HIRE_COST). ---- */
-const WAITER_CAP=40,WAITER_SALARY=24,HIRE_COST=100,MAX_STAFF={cook:5,waiter:4};
+const WAITER_CAP=30,WAITER_SALARY=20,HIRE_COST=100,MAX_STAFF={cook:5,waiter:4};
 const STAFF_NAMES=['Ana','Bruno','Carla','Duarte','Eva','Filipe','Gina','Hugo','Inês','João','Lara','Marco','Nádia','Óscar','Paola','Rui','Sara','Tiago','Vera','Luca','Giulia','Matteo','Sofia','Rita','Pedro','Marta','Nuno','Bia','Dário','Joana','Enzo','Chiara','Tomás','Leonor','Gabriel','Mafalda'];
-const spMul=sp=>.7+.15*(sp-1);   // 1★ .7 … 3★ 1 … 5★ 1.3
-const wageOf=(r,sp,sk)=>(r==='cook'?SALARY:WAITER_SALARY)+3*(sp-3)+2*(sk-3);
+const spMul=sp=>1+.16*(sp-3);   // 1★ .68 … 3★ 1 … 5★ 1.32
+const wageOf=(r,sp,sk)=>(r==='cook'?SALARY:WAITER_SALARY)+2*(sp-3)+2*(sk-3);
 function newPerson(r,sp,sk,also=[]){const used=new Set([...(state&&state.staff||[]),...(state&&state.cands||[]),...also].map(p=>p.n));const free=STAFF_NAMES.filter(n=>!used.has(n));
   const star=()=>1+Math.floor((Math.random()+Math.random())*2.5);   // 1-5, mostly 2-4
   sp=sp||star();sk=sk||star();
@@ -1170,46 +1177,18 @@ const EXTRAS=['azeite','balsamico','maionese','natas_azedas','ovo','nozes','pinh
 function ingCat(id){const t=ING[id].t;if(HERBS.includes(id))return 'ervas';if(EXTRAS.includes(id))return 'extras';
   for(const c of ['queijo','carne','peixe','doce','vegetal'])if(t.includes(c))return c;return 'extras'}
 const CAT_ICON={queijo:'cheddar',carne:'coxa',peixe:'sardinha',vegetal:'cogumelos',ervas:'manjericao',doce:'banana',extras:'ovo'};
-/* Phone tabs: a symbol for each group, not one of its toppings (players read a row of toppings as more toppings).
-   16x16, one letter per pixel from CAT_PAL, drawn at 2x. */
-const CAT_PAL={O:'#2a1407',
-  Y:'#ffcf4a',y:'#ffe9a0',h:'#b8860f',H:'#fff3c4',d:'#e0a82a',                 // cheese: face, top, hole, hole's lit edge, shade
-  R:'#b8322a',r:'#e05a50',M:'#7e1d14',F:'#f2c8b8',w:'#f4ecd8',W:'#ffffff',     // steak: meat, light, dark, fat, bone
-  B:'#4f7fb0',b:'#cfe0ee',l:'#a8cdee',k:'#2e5680',                             // fish
-  C:'#e8781e',c:'#b5520f',e:'#ffb25a',                                         // carrot
-  G:'#3e8f2e',g:'#7cc24a',V:'#235a1c',S:'#4b6b22',T:'#9cbc4c',                 // greens, stems, the cherries' light stems
-  X:'#ffb0a0',D:'#6e1018',                                                     // cherry light and dark (red is R)
-  J:'#6a4220',K:'#a8743a',P:'#f3e6c6',Q:'#6b7a1a',q:'#a9b33a',Z:'#3e4a0e'};    // bottle: cork, label, oil
-const CAT_SYM={
-  queijo:['................','................','..........OO....','........OOyyO...','......OOyyyyOO..','....OOyyyyhyyyO.','..OOyyyyyyyyyyyO',
-    '.OYYYYYYYYYYYYYO','.OYhhYYYYYYYYYdO','.OYhHYYYYYhhYYdO','.OYYYYYYYYYhHYdO','.OYYYYhhYYYYYYdO','.OYYYYhHYYYYYYdO','.OdddddddddddddO','..OOOOOOOOOOOOO.','................'],
-  carne:['................','................','................','....OOOOOOO.....','..OOFFFFFFFOO...','.OFFRRRRRRRFFOO.','.OFRrrRRRRRRRFFO','OFRrRRRwwRRRRRFO',
-    'OFRrRRWwwwRRRRFO','OFRRRRwwwwRRRRFO','OFRRRRRwwRRRMRO.','.OFRRRRRRRMMRO..','.OFFMRRRRRRRO...','..OOFFFFFFOO....','....OOOOOO......','................'],
-  peixe:['................','................','......OOO.......','.....OkkkO....OO','...OOBBBBBOO.OBO','..OBBlBlBBBBOOBO','.OBWOBkBBlBBBBO.','OBBBBBkBBBBBBBO.',
-    'ObbbbbkbbbbbbbO.','.ObbbbbbbbbbOOBO','..OObbbbbbOO.OBO','....OOkkOO....OO','......OO........','................','................','................'],
-  vegetal:['....G..g..G.....','.....GggGgG.....','......GGGG......','....OOOOOOOO....','....OeCCCCcO....','....OeCcCCCO....','.....OeCCCCO....','.....OCCccO.....',
-    '......OeCCO.....','......OCcCO.....','......OeCO......','.......OCO......','.......OO.......','................','................','................'],
-  ervas:['................','.......OO.......','......OggO......','.....OggVgO.....','.....OgVGgO.....','.OOO..OVGO..OOO.','OggVO..SS..OVgGO','OgVGGO.SS.OGVGGO',
-    '.OGGGGOSSOGGGGO.','..OOOOOSSOOOOO..','.......SS.......','......SS........','.....SS.........','................','................','................'],
-  doce:['...........gG...','..........TgGG..','.........T.T....','........T...T...','.......T....T...','......T.....T...','...OOTOO...OTOO.','..ORXRRO..ORXRRO',
-    '..OXRRRO..OXRRRO','..ORRRDO..ORRRDO','..ODRDDO..ODRDDO','...OOOO....OOOO.','................','................','................','................'],
-  extras:['......OOO.......','......OKO.......','......OJO.......','......OOO.......','......OQO.......','.....OQqQO......','....OQqQQQO.....','....OqQQQZO.....',
-    '....OPPPPPO.....','....OPYGYPO.....','....OPPPPPO.....','....OqQQQZO.....','....OqQQQZO.....','....OOOOOOO.....','................','................']};
-function drawCatIcon(cv){const c=cv.getContext('2d'),rows=CAT_SYM[cv.dataset.cat];c.clearRect(0,0,32,32);
-  let x0=16,x1=-1,y0=16,y1=-1;rows.forEach((r,y)=>[...r].forEach((ch,x)=>{if(ch!=='.'){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}}));
-  const dx=Math.floor((16-(x1-x0+1))/2)-x0,dy=Math.floor((16-(y1-y0+1))/2)-y0;   // centred from the painted bounds
-  rows.forEach((r,y)=>[...r].forEach((ch,x)=>{if(CAT_PAL[ch]){c.fillStyle=CAT_PAL[ch];c.fillRect((x+dx)*2,(y+dy)*2,2,2)}}))}
+function drawCatIcon(cv){drawMenuArt(cv.getContext('2d'),'tab-'+cv.dataset.cat)}
 function pantryHTML(){
   const cat=CATS.includes(state.cat)?state.cat:ingCat(state.sel);
   if(MINI_PANTRY)return miniPantryHTML(cat);
-  const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}">${t('cat.'+c)} <small>${Object.keys(ING).filter(k=>ingCat(k)===c).length}</small></button>`).join('');
+  const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}"><canvas aria-hidden="true" data-cat="${c}" width="32" height="32"></canvas>${t('cat.'+c)} <small>${Object.keys(ING).filter(k=>ingCat(k)===c).length}</small></button>`).join('');
   const ids=Object.keys(ING).filter(k=>ingCat(k)===cat).sort((a,b)=>(FAV.includes(b)-FAV.includes(a))||FAV.indexOf(a)-FAV.indexOf(b)||ING[a].n.localeCompare(ING[b].n,LANG));   // the classics first, then A to Z in the player's language
   const ings=ids.map(k=>{const v=ING[k];return `<button class="ing ${state.sel===k?'on':''}" data-act="ing" data-v="${k}"><canvas data-ing="${k}" width="32" height="32"></canvas>${esc(v.n)}<small>${eur(ingC(k))}</small></button>`}).join('');
   return `<span class="lbl">${t('k.ings')}</span><div class="seg cats" role="tablist">${tabs}</div><div class="ings">${ings}</div>`;
 }
 // phone: pictures only, so a child can pick everything on the first screen; names stay in tooltips and for screen readers
 function miniPantryHTML(cat){
-  const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}" role="tab" aria-selected="${c===cat}" aria-label="${esc(t('cat.'+c))}" title="${esc(t('cat.'+c))}"><canvas data-cat="${c}" width="32" height="32"></canvas></button>`).join('');
+  const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}" role="tab" aria-selected="${c===cat}" aria-label="${esc(t('cat.'+c))}" title="${esc(t('cat.'+c))}"><canvas data-cat="${c}" width="32" height="32"></canvas><span>${t('shortcat.'+c)}</span></button>`).join('');
   const ids=Object.keys(ING).filter(k=>ingCat(k)===cat).sort((a,b)=>(FAV.includes(b)-FAV.includes(a))||FAV.indexOf(a)-FAV.indexOf(b)||ING[a].n.localeCompare(ING[b].n,LANG));
   const ings=ids.map(k=>{const v=ING[k],lbl=`${v.n} · ${eur(ingC(k))}`;
     return `<button class="ing ${state.sel===k?'on':''}" data-act="ing" data-v="${k}" aria-label="${esc(v.n)}" title="${esc(lbl)}"><canvas data-ing="${k}" width="32" height="32"></canvas></button>`}).join('');
@@ -1533,11 +1512,32 @@ function managerMorning(){
     for(let pass=0;pass<2;pass++)for(const p of s.menu){const pts=demandCurve(p),best=pts.reduce((a,b)=>b.profit>a.profit?b:a),np=Math.max(r2(analyze(p).cost+1),Math.round(best.price*2)/2);
       p.price=np}
     s.menu.forEach((p,i)=>{if(p.price!==was[i])news.push(t('mg.price',{x:p.name,p:eur(p.price)}))});
-    const want=Math.min(expectedCustomers()*.85,roomA().seats*2.6);
-    // the fastest of today's candidates (the cheaper one on a tie), while the kitchen or the room is short
-    const best=r=>candidates().filter(p=>p.r===r).sort((a,b)=>b.sp-a.sp||a.w-b.w)[0];
-    for(const [r,cap,key] of [['cook',()=>capacity()<want&&capacity()<s.ovens*OVEN_CAP,'mg.hire'],['waiter',()=>serviceCap()<want,'mg.hirew']])
-      while(crew(r).length<MAX_STAFF[r]&&cap()&&s.money>=HIRE_COST){const c=best(r);if(!c||!hirePerson(c.id))break;news.push(t(key,{x:c.n}))}
+    const recent=s.hist.slice(-7).filter(day=>day.queue!=null && day.N>0);
+    const street=recent.reduce((sum,day)=>sum+day.N,0);
+    const demandShare=street?recent.reduce((sum,day)=>sum+day.n+day.queue,0)/street:.85;
+    const room=roomA(),want=room.kitchenOk?Math.min(expectedCustomers()*demandShare,room.seats*2.6):0;
+    const sold=recent.reduce((sum,day)=>sum+day.n,0);
+    const margin=sold?recent.reduce((sum,day)=>sum+day.gross,0)/sold:
+      s.menu.reduce((sum,p)=>sum+p.price-analyze(p).cost,0)/Math.max(1,s.menu.length);
+    // Recover the hiring fee in two weeks. Only sales reachable through both stations count.
+    while(s.menu.length && s.money>=HIRE_COST){
+      const cooks=crew('cook'),waiters=crew('waiter'),oven=s.ovens*OVEN_CAP;
+      const kitchen=cooks.reduce((sum,p)=>sum+COOK_CAP*spMul(p.sp),0);
+      const service=waiters.reduce((sum,p)=>sum+WAITER_CAP*spMul(p.sp),0);
+      const before=Math.min(want,oven,Math.round(kitchen),Math.round(service));
+      if(before>=want)break;
+      let best=null,bestNet=0;
+      for(const p of candidates()){
+        const cook=p.r==='cook';
+        if((cook?cooks:waiters).length>=MAX_STAFF[p.r])continue;
+        const after=Math.min(want,oven,Math.round(kitchen+(cook?COOK_CAP*spMul(p.sp):0)),
+          Math.round(service+(cook?0:WAITER_CAP*spMul(p.sp))));
+        const net=(after-before)*margin-p.w-HIRE_COST/14;
+        if(net>bestNet || (best && net===bestNet && p.sk>best.sk)){best=p;bestNet=net}
+      }
+      if(!best || !hirePerson(best.id))break;
+      news.push(t(best.r==='cook'?'mg.hire':'mg.hirew',{x:best.n}));
+    }
   }
   if(s.tier===2){const c=fillStock(s.restockDays||3,true);if(c)news.push(t('mg.stock',{x:eur(c),d:s.restockDays}))}
   if(news.length)s.news=[...news,...s.news].slice(0,8);
@@ -1561,7 +1561,7 @@ const happyAt=()=>HAPPY_BASE+state.rep*HAPPY_STAR;
 const repGain=d=>d>0?d*Math.max(.12,(REP_TOP-state.rep)/(REP_TOP-1)):d;
 function simulateDay(){
   const s=state,menuA=s.menu.map(p=>({p,a:analyze(p),need:pizzaNeeds(p),base:baseCostOf(p)})),mix=segMix(),cap=Math.min(capacity(),serviceCap()),r=s.rival;
-  const crewSat=(avgSkill('cook')-3)*1.5+(avgSkill('waiter')-3)*1.5;   // a skilled pizzaiolo's hand and a kind waiter
+  const crewSat=(avgSkill('cook')-3)+(avgSkill('waiter')-3);   // a skilled pizzaiolo's hand and a kind waiter
   const N=expectedCustomers();const TH=4.2,REGULARS=.45;const events=[];
   // the room: seats at the tables a waiter can reach, and how much each group likes it
   const RM=roomA(),atm=RM.atm,EAT=.18,WAIT=.04,seatFree=Array(RM.seats).fill(0);let noseat=0;
@@ -1643,7 +1643,7 @@ function shopDay(res,day,watched){
   if(res.stockAfter)s.stock=res.stockAfter;const repBefore=s.rep;s.rep=r2(clamp(s.rep+repGain(clamp(res.repDelta,-.4,.25)),0,5));
   s.lastSales=res.sales;
   // the day goes into the history (HIST_DAYS days kept): pizzas by name, so a pizza taken off the menu keeps its past
-  s.hist=[...(s.hist||[]),{d:day,n:res.served,N:res.N,rv:res.toRival,p:profit,v:res.revenue,r:+s.rep.toFixed(2),
+  s.hist=[...(s.hist||[]),{d:day,n:res.served,N:res.N,queue:res.full||0,gross:r2(res.revenue-res.ingCost),rv:res.toRival,p:profit,v:res.revenue,r:+s.rep.toFixed(2),
     s:Object.entries(res.sales).map(([id,n])=>{const m=s.menu.find(x=>x.id===id);return m?[m.name,n,r2(n*m.price)]:null}).filter(Boolean)}].slice(-HIST_DAYS);
   s.ads=false;
   r.promo=false;
@@ -2130,7 +2130,7 @@ function demandCurve(p){
   let sd=12345;const rnd=()=>{sd=sd+0x6D2B79F5|0;let x=Math.imul(sd^sd>>>15,1|sd);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296};
   const nz=()=>(rnd()+rnd()+rnd()-1.5)*1.6,cust=[];
   for(let i=0;i<300;i++){let x=rnd(),seg='familia';for(const k in mix){x-=mix[k];if(x<=0){seg=k;break}}cust.push({seg,n:menuA.map(nz),rn:nz(),reg:rnd()<REG})}
-  const cap=Math.min(capacity(),roomA().seats*2.6);   // what the kitchen and the seats can serve in a day
+  const cap=Math.min(capacity(),serviceCap(),roomA().seats*2.6);   // what the kitchen and the seats can serve in a day
   const lo=Math.max(1,r2(me.a.cost)),hi=Math.max(lo+3,suggestPrice(me.a)*2),pts=[];
   // profit is the whole menu's: a cheaper pizza also takes customers from the other pizzas, and they share the kitchen
   for(let k=0;k<=30;k++){const price=lo+(hi-lo)*k/30,n=menuA.map(()=>0);
@@ -2365,45 +2365,30 @@ function lgArt(c,rows,ox,oy,mirror,map={}){rows.forEach((r,y)=>{const line=mirro
 const CHEF_HAT=['..........kkkkkk','.......kkkkwwwww','......kwwwwwwwww','.....kwwwwwwwwww','.....kwwwgwwwwww','.....kwwwwwwwwww','......kwwwwwwwww','......kgwwwwwwww','......kkkkkkkkkk'];
 const CHEF_M=['......kBBsssssss','.....kBsssssssss','.....kssskksssss','....kSssskksssss','....kSsssssssSSS','.....kssssssSSSS','...kbbbsssbbbbbb','..kbbbbbbbbbbbbb','...kbbbbbbbbbbbs','....ksssssskkkkk','.....kssssssssss','......kkssssssss','........kkkkkkkk',
   '.......kwwwwwrrr','.....kkwwwwwwrrr','....kwwwwwwwwwrr','...kwwwwkwwwwwwr','...kwwwwkwwwwwww','...kkkkkkkkkkkkk'];
-const CHEF_W=['.....khhhhhhssss','....khhhssssssss','....khhsskksssss','...khhSsskksssss','...khhsssssssssS','...khhspssssssss','...khhsssssssrrr','...khhhsssssssss','...khhhksssssssk','...khhhhksssssss','...khhhhhkkkkkkk',
-  '....khhhkwwwwrrr','....khkkwwwwwrrr','....kkwwwwwwwwrr','...kwwwwkwwwwwwr','...kwwwwkwwwwwww','...kkkkkkkkkkkkk'];
-function lgChef(c,woman,skin,shade,hair){const map={s:skin,S:shade,b:hair,B:hair,h:hair};lgArt(c,CHEF_HAT,0,2,true);lgArt(c,woman?CHEF_W:CHEF_M,0,11,true,map);
-  if(woman){lgPx(c,8,12,'k');lgPx(c,23,12,'k')}}   // her lashes
+function lgChef(c,skin,shade,hair){const map={s:skin,S:shade,b:hair,B:hair};
+  lgArt(c,CHEF_HAT,0,2,true);lgArt(c,CHEF_M,0,11,true,map)}
 const SKIN_L=['#f1c7a0','#d9a477'],SKIN_D=['#9a5f3a','#764527'];
 const LOGOS=[
   {id:'pizza',draw(c){lgDisc(c,16,16,15,'C');lgDisc(c,16,16,13.5,'c');lgDisc(c,16,16,11.5,'r');
     for(const [x,y] of [[16,9],[9,15],[23,15],[13,23],[20,23],[16,15]]){lgDisc(c,x,y,2.8,'y');lgPx(c,x-1,y-1,'n')}
     for(const [x,y] of [[11,10],[21,10],[12,18],[20,19],[16,24]]){lgDisc(c,x,y,2.6,'R');lgDisc(c,x-.4,y-.4,2,'r')}lgOutline(c)}},
-  {id:'slice',draw(c){lgEach(c,(x,y)=>{if(y<3||y>27)return 0;const h=(27-y)*.5+1;return Math.abs(x-16)>h?0:y<7?(y<5?'c':'C'):(x-16>h-2&&y<26?'Y':'y')});
-    for(const [x,y,r] of [[13,11,2.3],[19,13,2.3],[16,19,2]]){lgDisc(c,x,y,r,'r');lgPx(c,Math.floor(x)-1,Math.floor(y)-1,'#e86a5a')}
-    lgRect(c,15,27,2,3,'y');lgPx(c,15,30,'Y');lgPx(c,16,30,'Y');lgRect(c,9,12,2,4,'y');lgPx(c,9,16,'y');lgOutline(c)}},   // the cheese drips
+  {id:'slice',draw(c){drawMenuArt(c,'slice')}},
   {id:'tomato',draw(c){lgDisc(c,16,18,12,'R');lgDisc(c,15.4,17.4,11,'r');lgDisc(c,11,13,2.4,'#e8705a');lgPx(c,10,12,'#ffd0c0');
     lgArt(c,['...G.....G...','....GG.GG....','.GGGGGGGGGGG.','...GGGGGGG...','..G..GGG..G..','......G......','......G......'],10,2);lgRect(c,16,1,1,3,'G');lgOutline(c)}},
-  {id:'chef',draw(c){lgChef(c,false,...SKIN_L,'#3b2412')}},
-  {id:'chef2',draw(c){lgChef(c,false,...SKIN_D,'#1a120c')}},
-  {id:'chefw',draw(c){lgChef(c,true,...SKIN_L,'#7a3e1a')}},
-  {id:'chefw2',draw(c){lgChef(c,true,...SKIN_D,'#1a120c')}},
-  {id:'cat',draw(c){lgArt(c,['..kk............','..kOk...........','..kOOk..........','..kOpOk...kkkkkk','..kOppOkkkOOOOOO','..kOppOOOOODOOOD','..kOOOOOOOODOOOD','.kOOOOOOOOOOOOOO',
-    '.kOOOOkkkkkkkOOO','kOOOOkDDDDDDDkOO','kDOOkkkkkkkkkkOO','kOOOkwwwwwkkwkOO','kDOOkwwwwwkkwkOO','kOOOOkwwwwwwkOOO','kDOOOOkkkkkkOOww','.kOOOOOOOOOwwwwp','.kOOOOOOOwwwwwkp','kkkOOOOwwwwwwwwk',
-    '.kOOOOOwwwwwkkkk','kkOOOOOwwwwwwwwk','..kOOOOOwwwwwwww','...kOOOOOOwwwwww','....kkOOOOOOOOOO','......kkkkkkkkkk'],0,4,true,{O:'#f08a24',D:'#b8561a',w:'#fff1d6'});   // an orange tabby, half asleep
-    lgPx(c,11,15,'w');lgPx(c,21,15,'w')}},
-  {id:'dog',draw(c){lgArt(c,['.......kkkkkkkkk','.....kkTTTTTTTTT','....kTTTTTTTTTTT','..kkkTTTTTTTTwww','.kEEEkTTTTTTTwww','kEEEEkTTTTTTTwww','kEEEEkTTkkTTwwww','kEEEEkTTkkTTwwww','kEEEEkTTTTTwwwww',
-    'kEEEEkTTTTwwwwww','kEEEEkTTTwwwwwww','kEEEEkTTwwwwkkkk','.kEEEkTwwwwkkkkk','.kEEEkTwwwwwkkkk','..kEEkwwwwwwwwwk','...kkkwwwwwkwwww','.....kwwwwwwkkkk','......kwwwwwwkpp','.......kkkkkkkpp','..............kk'],0,5,true,{T:'#c98a4b',E:'#7a4a26',w:'#fff6e6',p:'#e8607a'});
-    lgPx(c,9,11,'w');lgPx(c,23,11,'w')}},   // a floppy-eared hound, a glint in each eye
+  {id:'chef',draw(c){lgChef(c,...SKIN_L,'#3b2412')}},
+  {id:'chef2',draw(c){lgChef(c,...SKIN_D,'#1a120c')}},
+  {id:'chefw',draw(c){drawMenuArt(c,'chefw')}},
+  {id:'chefw2',draw(c){drawMenuArt(c,'chefw2')}},
+  {id:'cat',draw(c){drawMenuArt(c,'cat')}},
+  {id:'dog',draw(c){drawMenuArt(c,'dog')}},
   {id:'hat',draw(c){lgDisc(c,16,16,15.5,'k');lgDisc(c,16,16,14.5,'r');lgDisc(c,16,16,12.5,'R');lgDisc(c,16,16,11.5,'r');
     const t=document.createElement('canvas');t.width=t.height=32;const h=t.getContext('2d');
     lgDisc(h,11,12,4.6,'w');lgDisc(h,21,12,4.6,'w');lgDisc(h,16,9.5,5.6,'w');lgRect(h,10,12,12,8,'w');lgRect(h,10,20,12,4,'g');lgDisc(h,12.5,10,1.4,'#ffffff');
     lgEach(h,(x,y,X,Y)=>Y>=20&&Y<24&&X%3===1&&X>10&&X<22,'#c8bdac');lgOutline(h);c.drawImage(t,0,0)}},
   {id:'peel',draw(c){lgEach(c,(x,y)=>lgSeg(x,y,5,27,17,15)<1.4,'C');lgEach(c,(x,y)=>Math.hypot(x-21,y-11)<7.5?(Math.hypot(x-20,y-10)<6?'x':'X'):0);
     lgEach(c,(x,y)=>{const d=lgSeg(x,y,7,7,25,25);return d<2.6?(d<1.2?'o':'c'):0});lgEach(c,(x,y)=>lgSeg(x,y,3,3,6,6)<1.3||lgSeg(x,y,26,26,29,29)<1.3,'C');lgOutline(c)}},
-  {id:'oven',draw(c){lgRect(c,20,3,4,10,'M');lgRect(c,20,3,4,1,'m');lgRect(c,19,2,6,2,'M');   // the chimney first: the dome covers its foot
-    lgEach(c,(x,y,X,Y)=>{if(y>22.5||Math.hypot(x-16,(y-22)*1.15)>14)return 0;const off=Math.floor((22-y)/3)%2?2:0;return Y%3===0||(X+off)%5===0?'M':'m'});
-    lgRect(c,1,22,30,7,'M');lgRect(c,1,22,30,1,'m');lgEach(c,(x,y,X,Y)=>Y>22&&Y<29&&(Y%3===1||(X+(Y>25?2:0))%6===0),'#5e544b');
-    lgEach(c,(x,y)=>y<23&&Math.hypot(x-16,(y-23)*1.2)<7.5,'d');lgArt(c,['....F....','...FfF...','..FfffF..','.FffFffF.','FfffffffF'],12,18);lgRect(c,10,22,13,1,'d');lgOutline(c)}},
-  {id:'awning',draw(c){lgEach(c,(x,y,X,Y)=>Y<3||Y>13||Math.abs(x-16)>11+(Y-3)*.45?0:Math.floor((x-16+40)/4)%2?'w':'r');
-    for(let k=0;k<8;k++)lgEach(c,(x,y)=>y>=14&&(x-2-k*4)**2+(y-14)**2<=4,k%2?'w':'r');
-    lgRect(c,3,17,26,13,'o');lgRect(c,3,17,26,1,'g');lgRect(c,6,19,10,8,'d');lgDisc(c,11,23,3.2,'c');lgDisc(c,11,23,2.4,'r');lgPx(c,10,22,'y');lgPx(c,12,24,'y');
-    lgRect(c,19,19,7,11,'B');lgPx(c,24,24,'y');lgRect(c,3,29,26,1,'X');lgOutline(c)}},
+  {id:'oven',draw(c){drawMenuArt(c,'oven')}},
+  {id:'awning',draw(c){drawMenuArt(c,'awning')}},
   {id:'shield',draw(c){lgEach(c,(x,y,X,Y)=>{if(Y<3||Y>29)return 0;const h=Y<17?12:12*Math.sqrt(Math.max(0,1-((Y-17)/13)**2));return Math.abs(x-16)>h+.01?0:X<12?'G':X<20?'w':'r'});
     lgArt(c,['kkkkkk.','kk...kk','kk...kk','kk...kk','kkkkkk.','kk.....','kk.....','kk.....','kk.....'],13,10);lgEach(c,(x,y,X,Y)=>Y===3&&X>3&&X<28,'y');lgOutline(c)}},
   {id:'letter',draw(c){lgDisc(c,16,16,15,'Q');lgDisc(c,16,16,13.5,'q');lgDisc(c,16,16,11.5,'Q');lgDisc(c,16,16,10.5,'q');   // the pizzeria's initial on a gold coin
