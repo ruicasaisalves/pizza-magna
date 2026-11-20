@@ -2,9 +2,9 @@
 
 A brief for anyone, person or AI, who wants to check or rebalance the staff system (pizzaiolos and waiters with their own skills). The rules below describe version 0.04c. The original experiment and its questions are retained below for comparison.
 
-- Branch: https://github.com/ruicasaisalves/pizza-magna/tree/claude/eager-goodall-s1savj
-- The game (one file): https://github.com/ruicasaisalves/pizza-magna/blob/claude/eager-goodall-s1savj/index.html
-- Raw, for tools that read plain text: https://raw.githubusercontent.com/ruicasaisalves/pizza-magna/claude/eager-goodall-s1savj/index.html
+- Repository: https://github.com/ruicasaisalves/pizza-magna (branch `main`; start new work on a branch from it)
+- The game (one file): https://github.com/ruicasaisalves/pizza-magna/blob/main/index.html
+- Raw, for tools that read plain text: https://raw.githubusercontent.com/ruicasaisalves/pizza-magna/main/index.html
 - The simulation script: [`tools/sim_staff.js`](../tools/sim_staff.js)
 
 `index.html` has about 2,700 lines. Don't read it all: search for the names below.
