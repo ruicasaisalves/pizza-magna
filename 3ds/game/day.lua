@@ -84,13 +84,19 @@ function G.serviceCap(S)   -- the dining room
   local k = 0; for _, p in ipairs(G.crew(S, "waiter")) do k = k + D.WAITER_CAP * G.spMul(p.sp) end
   return round(k)
 end
-function G.expected(S) return round((20 + S.rep * 8) * D.WK_MUL[(S.day - 1) % 7 + 1] * (S.ads and 1.45 or 1)) end
+-- a new shop's street: foot traffic 1-5 (3 is like the first shop's)
+local function trafficMul(S) local sh = S.shops and S.shops[S.cur]; return sh and sh.traffic and .55 + sh.traffic * .15 or 1 end
+function G.expected(S) return round((20 + S.rep * 8) * D.WK_MUL[(S.day - 1) % 7 + 1] * (S.ads and 1.45 or 1) * trafficMul(S)) end
 function G.weekday(day) return (P.lang() == "pt" and D.WD or D.WD_EN)[(day - 1) % 7 + 1] end
 function G.themeFor(day) return D.THEME_IDS[(day / 5 - 1) % #D.THEME_IDS + 1] end
 function G.nextContestDay(S) return math.ceil(S.day / 5) * 5 end
 
-local function segMix()
-  local atm, m, tot = D.ROOM.atm, { estudante = .36, familia = .32, turista = .18, gourmet = .14 }, 0
+local function segMix(S)
+  local sh = S.shops and S.shops[S.cur]
+  local H = sh and sh.hood and D.CITY.HOODS[sh.hood]   -- a new shop: its neighbourhood's customers
+  local m = H and { estudante = H.mix[1] / 100, familia = H.mix[2] / 100, turista = H.mix[3] / 100, gourmet = H.mix[4] / 100 }
+    or { estudante = .36, familia = .32, turista = .18, gourmet = .14 }
+  local atm, tot = D.ROOM.atm, 0
   for k, v in pairs(m) do m[k] = v * (.6 + atm[k] / 100 * .8); tot = tot + m[k] end   -- a room a group likes brings more of it
   for k in pairs(m) do m[k] = m[k] / tot end
   return m
@@ -168,7 +174,7 @@ function G.repGain(S, d) if HARD_REP and d > 0 then return d * math.max(.12, (RE
 function G.simulateDay(S)
   local menuA = {}
   for _, p in ipairs(S.menu) do menuA[#menuA + 1] = { p = p, a = P.analyze(p), need = pizzaNeeds(p), base = D.DOUGHS[p.dough].c + D.SAUCES[p.sauce].c } end
-  local mix, cap, r, N = segMix(), math.min(G.capacity(S), G.serviceCap(S)), S.rival, G.expected(S)
+  local mix, cap, r, N = segMix(S), math.min(G.capacity(S), G.serviceCap(S)), S.rival, G.expected(S)
   local crewSat = (avgSkill(S, "cook") - 3) + (avgSkill(S, "waiter") - 3)   -- a skilled pizzaiolo's hand and a charming waiter
   local TH, REGULARS = 4.2, .45
   local atm, EAT, WAIT = D.ROOM.atm, .18, .04
@@ -256,8 +262,7 @@ end
 
 function G.resolveContest(S)
   local day, th = S.day, G.themeFor(S.day)
-  local p
-  for _, x in ipairs(S.menu) do if x.id == S.contestEntry then p = x end end
+  local p = G.anyPizza(S, S.contestEntry)
   if not p then return nil end
   local mine = P.contestScore(th, p)
   local base = math.min(92, 50 + day * 1.1)
@@ -287,9 +292,49 @@ function G.newsText(n)
   return t(n.k, v)
 end
 
-function G.finishDay(S, res)
-  local r, sal = S.rival, G.wages(S)
-  local profit = r2(res.revenue - res.ingCost - D.RENT - sal)
+--[[ Several shops (the City), as in index.html: the open shop's fields (SHOP_KEYS) live at the root of S, the
+     others in S.shops[i].data; S.shops[i] = {hood, lot, traffic, owned, data}; S.cur is the open one. The first shop
+     has no hood (the original customer mix) and pays RENT; a rented one its lot's rent, a bought one none. ]]
+G.SHOP_KEYS = { "rep", "ovens", "staff", "ads", "menu", "rival", "lastSales", "hist", "supplier" }
+function G.openShop(S, i)
+  if i == S.cur or not S.shops[i] or not S.shops[i].data then return false end
+  local park = {}; for _, k in ipairs(G.SHOP_KEYS) do park[k] = S[k] end
+  S.shops[S.cur].data = park
+  for _, k in ipairs(G.SHOP_KEYS) do S[k] = S.shops[i].data[k] end
+  S.shops[i].data = nil; S.cur = i
+  return true
+end
+function G.shopName(S, i)
+  local sh = S.shops[i or S.cur]
+  return (sh and sh.hood) and ("Pizza Magna · " .. t("hood." .. sh.hood)) or "Pizza Magna"
+end
+function G.rentOf(S, i)
+  local sh = S.shops[i]
+  if not sh or not sh.hood then return D.RENT end
+  return sh.owned and 0 or D.CITY.LOTS[sh.lot].rent
+end
+-- a pizza by id on any shop's menu (the open shop first): the contest entry may come from another shop
+function G.anyPizza(S, id)
+  if not id then return nil end
+  for _, p in ipairs(S.menu) do if p.id == id then return p end end
+  for _, sh in ipairs(S.shops or {}) do if sh.data then for _, p in ipairs(sh.data.menu) do if p.id == id then return p end end end end
+end
+-- Rivals' strategies (rival.style: the first shop's is classic, a new shop's comes from its neighbourhood, HOOD_STYLE).
+-- When you beat it, it cuts its price with chance cut (not below pMin), or else improves its pizzas by qStep (up to
+-- qMax; a premium rival also raises its price); when it beats you it raises its price (up to pMax). promo(day): the
+-- days of its 2-for-1 (weekdays: (day-1)%7, 0 Monday ... 6 Sunday). RSTYLE in index.html.
+local RSTYLE = {
+  classic = { cut = .5, qStep = 4, qMax = 85, pMin = 5, pMax = 9.5, promo = function(d) return d % 6 == 0 end },
+  cheap = { cut = .8, qStep = 2, qMax = 70, pMin = 4.5, pMax = 8, promo = function(d) return d % 4 == 0 end },
+  tourist = { cut = .4, qStep = 3, qMax = 85, pMin = 6, pMax = 11, promo = function(d) local w = (d - 1) % 7; return w == 4 or w == 5 end },
+  family = { cut = .5, qStep = 3, qMax = 80, pMin = 5.5, pMax = 10, promo = function(d) return (d - 1) % 7 == 6 end },
+  gourmet = { cut = 0, qStep = 5, qMax = 95, pMin = 9, pMax = 16, promo = function() return false end, premium = true },
+}
+-- one shop's side of the day, on the open shop's fields: takings and costs, reputation, history and its rival
+-- (news only for the shop being watched: the others run in the background)
+function G.shopDay(S, res, day, watched)
+  local r, sal, rent = S.rival, G.wages(S), G.rentOf(S, S.cur)
+  local profit = r2(res.revenue - res.ingCost - rent - sal)
   S.money = r2(S.money + profit)
   local repBefore = S.rep
   S.rep = r2(clamp(S.rep + G.repGain(S, clamp(res.repDelta, -.4, .25)), 0, 5))
@@ -297,22 +342,50 @@ function G.finishDay(S, res)
   -- the day goes into the history (HIST_DAYS days kept), with its best seller by name
   local top, topN = "", 0
   for _, p in ipairs(S.menu) do local n = res.sales[p.id] or 0; if n > topN then top, topN = p.name, n end end
-  S.hist[#S.hist + 1] = { d = S.day, n = res.served, N = res.N, rv = res.toRival, p = profit, v = res.revenue, r = S.rep, top = top, topN = topN }
+  S.hist[#S.hist + 1] = { d = day, n = res.served, N = res.N, rv = res.toRival, p = profit, v = res.revenue, r = S.rep, top = top, topN = topN }
   while #S.hist > D.HIST_DAYS do table.remove(S.hist, 1) end
-  local contest
-  if S.day % 5 == 0 then if S.contestEntry then contest = G.resolveContest(S) end; S.contestEntry = nil end
   S.ads = false
-  local interest = r2((S.loan or 0) * D.BANK_RATE)   -- the bank's interest, every day
-  if interest > 0 then S.money = r2(S.money - interest) end
   local nw = {}
   r.promo = false
+  local st = RSTYLE[r.style or "classic"] or RSTYLE.classic
   if res.served > res.toRival * 1.3 and res.served > 8 then
-    if math.random() < .5 and r.price > 5 then r.price = r2(r.price - .5); nw[#nw + 1] = news("nw.cut", { r = r.name, p = P.eur(r.price) })
-    elseif r.q < 85 then r.q = r.q + 4; nw[#nw + 1] = news("nw.cook", { r = r.name }) end
-  elseif res.toRival > res.served * 1.5 and r.price < 9.5 then r.price = r2(r.price + .5); nw[#nw + 1] = news("nw.raise", { r = r.name, p = P.eur(r.price) }) end
-  if S.day % 4 == 0 and r.q < 85 then r.q = r.q + 1 end
+    if math.random() < st.cut and r.price > st.pMin then r.price = r2(r.price - .5); nw[#nw + 1] = news("nw.cut", { r = r.name, p = P.eur(r.price) })
+    elseif r.q < st.qMax then
+      r.q = math.min(st.qMax, r.q + st.qStep); nw[#nw + 1] = news("nw.cook", { r = r.name })
+      if st.premium and r.price < st.pMax then r.price = r2(r.price + .5) end
+    end
+  elseif res.toRival > res.served * 1.5 and r.price < st.pMax then r.price = r2(r.price + .5); nw[#nw + 1] = news("nw.raise", { r = r.name, p = P.eur(r.price) }) end
+  if day % 4 == 0 and r.q < st.qMax then r.q = r.q + 1 end
+  if st.promo(day + 1) then r.promo = true; nw[#nw + 1] = news("nw.promo", { r = r.name }) end
+  return { profit = profit, sal = sal, rent = rent, repBefore = repBefore, repAfter = S.rep, news = watched and nw or {} }
+end
+-- the shops not being watched run their day in the background; one with no menu stays closed but still pays its
+-- rent and wages
+function G.otherShopsDay(S, day)
+  local here, out = S.cur, {}
+  for i = 1, #S.shops do
+    if i ~= here and S.shops[i].data then
+      G.openShop(S, i)
+      local open = #S.menu > 0
+      local res = open and G.simulateDay(S) or { served = 0, N = 0, toRival = 0, revenue = 0, ingCost = 0, repDelta = 0, sales = {} }
+      local r = G.shopDay(S, res, day, false)
+      out[#out + 1] = { name = G.shopName(S, i), open = open, served = res.served, N = res.N, profit = r.profit }
+    end
+  end
+  G.openShop(S, here)
+  return out
+end
+
+function G.finishDay(S, res)
+  local day = S.day
+  local own = G.shopDay(S, res, day, true)
+  local others = G.otherShopsDay(S, day)
+  local contest
+  if day % 5 == 0 then if S.contestEntry then contest = G.resolveContest(S) end; S.contestEntry = nil end
+  local interest = r2((S.loan or 0) * D.BANK_RATE)   -- the bank's interest, every day
+  if interest > 0 then S.money = r2(S.money - interest) end
+  local nw = own.news
   S.day = S.day + 1
-  if S.day % 6 == 0 then r.promo = true; nw[#nw + 1] = news("nw.promo", { r = r.name }) end
   if S.day % 5 == 0 then nw[#nw + 1] = news("nw.ct", { x = "@th." .. G.themeFor(S.day) })
   elseif S.day % 5 == 4 then nw[#nw + 1] = news("nw.ct1", { x = "@th." .. G.themeFor(S.day + 1) }) end
   if S.day % 7 == 1 then
@@ -330,7 +403,66 @@ function G.finishDay(S, res)
   end
   local goal = false
   if D.GOAL_ON and not S.goalDone and S.money >= D.GOAL_MONEY and S.rep >= D.GOAL_REP then S.goalDone = true; goal = true end
-  return { res = res, profit = profit, sal = sal, repBefore = repBefore, repAfter = S.rep, contest = contest, quotes = quotes, day = S.day - 1, goal = goal, interest = interest }
+  return { res = res, profit = own.profit, sal = own.sal, rent = own.rent, repBefore = own.repBefore, repAfter = own.repAfter, contest = contest,
+    quotes = quotes, day = day, goal = goal, interest = interest, others = others }
+end
+
+--[[ The City (city.js, exported to D.CITY): with CITY_CASH of your own money (cash minus what you owe) rent a lot
+     (its rent every day, works paid now) or buy one (price and works now, no rent). On the 3DS a new shop opens with
+     the starter room (there is no room editor) and a copy of the open shop's menu (there is no recipe book); its
+     neighbourhood's customers and street, the nearest rival and a reputation of 1 star plus a tenth of the best. ]]
+function G.ownMoney(S) return r2(S.money - (S.loan or 0)) end
+function G.lotShop(S, i) for k, sh in ipairs(S.shops) do if sh.lot == i then return k end end end
+function G.lotKind(S, i)
+  local l = D.CITY.LOTS[i]
+  if G.lotShop(S, i) then return "mine" end
+  return l.kind == "mine" and "taken" or l.kind
+end
+function G.lotCost(l, buy) return (buy and l.price or 0) + (l.cond == "works" and l.works or 0) end
+local function copyMenu(menu)
+  local out = {}
+  for _, p in ipairs(menu) do
+    local c = { id = p.id, name = p.name, dough = p.dough, sauce = p.sauce, price = p.price, pieces = {} }
+    for k, x in ipairs(p.pieces) do local y = {}; for kk, vv in pairs(x) do y[kk] = vv end; c.pieces[k] = y end
+    out[#out + 1] = c
+  end
+  return out
+end
+function G.openLot(S, i, buy)   -- nil and an I18N key when it can't
+  local l = D.CITY.LOTS[i]
+  if G.lotKind(S, i) ~= (buy and "sale" or "rent") then return nil end
+  if G.ownMoney(S) < D.CITY_CASH then return nil, "city.need" end
+  local cost = G.lotCost(l, buy)
+  if S.money < cost then return nil, "rm.nomoney" end
+  S.money = r2(S.money - cost)
+  local best = S.rep
+  for _, sh in ipairs(S.shops) do if sh.data then best = math.max(best, sh.data.rep) end end
+  local rv, rd
+  for _, x in ipairs(D.CITY.LOTS) do
+    if x.kind == "rival" then
+      local d = math.sqrt((x.x - l.x) ^ 2 + (x.y - l.y) ^ 2)
+      if not rd or d < rd then rv, rd = x, d end
+    end
+  end
+  local RH = D.RIVAL_HOOD[l.hood]
+  S.shops[#S.shops + 1] = { hood = l.hood, lot = i, traffic = l.traffic, owned = buy and true or false, data = {
+    rep = r2(1 + (best - 1) * .1), ovens = 1, staff = G.startStaff(S, 1, 1), ads = false, menu = copyMenu(S.menu),
+    rival = { name = rv.name, q = RH.q, price = RH.price, style = D.HOOD_STYLE[l.hood], promo = false },
+    lastSales = {}, hist = {}, supplier = 1 } }
+  G.openShop(S, #S.shops)
+  return true
+end
+function G.closeShop(S, k)   -- a rented shop's lease ends; a bought one sells for SELL_SHARE of its price; never the last
+  local sh = S.shops[k]
+  if #S.shops < 2 or not sh then return nil end
+  if k == S.cur then G.openShop(S, k == 1 and 2 or 1) end   -- leave it first: the shop being closed must be parked
+  local gain = sh.owned and math.floor(D.CITY.LOTS[sh.lot].price * D.SELL_SHARE + .5) or 0
+  local name = G.shopName(S, k)
+  local cur = S.shops[S.cur]
+  table.remove(S.shops, k)
+  for n, x in ipairs(S.shops) do if x == cur then S.cur = n end end
+  if gain > 0 then S.money = r2(S.money + gain) end
+  return name, gain
 end
 G.news = news
 

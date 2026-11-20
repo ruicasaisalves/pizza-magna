@@ -1,6 +1,6 @@
 # Pizza Magna for the Nintendo 3DS (prototype)
 
-Homebrew port with [LÖVE Potion](https://lovebrew.org) 3 (LÖVE for the 3DS, in Lua): the **Kitchen**, the **Menu**, the **Day**, the **Contest** and the **Shop**. SELECT goes to the next screen; outside the Kitchen, L/R go back and forth too. The header shows the screens, the cash and the reputation.
+Homebrew port with [LÖVE Potion](https://lovebrew.org) 3 (LÖVE for the 3DS, in Lua): the **Kitchen**, the **Menu**, the **Day**, the **Contest**, the **Shop** and the **City**. SELECT goes to the next screen; outside the Kitchen, L/R go back and forth too. The header shows the screens, the cash and the reputation.
 
 **Kitchen** and the **Menu** (SELECT switches between them).
 
@@ -22,10 +22,15 @@ Homebrew port with [LÖVE Potion](https://lovebrew.org) 3 (LÖVE for the 3DS, in
 - **Bottom screen:** the street, with our pizzeria and the rival's. A opens the doors: customers walk down the street in their group's colour and go into one of the doors or walk past; a bubble shows each sale. x1/x2/x4 (or left/right) set the speed, Skip to closing (or A) ends the day.
 - **Report:** sales, toppings, rent, wages, the bank's interest (when you owe something) and the result, customers served, lost to the rival, in the queue or for a seat, reputation before and after, the topping, least wanted topping and combo of the week; on the bottom screen who bought what (each pizza by customer group), what some customers said, the contest result and a tip. Bankrupt (debts over $500) starts a new game; the goal ($4000 and 3 stars) is announced once (off for now, as in the browser game: `GOAL_ON`).
 - The simulation is the browser game's `simulateDay()` and `finishDay()`, staff included: the day serves the smaller of the kitchen's capacity (the pizzaiolos' speed, the ovens) and the waiters' (their speed), and cooking and charm add to each customer's satisfaction.
-- Left out on the 3DS because they don't fit two small screens: the City (one shop only), the room editor (the browser game's starter room: 5 tables, 10 seats), the Pantry (toppings are bought on the day at +25%, as the browser game's manager does, with no manager fee), the manager setting prices or hiring, and the pizzeria's symbol (there is no share card on the 3DS).
+- Left out on the 3DS because they don't fit two small screens: the room editor (every shop has the browser game's starter room: 5 tables, 10 seats), the Pantry (toppings are bought on the day at +25%, as the browser game's manager does, with no manager fee), the manager setting prices or hiring, the recipe book, and the pizzeria's symbol (there is no share card on the 3DS).
 
 **Contest**
 - Every 5 days. The top screen shows the next theme and its rules, the prizes, the entry fee, how many points the rivals score, and the last contests. The bottom screen lists the menu pizzas with the points they would score (or why they're disqualified); tap one, or A, to enter it (the fee is paid once; swapping is free).
+
+**City** (Porto Magno, as in the browser game)
+- **Top screen:** the city map (the browser game's pixel art, `game/gfx/city.png`) with signs on the places to rent and for sale, pins on the rivals and on your shops (`*` the one open) and the landmarks. The D-pad jumps to the next building worth seeing in that direction; X zooms out to see the whole town and back.
+- **Bottom screen:** the chosen building: neighbourhood, status, address, foot traffic, condition and works, rent or price, a rival's strategy, a landmark's description, and the customers of its neighbourhood. With $4000 of your own money (cash minus loans) **A** (or the button) rents or buys it (press twice). On your shops: go to this shop, and **Y** closes a rented one or sells a bought one for 70% (press twice; never the only one).
+- A new shop has its neighbourhood's customers, its street's foot traffic, its lot's rent (none if bought), the nearest rival with its neighbourhood's strategy (cheap, tourist, family, gourmet) and a reputation of 1 star plus a tenth of your best. Unlike the browser game it opens with the starter room and a copy of the open shop's menu (there is no room editor or recipe book on the 3DS). Each shop has its own menu, team, ovens, reputation, rival and history; the other shops run their day in the background, and the report lists each one and the total.
 
 **Shop**
 - Extra oven; **Team** (each pizzaiolo and waiter with name, wage, speed and cooking or charm as n/5; tap Let go, never the last of a role); **Looking for work today** (three new pizzaiolos and three new waiters every day; tap Hire, $100); neighbourhood flyers; the supplier (1/2/3: more quality, dearer toppings), the weekly market study (tips listed below it); the **Bank** (borrow $500, $2000 or $5000 up to $20,000, repay $500 or all; 0.5% of the debt a day); and restart the game (press twice). Hiring, letting go and the bank are touch buttons on the bottom screen.
@@ -36,10 +41,11 @@ Everything is saved to `save.txt`: the pizza on the bench, the menu, the combos 
 
 - `game/main.lua`: screens, input and drawing. `game/pizza.lua`: the pizza rules (`analyze()` with the topping of the week and the supplier, `contestScore()`, portions, weights, `packPieces`) and `game/day.lua`: the restaurant (`simulateDay()`, `finishDay()`, `resolveContest()`, the shop, the market study), both ported by hand from `index.html`. **When those change in the browser game, change them here too.**
 - `game/data.lua`: toppings, doughs, sauces, combos, customer groups, weights, the economy constants, the starter room's seats and atmosphere, the topping and combo of the week for 400 weeks, and the whole `I18N` table. **Generated** from `index.html` by `node tools/export_3ds.js`; never edit it by hand.
+- `game/gfx/city.png`: the city map, 904x704 in a 1024x1024 picture. **Generated** from `city.js` by `node tools/export_3ds_city.js` (it uses the Chromium that Playwright drives). The lots themselves (address, traffic, rent, price, condition) are in `data.lua`.
 - `game/atlas.lua` and `game/gfx/atlas*.png`: the toppings atlas packed again in 1024x1024 pages (the 3DS limit), with the turning pieces already turned and shadowed (`<id>_q0..q3`) and the group symbols (`cat_<group>`, from `assets/menu-art.js`). `icon.png` (48x48). **Generated** from `assets/ingredients.js` by `python3 tools/export_3ds.py`.
 - `lovebrew.toml`: settings for the bundler.
 
-After adding toppings or changing data in the browser game, run both exporters again.
+After adding toppings or changing data in the browser game, run both exporters again; after changing `city.js`, also `node tools/export_3ds_city.js`.
 
 ## Putting it on a 3DS
 
