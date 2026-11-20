@@ -34,6 +34,7 @@ A pizzeria management game in 90s pixel art, for browser and phone. Plain HTML a
 - `docs/art-packs.md`: art packs considered and the style decision.
 - `docs/ideas.md`: ideas on hold.
 - `docs/roadmap.md`: what is still missing to make a full tycoon game, and in which order.
+- `docs/staff-simulation.md`: how the staff system works (numbers and formulas), where its code is, and how to simulate it with `node tools/sim_staff.js [days] [stars]` (the game's own day in Chromium, one row per team).
 
 ## Rules
 - **Language of the game:** English by default and Portuguese when the browser is in `pt`; in Options the player can fix English or Português (`pm-lang` in `localStorage`). All visible text comes from `I18N`, with the same key in `en` and `pt`. Everything is migrated (only proper names, like the rival pizzerias and Portuguese dish names, stay as they are); new text must go through `t()`. The news (`state.news`) are saved as text; `newsText()` rewrites them in the current language when shown, so a news line needs a key in `NEWS_KEYS`. Inside `simulateDay()` a local `t` (time) hides `t()`: use its alias `tx()` there.
