@@ -2368,7 +2368,7 @@ const CHEF_M=['......kBBsssssss','.....kBsssssssss','.....kssskksssss','....kSss
 const CHEF_W=['.....khhhhhhssss','....khhhssssssss','....khhsskksssss','...khhSsskksssss','...khhsssssssssS','...khhspssssssss','...khhsssssssrrr','...khhhsssssssss','...khhhksssssssk','...khhhhksssssss','...khhhhhkkkkkkk',
   '....khhhkwwwwrrr','....khkkwwwwwrrr','....kkwwwwwwwwrr','...kwwwwkwwwwwwr','...kwwwwkwwwwwww','...kkkkkkkkkkkkk'];
 function lgChef(c,woman,skin,shade,hair){const map={s:skin,S:shade,b:hair,B:hair,h:hair};lgArt(c,CHEF_HAT,0,2,true);lgArt(c,woman?CHEF_W:CHEF_M,0,11,true,map);
-  if(woman){lgPx(c,8,12,'k');lgPx(c,23,12,'k')}else{lgRect(c,22,13,2,2,skin);lgRect(c,21,14,4,1,'k')}}   // her lashes; his wink
+  if(woman){lgPx(c,8,12,'k');lgPx(c,23,12,'k')}}   // her lashes
 const SKIN_L=['#f1c7a0','#d9a477'],SKIN_D=['#9a5f3a','#764527'];
 const LOGOS=[
   {id:'pizza',draw(c){lgDisc(c,16,16,15,'C');lgDisc(c,16,16,13.5,'c');lgDisc(c,16,16,11.5,'r');
