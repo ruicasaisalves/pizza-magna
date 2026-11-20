@@ -12,7 +12,7 @@ const src=[
   cut('const CATS=','function ingCat'),
   cut('const CAT_ICON=','function pantryHTML'),
   'var state={day:1};',
-  cut('const OVEN_CAP=','const expectedCustomers='),
+  cut('const OVEN_CAP=','const expectedCustomers='),cut('const BANK_RATE=','const ownMoney='),
   cut('const MANAGER_MARKUP=','/* Who runs'),cut('const TIER_FEE=','const gramPrice='),
   cut('/* ---- restaurant room','let roomAC'),
   // what the 3DS needs worked out here: the starter room's seats and atmosphere (no room editor there yet),
@@ -22,14 +22,13 @@ const src=[
   'this.OUT={I18N,DOUGHS,SAUCES,ING,PACKS,COMBOS,SEG,CASA:[...CASA],EXOTIC:[...EXOTIC],WEEK_BONUS,VALUE_CAP,APPEAL_W,'+
   'GRATED_W,BIG_SHRED:[...BIG_SHRED],SHRED_W,WHOLE_W,CENTRED:[...CENTRED],GRAMS,GRAMS_GRATED,CATS,HERBS,FAV,EXTRAS,CAT_ICON,'+
   'BASE_PRICE,MARKUP,SUPPLIER,STUDY_COST,RIVAL_BIAS,THEME_IDS:THEMES.map(x=>x.id),NPCS,WK_MUL,RENT,SALARY,ENTRY_FEE,'+
-  'WD,WD_EN,GOAL_MONEY,GOAL_REP,GOAL_ON,DAY_SECONDS,OVEN_CAP,COOK_CAP,MANAGER_MARKUP,ROOM,WEEKS};'
+  'WD,WD_EN,GOAL_MONEY,GOAL_REP,GOAL_ON,DAY_SECONDS,OVEN_CAP,COOK_CAP,MANAGER_MARKUP,ROOM,WEEKS,'+
+  'WAITER_CAP,WAITER_SALARY,HIRE_COST,MAX_STAFF,STAFF_NAMES,BANK_RATE,BANK_MAX,HIST_DAYS};'
 ].join('\n');
 const ctx={navigator:{languages:['en'],language:'en'},localStorage:{getItem:()=>null,setItem(){}},
   document:{documentElement:{lang:''},querySelectorAll:()=>[]},window:{},console};
 vm.createContext(ctx);vm.runInContext(src.replace(/^(const|let) /gm,'var '),ctx);
 const O=ctx.OUT;
-// The handheld still uses the count-only staffing model.
-O.COOK_CAP=30;
 // the names are filled from I18N at runtime in the 3DS game; keep the data language-free
 for(const k in O.ING)delete O.ING[k].n;for(const k in O.DOUGHS)delete O.DOUGHS[k].n;for(const k in O.SAUCES)delete O.SAUCES[k].n;
 for(const k in O.SEG)delete O.SEG[k].n;for(const c of O.COMBOS){delete c.n;delete c.quote}

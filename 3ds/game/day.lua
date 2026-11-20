@@ -2,7 +2,7 @@
      the contest (resolveContest) and the shop. The logic follows the browser game; change it here too when it
      changes there. Differences on the 3DS for now: one room (the browser game's starter room, exported to
      data.lua as ROOM), no pantry (every topping is bought on the day at MANAGER_MARKUP, as the browser game's
-     manager does, with no manager fee) and no manager setting prices or hiring. ]]
+     manager does, with no manager fee), no manager setting prices or hiring, and one shop (no City). ]]
 local P = require("pizza")
 local D, t = P.D, P.t
 local G = {}
@@ -25,12 +25,69 @@ local function custU(seg, ap, price, cost)
   return ap / 10 - .5 * (price - 8) + .5 * v   -- tourists
 end
 
-function G.capacity(S) return math.min(S.ovens * D.OVEN_CAP, S.cooks * D.COOK_CAP) end
+--[[ Staff (as in index.html): pizzaiolos ("cook") and waiters, each a person {id, n = name, r = role, sp = speed 1-5,
+     sk = second skill 1-5 (cooking or charm), w = wage a day, v = look}. A cook's speed sets the kitchen's pizzas a
+     day (COOK_CAP at 3/5), a waiter's the customers served (WAITER_CAP); the day serves the smaller of the two. The
+     second skill adds to each customer's satisfaction (crewSat). New people come every day (candidates()). ]]
+function G.spMul(sp) return 1 + .16 * (sp - 3) end
+function G.wageOf(r, sp, sk) return (r == "cook" and D.SALARY or D.WAITER_SALARY) + 2 * (sp - 3) + 2 * (sk - 3) end
+function G.crew(S, r) local out = {}; for _, p in ipairs(S.staff) do if p.r == r then out[#out + 1] = p end end; return out end
+function G.wages(S) local w = 0; for _, p in ipairs(S.staff) do w = w + p.w end; return w end
+local function avgSkill(S, r) local c, n = G.crew(S, r), 0; for _, p in ipairs(c) do n = n + p.sk end; return #c > 0 and n / #c or 3 end
+function G.newPerson(S, r, sp, sk, also)
+  local used = {}
+  for _, l in ipairs({ S.staff or {}, S.cands or {}, also or {} }) do for _, p in ipairs(l) do used[p.n] = true end end
+  local free = {}; for _, n in ipairs(D.STAFF_NAMES) do if not used[n] then free[#free + 1] = n end end
+  if #free == 0 then free = D.STAFF_NAMES end
+  local function star() return 1 + math.floor((math.random() + math.random()) * 2.5) end   -- 1-5, mostly 2-4
+  sp, sk = sp or star(), sk or star()
+  return { id = tostring(math.random(1e8)), n = free[math.random(#free)], r = r, sp = sp, sk = sk,
+    w = G.wageOf(r, sp, sk) + math.random(-1, 1), v = math.random(0, 11) }
+end
+-- a new game's team, and old saves' count of pizzaiolos: average people at the base wage
+function G.startStaff(S, cooks, waiters)
+  local out = {}
+  for i = 1, cooks + waiters do
+    local r = i <= cooks and "cook" or "waiter"
+    local p = G.newPerson(S, r, 3, 3, out); p.w = r == "cook" and D.SALARY or D.WAITER_SALARY
+    out[#out + 1] = p
+  end
+  return out
+end
+-- today's people looking for work: three pizzaiolos and three waiters, new every day
+function G.candidates(S)
+  if S.candDay ~= S.day then
+    S.cands, S.candDay = {}, S.day
+    for _, r in ipairs({ "cook", "cook", "cook", "waiter", "waiter", "waiter" }) do S.cands[#S.cands + 1] = G.newPerson(S, r) end
+  end
+  return S.cands
+end
+function G.hire(S, id)
+  for k, c in ipairs(G.candidates(S)) do
+    if c.id == id then
+      if #G.crew(S, c.r) >= D.MAX_STAFF[c.r] or S.money < D.HIRE_COST then return nil end
+      S.money = r2(S.money - D.HIRE_COST); S.staff[#S.staff + 1] = c; table.remove(S.cands, k)
+      return c
+    end
+  end
+end
+function G.letGo(S, id)   -- never the last of a role
+  for k, p in ipairs(S.staff) do
+    if p.id == id and #G.crew(S, p.r) > 1 then table.remove(S.staff, k); return p end
+  end
+end
+function G.capacity(S)   -- the kitchen
+  local k = 0; for _, p in ipairs(G.crew(S, "cook")) do k = k + D.COOK_CAP * G.spMul(p.sp) end
+  return math.min(S.ovens * D.OVEN_CAP, round(k))
+end
+function G.serviceCap(S)   -- the dining room
+  local k = 0; for _, p in ipairs(G.crew(S, "waiter")) do k = k + D.WAITER_CAP * G.spMul(p.sp) end
+  return round(k)
+end
 function G.expected(S) return round((20 + S.rep * 8) * D.WK_MUL[(S.day - 1) % 7 + 1] * (S.ads and 1.45 or 1)) end
 function G.weekday(day) return (P.lang() == "pt" and D.WD or D.WD_EN)[(day - 1) % 7 + 1] end
 function G.themeFor(day) return D.THEME_IDS[(day / 5 - 1) % #D.THEME_IDS + 1] end
 function G.nextContestDay(S) return math.ceil(S.day / 5) * 5 end
-function G.waiters(S) return math.min(4, S.cooks + 1) end
 
 local function segMix()
   local atm, m, tot = D.ROOM.atm, { estudante = .36, familia = .32, turista = .18, gourmet = .14 }, 0
@@ -111,7 +168,8 @@ function G.repGain(S, d) if HARD_REP and d > 0 then return d * math.max(.12, (RE
 function G.simulateDay(S)
   local menuA = {}
   for _, p in ipairs(S.menu) do menuA[#menuA + 1] = { p = p, a = P.analyze(p), need = pizzaNeeds(p), base = D.DOUGHS[p.dough].c + D.SAUCES[p.sauce].c } end
-  local mix, cap, r, N = segMix(), G.capacity(S), S.rival, G.expected(S)
+  local mix, cap, r, N = segMix(), math.min(G.capacity(S), G.serviceCap(S)), S.rival, G.expected(S)
+  local crewSat = (avgSkill(S, "cook") - 3) + (avgSkill(S, "waiter") - 3)   -- a skilled pizzaiolo's hand and a charming waiter
   local TH, REGULARS = 4.2, .45
   local atm, EAT, WAIT = D.ROOM.atm, .18, .04
   local seatFree = {}; for k = 1, D.ROOM.seats do seatFree[k] = 0 end
@@ -169,7 +227,7 @@ function G.simulateDay(S)
         res.bySeg[seg] = res.bySeg[seg] or {}; res.bySeg[seg][m.p.id] = (res.bySeg[seg][m.p.id] or 0) + 1
         local ap = m.a.appeal[seg]
         local over = m.p.price - G.fairPrice(ap, m.a.cost)
-        local sat = ap + noise() * 5 - math.max(0, over) * 7 + (atm[seg] - 35) / 7
+        local sat = ap + noise() * 5 - math.max(0, over) * 7 + (atm[seg] - 35) / 7 + crewSat
         if sat >= G.happyAt(S) then
           res.happy = res.happy + 1; res.repDelta = res.repDelta + .008; e.out = "happy"
           if math.random() < .25 then quote(seg, t("qh." .. seg .. math.random(QH_N), { x = m.p.name })) end
@@ -230,15 +288,22 @@ function G.newsText(n)
 end
 
 function G.finishDay(S, res)
-  local r, sal = S.rival, S.cooks * D.SALARY
+  local r, sal = S.rival, G.wages(S)
   local profit = r2(res.revenue - res.ingCost - D.RENT - sal)
   S.money = r2(S.money + profit)
   local repBefore = S.rep
   S.rep = r2(clamp(S.rep + G.repGain(S, clamp(res.repDelta, -.4, .25)), 0, 5))
   S.lastSales = res.sales
+  -- the day goes into the history (HIST_DAYS days kept), with its best seller by name
+  local top, topN = "", 0
+  for _, p in ipairs(S.menu) do local n = res.sales[p.id] or 0; if n > topN then top, topN = p.name, n end end
+  S.hist[#S.hist + 1] = { d = S.day, n = res.served, N = res.N, rv = res.toRival, p = profit, v = res.revenue, r = S.rep, top = top, topN = topN }
+  while #S.hist > D.HIST_DAYS do table.remove(S.hist, 1) end
   local contest
   if S.day % 5 == 0 then if S.contestEntry then contest = G.resolveContest(S) end; S.contestEntry = nil end
   S.ads = false
+  local interest = r2((S.loan or 0) * D.BANK_RATE)   -- the bank's interest, every day
+  if interest > 0 then S.money = r2(S.money - interest) end
   local nw = {}
   r.promo = false
   if res.served > res.toRival * 1.3 and res.served > 8 then
@@ -265,18 +330,27 @@ function G.finishDay(S, res)
   end
   local goal = false
   if D.GOAL_ON and not S.goalDone and S.money >= D.GOAL_MONEY and S.rep >= D.GOAL_REP then S.goalDone = true; goal = true end
-  return { res = res, profit = profit, sal = sal, repBefore = repBefore, repAfter = S.rep, contest = contest, quotes = quotes, day = S.day - 1, goal = goal }
+  return { res = res, profit = profit, sal = sal, repBefore = repBefore, repAfter = S.rep, contest = contest, quotes = quotes, day = S.day - 1, goal = goal, interest = interest }
 end
 G.news = news
+
+-- the bank: borrow in steps up to BANK_MAX; BANK_RATE of what you owe is charged every day (finishDay)
+function G.borrow(S, v)
+  if (S.loan or 0) + v > D.BANK_MAX then return false end
+  S.loan = r2((S.loan or 0) + v); S.money = r2(S.money + v); return true
+end
+function G.repay(S, v)   -- v = nil: all of it
+  local owe = S.loan or 0
+  v = math.min(v or owe, owe)
+  if v <= 0 or S.money < v then return nil end
+  S.loan = r2(owe - v); S.money = r2(S.money - v); return v
+end
 
 -- the shop
 G.SHOP = {
   { id = "oven", cost = function(S) return 500 + S.ovens * 300 end, ok = function(S) return S.ovens < 3 end,
     lvl = function(S) return t("shop.oven.l", { n = S.ovens }) end, d = function() return t("shop.oven.d", { n = D.OVEN_CAP }) end,
     buy = function(S) S.ovens = S.ovens + 1 end },
-  { id = "cook", cost = function() return 100 end, ok = function(S) return S.cooks < 5 end,
-    lvl = function(S) return t("shop.cook.l", { n = S.cooks }) end, d = function() return t("shop.cook.d", { n = D.COOK_CAP, w = "$" .. D.SALARY }) end,
-    buy = function(S) S.cooks = S.cooks + 1 end },
   { id = "ads", cost = function() return 120 end, ok = function(S) return not S.ads end,
     lvl = function(S) return t(S.ads and "shop.ads.on" or "shop.ads.l") end, d = function() return t("shop.ads.d") end,
     buy = function(S) S.ads = true end },
