@@ -136,8 +136,9 @@ html.phone .stage{gap:6px}
 @media (max-width:420px){.stage{padding:8px 4px}}
 .stage canvas{touch-action:none;max-width:100%;display:block;cursor:crosshair;box-shadow:0 0 0 2px var(--wood-deep)}
 .pantry .ings{margin-top:8px}
-.pantry .cats{margin-top:8px}
-.pantry .cats button small{opacity:.6}
+.pantry .cats{margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:4px}   /* one row of icon tabs, short names (full name on hover) */
+.pantry .cats button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:3px 2px 2px;font-size:.72rem;line-height:1.1}
+.pantry .cats canvas{margin:0}
 @media (min-width:1000px){.pantry{max-height:516px;overflow:auto}}
 .stage #zbar{display:grid;gap:6px;justify-items:center;width:100%}
 .zrow{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
@@ -966,7 +967,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.04d';
+const VERSION='0.04e';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1181,7 +1182,7 @@ function drawCatIcon(cv){drawMenuArt(cv.getContext('2d'),'tab-'+cv.dataset.cat)}
 function pantryHTML(){
   const cat=CATS.includes(state.cat)?state.cat:ingCat(state.sel);
   if(MINI_PANTRY)return miniPantryHTML(cat);
-  const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}"><canvas aria-hidden="true" data-cat="${c}" width="32" height="32"></canvas>${t('cat.'+c)} <small>${Object.keys(ING).filter(k=>ingCat(k)===c).length}</small></button>`).join('');
+  const tabs=CATS.map(c=>`<button data-act="cat" data-v="${c}" class="${c===cat?'on':''}" title="${esc(t('cat.'+c))}" aria-label="${esc(t('cat.'+c))}"><canvas aria-hidden="true" data-cat="${c}" width="32" height="32"></canvas>${t('shortcat.'+c)}</button>`).join('');
   const ids=Object.keys(ING).filter(k=>ingCat(k)===cat).sort((a,b)=>(FAV.includes(b)-FAV.includes(a))||FAV.indexOf(a)-FAV.indexOf(b)||ING[a].n.localeCompare(ING[b].n,LANG));   // the classics first, then A to Z in the player's language
   const ings=ids.map(k=>{const v=ING[k];return `<button class="ing ${state.sel===k?'on':''}" data-act="ing" data-v="${k}"><canvas data-ing="${k}" width="32" height="32"></canvas>${esc(v.n)}<small>${eur(ingC(k))}</small></button>`}).join('');
   return `<span class="lbl">${t('k.ings')}</span><div class="seg cats" role="tablist">${tabs}</div><div class="ings">${ings}</div>`;
