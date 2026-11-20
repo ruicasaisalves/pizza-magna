@@ -38,6 +38,8 @@ The public site runs the full game (it showed only the Kitchen and the Menu unti
 - Draft: `docs/drafts/room.html` (standalone): four styles, 8 table sets, 14 floor pieces, 9 wall pieces, 6 floors and 5 walls; atmosphere per customer group, seats, free floor and reachability checks.
 
 ### 3. Staff
+- **Done (first version):** pizzaiolos and waiters are people with a name, two skills from 1 to 5 (pizzaiolos: speed and cooking; waiters: speed and charm) and their own wage; new candidates every day in the Shop's Team card; speed sets how many pizzas the kitchen makes and how many customers the waiters serve, cooking and charm make customers happier. Waiters are paid now (they used to be free, one more than the pizzaiolos).
+- Still to do: cashier and dishwasher, morale, training and raises, the 3DS.
 - **Roles**: pizzaiolo, waiter, cashier, dishwasher/cleaner. Today there are only pizzaiolos, as a count.
 - **Individual profiles**: name, skill, speed, salary and morale. Different candidates every day.
 - Training, raises and firing.
