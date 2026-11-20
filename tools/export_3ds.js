@@ -28,6 +28,8 @@ const ctx={navigator:{languages:['en'],language:'en'},localStorage:{getItem:()=>
   document:{documentElement:{lang:''},querySelectorAll:()=>[]},window:{},console};
 vm.createContext(ctx);vm.runInContext(src.replace(/^(const|let) /gm,'var '),ctx);
 const O=ctx.OUT;
+// The handheld still uses the count-only staffing model.
+O.COOK_CAP=30;
 // the names are filled from I18N at runtime in the 3DS game; keep the data language-free
 for(const k in O.ING)delete O.ING[k].n;for(const k in O.DOUGHS)delete O.DOUGHS[k].n;for(const k in O.SAUCES)delete O.SAUCES[k].n;
 for(const k in O.SEG)delete O.SEG[k].n;for(const c of O.COMBOS){delete c.n;delete c.quote}

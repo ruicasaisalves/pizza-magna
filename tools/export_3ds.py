@@ -4,10 +4,10 @@
 The 3DS takes textures of at most 1024x1024, so the frames are packed again into 1024x1024 pages.
 Turning pieces (<id>_n) are written already turned and with their shadow, as <id>_q0..q3, the same as
 turned() in index.html (quarter turns clockwise, shadow rgba(60,10,4,.43) 2 px down-right).
-Also draws the group symbols of the phone pantry (CAT_SYM in index.html) as cat_<group>,
+Also draws the group symbols of the phone pantry (assets/menu-art.js) as cat_<group>,
 and writes the 48x48 icon for the bundler (3ds/icon.png). Run: python3 tools/export_3ds.py
 """
-import base64, io, os, re
+import base64, io, json, os, re
 from PIL import Image
 
 ROOT = os.path.join(os.path.dirname(__file__), '..')
@@ -35,21 +35,18 @@ for k, (x, y, w, h) in frames.items():
     else:
         sprites[k] = img
 
-# the phone pantry's group symbols (CAT_SYM / CAT_PAL in index.html, 16x16 letter grids) as cat_<group>,
-# centred from their painted bounds like drawCatIcon(); the 3DS draws them at 1x in the group tabs
-html = open(os.path.join(ROOT, 'index.html')).read()
-pal_src = html[html.index('const CAT_PAL={'):html.index('const CAT_SYM={')]
-pal = {k: tuple(int(c[i:i + 2], 16) for i in (1, 3, 5)) for k, c in re.findall(r"([A-Za-z]):'(#[0-9a-fA-F]{6})'", pal_src)}
-sym_src = html[html.index('const CAT_SYM={'):html.index('function drawCatIcon')]
-for cat, body in re.findall(r"(\w+):\[([^\]]*)\]", sym_src):
-    rows = re.findall(r"'([^']*)'", body)
-    pts = [(x, y) for y, r in enumerate(rows) for x, ch in enumerate(r) if ch != '.']
-    x0, x1 = min(p[0] for p in pts), max(p[0] for p in pts); y0, y1 = min(p[1] for p in pts), max(p[1] for p in pts)
-    dx, dy = (16 - (x1 - x0 + 1)) // 2 - x0, (16 - (y1 - y0 + 1)) // 2 - y0
-    im = Image.new('RGBA', (16, 16))
-    for x, y in pts:
-        if rows[y][x] in pal: im.putpixel((x + dx, y + dy), pal[rows[y][x]] + (255,))
-    sprites['cat_' + cat] = im
+# Keep the handheld tabs at their native 16 px size.
+art_source = open(os.path.join(ROOT, 'assets', 'menu-art.js')).read()
+art, _ = json.JSONDecoder().raw_decode(art_source.split('const MENU_ART = ', 1)[1])
+for name, symbol in art.items():
+    if not name.startswith('tab-'):
+        continue
+    im = Image.new('RGBA', (32, 32))
+    for y, row in enumerate(symbol['rows']):
+        for x, ch in enumerate(row):
+            if ch != '.':
+                im.putpixel((x, y), tuple(bytes.fromhex(symbol['colors'][ord(ch) - 65][1:])) + (255,))
+    sprites['cat_' + name[4:]] = im.resize((16, 16), Image.Resampling.NEAREST)
 
 # shelf packing, tallest first, 1 px gap
 pages, placed = [], {}
