@@ -967,7 +967,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.04g';
+const VERSION='0.04h';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1965,6 +1965,21 @@ let pilotImg=null,pilotOk=false;
 function pilotWaiter(){if(!DEV)return false;
   if(!pilotImg){pilotImg=new Image();pilotImg.src='dev/pilots/waiter-01/waiter-01.png';pilotImg.decode().then(()=>{pilotOk=true;if(!anim)drawRoom()}).catch(()=>{})}
   return pilotOk}
+/* /dev only (DEV): the five cook looks from their own sheets, dev/pilots/cook-01 … cook-05 (dev/pilots/cooks-01-05/
+   README): 48x58 cells (the central 32 px is the cook, 8 px each side for the peel), rows down, right, up, left;
+   columns standing, walk x4, dough x4 (gather, lower, press, release), peel x4 (grip, advance, extend, withdraw). The
+   cooks stay at COOK_POS: while the doors are open each one loops dough facing the counter (down) and the peel facing
+   the ovens (up), with its own phase so they don't move together; otherwise they stand. A look uses the atlas until
+   its sheet has decoded. Visual only. */
+const PILOT_COOKS=5,COOK_LOOP=[[5,'down',.4],[6,'down',.4],[7,'down',.4],[8,'down',.4],[0,'down',.5],[9,'up',.3],[10,'up',.3],[11,'up',.45],[12,'up',.3],[0,'up',.3],[0,'down',.6]];
+const COOK_LOOP_T=COOK_LOOP.reduce((a,x)=>a+x[2],0),pilotCookImgs=[];
+function pilotCook(v){if(!DEV||v>=PILOT_COOKS)return null;let p=pilotCookImgs[v];
+  if(!p){const img=new Image();p=pilotCookImgs[v]={img,ok:false};img.src=`dev/pilots/cook-0${v+1}/cook-0${v+1}.png`;img.decode().then(()=>{p.ok=true;if(!anim)drawRoom()}).catch(()=>{})}
+  return p.ok?p.img:null}
+function drawPilotCook(c,k,img,i){
+  let col=0,dir=k.dir||'down';
+  if(anim){let t=(anim.t+i*1.37)%COOK_LOOP_T;for(const [cc,d,dt] of COOK_LOOP){if(t<dt){col=cc;dir=d;break}t-=dt}}   // its own phase
+  c.drawImage(img,col*48,PILOT_DIRS[dir]*58,48,58,Math.round(k.x)-8,Math.round(k.y)+T-58,48,58)}
 function drawPilotWaiter(c,w){
   const hand=w.handoff>0,col=hand?5:w.walking?1+Math.floor(w.ph)%4:0,row=PILOT_DIRS[hand?w.hdir:w.dir]*2+(w.carry?1:0);
   c.drawImage(pilotImg,col*32,row*58,32,58,Math.round(w.x),Math.round(w.y)+T-58,32,58)}
@@ -1992,7 +2007,7 @@ function drawRoom(){
     add(y0+tz+.2,rspr(p.st==='eat'&&p.timer>1?'pizza':'plate'),x0+Math.round(qx)-12,y0+Math.round(qy)-8)}
   const person=(a,key)=>L.push({z:a.y+T,draw:()=>drawChar(c,a,key)});
   const staff=(a,role)=>{const v=a.v%((L_.staff||{})[role]||1);person(a,v?role+'_'+v:role)};   // the atlas has a few of each, handed out in turn
-  for(const k of sc.cooks)staff(k,'cook');
+  sc.cooks.forEach((k,i)=>{const im=pilotCook(k.v%((L_.staff||{}).cook||1));if(im)L.push({z:k.y+T,draw:()=>drawPilotCook(c,k,im,i)});else staff(k,'cook')});   // dev pilot sheets, else the atlas
   for(const w of sc.waiters){if(w.pilot&&pilotWaiter()){L.push({z:w.y+T,draw:()=>drawPilotWaiter(c,w)});continue}   // dev pilot: its own sheet, the pizza in its hands
     staff(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2-bobOf(w))}   // held in both hands, in front
   if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;person(p,`w${p.rlook||0}_${p.dir}_${p.walking?[1,0,2,0][Math.floor(p.ph)%4]:0}`)}   // standing or walking; seated ones are drawn at their table
