@@ -967,7 +967,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.04f';
+const VERSION='0.04g';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1801,7 +1801,7 @@ const tileOf=a=>[Math.round(a.x/T),Math.round(a.y/T)];
 const toPx=p=>p.map(([c,r])=>({x:c*T,y:r*T}));
 function makeScene(){
   const map=buildMap();
-  const waiters=crew('waiter').slice(0,WAITER_HOME.length).map((p,i)=>{const [c,r]=WAITER_HOME[i];return {x:c*T,y:r*T,home:[c,r],path:[],job:null,carry:false,dir:'down',ph:0,v:p.v,spd:spMul(p.sp),look:{body:'#2a2a33',role:'waiter',hair:pick(HAIR),skin:pick(SKIN),long:i%2===1}}});
+  const waiters=crew('waiter').slice(0,WAITER_HOME.length).map((p,i)=>{const [c,r]=WAITER_HOME[i];return {x:c*T,y:r*T,home:[c,r],path:[],job:null,carry:false,dir:'down',ph:0,v:p.v,spd:spMul(p.sp),pilot:DEV&&i===0,look:{body:'#2a2a33',role:'waiter',hair:pick(HAIR),skin:pick(SKIN),long:i%2===1}}});
   const cooks=crew('cook').slice(0,COOK_POS.length).map((p,i)=>{const [c,r]=COOK_POS[i];return {x:c*T,y:r*T,dir:'down',v:p.v,look:{body:'#f4efe4',hat:true,role:'cook',hair:HAIR[i%HAIR.length],skin:SKIN[(i+1)%SKIN.length]}}});
   return {map,seats:map.seats,waiters,cooks};
 }
@@ -1887,11 +1887,14 @@ function step(dt){
   for(const w of anim.waiters){
     if(anim.jobs.length&&(!w.job||w.phase==='back')){w.job=anim.jobs.shift();w.phase='pick';w.path=toPx(bfs(map,tileOf(w),PICK))}
     if(!w.job){w.walking=false;if(w.dir!=='down'&&!w.path.length)w.dir='down';continue}
+    if(w.handoff>0)w.handoff-=dt;
     if(w.pause>0){w.pause-=dt;continue}
     if(moveAlong(w,dt,164*w.spd*(1+Math.min(1.2,anim.jobs.length*.15)))){   // they hurry when tables are waiting: up to 2.2x with 8 or more
       const s=w.job.seat;
       if(w.phase==='pick'){w.carry=true;w.phase='go';w.dir='up';w.pause=.25;w.path=toPx(bfs(map,PICK,[s.cx,s.cy]).slice(0,-1))}
-      else if(w.phase==='go'){w.job.served=true;w.carry=false;w.phase='back';w.path=toPx(bfs(map,tileOf(w),w.home))}
+      else if(w.phase==='go'){w.job.served=true;w.carry=false;w.phase='back';
+        if(w.pilot){const [tc,tr]=tileOf(w),dx=s.cx-tc,dy=s.cy-tr;w.hdir=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');w.handoff=w.pause=PILOT_HANDOFF;w.walking=false}   // dev pilot: face the customer
+        w.path=toPx(bfs(map,tileOf(w),w.home))}
       else{w.job=null;w.dir='down'}
     }
   }
@@ -1952,6 +1955,19 @@ function kitchenParts(f){const out=[];
 // a person on foot, feet on the bottom of its tile: customers in their own look (w<look>_<dir>_<step>, the step
 // frame alternates while walking); the waiter and cook have one standing frame and bob a little instead
 const bobOf=a=>a.walking&&Math.floor(a.ph)%2?2:0;
+/* /dev only (DEV): the first waiter look drawn from its own sheet, dev/pilots/waiter-01/waiter-01.png (see its
+   README): 32x58 cells, columns idle A, walk A x4, hand-off B; rows in pairs empty / carrying, for down, right, up,
+   left. The pizza is part of the carrying frames, the walk has its own bounce (no overlay, no bob). The first waiter
+   of the scene uses it once the sheet has decoded; the others keep the atlas. Visual only: the day is already worked
+   out, so the short hand-off pause changes nothing in the results. */
+const PILOT_HANDOFF=.3,PILOT_DIRS={down:0,right:1,up:2,left:3};
+let pilotImg=null,pilotOk=false;
+function pilotWaiter(){if(!DEV)return false;
+  if(!pilotImg){pilotImg=new Image();pilotImg.src='dev/pilots/waiter-01/waiter-01.png';pilotImg.decode().then(()=>{pilotOk=true;if(!anim)drawRoom()}).catch(()=>{})}
+  return pilotOk}
+function drawPilotWaiter(c,w){
+  const hand=w.handoff>0,col=hand?5:w.walking?1+Math.floor(w.ph)%4:0,row=PILOT_DIRS[hand?w.hdir:w.dir]*2+(w.carry?1:0);
+  c.drawImage(pilotImg,col*32,row*58,32,58,Math.round(w.x),Math.round(w.y)+T-58,32,58)}
 function drawChar(c,a,key){
   const im=rspr(key);
   c.drawImage(im,Math.round(a.x),Math.round(a.y)+T-im.height-(/^w\d/.test(key)?0:bobOf(a)));
@@ -1977,7 +1993,8 @@ function drawRoom(){
   const person=(a,key)=>L.push({z:a.y+T,draw:()=>drawChar(c,a,key)});
   const staff=(a,role)=>{const v=a.v%((L_.staff||{})[role]||1);person(a,v?role+'_'+v:role)};   // the atlas has a few of each, handed out in turn
   for(const k of sc.cooks)staff(k,'cook');
-  for(const w of sc.waiters){staff(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2-bobOf(w))}   // held in both hands, in front
+  for(const w of sc.waiters){if(w.pilot&&pilotWaiter()){L.push({z:w.y+T,draw:()=>drawPilotWaiter(c,w)});continue}   // dev pilot: its own sheet, the pizza in its hands
+    staff(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2-bobOf(w))}   // held in both hands, in front
   if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;person(p,`w${p.rlook||0}_${p.dir}_${p.walking?[1,0,2,0][Math.floor(p.ph)%4]:0}`)}   // standing or walking; seated ones are drawn at their table
   for(const q of rugs)c.drawImage(q.img,q.x,q.y);
   L.sort((a,b)=>a.z-b.z).forEach(d=>d.draw?d.draw():c.drawImage(d.img,d.x,d.y));
