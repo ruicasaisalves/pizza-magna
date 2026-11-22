@@ -11,6 +11,9 @@ Everything the itch.io page needs. The images are made by `node itch/make_media.
 | `background.png` | Edit game › Theme › **Background image**, set to *tiled* (the dining room from above: red and white check floor, tables, a fountain; seamless) | 768 × 768 |
 | `logo.png` | Transparent logo for the description, the devlog, social posts, Discord (not an itch field) | 1108 × 380 |
 | `shot-1.png` … `shot-7.png` | Edit game › **Screenshots**, in this order: kitchen, menu, the day, room, contest, city, shop (team and bank) | 1280 × 720 |
+| `head-cook.png`, `head-run.png`, `head-grow.png`, `head-compete.png`, `head-also.png` | Pictures inside the **description**, one above each section (pixel-art headings, transparent) | ~700 × 80 |
+| `gif-pizza.gif`, `gif-day.gif`, `gif-city.gif` | Animated pictures inside the **description** (a pizza built piece by piece, the dining room at the dinner rush, a pan over the city); made by `node itch/make_gifs.js` | 360–520 wide |
+| `preview.html` | Open it in a browser to see roughly how the page looks with all of the above (not uploaded) | |
 
 ## Colours (Theme editor)
 
@@ -27,7 +30,7 @@ The same palette the game uses, so the page and the game feel like one thing. it
 | Border | `#94661A` | brass |
 | Headings accent (if offered) | `#E3B34A` | brass |
 
-Fonts, if itch.io lets you pick them: headings a pixel font (Silkscreen or "Press Start 2P"), text the page default. Page width: leave at the default.
+Fonts: the section headings are pictures now, so the **text font must be a plain, readable one** (the page default, or Lato / Open Sans); a pixel font in capitals for the whole description is hard to read on a phone. Title font: a pixel one (Silkscreen or "Press Start 2P") if offered. Page width: leave at the default.
 
 ## Basics
 
@@ -44,39 +47,43 @@ Fonts, if itch.io lets you pick them: headings a pixel font (Silkscreen or "Pres
 
 ## Description (paste into the page)
 
-> **Be the pizzaiolo. Then be the boss.**
+In the itch.io editor, put the pictures where the `[picture: …]` lines are (the editor's image button uploads them; centre them). Bold as marked.
+
+> **BE THE PIZZAIOLO. THEN BE THE BOSS.**
 >
-> Pizza Magna is a pizzeria game in 90s pixel art. Make your own pizzas topping by topping, set the prices, fill the dining room, take on the pizzeria next door and then open more shops across the city.
+> A pizzeria tycoon in 90s pixel art. Invent pizzas topping by topping, fill the dining room, beat the rival next door, then open shops across the city.
 >
-> **Cook**
-> - 100+ toppings, 7 doughs and 9 sauces, and all of them are always available.
-> - Place every piece yourself: whole, chopped or grated, turned the way you like. The weights and the cost are real.
-> - 100+ combos to discover (Margherita, Hawaii, Piri-piri Chicken…) and a few terrible ones. Chicken with Nutella? The customers will tell you.
-> - Share any pizza as a photo, a link or a `.pizza` file, and open friends' recipes on your own bench.
+> [picture: gif-pizza.gif]
 >
-> **Run the place**
-> - Four kinds of customers, and each wants something different: students look for a bargain and home toppings, families want a good deal, gourmets want quality, tourists want something unusual.
-> - Set the prices, decorate the room (tables, plants, floors, walls, a jukebox), buy ovens and pick your supplier.
-> - Hire your team: pizzaiolos and waiters, each with a name and their own skills. New people look for work every day.
-> - Reputation is earned: a good menu takes a couple of months to reach five stars.
-> - Give your pizzeria a name and a symbol, or use a photo; it signs every pizza you share.
-> - Let a manager run everything, or do it all yourself.
-> - A topping and a combo of the week, a market study to spot trends, and a rival who is not going to sit still.
+> [picture: head-cook.png]
+> - **100+ toppings**, 7 doughs and 9 sauces, all available from day one.
+> - Place every piece yourself: whole, chopped or grated, turned the way you like. Real weights, real costs.
+> - **100+ combos** to discover (Margherita, Hawaii, Piri-piri Chicken…) and a few terrible ones. Chicken with Nutella? The customers will tell you.
+> - Share any pizza as a photo, a link or a `.pizza` file.
 >
-> **Grow**
-> - The city of Porto Magno: four neighbourhoods (university, old town, residential, riverside), each with its own customers, foot traffic, rents and a rival with its own strategy.
-> - Rent or buy more shops; each has its own menu, room and team, and your recipe book goes with you.
-> - A bank, for when the next shop can't wait: borrow up to $20,000 and pay interest every day.
+> [picture: head-run.png]
+> [picture: gif-day.gif]
+> - Students, families, tourists and gourmets: **each wants something different**.
+> - Set prices, decorate the room, buy ovens, pick your supplier.
+> - **Hire your team**: pizzaiolos and waiters with their own skills.
+> - Earn your stars: five stars take a good menu and a couple of months.
+> - Your pizzeria's name and symbol sign every pizza you share.
 >
-> **Compete**
-> - A contest every five days on the city's main square: classic, sweet, cheese, spicy, seafood, vegetarian, creative and low-cost themes.
+> [picture: head-grow.png]
+> [picture: gif-city.gif]
+> - The city of **Porto Magno**: four neighbourhoods, each with its own customers, rents and a rival with its own strategy.
+> - Rent or buy more shops, each with its own menu, room and team.
+> - A bank for when the next shop can't wait.
 >
-> **Also**
-> - Calm Italian chiptune music, lively and relaxed tunes in turn.
+> [picture: head-compete.png]
+> - A **contest every five days**: classic, sweet, cheese, spicy, seafood, veggie, creative and low-cost.
+>
+> [picture: head-also.png]
+> - Calm Italian chiptune music.
 > - English and Portuguese.
-> - Runs in your browser (phones too) and saves your progress on your device. Nothing to install.
+> - Plays in the browser, **phones too**. Saves by itself. Nothing to install.
 >
-> *It is a work in progress: new toppings, new rooms and new rivals keep arriving. Tell us what you want next in the comments.*
+> *A work in progress: new toppings, rooms and rivals keep arriving. Tell us what you want next in the comments.*
 
 ## Short devlog for the first post
 

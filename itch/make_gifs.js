@@ -31,6 +31,7 @@ async function page(b, viewport, scale) {
 function recorder({ p, cdp }, sel, scale) {
   const dir = fs.mkdtempSync(path.join(TMP, 'f-')), times = []; let on = true, n = 0;
   const loop = (async () => {
+    await p.addStyleTag({ content: '.rzoom{display:none!important}' });   // no zoom buttons over the room or the map
     const r = await p.evaluate(s => { const b = document.querySelector(s).getBoundingClientRect(); return { x: b.left + scrollX, y: b.top + scrollY, width: b.width, height: b.height } }, sel);
     while (on) {
       const t = Date.now(), s = await cdp.send('Page.captureScreenshot', { format: 'png', clip: { ...r, scale } });
