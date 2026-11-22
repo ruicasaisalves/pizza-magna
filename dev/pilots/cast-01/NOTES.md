@@ -12,3 +12,5 @@ How the game uses this pack under `window.PM_DEV`, and what was adjusted. `READM
 - **Waiters:** the pizza is in the carrying frames (no overlay, no bob). At the table the waiter faces the customer with the empty row's column 5 for 0.3 s (`PILOT_HANDOFF`).
 - **Open point:** seen from the side, a waiter carrying leans back 2.5–4.5 px compared with the empty-handed rows, so his head moves at the hand-off.
 - **Replaced:** this pack replaces the earlier pilots in the game's code (trio-01, waiter-01, cooks-01-05). Their folders stay in `dev/pilots/` for reference.
+
+- **v2 of the pack:** only the five cooks changed. Their faces were 16 px wide against the waiters' and customers' 21–22 px; the new ones have 20–22 px heads, the same shoulders and the same foot line (row 55).
