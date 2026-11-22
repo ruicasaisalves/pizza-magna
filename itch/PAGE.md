@@ -7,7 +7,8 @@ Everything the itch.io page needs. The images are made by `node itch/make_media.
 | File | Where it goes on itch.io | Size |
 |---|---|---|
 | `cover.png` | Edit game › **Cover image** (shown in lists and search) | 630 × 500 |
-| `banner.png` | Edit game › Theme › **Banner** (the strip at the top of the page; itch scales it to the page width) | 1920 × 480 |
+| `banner-main.png` | Edit game › Theme › **Banner**, the one in use: the chef by the oven and the slogan *Build your own little pizza empire.* (made with ChatGPT, not by the script; keep it when re-running `make_media.js`) | 2000 × 667 |
+| `banner.png` | The older banner drawn by `make_media.js` (planks and pizzas), kept as a spare | 1920 × 480 |
 | `background.png` | Edit game › Theme › **Background image**, set to *tiled* (the dining room from above: red and white check floor, tables, a fountain; seamless) | 768 × 768 |
 | `logo.png` | Transparent logo for the description, the devlog, social posts, Discord (not an itch field) | 1108 × 380 |
 | `shot-1.png` … `shot-7.png` | Edit game › **Screenshots**, in this order: kitchen, menu, the day, room, contest, city, shop (team and bank) | 1280 × 720 |
@@ -35,7 +36,7 @@ Fonts: the section headings are pictures now, so the **text font must be a plain
 ## Basics
 
 - **Title:** Pizza Magna
-- **Short description / tagline** (under 100 characters): `Run a 90s pixel-art pizzeria: invent pizzas, hire a team, open shops across the city.`
+- **Short description / tagline** (under 100 characters): `Build your own little pizza empire: a 90s pixel-art pizzeria tycoon.`
 - **Kind of project:** HTML (playable in the browser)
 - **Classification:** Games
 - **Genre:** Simulation (Strategy as the second one, if allowed)
