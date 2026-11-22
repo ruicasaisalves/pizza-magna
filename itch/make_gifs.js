@@ -1,7 +1,7 @@
 /* Makes the animated GIFs for the itch.io page description, from the real game.
    Run from the repo root:  node itch/make_gifs.js        (needs Playwright and ffmpeg; takes a few minutes)
    Output (next to this file): gif-pizza.gif (a pizza built piece by piece), gif-day.gif (the dining room at
-   the dinner rush), gif-city.gif (a slow pan over Porto Magno).
+   the dinner rush, with the new pilot staff art from DEV), gif-city.gif (a slow pan over Porto Magno).
    Full-size screenshots are slow, so while recording the page runs at a quarter of its speed (clocks, timers,
    requestAnimationFrame and CSS animations) and the frames are timed in the page's own time. */
 const { chromium } = require('playwright');
@@ -9,7 +9,7 @@ const fs = require('fs'), path = require('path'), { execFileSync } = require('ch
 const OUT = __dirname, GAME = 'file://' + path.resolve(__dirname, '../index.html'), K = 0.25;
 const TMP = fs.mkdtempSync(path.join(require('os').tmpdir(), 'pm-gifs-'));
 
-async function page(b, viewport, scale) {
+async function page(b, viewport, scale, hash = '') {
   const ctx = await b.newContext({ viewport, deviceScaleFactor: scale, locale: 'en-US' });
   const p = await ctx.newPage();
   p.on('pageerror', e => console.log('ERR', e.message));
@@ -21,7 +21,7 @@ async function page(b, viewport, scale) {
     const st = window.setTimeout.bind(window); window.setTimeout = (f, d, ...a) => st(f, (d || 0) / K, ...a);
     const si = window.setInterval.bind(window); window.setInterval = (f, d, ...a) => si(f, (d || 0) / K, ...a);
   }, K);
-  await p.goto(GAME); await p.waitForTimeout(1500 / K);
+  await p.goto(GAME + hash); await p.waitForTimeout(1500 / K);
   const cdp = await ctx.newCDPSession(p); await cdp.send('Animation.enable'); await cdp.send('Animation.setPlaybackRate', { playbackRate: K });
   // a quiet start: names given, no intro, an empty bench
   await p.evaluate(() => { ACT.quickstart(); closeModal(); const tt = $('#toast'); if (tt) tt.hidden = true });
@@ -75,8 +75,9 @@ function toGif({ dir, times }, name, fps, w, hold = 0) {
 
   // ---- 2. the dining room at the dinner rush (desktop layout)
   {
-    const g = await page(b, { width: 1280, height: 800 }, 1), { p, W } = g;
-    await p.evaluate(() => { state.menu.forEach(m => m.price = Math.max(7, Math.round(m.price - 1))); state.tab = 'dia'; render() });
+    // #dev: the new staff art (the five pilot pizzaiolos and the pilot waiter, who is only the first waiter, so one waiter)
+    const g = await page(b, { width: 1280, height: 800 }, 1, '#dev'), { p, W } = g;
+    await p.evaluate(() => { state.staff = startStaff(5, 1); state.menu.forEach(m => m.price = Math.max(7, Math.round(m.price - 1))); state.tab = 'dia'; render() });
     await W(600); await p.click('[data-act=open]'); await W(300);
     await p.evaluate(() => { let n = 0; while (anim && anim.t < 18 && n++ < 9000) step(.05) }); await W(300);
     const stop = recorder(g, '#room', 1); await W(7000);
