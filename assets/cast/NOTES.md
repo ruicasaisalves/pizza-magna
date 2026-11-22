@@ -1,6 +1,6 @@
 # Integration notes (index.html)
 
-How the game uses this pack under `window.PM_DEV`, and what was adjusted. `README.md` is the pack's own contract.
+How the game uses this pack, and what was adjusted. It was the /dev pilot `dev/pilots/cast-01` until 0.04k, when it became the default for everyone. `README.md` is the pack's own contract.
 
 - **Looks:** folder NN is look NN − 1. Customers are matched by `rlook`; waiters by their atlas variant `v % 4` and cooks by `v % 5`, as with the atlas (`castCustomer()`, `castWaiter()`, `castCook()`).
 - **Loading:** `devSheet()` loads each sheet when first needed; the atlas is drawn until it has decoded.
@@ -12,3 +12,11 @@ How the game uses this pack under `window.PM_DEV`, and what was adjusted. `READM
 - **Waiters:** the pizza is in the carrying frames (no overlay, no bob). At the table the waiter faces the customer with the empty row's column 5 for 0.3 s (`PILOT_HANDOFF`).
 - **Open point:** seen from the side, a waiter carrying leans back 2.5–4.5 px compared with the empty-handed rows, so his head moves at the hand-off.
 - **Replaced:** this pack replaces the earlier pilots in the game's code (trio-01, waiter-01, cooks-01-05). Their folders stay in `dev/pilots/` for reference.
+
+- **v2 of the pack:** only the five cooks changed. Their faces were 16 px wide against the waiters' and customers' 21–22 px; the new ones have 20–22 px heads, the same shoulders and the same foot line (row 55).
+
+## Going back to the classic characters
+
+- **For one player:** Options › Characters › Classic. The choice is stored in the browser (`pm-cast`).
+- **For everyone:** set `CAST_ON=false` in `index.html`. The classic people are the room atlas's (`assets/room.js`), which is still loaded, so nothing else has to change.
+- **The whole game as it was:** main before this change is commit `40807a3`.
