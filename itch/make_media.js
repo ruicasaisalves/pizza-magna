@@ -152,7 +152,7 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
       await foot(CAST + 'waiters/03/service.png', 7, 3, 120, 300); await foot(CAST + 'waiters/04/service.png', 5, 2, 300, 120);
       await foot(CAST + 'customers/' + castNN(8) + '/walk.png', 1, 2, 8, 330); await foot(CAST + 'customers/' + castNN(15) + '/walk.png', 3, 1, 210, 330);
       D.sort((a, b) => a.z - b.z).forEach(d => d.f());
-      x.fillStyle = 'rgba(20,8,2,.32)'; x.fillRect(0, 0, TW, TW);   // darker, so the page's content stands out
+      x.fillStyle = 'rgba(20,8,2,.22)'; x.fillRect(0, 0, TW, TW);   // a little darker than the floor, so the page's content stands out
       out.background = up(c, 2).toDataURL('image/png');
     }
     // the pizza images, for the screenshots' menu
