@@ -967,7 +967,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.04k';
+const VERSION='0.04l';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1841,9 +1841,17 @@ function roomSize(){
   if(!room||room.cv!==cv||room.w!==w){const low=document.createElement('canvas');low.width=RW;low.height=RH;room={cv,w,h,c:fitCanvas(cv,w,h,3200),low,lc:low.getContext('2d')};RZ.bind(cv)}
   return room;
 }
+/* Guests (cast sheets only, nothing in the room atlas; looks only, the day's sales don't change): the wizard and
+   the goth come in GUEST_P of the time each; the VIP (IShowSpeed) visits our pizzeria once a day every VIP_EVERY days,
+   once the reputation reaches VIP_STARS, during the day (after VIP_FROM of it), so never two on screen. */
+const GUEST_P=.025,GUEST_WIZARD=21,GUEST_GOTH=22,GUEST_VIP=23,VIP_STARS=3,VIP_EVERY=2,VIP_FROM=.25;
+function guestLook(e){
+  if(!castOn())return Math.floor(Math.random()*21);
+  if(e.target==='ours'&&!anim.vipDone&&state.rep>=VIP_STARS&&state.day%VIP_EVERY===0&&anim.t>=DAY_SECONDS*VIP_FROM){anim.vipDone=true;return GUEST_VIP}
+  const r=Math.random();return r<GUEST_P?GUEST_WIZARD:r<2*GUEST_P?GUEST_GOTH:Math.floor(Math.random()*21)}
 function spawn(e){
   const left=e.target==='rival'?true:Math.random()<.5,y=STREET_ROW*T+(e.target==='ours'?0:Math.round(Math.random()*16));
-  const p={e,x:left?-T:RW,y,look:{body:SEG[e.seg].col,hair:pick(HAIR),skin:pick(SKIN),long:Math.random()<.4},rlook:Math.floor(Math.random()*21),v:88+Math.random()*24,st:'street',path:[],dir:left?'right':'left',ph:Math.random()*4};
+  const p={e,x:left?-T:RW,y,look:{body:SEG[e.seg].col,hair:pick(HAIR),skin:pick(SKIN),long:Math.random()<.4},rlook:guestLook(e),v:88+Math.random()*24,st:'street',path:[],dir:left?'right':'left',ph:Math.random()*4};
   p.path=[{x:e.target==='ours'?DOOR[0]*T:e.target==='rival'?RW+T:(left?RW+T:-T),y}];
   anim.people.push(p);
 }
@@ -1979,7 +1987,7 @@ const castSheets={};
 function castSheet(src){if(!src||!castOn())return null;let p=castSheets[src];
   if(!p){const img=new Image();p=castSheets[src]={img,ok:false};img.src=src;img.decode().then(()=>{p.ok=true;if(!anim)drawRoom()}).catch(()=>{})}
   return p.ok?p.img:null}
-const castCustomer=(p,kind)=>castOn()?CAST+`customers/${castNN((p.rlook||0)%21)}/${kind}.png`:null;
+const castCustomer=(p,kind)=>castOn()?CAST+`customers/${castNN((p.rlook||0)%24)}/${kind}.png`:null;   // 21 looks and three guests (guestLook())
 const castWaiter=v=>castOn()?CAST+`waiters/${castNN(v%4)}/service.png`:null;
 const castCook=v=>castOn()?CAST+`cooks/${castNN(v%5)}/idle.png`:null;
 const PILOT_DX={'customers/01/walk':{3:[0,-3,0,-3,0]},'customers/08/walk':{1:[0,0,0,2,0],3:[0,0,0,-2,0]},
@@ -2016,7 +2024,7 @@ function drawRoom(){
     if(p.st!=='wait'&&p.st!=='eat')continue;
     const pim=castSheet(castCustomer(p,'seated'));
     if(pim)L.push({z:y0+s_.p[2],draw:()=>drawPilotSeated(c,pim,s_.d,x0+s_.p[0],y0+s_.p[1])});   // dev pilot
-    else add(y0+s_.p[2],rspr(`p${p.rlook||0}_${s_.d}`),x0+s_.p[0],y0+s_.p[1]);   // seated, from the atlas layout
+    else add(y0+s_.p[2],rspr(`p${(p.rlook||0)%21}_${s_.d}`),x0+s_.p[0],y0+s_.p[1]);   // seated, from the atlas layout
     const [tx,ty,rx,ry]=lay.top,qx=s_.d==='right'?tx-rx+14:s_.d==='left'?tx+rx-14:(s_.chair?tx:s_.p[0]+16),qy=s_.d==='down'?ty-ry+9:s_.d==='up'?ty+ry-9:ty;
     const tz=lay.parts.find(q=>q[0].startsWith('t_'))[3];
     add(y0+tz+.2,rspr(p.st==='eat'&&p.timer>1?'pizza':'plate'),x0+Math.round(qx)-12,y0+Math.round(qy)-8)}
@@ -2027,7 +2035,7 @@ function drawRoom(){
     staff(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2-bobOf(w))}   // held in both hands, in front
   if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;
     const psrc=castCustomer(p,'walk'),pim=castSheet(psrc);if(pim){L.push({z:p.y+T,draw:()=>drawPilotWalker(c,p,pim,psrc)});continue}   // dev pilot
-    person(p,`w${p.rlook||0}_${p.dir}_${p.walking?[1,0,2,0][Math.floor(p.ph)%4]:0}`)}   // standing or walking; seated ones are drawn at their table
+    person(p,`w${(p.rlook||0)%21}_${p.dir}_${p.walking?[1,0,2,0][Math.floor(p.ph)%4]:0}`)}   // a guest's sheet not decoded yet: an atlas look for now   // standing or walking; seated ones are drawn at their table
   for(const q of rugs)c.drawImage(q.img,q.x,q.y);
   L.sort((a,b)=>a.z-b.z).forEach(d=>d.draw?d.draw():c.drawImage(d.img,d.x,d.y));
   if(anim&&anim.dusk){c.fillStyle=`rgba(30,22,70,${.4*anim.dusk})`;c.fillRect(0,0,RW,RH)}   // night, as the last customers leave
