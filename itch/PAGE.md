@@ -103,7 +103,7 @@ From the repo root:
 zip -r pizza-magna-itch.zip index.html music.js city.js sw.js manifest.webmanifest assets
 ```
 
-On itch.io: Upload files › the zip › tick **This file will be played in the browser**. The game opens by itself from `index.html` at the root of the zip. (The zip is about 0.9 MB.) The game also lives at pizzamagna.xyz; players can use either, but the save is kept separately on each address.
+On itch.io: Upload files › the zip › tick **This file will be played in the browser**. The game opens by itself from `index.html` at the root of the zip. (The zip is about 2.6 MB, most of it the characters in `assets/cast/`.) The game also lives at pizzamagna.xyz; players can use either, but the save is kept separately on each address.
 
 ### Offline download (Windows, Mac, Linux)
 
