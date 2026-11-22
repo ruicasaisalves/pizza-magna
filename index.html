@@ -1842,12 +1842,12 @@ function roomSize(){
   return room;
 }
 /* Guests (cast sheets only, nothing in the room atlas; looks only, the day's sales don't change): the wizard and
-   the goth come in GUEST_P of the time each; the VIP (IShowSpeed) visits our pizzeria once a day every VIP_EVERY days,
+   the goth come in GUEST_P of the time each; the VIP (vipspeed) visits our pizzeria once a day every VIP_EVERY days,
    once the reputation reaches VIP_STARS, during the day (after VIP_FROM of it), so never two on screen. */
-const GUEST_P=.025,GUEST_WIZARD=21,GUEST_GOTH=22,GUEST_VIP=23,VIP_STARS=3,VIP_EVERY=2,VIP_FROM=.25;
+const GUEST_P=.025,GUEST_WIZARD=21,GUEST_GOTH=22,GUEST_VIPSPEED=23,VIP_STARS=3,VIP_EVERY=2,VIP_FROM=.25;
 function guestLook(e){
   if(!castOn())return Math.floor(Math.random()*21);
-  if(e.target==='ours'&&!anim.vipDone&&state.rep>=VIP_STARS&&state.day%VIP_EVERY===0&&anim.t>=DAY_SECONDS*VIP_FROM){anim.vipDone=true;return GUEST_VIP}
+  if(e.target==='ours'&&!anim.vipDone&&state.rep>=VIP_STARS&&state.day%VIP_EVERY===0&&anim.t>=DAY_SECONDS*VIP_FROM){anim.vipDone=true;return GUEST_VIPSPEED}
   const r=Math.random();return r<GUEST_P?GUEST_WIZARD:r<2*GUEST_P?GUEST_GOTH:Math.floor(Math.random()*21)}
 function spawn(e){
   const left=e.target==='rival'?true:Math.random()<.5,y=STREET_ROW*T+(e.target==='ours'?0:Math.round(Math.random()*16));

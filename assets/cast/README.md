@@ -20,4 +20,4 @@ Start a fresh branch from updated main. Load the new sheets behind PM_DEV after 
 
 ## Guests (in the game since 0.04l)
 
-Three extra customer looks in the same format (walk.png and seated.png): 22 the wizard, 23 the goth, 24 IShowSpeed (look 21, 22, 23). They are not handed out like the 21 regulars: see `guestLook()` in index.html (the wizard and the goth 2.5% of people each; IShowSpeed is a VIP, once a day every two days from three stars).
+Three extra customer looks in the same format (walk.png and seated.png): 22 the wizard, 23 the goth, 24 vipspeed (look 21, 22, 23). They are not handed out like the 21 regulars: see `guestLook()` in index.html (the wizard and the goth 2.5% of people each; vipspeed is a VIP, once a day every two days from three stars).
