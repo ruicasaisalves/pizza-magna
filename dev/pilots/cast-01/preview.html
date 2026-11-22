@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pizza Magna · Personagens</title>
+<style>
+*{box-sizing:border-box}body{margin:0 auto;padding:20px;max-width:1120px;background:#f7ecda;color:#382923;font:16px system-ui,sans-serif}
+h1{margin:0;font-size:1.7rem}h2{font-size:1.15rem;margin:24px 0 8px}
+nav{position:sticky;top:0;background:#f7ecda;padding:10px 0;display:flex;align-items:center;flex-wrap:wrap;gap:12px;z-index:1}
+select,button{font:inherit;padding:4px}section{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+figure{margin:0;border:1px solid #d9c6a7;border-radius:5px;display:grid;justify-items:center;background:#efddbd;padding:6px}
+canvas{width:64px;height:116px;image-rendering:pixelated}figcaption{font:14px monospace}
+</style>
+<h1>Personagens de Pizza Magna</h1>
+<nav><label>Vista <select id="view"><option>Frente</option><option>Direita</option><option>Costas</option><option>Esquerda</option></select></label>
+<label>Clientes <select id="pose"><option>A caminhar</option><option>Em pé</option><option>Sentados</option></select></label>
+<label>Empregados <select id="service"><option>Com pizza</option><option>Mãos vazias</option><option>Entrega</option></select></label>
+<button id="pause">Pausar</button></nav>
+<main id="gallery"></main>
+<script>
+const gallery=document.querySelector('#gallery'), items=[];
+for(const [group,title,count] of [['customers','Clientes',21],['waiters','Empregados de mesa',4],['cooks','Cozinheiros',5]]){
+ const heading=document.createElement('h2');heading.textContent=title;gallery.append(heading);
+ const section=document.createElement('section');gallery.append(section);
+ for(let n=1;n<=count;n++){
+  const number=String(n).padStart(2,'0'),figure=document.createElement('figure'),canvas=document.createElement('canvas'),label=document.createElement('figcaption');
+  canvas.width=32;canvas.height=58;label.textContent=number;figure.append(canvas,label);section.append(figure);
+  const sheets={};for(const key of group==='customers'?['walk','seated']:group==='waiters'?['service']:['idle']){
+   const im=new Image();im.src=group+'/'+number+'/'+key+'.png';sheets[key]=im;
+  }items.push({group,sheets,ctx:canvas.getContext('2d')});
+ }
+}
+let running=true,step=0;
+function draw(){
+ const dir=document.querySelector('#view').selectedIndex,pose=document.querySelector('#pose').selectedIndex,service=document.querySelector('#service').selectedIndex;
+ for(const {group,sheets,ctx} of items){
+  let img,row=dir,col=1+step%4,height=58;
+  if(group==='customers'){img=pose===2?sheets.seated:sheets.walk;if(pose)col=0;if(pose===2)height=48}
+  if(group==='waiters'){img=sheets.service;row=2*dir+Number(service===0);if(service===2)col=5}
+  if(group==='cooks'){img=sheets.idle;row=col=0}
+  ctx.clearRect(0,0,32,58);
+  if(img.complete&&img.naturalWidth)ctx.drawImage(img,col*32,row*height,32,height,0,58-height,32,height);
+ }
+}
+document.querySelector('#pause').onclick=e=>{running=!running;e.target.textContent=running?'Pausar':'Continuar'};
+setInterval(()=>{if(running)step++;draw()},150);document.querySelector('nav').onchange=draw;
+</script>
+</html>
