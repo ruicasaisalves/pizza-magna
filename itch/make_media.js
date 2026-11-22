@@ -149,6 +149,7 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
   // ---- screenshots of the real game (desktop size)
   await p.evaluate(() => {
     closeModal(); state = ensureShops(freshState()); Object.assign(state, { chef: 'Rui', shop: "Pizza d'Italia", seenIntro: true, money: 2350, day: 19, rep: 3.4, tier: 3, lastSales: {}, logo: 'chefw' });
+    state.staff = startStaff(3, 2);   // a fuller team in the kitchen and the room
     const mk = (dough, sauce, list) => { const pieces = [...spread('mozzarella', 12, .74, 0)]; list.forEach(([id, n], k) => pieces.push(...spread(id, n, .66 - .04 * (k % 3), k * 2 + 1))); return { dough, sauce, pieces } };
     const L = [['Margherita da Casa', 'napo', 'tomate', [['manjericao', 7]]], ['Pepperoni Picante', 'napo', 'tomate', [['pepperoni', 10], ['azeitonas', 5], ['oregaos', 4]]],
       ['Hawaii', 'napo', 'tomate', [['fiambre', 7], ['ananas', 8]]], ['Quattro Gusti', 'lenta', 'tomate', [['cogumelos', 6], ['fiambre', 5], ['pimento', 5], ['azeitonas', 5]]],
