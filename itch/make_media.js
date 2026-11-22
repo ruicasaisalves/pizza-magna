@@ -1,7 +1,7 @@
 /* Makes the images for the game's itch.io page, from the game's own art, fonts and colours.
    Run from the repo root:  node itch/make_media.js
    Output (next to this file): logo.png (transparent), banner.png, cover.png, background.png (seamless tile),
-   shot-1..5.png (screenshots). Needs Playwright (preinstalled in the cloud sessions); the fonts are in assets/fonts. */
+   shot-1..7.png (screenshots). Needs Playwright (preinstalled in the cloud sessions); the fonts are in assets/fonts. */
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path');
 const OUT = __dirname, GAME = 'file://' + path.resolve(__dirname, '../index.html');
@@ -138,7 +138,7 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
 
   // ---- screenshots of the real game (desktop size)
   await p.evaluate(() => {
-    closeModal(); state = freshState(); Object.assign(state, { chef: 'Rui', shop: "Pizza d'Italia", seenIntro: true, money: 2350, day: 19, rep: 3.4, tier: 3, lastSales: {} });
+    closeModal(); state = ensureShops(freshState()); Object.assign(state, { chef: 'Rui', shop: "Pizza d'Italia", seenIntro: true, money: 2350, day: 19, rep: 3.4, tier: 3, lastSales: {}, logo: 'chefw' });
     const mk = (dough, sauce, list) => { const pieces = [...spread('mozzarella', 12, .74, 0)]; list.forEach(([id, n], k) => pieces.push(...spread(id, n, .66 - .04 * (k % 3), k * 2 + 1))); return { dough, sauce, pieces } };
     const L = [['Margherita da Casa', 'napo', 'tomate', [['manjericao', 7]]], ['Pepperoni Picante', 'napo', 'tomate', [['pepperoni', 10], ['azeitonas', 5], ['oregaos', 4]]],
       ['Hawaii', 'napo', 'tomate', [['fiambre', 7], ['ananas', 8]]], ['Quattro Gusti', 'lenta', 'tomate', [['cogumelos', 6], ['fiambre', 5], ['pimento', 5], ['azeitonas', 5]]],
@@ -159,5 +159,10 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
   await p.evaluate(() => { try { anim = null } catch (e) {} closeModal() });
   await shot(4, 'sala');
   await shot(5, 'concurso');
+  await shot(6, 'cidade');   // the city: neighbourhoods, lots to rent or buy, the rivals
+  // the shop, scrolled to the team (pizzaiolos and waiters with their skills, people to hire) and the bank
+  await p.evaluate(() => { closeModal(); state.tab = 'loja'; render() }); await p.waitForTimeout(1500);
+  await p.evaluate(() => { const h = [...document.querySelectorAll('h3')].find(e => e.textContent.includes(t('staff.title'))); if (h) window.scrollTo(0, h.closest('.card').getBoundingClientRect().top + scrollY - 70) });
+  await p.waitForTimeout(400); await p.screenshot({ path: path.join(OUT, 'shot-7.png') });
   await b.close(); console.log('done');
 })();

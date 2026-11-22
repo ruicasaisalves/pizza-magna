@@ -10,7 +10,7 @@ Everything the itch.io page needs. The images are made by `node itch/make_media.
 | `banner.png` | Edit game › Theme › **Banner** (the strip at the top of the page; itch scales it to the page width) | 1920 × 480 |
 | `background.png` | Edit game › Theme › **Background image**, set to *tiled* (the dining room from above: red and white check floor, tables, a fountain; seamless) | 768 × 768 |
 | `logo.png` | Transparent logo for the description, the devlog, social posts, Discord (not an itch field) | 1108 × 380 |
-| `shot-1.png` … `shot-5.png` | Edit game › **Screenshots**, in this order: kitchen, menu, the day, room, contest | 1280 × 720 |
+| `shot-1.png` … `shot-7.png` | Edit game › **Screenshots**, in this order: kitchen, menu, the day, room, contest, city, shop (team and bank) | 1280 × 720 |
 
 ## Colours (Theme editor)
 
@@ -32,7 +32,7 @@ Fonts, if itch.io lets you pick them: headings a pixel font (Silkscreen or "Pres
 ## Basics
 
 - **Title:** Pizza Magna
-- **Short description / tagline** (under 100 characters): `Run a 90s pixel-art pizzeria: invent pizzas, set prices, beat the rival.`
+- **Short description / tagline** (under 100 characters): `Run a 90s pixel-art pizzeria: invent pizzas, hire a team, open shops across the city.`
 - **Kind of project:** HTML (playable in the browser)
 - **Classification:** Games
 - **Genre:** Simulation (Strategy as the second one, if allowed)
@@ -46,22 +46,30 @@ Fonts, if itch.io lets you pick them: headings a pixel font (Silkscreen or "Pres
 
 > **Be the pizzaiolo. Then be the boss.**
 >
-> Pizza Magna is a pizzeria game in 90s pixel art. Make your own pizzas topping by topping, set the prices, fill the dining room and take on the pizzeria next door.
+> Pizza Magna is a pizzeria game in 90s pixel art. Make your own pizzas topping by topping, set the prices, fill the dining room, take on the pizzeria next door and then open more shops across the city.
 >
 > **Cook**
 > - 100+ toppings, 7 doughs and 9 sauces, and all of them are always available.
 > - Place every piece yourself: whole, chopped or grated, turned the way you like. The weights and the cost are real.
-> - 85+ combos to discover (Margherita, Hawaii, Piri-piri Chicken…) and a few terrible ones. Chicken with Nutella? The customers will tell you.
+> - 100+ combos to discover (Margherita, Hawaii, Piri-piri Chicken…) and a few terrible ones. Chicken with Nutella? The customers will tell you.
 > - Share any pizza as a photo, a link or a `.pizza` file, and open friends' recipes on your own bench.
 >
 > **Run the place**
 > - Four kinds of customers, and each wants something different: students look for a bargain and home toppings, families want a good deal, gourmets want quality, tourists want something unusual.
-> - Set the prices, decorate the room (tables, plants, floors, walls, a jukebox), hire staff, buy ovens and pick your supplier.
+> - Set the prices, decorate the room (tables, plants, floors, walls, a jukebox), buy ovens and pick your supplier.
+> - Hire your team: pizzaiolos and waiters, each with a name and their own skills. New people look for work every day.
+> - Reputation is earned: a good menu takes a couple of months to reach five stars.
+> - Give your pizzeria a name and a symbol, or use a photo; it signs every pizza you share.
 > - Let a manager run everything, or do it all yourself.
 > - A topping and a combo of the week, a market study to spot trends, and a rival who is not going to sit still.
 >
+> **Grow**
+> - The city of Porto Magno: four neighbourhoods (university, old town, residential, riverside), each with its own customers, foot traffic, rents and a rival with its own strategy.
+> - Rent or buy more shops; each has its own menu, room and team, and your recipe book goes with you.
+> - A bank, for when the next shop can't wait: borrow up to $20,000 and pay interest every day.
+>
 > **Compete**
-> - A contest every five days: sweet, cheese, spicy, seafood, vegetarian, creative and low-cost themes.
+> - A contest every five days on the city's main square: classic, sweet, cheese, spicy, seafood, vegetarian, creative and low-cost themes.
 >
 > **Also**
 > - Calm Italian chiptune music, lively and relaxed tunes in turn.
