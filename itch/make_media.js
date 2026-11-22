@@ -1,7 +1,7 @@
 /* Makes the images for the game's itch.io page, from the game's own art, fonts and colours.
    Run from the repo root:  node itch/make_media.js
    Output (next to this file): logo.png (transparent), banner.png, cover.png, background.png (seamless tile),
-   shot-1..7.png (screenshots). Needs Playwright (preinstalled in the cloud sessions); the fonts are in assets/fonts. */
+   shot-1..7.png (screenshots), head-*.png (section headings for the description). Needs Playwright (preinstalled in the cloud sessions); the fonts are in assets/fonts. */
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path');
 const OUT = __dirname, GAME = 'file://' + path.resolve(__dirname, '../index.html');
@@ -83,6 +83,15 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
       x.drawImage(T, P + 30, Math.round((c.height - T.height) / 2));
       out.logo = c.toDataURL('image/png'); out.logoSize = [c.width, c.height];
     }
+    // section headings for the description (transparent): the title style at 3x, a topping on each side
+    out.heads = {};
+    for (const [k, text, l, r] of [['cook', 'COOK', 'tomate', 'manjericao'], ['run', 'RUN THE PLACE', 'pepperoni', 'cogumelos'], ['grow', 'GROW', 'azeitonas', 'pimento'],
+      ['compete', 'COMPETE', 'ananas', 'fiambre'], ['also', 'ALSO', 'oregaos', 'alho']]) {
+      const T = up(title([text], 'bold 16px Silkscreen'), 3), I = 72, gap = 18, [c, x] = K(T.width + 2 * (I + gap), Math.max(T.height, I) + 8);
+      x.drawImage(T, I + gap, Math.round((c.height - T.height) / 2));
+      [[l, 0], [r, c.width - I]].forEach(([id, ix]) => { try { x.drawImage(icon(id, 2), ix, Math.round((c.height - I) / 2), I, I) } catch (e) {} });
+      out.heads[k] = c.toDataURL('image/png');
+    }
     // banner 1920x480: planks, title on the left, a spread of pizzas on the right
     {
       const [c, x] = K(1920, 480); x.drawImage(tile(1920, 480, wood()), 0, 0); vignette(x, 1920, 480, .6);
@@ -134,6 +143,7 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
     return out;
   });
   save('logo.png', art.logo); save('banner.png', art.banner); save('cover.png', art.cover); save('background.png', art.background);
+  for (const k in art.heads) save(`head-${k}.png`, art.heads[k]);
   console.log('art done', art.sizes);
 
   // ---- screenshots of the real game (desktop size)
