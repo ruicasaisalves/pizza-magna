@@ -8,7 +8,7 @@ const OUT = __dirname, GAME = 'file://' + path.resolve(__dirname, '../index.html
 const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(url.split(',')[1], 'base64'));
 
 (async () => {
-  const b = await chromium.launch();
+  const b = await chromium.launch({ args: ['--allow-file-access-from-files'] });   // the cast sheets are local files drawn into canvases that are exported
   const p = await b.newPage({ viewport: { width: 1280, height: 720 } });
   p.on('pageerror', e => console.log('ERR', e.message));
   await p.goto(GAME); await p.waitForTimeout(1500);
@@ -118,25 +118,42 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
       x.drawImage(d, tx, ty + 2); x.drawImage(f, tx, ty);
       out.cover = c.toDataURL('image/png');
     }
-    // background tile: the dining room seen from above, seamless. The red and white check floor
-    // with tables (and a pizza on each), a fountain, an olive tree, a lamp and a plant, at the game's 2x;
-    // no piece crosses the tile's edge
+    // background tile: the dining room seen from above, seamless, at the game's 1x then doubled. The red and white
+    // check floor, tables with customers eating, waiters carrying pizzas, people walking, a fountain, an olive tree,
+    // a lamp and a plant; the people are the game's characters (assets/cast), drawn with the game's own functions.
+    // No piece crosses the tile's edge.
     {
       const A = ROOM_ART, im = new Image(); im.src = A.src; await im.decode();
-      const Z = 2, TW = 768, [c, x] = K(TW, TW), L = A.layout.items;
-      const fr = (k, X, Y) => { const f = A.frames[k]; x.drawImage(im, f[0], f[1], f[2], f[3], X, Y, f[2] * Z, f[3] * Z) };
-      for (let y = 0; y < TW; y += 256) for (let X = 0; X < TW; X += 256) fr('f_check', X, y);
-      x.fillStyle = 'rgba(20,8,2,.2)'; x.fillRect(0, 0, TW, TW);
-      const item = (k, X, Y, food) => {   // a room piece from its layout: parts and chairs in depth order
-        const it = L[k], ds = [];
-        (it.parts || []).forEach(q => ds.push([q[0] + (q[4] ? '_0' : ''), q[1], q[2], q[3]]));
-        (it.seats || []).forEach(s => { if (s.chair) ds.push(s.chair); if (s.back) ds.push(s.back) });
-        ds.sort((a, b) => a[3] - b[3]).forEach(d => fr(d[0], X + d[1] * Z, Y + d[2] * Z));
-        if (food && it.top) { const [tx, ty] = it.top; fr('plate', X + (tx - 12) * Z, Y + (ty - 7) * Z); fr('pizza', X + (tx - 12) * Z, Y + (ty - 9) * Z) }
+      const img = async src => { const i = new Image(); i.src = src; await i.decode(); return i };
+      const TW = 384, [c, x] = K(TW, TW), L = A.layout.items, T = 32;
+      const fr = (k, X, Y) => { const f = A.frames[k]; x.drawImage(im, f[0], f[1], f[2], f[3], Math.round(X), Math.round(Y), f[2], f[3]) };
+      for (let y = 0; y < TW; y += 128) for (let X = 0; X < TW; X += 128) fr('f_check', X, y);
+      const D = [], add = (z, f) => D.push({ z, f });   // everything that stands, drawn by depth
+      let look = 0; const LOOKS = [3, 11, 0, 16, 7, 19, 5, 13, 9, 2, 18, 6, 14, 1, 10, 20, 4, 12];
+      const item = async (k, X, Y, guests) => {   // a room piece from its layout; guests: customers at its seats, eating
+        const it = L[k];
+        (it.parts || []).forEach(q => add(Y + q[3], () => fr(q[0] + (q[4] ? '_0' : ''), X + q[1], Y + q[2])));
+        for (const st of it.seats || []) {
+          if (st.chair) add(Y + st.chair[3], () => fr(st.chair[0], X + st.chair[1], Y + st.chair[2]));
+          if (st.back) add(Y + st.back[3], () => fr(st.back[0], X + st.back[1], Y + st.back[2]));
+          if (!guests) continue;
+          const sim = await img(CAST + 'customers/' + castNN(LOOKS[look++ % LOOKS.length]) + '/seated.png');
+          add(Y + st.p[2], () => drawPilotSeated(x, sim, st.d, X + st.p[0], Y + st.p[1]));
+          const [tx, ty, rx, ry] = it.top, d = st.d, qx = d === 'right' ? tx - rx + 14 : d === 'left' ? tx + rx - 14 : (st.chair ? tx : st.p[0] + 16), qy = d === 'down' ? ty - ry + 9 : d === 'up' ? ty + ry - 9 : ty;
+          const tz = it.parts.find(q => q[0].startsWith('t_'))[3];
+          add(Y + tz + .2, () => fr('pizza', X + Math.round(qx) - 12, Y + Math.round(qy) - 8));
+        }
       };
-      item('xadrez4', 40, 40, 1); item('fonte', 480, 60); item('xadrez2', 300, 330, 1); item('vaso', 650, 360);
-      item('candeeiro', 60, 350); item('oliveira', 110, 520); item('redonda', 440, 480, 1);
-      out.background = c.toDataURL('image/png');
+      const foot = async (src, row, col, X, Y) => { const s = await img(src); add(Y + T, () => drawPilotFoot(x, s, src, row, col, X, Y)) };
+      await item('xadrez4', 20, 20, 1); await item('fonte', 240, 30); await item('xadrez2', 150, 165, 1); await item('vaso', 325, 180);
+      await item('candeeiro', 30, 175); await item('oliveira', 55, 260); await item('redonda', 220, 240, 1);
+      // waiters (rows: down/right/up/left, empty then carrying; columns: standing, walk x4) and customers walking
+      await foot(CAST + 'waiters/01/service.png', 3, 2, 150, 100); await foot(CAST + 'waiters/02/service.png', 1, 1, 350, 222);
+      await foot(CAST + 'waiters/03/service.png', 7, 3, 120, 300); await foot(CAST + 'waiters/04/service.png', 5, 2, 300, 120);
+      await foot(CAST + 'customers/' + castNN(8) + '/walk.png', 1, 2, 8, 330); await foot(CAST + 'customers/' + castNN(15) + '/walk.png', 3, 1, 210, 330);
+      D.sort((a, b) => a.z - b.z).forEach(d => d.f());
+      x.fillStyle = 'rgba(20,8,2,.32)'; x.fillRect(0, 0, TW, TW);   // darker, so the page's content stands out
+      out.background = up(c, 2).toDataURL('image/png');
     }
     // the pizza images, for the screenshots' menu
     out.sizes = { logo: out.logoSize };

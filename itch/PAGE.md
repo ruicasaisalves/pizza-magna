@@ -10,7 +10,7 @@ Everything the itch.io page needs. The images are made by `node itch/make_media.
 | `cover.png` | The older cover drawn by `make_media.js`, kept as a spare | 630 × 500 |
 | `banner-main.png` | Edit game › Theme › **Banner**, the one in use: the chef by the oven and the slogan *Build your own little pizza empire.* (made with ChatGPT, not by the script; keep it when re-running `make_media.js`) | 2000 × 667 |
 | `banner.png` | The older banner drawn by `make_media.js` (planks and pizzas), kept as a spare | 1920 × 480 |
-| `background.png` | Edit game › Theme › **Background image**, set to *tiled* (the dining room from above: red and white check floor, tables, a fountain; seamless) | 768 × 768 |
+| `background.png` | Edit game › Theme › **Background image**, set to *tiled* (the dining room from above, seamless: red and white check floor, customers eating at the tables, waiters carrying pizzas, a fountain; the game's characters) | 768 × 768 |
 | `logo.png` | Transparent logo for the description, the devlog, social posts, Discord (not an itch field) | 1108 × 380 |
 | `shot-1.png` … `shot-7.png` | Edit game › **Screenshots**, in this order: kitchen, menu, the day, room, contest, city, shop (team and bank) | 1280 × 720 |
 | `head-cook.png`, `head-run.png`, `head-grow.png`, `head-compete.png`, `head-also.png` | Pictures inside the **description**, one above each section (pixel-art headings, transparent) | ~700 × 80 |
