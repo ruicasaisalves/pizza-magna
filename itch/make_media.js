@@ -1,7 +1,7 @@
 /* Makes the images for the game's itch.io page, from the game's own art, fonts and colours.
    Run from the repo root:  node itch/make_media.js
    Output (next to this file): logo.png (transparent), banner.png, cover.png, background.png (seamless tile),
-   shot-1..7.png (screenshots), head-*.png (section headings for the description). Needs Playwright (preinstalled in the cloud sessions); the fonts are in assets/fonts. */
+   shot-1..7.png (screenshots), head-*.png (section headings for the description), embed-bg.png (behind the game's Run button). Needs Playwright (preinstalled in the cloud sessions); the fonts are in assets/fonts. */
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path');
 const OUT = __dirname, GAME = 'file://' + path.resolve(__dirname, '../index.html');
@@ -184,6 +184,19 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
   await p.click('[data-act=open]'); await p.waitForTimeout(500); await p.click('[data-act=speed][data-v="4"]').catch(() => {}); await p.waitForTimeout(6500);
   await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(300);
   await p.screenshot({ path: path.join(OUT, 'shot-3.png') });
+  // embed background (behind itch's Run game button), 960x640: the room at the dinner rush, doubled, with the logo on top
+  await p.evaluate(() => { try { anim = null } catch (e) {} closeModal(); state.tab = 'dia'; render() }); await p.waitForTimeout(800);
+  await p.click('[data-act=open]'); await p.waitForTimeout(300);
+  await p.evaluate(() => { let n = 0; while (anim && anim.t < 18 && n++ < 9000) step(.05) }); await p.waitForTimeout(1200);
+  save('embed-bg.png', await p.evaluate(async logo => {
+    const W = 960, H = 640, k = 2, src = room.low, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+    const cw = W / k, ch = H / k, sx = Math.max(0, src.width - cw), sy = 0;   // the right side, from the top wall: tables and the kitchen
+    x.drawImage(src, sx, sy, cw, ch, 0, 0, W, H);
+    x.fillStyle = 'rgba(20,8,2,.18)'; x.fillRect(0, 0, W, H);
+    const g = x.createLinearGradient(0, 0, 0, 230); g.addColorStop(0, 'rgba(20,8,2,.92)'); g.addColorStop(.7, 'rgba(20,8,2,.78)'); g.addColorStop(1, 'rgba(20,8,2,0)'); x.fillStyle = g; x.fillRect(0, 0, W, 230);   // a dark band for the logo
+    const li = new Image(); li.src = logo; await li.decode(); const lw = 460, lh = Math.round(li.height * lw / li.width);
+    x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high'; x.drawImage(li, (W - lw) / 2, 18, lw, lh);
+    return c.toDataURL('image/png') }, art.logo));
   await p.evaluate(() => { try { anim = null } catch (e) {} closeModal() });
   await shot(4, 'sala');
   await shot(5, 'concurso');
