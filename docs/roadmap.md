@@ -6,20 +6,21 @@ Where Pizza Magna is today and what is still missing to make it a full pizzeria 
 
 | System | State |
 |---|---|
-| **Kitchen** | Complete: about 180 toppings, 95 combos, weights, zoom, recipe sharing and import. |
-| **Menu** | Unlimited pizzas, cost-based suggested price, adjustable prices. |
-| **Service day** | Top-down room (20×17 tiles), 4 customer groups choosing between you and the rival, weekday multiplier. |
-| **Competition** | One fixed rival (Pizza Rápida) with fixed quality and price, and a 2-for-1 promo every 6 days. |
-| **Shop** | Extra oven (up to 3), pizzaiolo (up to 5, $40/day), room renovation (levels 0–3, just a number), flyers (+45% customers for 1 day), supplier quality 1/2/3 (+0/+3/+6 quality, toppings ×1/×1.25/×1.5); no topping is locked. |
+| **Kitchen** | Complete: 104 toppings, 7 doughs, 9 sauces, 110 combos, weights, zoom, recipe sharing and import. |
+| **Menu** | Unlimited pizzas, cost-based suggested price, adjustable prices; demand curve and "who picks it" with Options › Advanced analytics; sales history. |
+| **Service day** | Top-down room (20×17 tiles), 4 customer groups choosing between you and the rival, weekday multiplier; the cast-01 characters (21 customers, 4 waiters, 5 cooks), plus guests and VIPs who visit from 3, 4 and 5 stars (looks only). |
+| **Competition** | A rival in each neighbourhood with its own strategy (cheap, tourist, family, gourmet; Pizza Rápida next to the first shop is classic). |
+| **Shop** | Extra oven (up to 3), the team (pizzaiolos and waiters with names, skills and wages, new candidates every day), the room editor, flyers (+45% customers for 1 day), supplier quality 1/2/3; who runs the pizzeria (manager, buyer or you), the pantry, the weekly market study, the bank; no topping is locked. |
 | **Contest** | Every 5 days, 5 themes, prizes. |
-| **Goal** | $4,000 and 3★. |
+| **City** | Porto Magno: four neighbourhoods; rent or buy more shops, each with its own menu, room, team and rival. |
+| **Goal** | Off for now (`GOAL_ON=false`); was $4,000 and 3★. |
 
 The public site runs the full game (it showed only the Kitchen and the Menu until the restaurant went live).
 
 ## Missing
 
 ### 1. City and property
-- **Done (first version):** Shop › City shows Porto Magno (`city.js`, also used by `docs/drafts/city.html`). With $4000 of your own money you can rent a lot (rent per day) or buy one; the new shop opens empty, with its neighbourhood's customers, its street's traffic and the nearest rival. Each shop has its own menu (the other shops' pizzas are offered as a recipe book), room, staff, pantry, reputation and history; the header arrows switch shops; one day runs every shop (the others in the background with their manager) and the report shows each one and the total. A bank lends up to $20,000 at 0.5% a day.
+- **Done (first version):** the City tab shows Porto Magno (`city.js`, also used by `docs/drafts/city.html`). With $4000 of your own money you can rent a lot (rent per day) or buy one; the new shop opens empty, with its neighbourhood's customers, its street's traffic and the nearest rival. Each shop has its own menu (the other shops' pizzas are offered as a recipe book), room, staff, pantry, reputation and history; the header arrows switch shops; one day runs every shop (the others in the background with their manager) and the report shows each one and the total. A bank lends up to $20,000 at 0.5% a day.
 - Your shops are painted as open pizzerias; a rented shop can be closed, a bought one sold for 70%.
 - Still to do: the number of tables of a lot. (Rivals have a strategy per neighbourhood; the 3DS has the City since 0.04f.)
 - A pixel-art city map with neighbourhoods (university, tourist, residential, upmarket). Each has its own mix of the 4 customer groups.
@@ -74,10 +75,10 @@ See also "Shopping by weight" in `docs/ideas.md`.
 - Home delivery (already promised in the shop's "Coming soon").
 
 ### 8. Finishing
-- Move the remaining screens (day, shop, contest, messages) into `I18N`; only the kitchen and sharing are migrated.
+- ~~Move the remaining screens into `I18N`~~: done, every screen is translated (English and Portuguese).
 - Balance prices and customer preferences (still a first estimate).
 - Logo generator (see `docs/ideas.md`).
-- Save format for several shops, with defaults so old saves still open.
+- ~~Save format for several shops, with defaults so old saves still open~~: done with the City (`SHOP_KEYS`, `ensureShops()`).
 
 ## Suggested order
 
