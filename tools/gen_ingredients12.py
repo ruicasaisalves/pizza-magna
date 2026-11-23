@@ -22,6 +22,7 @@ R.update({
     'prov': hexs(['#b09a5a', '#d2be7e', '#e8d8a2', '#f6ecc8', '#fffbe8']),
     'provrind': hexs(['#7a5a14', '#a47a22', '#c89a36', '#e2b852']),
     'beef': hexs(['#2e140a', '#4a2212', '#6a361e', '#8a4e2e', '#ac6c44']),
+    'mince': hexs(['#5a1016', '#9a2834', '#cc4c56', '#ea7c80', '#fcaaa6']),   # raw minced beef: pink-red, dark maroon outline
     'redon': hexs(['#3e0a2e', '#62124a', '#8a2468', '#b0408a', '#d070a8']),
     'redonw': hexs(['#a8789a', '#c89ab8', '#e2bcd4', '#f4dcea']),
     'rosem': hexs(['#142418', '#22382a', '#34503c', '#4e6c54', '#7a9a7e']),
@@ -49,22 +50,24 @@ def provolone(seed, D=21):
     return img
 
 # ---------------- MINCED BEEF (handful of cooked meat crumbs) ----------------
-def minced_beef(seed, W=30, H=26):
-    """a heaped spoonful of minced beef: a mound covered in loose lumps"""
+def minced_beef(seed, W=34, H=30):
+    """raw minced beef scattered over the pizza: a loose patch of short pink-red strands, thinning out at the edges"""
     rng = np.random.default_rng(seed + 6100)
     ys, xs, cx, cy = grid(W, H)
-    er = np.hypot((xs - cx) / 10.5, (ys - cy) / 8)            # the mound under the lumps
-    mask = er <= 1; height = np.sqrt(np.clip(1 - er ** 2, 0, 1)) * 3.5
-    for _ in range(26 + seed % 4):                            # lumps on top and spilling at the edge
-        t, rr0 = rng.random() * 6.28, np.sqrt(rng.random()) * 1.1
-        bx, by = cx + np.cos(t) * rr0 * 10.5, cy + np.sin(t) * rr0 * 8
-        rr = np.hypot((xs - bx) / (1.8 + rng.random() * 1.3), (ys - by) / (1.5 + rng.random() * 1.1))
-        m = rr <= 1
-        base = 3.5 * np.sqrt(max(0, 1 - min(1, rr0) ** 2))
-        mask |= m; height = np.maximum(height, np.where(m, base + np.sqrt(np.clip(1 - rr ** 2, 0, 1)) * 1.6, 0))
-    height += (rng.random((H, W)) - .5) * .6                  # grain of the meat
-    mat = [['beef'] * W for _ in range(H)]
-    return render(mat, np.clip(shade(height, mask) * .95 + .12, 0, 1) * mask, mask, {})
+    mask = np.zeros((H, W), bool); height = np.zeros((H, W))
+    for _ in range(34 + seed % 5):                            # strands, as they come out of the mincer
+        t, rr0 = rng.random() * 6.28, np.sqrt(rng.random()) * (1.15 if rng.random() < .8 else 1.45)
+        bx, by = cx + np.cos(t) * rr0 * 12, cy + np.sin(t) * rr0 * 10
+        if rr0 > 1 and rng.random() < .5: continue            # the edge thins out into a few loose bits
+        a, L, w = rng.random() * 3.14, rng.uniform(1.5, 3.5), rng.uniform(.9, 1.4)
+        uu = (xs - bx) * np.cos(a) + (ys - by) * np.sin(a); vv = -(xs - bx) * np.sin(a) + (ys - by) * np.cos(a)
+        vv = vv - .5 * np.sin(uu * 1.3)                       # a little wriggle
+        d = np.hypot(np.clip(np.abs(uu) - L, 0, None), vv)
+        m = d <= w
+        mask |= m; height = np.maximum(height, np.where(m, 1 + np.sqrt(np.clip(1 - (d / w) ** 2, 0, 1)) * 1.4 + max(0, 1 - rr0) * 1.2, 0))
+    height += (rng.random((H, W)) - .5) * .5
+    mat = [['mince'] * W for _ in range(H)]
+    return render(mat, np.clip(shade(height, mask) * .9 + .2, 0, 1) * mask, mask, {})
 
 # ---------------- RED ONION (ring arcs: purple edge, pale inside) ----------------
 def red_onion(seed, D=24):
