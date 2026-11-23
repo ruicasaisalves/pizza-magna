@@ -20,11 +20,16 @@ PRODUCT_CODE=CTR-H-PZMG
 mkdir -p "$W" "$OUT"
 
 # tools: makerom (Project_CTR) and bannertool, the Linux builds from their latest releases
-asset() { curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} "https://api.github.com/repos/$1/releases/latest" \
-  | grep -o '"browser_download_url": *"[^"]*"' | cut -d'"' -f4 | grep -E "$2" | head -1; }
+asset() {   # the newest asset matching $2 among the repo's recent releases (Project_CTR releases makerom and ctrtool apart)
+  local all url
+  all=$(curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} "https://api.github.com/repos/$1/releases?per_page=30" \
+    | grep -o '"browser_download_url": *"[^"]*"' | cut -d'"' -f4)
+  url=$(echo "$all" | grep -E "$2" | head -1)
+  if [ -z "$url" ]; then echo "no asset matching $2 in $1; found:" >&2; echo "$all" | head -40 >&2; return 1; fi
+  echo "$url"; }
 mkdir -p "$W/bin"
-curl -fsSL -o "$W/makerom.zip" "$(asset 3DSGuy/Project_CTR 'makerom.*ubuntu.*x86_64.*\.zip$')"
-curl -fsSL -o "$W/bannertool.zip" "$(asset Steveice10/bannertool 'bannertool\.zip$')"
+MR=$(asset 3DSGuy/Project_CTR 'makerom.*(ubuntu|linux).*x86_64.*\.zip$'); echo "makerom: $MR"; curl -fsSL -o "$W/makerom.zip" "$MR"
+BT=$(asset Steveice10/bannertool 'bannertool\.zip$'); echo "bannertool: $BT"; curl -fsSL -o "$W/bannertool.zip" "$BT"
 (cd "$W/bin" && unzip -oq ../makerom.zip && unzip -oq ../bannertool.zip)
 MAKEROM=$(find "$W/bin" -type f -name makerom | head -1)
 BANNERTOOL=$(find "$W/bin" -type f -path '*linux-x86_64*' -name bannertool | head -1)
