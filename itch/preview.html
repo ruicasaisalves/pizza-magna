@@ -1,0 +1,76 @@
+<!doctype html>
+<!-- A rough local preview of the itch.io page with the kit in this folder (theme colours, banner, headings, GIFs).
+     Not uploaded anywhere: itch.io builds the real page from the fields listed in PAGE.md. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pizza Magna page preview</title>
+<style>
+  @font-face{font-family:Silkscreen;src:url(../assets/fonts/silkscreen-latin.woff2) format('woff2')}
+  @font-face{font-family:Silkscreen;font-weight:700;src:url(../assets/fonts/silkscreen-bold-latin.woff2) format('woff2')}
+  :root{--bg:#2a1407;--panel:#4a260f;--text:#f3e6c6;--link:#fbe39a;--btn:#c4352a;--btnt:#fff6e0;--border:#94661a;--brass:#e3b34a}
+  body{margin:0;background:var(--bg) url(background.png) repeat;background-size:384px;color:var(--text);font:16px/1.6 Lato,'Helvetica Neue',Arial,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;background:var(--panel);border-left:3px solid var(--border);border-right:3px solid var(--border);min-height:100vh}
+  .banner{display:block;width:100%}
+  .btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:18px 16px}
+  .btn{background:var(--btn);color:var(--btnt);font:700 15px Silkscreen,monospace;letter-spacing:1px;padding:12px 22px;border:3px solid #2a1407;box-shadow:0 4px 0 #7e1d14;text-decoration:none}
+  .btn.alt{background:#f3e6c6;color:#2a1407;box-shadow:0 4px 0 #94661a}
+  .cols{display:flex;gap:24px;padding:0 24px 32px}
+  .desc{flex:1;min-width:0}
+  .shots{width:290px;display:flex;flex-direction:column;gap:12px}
+  .shots img{width:100%;border:2px solid var(--border)}
+  .desc img{max-width:100%;image-rendering:pixelated}
+  .desc .head{display:block;margin:28px auto 6px;height:52px;width:auto}
+  .desc .gif{display:block;margin:14px auto;border:3px solid var(--border);box-shadow:0 6px 0 rgba(0,0,0,.35)}
+  .tag{font:700 20px/1.4 Silkscreen,monospace;color:var(--link);text-align:center;margin:18px 0 6px}
+  .lead{text-align:center;font-size:17px;margin:0 0 6px}
+  ul{padding-left:20px;margin:6px 0}li{margin:6px 0}
+  b{color:var(--link)}
+  a{color:var(--link)}
+  .foot{text-align:center;font-style:italic;opacity:.85;margin-top:28px}
+  @media (max-width:760px){.cols{flex-direction:column;padding:0 16px 24px}.shots{width:auto}}
+</style></head><body><div class="wrap">
+<img class="banner" src="banner-main.png" alt="Pizza Magna">
+<div class="btns"><a class="btn" href="#">▶ RUN GAME</a><a class="btn alt" href="#">DOWNLOAD</a></div>
+<div class="cols"><div class="desc">
+  <p class="tag">BE THE PIZZAIOLO.<br>THEN BE THE BOSS.</p>
+  <p class="lead">A pizzeria tycoon in 90s pixel art. Invent pizzas topping by topping, fill the dining room, beat the rival next door, then open shops across the city.</p>
+  <img class="gif" src="gif-pizza.gif" alt="A pizza built piece by piece">
+
+  <img class="head" src="head-cook.png" alt="Cook">
+  <ul>
+    <li><b>100+ toppings</b>, 7 doughs and 9 sauces, all available from day one.</li>
+    <li>Place every piece yourself: whole, chopped or grated, turned the way you like. Real weights, real costs.</li>
+    <li><b>100+ combos</b> to discover (Margherita, Hawaii, Piri-piri Chicken…) and a few terrible ones. Chicken with Nutella? The customers will tell you.</li>
+    <li>Share any pizza as a photo, a link or a <code>.pizza</code> file.</li>
+  </ul>
+
+  <img class="head" src="head-run.png" alt="Run the place">
+  <img class="gif" src="gif-day.gif" alt="The dining room at the dinner rush">
+  <ul>
+    <li>Students, families, tourists and gourmets: <b>each wants something different</b>.</li>
+    <li>Set prices, decorate the room, buy ovens, pick your supplier.</li>
+    <li><b>Hire your team</b>: pizzaiolos and waiters with their own skills.</li>
+    <li>Earn your stars: five stars take a good menu and a couple of months.</li>
+    <li>Your pizzeria's name and symbol sign every pizza you share.</li>
+  </ul>
+
+  <img class="head" src="head-grow.png" alt="Grow">
+  <img class="gif" src="gif-city.gif" alt="The city of Porto Magno">
+  <ul>
+    <li>The city of <b>Porto Magno</b>: four neighbourhoods, each with its own customers, rents and a rival with its own strategy.</li>
+    <li>Rent or buy more shops, each with its own menu, room and team.</li>
+    <li>A bank for when the next shop can't wait.</li>
+  </ul>
+
+  <img class="head" src="head-compete.png" alt="Compete">
+  <ul><li>A <b>contest every five days</b>: classic, sweet, cheese, spicy, seafood, veggie, creative and low-cost.</li></ul>
+
+  <img class="head" src="head-also.png" alt="Also">
+  <ul>
+    <li>Calm Italian chiptune music.</li>
+    <li>English and Portuguese.</li>
+    <li>Plays in the browser, <b>phones too</b>. Saves by itself. Nothing to install.</li>
+  </ul>
+  <p class="foot">A work in progress: new toppings, rooms and rivals keep arriving. Tell us what you want next in the comments.</p>
+</div>
+<div class="shots"><img src="shot-1.png" alt=""><img src="shot-3.png" alt=""><img src="shot-6.png" alt=""><img src="shot-2.png" alt=""><img src="shot-7.png" alt=""></div>
+</div></div></body></html>

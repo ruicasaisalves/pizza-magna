@@ -6,11 +6,17 @@ Everything the itch.io page needs. The images are made by `node itch/make_media.
 
 | File | Where it goes on itch.io | Size |
 |---|---|---|
-| `cover.png` | Edit game › **Cover image** (shown in lists and search) | 630 × 500 |
-| `banner.png` | Edit game › Theme › **Banner** (the strip at the top of the page; itch scales it to the page width) | 1920 × 480 |
-| `background.png` | Edit game › Theme › **Background image**, set to *tiled* (the dining room from above: red and white check floor, tables, a fountain; seamless) | 768 × 768 |
+| `cover-main.png` | Edit game › **Cover image** (shown in lists and search), the one to use: the title and slogan from the main banner, with a pizzaiola and a waitress from the game's characters in the corners; made by `python3 itch/make_cover.py` | 630 × 500 |
+| `cover.png` | The older cover drawn by `make_media.js`, kept as a spare | 630 × 500 |
+| `banner-main.png` | Edit game › Theme › **Banner**, the one in use: the chef by the oven and the slogan *Build your own little pizza empire.* (made with ChatGPT, not by the script; keep it when re-running `make_media.js`) | 2000 × 667 |
+| `banner.png` | The older banner drawn by `make_media.js` (planks and pizzas), kept as a spare | 1920 × 480 |
+| `background.png` | Edit game › Theme › **Background image**, set to *tiled* (the dining room from above, seamless: red and white check floor, customers eating at the tables, waiters carrying pizzas, a fountain; the game's characters) | 768 × 768 |
+| `embed-bg.png` | Edit game › Theme › **Embed BG** (the picture behind the *Run game* button, in the game's box): the dining room at the dinner rush with the logo on top | 960 × 640 |
 | `logo.png` | Transparent logo for the description, the devlog, social posts, Discord (not an itch field) | 1108 × 380 |
-| `shot-1.png` … `shot-5.png` | Edit game › **Screenshots**, in this order: kitchen, menu, the day, room, contest | 1280 × 720 |
+| `shot-1.png` … `shot-7.png` | Edit game › **Screenshots**, in this order: kitchen, menu, the day, room, contest, city, shop (team and bank) | 1280 × 720 |
+| `head-cook.png`, `head-run.png`, `head-grow.png`, `head-compete.png`, `head-also.png` | Pictures inside the **description**, one above each section (pixel-art headings, transparent) | ~700 × 80 |
+| `gif-pizza.gif`, `gif-day.gif`, `gif-city.gif` | Animated pictures inside the **description** (a pizza built piece by piece, the dining room at the dinner rush, a pan over the city); made by `node itch/make_gifs.js`. The dining room has a full team (five pizzaiolos, four waiters) | 360–520 wide |
+| `preview.html` | Open it in a browser to see roughly how the page looks with all of the above (not uploaded) | |
 
 ## Colours (Theme editor)
 
@@ -27,12 +33,12 @@ The same palette the game uses, so the page and the game feel like one thing. it
 | Border | `#94661A` | brass |
 | Headings accent (if offered) | `#E3B34A` | brass |
 
-Fonts, if itch.io lets you pick them: headings a pixel font (Silkscreen or "Press Start 2P"), text the page default. Page width: leave at the default.
+Fonts: the section headings are pictures now, so the **text font must be a plain, readable one** (the page default, or Lato / Open Sans); a pixel font in capitals for the whole description is hard to read on a phone. Title font: a pixel one (Silkscreen or "Press Start 2P") if offered. Page width: leave at the default.
 
 ## Basics
 
 - **Title:** Pizza Magna
-- **Short description / tagline** (under 100 characters): `Run a 90s pixel-art pizzeria: invent pizzas, set prices, beat the rival.`
+- **Short description / tagline** (under 100 characters): `Build your own little pizza empire: a 90s pixel-art pizzeria tycoon.`
 - **Kind of project:** HTML (playable in the browser)
 - **Classification:** Games
 - **Genre:** Simulation (Strategy as the second one, if allowed)
@@ -44,31 +50,43 @@ Fonts, if itch.io lets you pick them: headings a pixel font (Silkscreen or "Pres
 
 ## Description (paste into the page)
 
-> **Be the pizzaiolo. Then be the boss.**
+In the itch.io editor, put the pictures where the `[picture: …]` lines are (the editor's image button uploads them; centre them). Bold as marked.
+
+> **BE THE PIZZAIOLO. THEN BE THE BOSS.**
 >
-> Pizza Magna is a pizzeria game in 90s pixel art. Make your own pizzas topping by topping, set the prices, fill the dining room and take on the pizzeria next door.
+> A pizzeria tycoon in 90s pixel art. Invent pizzas topping by topping, fill the dining room, beat the rival next door, then open shops across the city.
 >
-> **Cook**
-> - 100+ toppings, 7 doughs and 9 sauces, and all of them are always available.
-> - Place every piece yourself: whole, chopped or grated, turned the way you like. The weights and the cost are real.
-> - 85+ combos to discover (Margherita, Hawaii, Piri-piri Chicken…) and a few terrible ones. Chicken with Nutella? The customers will tell you.
-> - Share any pizza as a photo, a link or a `.pizza` file, and open friends' recipes on your own bench.
+> [picture: gif-pizza.gif]
 >
-> **Run the place**
-> - Four kinds of customers, and each wants something different: students look for a bargain and home toppings, families want a good deal, gourmets want quality, tourists want something unusual.
-> - Set the prices, decorate the room (tables, plants, floors, walls, a jukebox), hire staff, buy ovens and pick your supplier.
-> - Let a manager run everything, or do it all yourself.
-> - A topping and a combo of the week, a market study to spot trends, and a rival who is not going to sit still.
+> [picture: head-cook.png]
+> - **100+ toppings**, 7 doughs and 9 sauces, all available from day one.
+> - Place every piece yourself: whole, chopped or grated, turned the way you like. Real weights, real costs.
+> - **100+ combos** to discover (Margherita, Hawaii, Piri-piri Chicken…) and a few terrible ones. Chicken with Nutella? The customers will tell you.
+> - Share any pizza as a photo, a link or a `.pizza` file.
 >
-> **Compete**
-> - A contest every five days: sweet, cheese, spicy, seafood, vegetarian, creative and low-cost themes.
+> [picture: head-run.png]
+> [picture: gif-day.gif]
+> - Students, families, tourists and gourmets: **each wants something different**.
+> - Set prices, decorate the room, buy ovens, pick your supplier.
+> - **Hire your team**: pizzaiolos and waiters with their own skills.
+> - Earn your stars: five stars take a good menu and a couple of months.
+> - Your pizzeria's name and symbol sign every pizza you share.
 >
-> **Also**
-> - Calm Italian chiptune music, lively and relaxed tunes in turn.
+> [picture: head-grow.png]
+> [picture: gif-city.gif]
+> - The city of **Porto Magno**: four neighbourhoods, each with its own customers, rents and a rival with its own strategy.
+> - Rent or buy more shops, each with its own menu, room and team.
+> - A bank for when the next shop can't wait.
+>
+> [picture: head-compete.png]
+> - A **contest every five days**: classic, sweet, cheese, spicy, seafood, veggie, creative and low-cost.
+>
+> [picture: head-also.png]
+> - Calm Italian chiptune music.
 > - English and Portuguese.
-> - Runs in your browser (phones too) and saves your progress on your device. Nothing to install.
+> - Plays in the browser, **phones too**. Saves by itself. Nothing to install.
 >
-> *It is a work in progress: new toppings, new rooms and new rivals keep arriving. Tell us what you want next in the comments.*
+> *A work in progress: new toppings, rooms and rivals keep arriving. Tell us what you want next in the comments.*
 
 ## Short devlog for the first post
 

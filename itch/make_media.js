@@ -1,14 +1,14 @@
 /* Makes the images for the game's itch.io page, from the game's own art, fonts and colours.
    Run from the repo root:  node itch/make_media.js
    Output (next to this file): logo.png (transparent), banner.png, cover.png, background.png (seamless tile),
-   shot-1..5.png (screenshots). Needs Playwright (preinstalled in the cloud sessions); the fonts are in assets/fonts. */
+   shot-1..7.png (screenshots), head-*.png (section headings for the description), embed-bg.png (behind the game's Run button). Needs Playwright (preinstalled in the cloud sessions); the fonts are in assets/fonts. */
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path');
 const OUT = __dirname, GAME = 'file://' + path.resolve(__dirname, '../index.html');
 const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(url.split(',')[1], 'base64'));
 
 (async () => {
-  const b = await chromium.launch();
+  const b = await chromium.launch({ args: ['--allow-file-access-from-files'] });   // the cast sheets are local files drawn into canvases that are exported
   const p = await b.newPage({ viewport: { width: 1280, height: 720 } });
   p.on('pageerror', e => console.log('ERR', e.message));
   await p.goto(GAME); await p.waitForTimeout(1500);
@@ -83,6 +83,15 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
       x.drawImage(T, P + 30, Math.round((c.height - T.height) / 2));
       out.logo = c.toDataURL('image/png'); out.logoSize = [c.width, c.height];
     }
+    // section headings for the description (transparent): the title style at 3x, a topping on each side
+    out.heads = {};
+    for (const [k, text, l, r] of [['cook', 'COOK', 'tomate', 'manjericao'], ['run', 'RUN THE PLACE', 'pepperoni', 'cogumelos'], ['grow', 'GROW', 'azeitonas', 'pimento'],
+      ['compete', 'COMPETE', 'ananas', 'fiambre'], ['also', 'ALSO', 'oregaos', 'alho']]) {
+      const T = up(title([text], 'bold 16px Silkscreen'), 3), I = 72, gap = 18, [c, x] = K(T.width + 2 * (I + gap), Math.max(T.height, I) + 8);
+      x.drawImage(T, I + gap, Math.round((c.height - T.height) / 2));
+      [[l, 0], [r, c.width - I]].forEach(([id, ix]) => { try { x.drawImage(icon(id, 2), ix, Math.round((c.height - I) / 2), I, I) } catch (e) {} });
+      out.heads[k] = c.toDataURL('image/png');
+    }
     // banner 1920x480: planks, title on the left, a spread of pizzas on the right
     {
       const [c, x] = K(1920, 480); x.drawImage(tile(1920, 480, wood()), 0, 0); vignette(x, 1920, 480, .6);
@@ -109,36 +118,55 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
       x.drawImage(d, tx, ty + 2); x.drawImage(f, tx, ty);
       out.cover = c.toDataURL('image/png');
     }
-    // background tile: the dining room seen from above, seamless. The red and white check floor
-    // with tables (and a pizza on each), a fountain, an olive tree, a lamp and a plant, at the game's 2x;
-    // no piece crosses the tile's edge
+    // background tile: the dining room seen from above, seamless, at the game's 1x then doubled. The red and white
+    // check floor, tables with customers eating, waiters carrying pizzas, people walking, a fountain, an olive tree,
+    // a lamp and a plant; the people are the game's characters (assets/cast), drawn with the game's own functions.
+    // No piece crosses the tile's edge.
     {
       const A = ROOM_ART, im = new Image(); im.src = A.src; await im.decode();
-      const Z = 2, TW = 768, [c, x] = K(TW, TW), L = A.layout.items;
-      const fr = (k, X, Y) => { const f = A.frames[k]; x.drawImage(im, f[0], f[1], f[2], f[3], X, Y, f[2] * Z, f[3] * Z) };
-      for (let y = 0; y < TW; y += 256) for (let X = 0; X < TW; X += 256) fr('f_check', X, y);
-      x.fillStyle = 'rgba(20,8,2,.2)'; x.fillRect(0, 0, TW, TW);
-      const item = (k, X, Y, food) => {   // a room piece from its layout: parts and chairs in depth order
-        const it = L[k], ds = [];
-        (it.parts || []).forEach(q => ds.push([q[0] + (q[4] ? '_0' : ''), q[1], q[2], q[3]]));
-        (it.seats || []).forEach(s => { if (s.chair) ds.push(s.chair); if (s.back) ds.push(s.back) });
-        ds.sort((a, b) => a[3] - b[3]).forEach(d => fr(d[0], X + d[1] * Z, Y + d[2] * Z));
-        if (food && it.top) { const [tx, ty] = it.top; fr('plate', X + (tx - 12) * Z, Y + (ty - 7) * Z); fr('pizza', X + (tx - 12) * Z, Y + (ty - 9) * Z) }
+      const img = async src => { const i = new Image(); i.src = src; await i.decode(); return i };
+      const TW = 384, [c, x] = K(TW, TW), L = A.layout.items, T = 32;
+      const fr = (k, X, Y) => { const f = A.frames[k]; x.drawImage(im, f[0], f[1], f[2], f[3], Math.round(X), Math.round(Y), f[2], f[3]) };
+      for (let y = 0; y < TW; y += 128) for (let X = 0; X < TW; X += 128) fr('f_check', X, y);
+      const D = [], add = (z, f) => D.push({ z, f });   // everything that stands, drawn by depth
+      let look = 0; const LOOKS = [3, 11, 0, 16, 7, 19, 5, 13, 9, 2, 18, 6, 14, 1, 10, 20, 4, 12];
+      const item = async (k, X, Y, guests) => {   // a room piece from its layout; guests: customers at its seats, eating
+        const it = L[k];
+        (it.parts || []).forEach(q => add(Y + q[3], () => fr(q[0] + (q[4] ? '_0' : ''), X + q[1], Y + q[2])));
+        for (const st of it.seats || []) {
+          if (st.chair) add(Y + st.chair[3], () => fr(st.chair[0], X + st.chair[1], Y + st.chair[2]));
+          if (st.back) add(Y + st.back[3], () => fr(st.back[0], X + st.back[1], Y + st.back[2]));
+          if (!guests) continue;
+          const sim = await img(CAST + 'customers/' + castNN(LOOKS[look++ % LOOKS.length]) + '/seated.png');
+          add(Y + st.p[2], () => drawPilotSeated(x, sim, st.d, X + st.p[0], Y + st.p[1]));
+          const [tx, ty, rx, ry] = it.top, d = st.d, qx = d === 'right' ? tx - rx + 14 : d === 'left' ? tx + rx - 14 : (st.chair ? tx : st.p[0] + 16), qy = d === 'down' ? ty - ry + 9 : d === 'up' ? ty + ry - 9 : ty;
+          const tz = it.parts.find(q => q[0].startsWith('t_'))[3];
+          add(Y + tz + .2, () => fr('pizza', X + Math.round(qx) - 12, Y + Math.round(qy) - 8));
+        }
       };
-      item('xadrez4', 40, 40, 1); item('fonte', 480, 60); item('xadrez2', 300, 330, 1); item('vaso', 650, 360);
-      item('candeeiro', 60, 350); item('oliveira', 110, 520); item('redonda', 440, 480, 1);
-      out.background = c.toDataURL('image/png');
+      const foot = async (src, row, col, X, Y) => { const s = await img(src); add(Y + T, () => drawPilotFoot(x, s, src, row, col, X, Y)) };
+      await item('xadrez4', 20, 20, 1); await item('fonte', 240, 30); await item('xadrez2', 150, 165, 1); await item('vaso', 325, 180);
+      await item('candeeiro', 30, 175); await item('oliveira', 55, 260); await item('redonda', 220, 240, 1);
+      // waiters (rows: down/right/up/left, empty then carrying; columns: standing, walk x4) and customers walking
+      await foot(CAST + 'waiters/01/service.png', 3, 2, 150, 100); await foot(CAST + 'waiters/02/service.png', 1, 1, 350, 222);
+      await foot(CAST + 'waiters/03/service.png', 7, 3, 120, 300); await foot(CAST + 'waiters/04/service.png', 5, 2, 300, 120);
+      await foot(CAST + 'customers/' + castNN(8) + '/walk.png', 1, 2, 8, 330); await foot(CAST + 'customers/' + castNN(15) + '/walk.png', 3, 1, 210, 330);
+      D.sort((a, b) => a.z - b.z).forEach(d => d.f());
+      x.fillStyle = 'rgba(20,8,2,.22)'; x.fillRect(0, 0, TW, TW);   // a little darker than the floor, so the page's content stands out
+      out.background = up(c, 2).toDataURL('image/png');
     }
     // the pizza images, for the screenshots' menu
     out.sizes = { logo: out.logoSize };
     return out;
   });
   save('logo.png', art.logo); save('banner.png', art.banner); save('cover.png', art.cover); save('background.png', art.background);
+  for (const k in art.heads) save(`head-${k}.png`, art.heads[k]);
   console.log('art done', art.sizes);
 
   // ---- screenshots of the real game (desktop size)
   await p.evaluate(() => {
-    closeModal(); state = freshState(); Object.assign(state, { chef: 'Rui', shop: "Pizza d'Italia", seenIntro: true, money: 2350, day: 19, rep: 3.4, tier: 3, lastSales: {} });
+    closeModal(); state = ensureShops(freshState()); Object.assign(state, { chef: 'Rui', shop: "Pizza d'Italia", seenIntro: true, money: 2350, day: 19, rep: 3.4, tier: 3, lastSales: {}, logo: 'chefw' });
+    state.staff = startStaff(3, 2);   // a fuller team in the kitchen and the room
     const mk = (dough, sauce, list) => { const pieces = [...spread('mozzarella', 12, .74, 0)]; list.forEach(([id, n], k) => pieces.push(...spread(id, n, .66 - .04 * (k % 3), k * 2 + 1))); return { dough, sauce, pieces } };
     const L = [['Margherita da Casa', 'napo', 'tomate', [['manjericao', 7]]], ['Pepperoni Picante', 'napo', 'tomate', [['pepperoni', 10], ['azeitonas', 5], ['oregaos', 4]]],
       ['Hawaii', 'napo', 'tomate', [['fiambre', 7], ['ananas', 8]]], ['Quattro Gusti', 'lenta', 'tomate', [['cogumelos', 6], ['fiambre', 5], ['pimento', 5], ['azeitonas', 5]]],
@@ -156,8 +184,26 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
   await p.click('[data-act=open]'); await p.waitForTimeout(500); await p.click('[data-act=speed][data-v="4"]').catch(() => {}); await p.waitForTimeout(6500);
   await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(300);
   await p.screenshot({ path: path.join(OUT, 'shot-3.png') });
+  // embed background (behind itch's Run game button), 960x640: the room at the dinner rush, doubled, with the logo on top
+  await p.evaluate(() => { try { anim = null } catch (e) {} closeModal(); state.tab = 'dia'; render() }); await p.waitForTimeout(800);
+  await p.click('[data-act=open]'); await p.waitForTimeout(300);
+  await p.evaluate(() => { let n = 0; while (anim && anim.t < 18 && n++ < 9000) step(.05) }); await p.waitForTimeout(1200);
+  save('embed-bg.png', await p.evaluate(async logo => {
+    const W = 960, H = 640, k = 2, src = room.low, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+    const cw = W / k, ch = H / k, sx = Math.max(0, src.width - cw), sy = 0;   // the right side, from the top wall: tables and the kitchen
+    x.drawImage(src, sx, sy, cw, ch, 0, 0, W, H);
+    x.fillStyle = 'rgba(20,8,2,.18)'; x.fillRect(0, 0, W, H);
+    const g = x.createLinearGradient(0, 0, 0, 230); g.addColorStop(0, 'rgba(20,8,2,.92)'); g.addColorStop(.7, 'rgba(20,8,2,.78)'); g.addColorStop(1, 'rgba(20,8,2,0)'); x.fillStyle = g; x.fillRect(0, 0, W, 230);   // a dark band for the logo
+    const li = new Image(); li.src = logo; await li.decode(); const lw = 460, lh = Math.round(li.height * lw / li.width);
+    x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high'; x.drawImage(li, (W - lw) / 2, 18, lw, lh);
+    return c.toDataURL('image/png') }, art.logo));
   await p.evaluate(() => { try { anim = null } catch (e) {} closeModal() });
   await shot(4, 'sala');
   await shot(5, 'concurso');
+  await shot(6, 'cidade');   // the city: neighbourhoods, lots to rent or buy, the rivals
+  // the shop, scrolled to the team (pizzaiolos and waiters with their skills, people to hire) and the bank
+  await p.evaluate(() => { closeModal(); state.tab = 'loja'; render() }); await p.waitForTimeout(1500);
+  await p.evaluate(() => { const h = [...document.querySelectorAll('h3')].find(e => e.textContent.includes(t('staff.title'))); if (h) window.scrollTo(0, h.closest('.card').getBoundingClientRect().top + scrollY - 70) });
+  await p.waitForTimeout(400); await p.screenshot({ path: path.join(OUT, 'shot-7.png') });
   await b.close(); console.log('done');
 })();

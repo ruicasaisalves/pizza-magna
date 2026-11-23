@@ -967,7 +967,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.04k';
+const VERSION='0.04l';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1841,9 +1841,22 @@ function roomSize(){
   if(!room||room.cv!==cv||room.w!==w){const low=document.createElement('canvas');low.width=RW;low.height=RH;room={cv,w,h,c:fitCanvas(cv,w,h,3200),low,lc:low.getContext('2d')};RZ.bind(cv)}
   return room;
 }
+/* Guests (cast sheets only, nothing in the room atlas; looks only, the day's sales don't change): the wizard and
+   the goth come in GUEST_P of the time each. The VIPs visit our pizzeria from their reputation on (stars), once a
+   day every `every` days (shifted by `off`, so they spread over the days), after `from` of the day; each comes at
+   most once a day, so never two of the same on screen. Looks: folder NN = look NN - 1 in assets/cast/customers. */
+const GUEST_P=.025,GUEST_WIZARD=21,GUEST_GOTH=22;
+const VIPS=[{id:'vipspeed',look:23,stars:3,every:2,off:0,from:.25},
+  {id:'captain',look:24,stars:4,every:3,off:0,from:.3},{id:'redsuit',look:25,stars:4,every:3,off:1,from:.4},{id:'goldline',look:26,stars:4,every:3,off:2,from:.5},
+  {id:'bow',look:27,stars:5,every:3,off:1,from:.6},{id:'moustache',look:28,stars:5,every:3,off:2,from:.7}];
+function guestLook(e){
+  if(!castOn())return Math.floor(Math.random()*21);
+  if(e.target==='ours'){const seen=anim.vips||(anim.vips={});
+    for(const v of VIPS)if(!seen[v.id]&&state.rep>=v.stars&&(state.day+v.off)%v.every===0&&anim.t>=DAY_SECONDS*v.from){seen[v.id]=1;return v.look}}
+  const r=Math.random();return r<GUEST_P?GUEST_WIZARD:r<2*GUEST_P?GUEST_GOTH:Math.floor(Math.random()*21)}
 function spawn(e){
   const left=e.target==='rival'?true:Math.random()<.5,y=STREET_ROW*T+(e.target==='ours'?0:Math.round(Math.random()*16));
-  const p={e,x:left?-T:RW,y,look:{body:SEG[e.seg].col,hair:pick(HAIR),skin:pick(SKIN),long:Math.random()<.4},rlook:Math.floor(Math.random()*21),v:88+Math.random()*24,st:'street',path:[],dir:left?'right':'left',ph:Math.random()*4};
+  const p={e,x:left?-T:RW,y,look:{body:SEG[e.seg].col,hair:pick(HAIR),skin:pick(SKIN),long:Math.random()<.4},rlook:guestLook(e),v:88+Math.random()*24,st:'street',path:[],dir:left?'right':'left',ph:Math.random()*4};
   p.path=[{x:e.target==='ours'?DOOR[0]*T:e.target==='rival'?RW+T:(left?RW+T:-T),y}];
   anim.people.push(p);
 }
@@ -1979,7 +1992,7 @@ const castSheets={};
 function castSheet(src){if(!src||!castOn())return null;let p=castSheets[src];
   if(!p){const img=new Image();p=castSheets[src]={img,ok:false};img.src=src;img.decode().then(()=>{p.ok=true;if(!anim)drawRoom()}).catch(()=>{})}
   return p.ok?p.img:null}
-const castCustomer=(p,kind)=>castOn()?CAST+`customers/${castNN((p.rlook||0)%21)}/${kind}.png`:null;
+const castCustomer=(p,kind)=>castOn()?CAST+`customers/${castNN((p.rlook||0)%29)}/${kind}.png`:null;   // 21 looks, the wizard, the goth and the VIPs (guestLook())
 const castWaiter=v=>castOn()?CAST+`waiters/${castNN(v%4)}/service.png`:null;
 const castCook=v=>castOn()?CAST+`cooks/${castNN(v%5)}/idle.png`:null;
 const PILOT_DX={'customers/01/walk':{3:[0,-3,0,-3,0]},'customers/08/walk':{1:[0,0,0,2,0],3:[0,0,0,-2,0]},
@@ -2016,7 +2029,7 @@ function drawRoom(){
     if(p.st!=='wait'&&p.st!=='eat')continue;
     const pim=castSheet(castCustomer(p,'seated'));
     if(pim)L.push({z:y0+s_.p[2],draw:()=>drawPilotSeated(c,pim,s_.d,x0+s_.p[0],y0+s_.p[1])});   // dev pilot
-    else add(y0+s_.p[2],rspr(`p${p.rlook||0}_${s_.d}`),x0+s_.p[0],y0+s_.p[1]);   // seated, from the atlas layout
+    else add(y0+s_.p[2],rspr(`p${(p.rlook||0)%21}_${s_.d}`),x0+s_.p[0],y0+s_.p[1]);   // seated, from the atlas layout
     const [tx,ty,rx,ry]=lay.top,qx=s_.d==='right'?tx-rx+14:s_.d==='left'?tx+rx-14:(s_.chair?tx:s_.p[0]+16),qy=s_.d==='down'?ty-ry+9:s_.d==='up'?ty+ry-9:ty;
     const tz=lay.parts.find(q=>q[0].startsWith('t_'))[3];
     add(y0+tz+.2,rspr(p.st==='eat'&&p.timer>1?'pizza':'plate'),x0+Math.round(qx)-12,y0+Math.round(qy)-8)}
@@ -2027,7 +2040,7 @@ function drawRoom(){
     staff(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2-bobOf(w))}   // held in both hands, in front
   if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;
     const psrc=castCustomer(p,'walk'),pim=castSheet(psrc);if(pim){L.push({z:p.y+T,draw:()=>drawPilotWalker(c,p,pim,psrc)});continue}   // dev pilot
-    person(p,`w${p.rlook||0}_${p.dir}_${p.walking?[1,0,2,0][Math.floor(p.ph)%4]:0}`)}   // standing or walking; seated ones are drawn at their table
+    person(p,`w${(p.rlook||0)%21}_${p.dir}_${p.walking?[1,0,2,0][Math.floor(p.ph)%4]:0}`)}   // a guest's sheet not decoded yet: an atlas look for now   // standing or walking; seated ones are drawn at their table
   for(const q of rugs)c.drawImage(q.img,q.x,q.y);
   L.sort((a,b)=>a.z-b.z).forEach(d=>d.draw?d.draw():c.drawImage(d.img,d.x,d.y));
   if(anim&&anim.dusk){c.fillStyle=`rgba(30,22,70,${.4*anim.dusk})`;c.fillRect(0,0,RW,RH)}   // night, as the last customers leave
@@ -2454,6 +2467,32 @@ function setLogo(v){state.logo=v;save();renderHeader();const box=$('#logopick');
 const CAM='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg>';
 function logoPickHTML(){const L=state.logo||'',photo=/^data:/.test(L);
   return `<div class="logopick" id="logopick"><button data-act="logo" data-v="" aria-pressed="${!L}" title="${esc(t('logo.game'))}"><img src="assets/icon-32.png" alt=""></button>${LOGOS.map(x=>`<button data-act="logo" data-v="${x.id}" aria-pressed="${L===x.id}" title="${esc(t('logo.'+x.id))}"><img src="${presetLogo(x.id)}" alt=""></button>`).join('')}<label aria-pressed="${photo}" title="${esc(t('logo.photo'))}">${photo?`<img src="${L}" alt="">`:CAM}<span>${t('logo.photo')}</span><input id="logoFile" type="file" accept="image/*" hidden></label></div>`}
+/* ================= PAGE BACKGROUND ================= */
+/* Behind the screens: one of three pixel-art walls, picked at random each time the game opens (wood planks, brick,
+   a dimmed check cloth), drawn here once at 1x and tripled; the CSS planks on body stay underneath as the fallback. */
+(function pageBg(){
+  let s=Math.floor(Math.random()*1e6)+1;const r=()=>(s=s*16807%2147483647)/2147483647;
+  const K=document.createElement('canvas'),P=(w,h)=>{K.width=w;K.height=h;return K.getContext('2d')};
+  const px=(x,X,Y,c,v,k=[1,.6,.35])=>{x.fillStyle=`rgb(${c[0]+v|0},${c[1]+v*k[1]|0},${c[2]+v*k[2]|0})`;x.fillRect(X,Y,1,1)};
+  const walls=[
+    ()=>{const N=96,ph=16,x=P(N,N),tones=[[78,43,20],[86,48,22],[72,39,18],[82,45,21],[75,41,19],[84,47,22]];   // wood: planks, grain, joints, nails, knots
+      for(let pl=0;pl<N/ph;pl++){const c=tones[pl],j=Math.floor(r()*(N-20))+10,j2=(j+N/2)%N,off=r()*10;
+        for(let y=0;y<ph;y++)for(let X=0;X<N;X++){let v=Math.sin((X+off*7)*.09+Math.sin(y*.7+pl)*1.6)*4+Math.sin(X*.37+y*1.3)*1.5+(r()-.5)*4;
+          if(y===0)v+=14;if(y>=ph-2)v-=22;if(X===j||X===j2)v-=20;px(x,X,pl*ph+y,c,v)}
+        for(const n of [j-3,j+2,j2-3,j2+2]){const X=(n+N)%N;x.fillStyle='#1d0e05';x.fillRect(X,pl*ph+4,1,1);x.fillRect(X,pl*ph+ph-6,1,1);x.fillStyle='#8a6a4a';x.fillRect(X,pl*ph+3,1,1)}
+        if(r()<.7){const kx=Math.floor(r()*(N-5))+1,ky=pl*ph+5+Math.floor(r()*5);x.fillStyle='rgba(30,14,4,.55)';x.fillRect(kx,ky,3,2);x.fillStyle='rgba(30,14,4,.3)';x.fillRect(kx-1,ky+1,5,1)}}},
+    ()=>{const W=64,H=48,bw=16,bh=8,x=P(W,H);x.fillStyle='#3a1d0c';x.fillRect(0,0,W,H);   // brick, like the oven wall
+      for(let row=0;row<H/bh;row++)for(let col=-1;col<=W/bw;col++){const X=col*bw+(row%2)*bw/2,t=r(),c=t<.33?[150,62,38]:t<.66?[136,55,34]:[162,72,44];
+        for(let y=1;y<bh;y++)for(let xx=1;xx<bw;xx++)px(x,((X+xx)%W+W)%W,row*bh+y,c,(r()-.5)*14+(y===1?10:0)+(y===bh-1?-14:0),[1,.6,.5])}
+      x.fillStyle='rgba(25,10,3,.42)';x.fillRect(0,0,W,H)},
+    ()=>{const S=16,x=P(S*2,S*2);   // a red and white check cloth, dimmed so the cards stand out
+      for(let y=0;y<S*2;y++)for(let X=0;X<S*2;X++){const v=(r()-.5)*10+((X+y)%2?6:-6);px(x,X,y,(X<S)!==(y<S)?[178,48,38]:[226,212,186],v,[1,1,1])}
+      x.fillStyle='rgba(42,20,7,.62)';x.fillRect(0,0,S*2,S*2)}];
+  try{walls[Math.floor(Math.random()*walls.length)]();
+    const Z=3,o=document.createElement('canvas');o.width=K.width*Z;o.height=K.height*Z;const c=o.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(K,0,0,o.width,o.height);
+    document.body.style.backgroundImage=`url(${o.toDataURL()})`;document.body.style.backgroundSize=`${o.width}px ${o.height}px`}catch(e){}   // no canvas: the CSS planks
+})();
+
 /* ================= INSTALL ================= */
 /* Install the game as an app (home-screen icon, full screen). Chrome/Edge/Android hand us their install
    prompt (beforeinstallprompt); Safari on iPhone/iPad has none, so there we explain Share > Add to Home Screen.

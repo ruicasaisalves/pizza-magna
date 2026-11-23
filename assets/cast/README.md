@@ -17,3 +17,7 @@ Each cooks/NN/idle.png is one front-facing 32 × 58 frame. Draw it at that cook'
 ## Handoff
 
 Start a fresh branch from updated main. Load the new sheets behind PM_DEV after image decode and fall back to the shipped atlas while loading. Test normal and fast service, depth sorting, four directions at the table and the mobile room. The restaurant captures supplied with the download show a staged local scene. PR and merge require Rui's explicit instruction.
+
+## Guests (in the game since 0.04l)
+
+Extra customer looks in the same format (walk.png and seated.png), handed out by `guestLook()` in index.html, not like the 21 regulars: 22 the wizard and 23 the goth (2.5% of people each); the VIPs, by nickname only: 24 vipspeed (from 3 stars), 25 captain, 26 redsuit, 27 goldline (from 4 stars), 28 bow, 29 moustache (from 5 stars). See `VIPS` for how often each visits.
