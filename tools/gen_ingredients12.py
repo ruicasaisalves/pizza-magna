@@ -49,13 +49,13 @@ def provolone(seed, D=21):
     return img
 
 # ---------------- MINCED BEEF (handful of cooked meat crumbs) ----------------
-def minced_beef(seed, W=19, H=16):
+def minced_beef(seed, W=28, H=23):      # drawn bigger in 0.04n: at 19x16 it read as a crumb
     rng = np.random.default_rng(seed + 6100)
     ys, xs, cx, cy = grid(W, H)
     mask = np.zeros((H, W), bool); height = np.zeros((H, W))
-    for _ in range(8 + seed % 3):                             # small loose lumps
-        bx, by = cx + (rng.random() - .5) * 11, cy + (rng.random() - .5) * 8
-        rr = np.hypot((xs - bx) / (1.6 + rng.random() * 1.2), (ys - by) / (1.4 + rng.random() * 1.0))
+    for _ in range(16 + seed % 3):                             # small loose lumps
+        bx, by = cx + (rng.random() - .5) * 18, cy + (rng.random() - .5) * 13
+        rr = np.hypot((xs - bx) / (2.0 + rng.random() * 1.4), (ys - by) / (1.7 + rng.random() * 1.2))
         m = rr <= 1
         mask |= m; height = np.maximum(height, np.where(m, np.sqrt(np.clip(1 - rr ** 2, 0, 1)) * 1.6, 0))
     height += (rng.random((H, W)) - .5) * .7                  # grain of the meat
@@ -117,14 +117,14 @@ def apple(seed, ang=None, W=22, H=22):
                   {'apple': 'apple', 'appleskin': 'appleskin', 'appleseed': 'apple'})
 
 # ---------------- POTATO STICKS (little pile of thin golden sticks) ----------------
-def straw_potato(seed, W=21, H=17):
+def straw_potato(seed, W=30, H=24):     # drawn bigger in 0.04n: at 21x17 it read as a crumb
     rng = np.random.default_rng(seed + 6500)
     rp = R['straw']
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0)); px = img.load()
     cx, cy = W / 2, H / 2
-    for _ in range(16):
-        a = rng.random() * 3.14; L = rng.uniform(5, 9)
-        x0, y0 = cx + (rng.random() - .5) * 11, cy + (rng.random() - .5) * 8
+    for _ in range(28):
+        a = rng.random() * 3.14; L = rng.uniform(7, 12)
+        x0, y0 = cx + (rng.random() - .5) * 17, cy + (rng.random() - .5) * 12
         pts = [(x0 + np.cos(a) * t, y0 + np.sin(a) * t * .8) for t in np.arange(-L / 2, L / 2, .5)]
         for (x, y) in pts:                                     # shadow under the stick
             X, Y = int(round(x)), int(round(y)) + 1

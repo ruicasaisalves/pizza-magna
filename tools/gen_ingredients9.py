@@ -91,20 +91,20 @@ def zucchini(seed, D=18):
     return render(mat, light, mask, {'zuc': 'zucskin'})
 
 # ---------------- ITALIAN SAUSAGE (crumbly piece, with fennel seeds) ----------------
-def sausage(seed, W=18, H=16):
+def sausage(seed, W=28, H=24):          # drawn bigger in 0.04n: at 18x16 it read as a crumb
     rng = np.random.default_rng(seed + 4500)
     ys, xs, cx, cy = grid(W, H)
     mask = np.zeros((H, W), bool); height = np.zeros((H, W))
     for _ in range(4):                                       # pieces stuck together
-        bx, by = cx + (rng.random() - .5) * 7, cy + (rng.random() - .5) * 5
-        rr = np.hypot((xs - bx) / (3 + rng.random() * 1.6), (ys - by) / (2.6 + rng.random() * 1.4))
+        bx, by = cx + (rng.random() - .5) * 11, cy + (rng.random() - .5) * 8
+        rr = np.hypot((xs - bx) / (4.8 + rng.random() * 2.4), (ys - by) / (4.2 + rng.random() * 2.0))
         m = rr <= 1
         mask |= m; height = np.maximum(height, np.where(m, np.sqrt(np.clip(1 - rr ** 2, 0, 1)) * 1.8, 0))
     height += (rng.random((H, W)) - .5) * .5                 # grainy texture
     mat = [['sals'] * W for _ in range(H)]
     img = render(mat, np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask, mask, {})
     px = img.load()
-    for _ in range(5):                                       # fennel seeds: little light streaks
+    for _ in range(10):                                      # fennel seeds: little light streaks
         x, y = int(rng.integers(1, W - 2)), int(rng.integers(1, H - 1))
         if mask[y, x] and mask[y, x + 1]:
             px[x, y] = R['fennel'][2] + (255,); px[x + 1, y] = R['fennel'][1] + (255,)

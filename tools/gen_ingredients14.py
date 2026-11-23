@@ -63,16 +63,16 @@ def flamengo(seed, D=20):
     return img
 
 # ---------------- KEBAB (thin shavings cut from the spit) ----------------
-def kebab(seed, W=22, H=18):
+def kebab(seed, W=30, H=24):            # drawn bigger in 0.04n: at 22x18 it read as a crumb
     rng = np.random.default_rng(seed + 7400)
     ys, xs, cx, cy = grid(W, H)
     mask = np.zeros((H, W), bool); height = np.zeros((H, W)); edge = np.zeros((H, W), bool)
     for k in range(3):                                        # three overlapping, curled shavings
         a = rng.random() * 3.14
-        ox, oy = cx + (rng.random() - .5) * 7, cy + (rng.random() - .5) * 5
+        ox, oy = cx + (rng.random() - .5) * 9, cy + (rng.random() - .5) * 6
         uu = (xs - ox) * np.cos(a) + (ys - oy) * np.sin(a); vv = -(xs - ox) * np.sin(a) + (ys - oy) * np.cos(a)
         vv = vv - .8 * np.sin(uu * .5 + k)
-        e = (uu / 7.5) ** 2 + (vv / 2.6) ** 2
+        e = (uu / 10.5) ** 2 + (vv / 3.6) ** 2
         m = e <= 1
         top = m & ~mask if k else m
         mask |= m
