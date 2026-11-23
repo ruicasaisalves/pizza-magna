@@ -50,17 +50,17 @@ def provolone(seed, D=21):
     return img
 
 # ---------------- MINCED BEEF (handful of cooked meat crumbs) ----------------
-def minced_beef(seed, W=32, H=28):
+def minced_beef(seed, W=48, H=42):
     """raw minced beef in one packed patch: a knobbly heap of small pink-red lumps with dark crevices"""
     rng = np.random.default_rng(seed + 6100)
     ys, xs, cx, cy = grid(W, H)
     mask = np.zeros((H, W), bool)
-    for _ in range(8):                                        # the outline: overlapping blobs, so the edge is lobed
-        bx, by = cx + (rng.random() - .5) * 15, cy + (rng.random() - .5) * 11
-        mask |= np.hypot((xs - bx) / (5 + rng.random() * 3), (ys - by) / (4.5 + rng.random() * 2.5)) <= 1
+    for _ in range(10):                                       # the outline: overlapping blobs, so the edge is lobed
+        bx, by = cx + (rng.random() - .5) * 22, cy + (rng.random() - .5) * 16
+        mask |= np.hypot((xs - bx) / (7.5 + rng.random() * 4.5), (ys - by) / (6.7 + rng.random() * 3.7)) <= 1
     height = np.zeros((H, W))
-    er = np.hypot((xs - cx) / 13, (ys - cy) / 11)
-    for _ in range(150):                                      # packed lumps: the bumps of the mince
+    er = np.hypot((xs - cx) / 19.5, (ys - cy) / 16.5)
+    for _ in range(330):                                      # packed lumps: the bumps of the mince
         bx, by = rng.random() * W, rng.random() * H
         r = 1.1 + rng.random() * 1.1
         rr = np.hypot(xs - bx, ys - by) / r
@@ -68,7 +68,7 @@ def minced_beef(seed, W=32, H=28):
         height = np.maximum(height, lump)
         if not mask[min(H - 1, int(by)), min(W - 1, int(bx))] and er[min(H - 1, int(by)), min(W - 1, int(bx))] < 1.15 and rng.random() < .6:
             mask |= rr <= 1                                   # a few crumbs stick out of the edge
-    height = (height + np.clip(1 - er, 0, 1) * 2.2) * mask    # a low heap under the lumps
+    height = (height + np.clip(1 - er, 0, 1) * 3) * mask    # a low heap under the lumps
     mat = [['mince'] * W for _ in range(H)]
     light = np.clip(shade(height, mask) * .9 + .22 - np.where(height < 1.0, .32, 0), 0, 1) * mask   # crevices darker
     return render(mat, light, mask, {})
@@ -149,7 +149,7 @@ def straw_potato(seed, W=40, H=32):     # a big loose handful: smaller ones read
 
 SETS = [
     ('Provolone', provolone, ('prov', 'shred', 40)),
-    ('Carne picada', minced_beef, ('beef', 'cube', 12)),
+    ('Carne picada', minced_beef, ('mince', 'cube', 12)),
     ('Cebola roxa', red_onion, ('redon', 'flake', 44)),
     ('Alecrim', rosemary, ('rosem', 'flake', 44)),
     ('Maçã', apple, ('apple', 'cube', 11)),
