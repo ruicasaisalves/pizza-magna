@@ -306,7 +306,11 @@ local function addPiece(x, y)
   local mid = P.CENTRED[S.sel] and curCut() == 0
   local lp = S.pieces[#S.pieces]
   if mid and lp and lp.i == S.sel and not lp.g then return false end   -- a drag would pile lobsters up
-  local piece = { i = S.sel, x = mid and 0 or x, y = mid and 0 or y, r = math.random() * 6.28, v = math.random(0, 2) }
+  if mid then   -- the lobster lands near the middle, at most .25 from it (CENTRE_R in index.html)
+    local d = math.sqrt(x * x + y * y)
+    if d > .25 then x, y = x * .25 / d, y * .25 / d end
+  end
+  local piece = { i = S.sel, x = x, y = y, r = math.random() * 6.28, v = math.random(0, 2) }
   if curCut() == 1 then piece.g = 1 elseif P.canRotate(S.sel) then piece.a = curAng() end
   S.pieces[#S.pieces + 1] = piece
   changed()

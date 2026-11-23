@@ -49,18 +49,22 @@ def provolone(seed, D=21):
     return img
 
 # ---------------- MINCED BEEF (handful of cooked meat crumbs) ----------------
-def minced_beef(seed, W=28, H=23):      # drawn bigger in 0.04n: at 19x16 it read as a crumb
+def minced_beef(seed, W=30, H=26):
+    """a heaped spoonful of minced beef: a mound covered in loose lumps"""
     rng = np.random.default_rng(seed + 6100)
     ys, xs, cx, cy = grid(W, H)
-    mask = np.zeros((H, W), bool); height = np.zeros((H, W))
-    for _ in range(16 + seed % 3):                             # small loose lumps
-        bx, by = cx + (rng.random() - .5) * 18, cy + (rng.random() - .5) * 13
-        rr = np.hypot((xs - bx) / (2.0 + rng.random() * 1.4), (ys - by) / (1.7 + rng.random() * 1.2))
+    er = np.hypot((xs - cx) / 10.5, (ys - cy) / 8)            # the mound under the lumps
+    mask = er <= 1; height = np.sqrt(np.clip(1 - er ** 2, 0, 1)) * 3.5
+    for _ in range(26 + seed % 4):                            # lumps on top and spilling at the edge
+        t, rr0 = rng.random() * 6.28, np.sqrt(rng.random()) * 1.1
+        bx, by = cx + np.cos(t) * rr0 * 10.5, cy + np.sin(t) * rr0 * 8
+        rr = np.hypot((xs - bx) / (1.8 + rng.random() * 1.3), (ys - by) / (1.5 + rng.random() * 1.1))
         m = rr <= 1
-        mask |= m; height = np.maximum(height, np.where(m, np.sqrt(np.clip(1 - rr ** 2, 0, 1)) * 1.6, 0))
-    height += (rng.random((H, W)) - .5) * .7                  # grain of the meat
+        base = 3.5 * np.sqrt(max(0, 1 - min(1, rr0) ** 2))
+        mask |= m; height = np.maximum(height, np.where(m, base + np.sqrt(np.clip(1 - rr ** 2, 0, 1)) * 1.6, 0))
+    height += (rng.random((H, W)) - .5) * .6                  # grain of the meat
     mat = [['beef'] * W for _ in range(H)]
-    return render(mat, np.clip(shade(height, mask) * .9 + .16, 0, 1) * mask, mask, {})
+    return render(mat, np.clip(shade(height, mask) * .95 + .12, 0, 1) * mask, mask, {})
 
 # ---------------- RED ONION (ring arcs: purple edge, pale inside) ----------------
 def red_onion(seed, D=24):
@@ -117,14 +121,14 @@ def apple(seed, ang=None, W=22, H=22):
                   {'apple': 'apple', 'appleskin': 'appleskin', 'appleseed': 'apple'})
 
 # ---------------- POTATO STICKS (little pile of thin golden sticks) ----------------
-def straw_potato(seed, W=30, H=24):     # drawn bigger in 0.04n: at 21x17 it read as a crumb
+def straw_potato(seed, W=40, H=32):     # a big loose handful: smaller ones read as crumbs
     rng = np.random.default_rng(seed + 6500)
     rp = R['straw']
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0)); px = img.load()
     cx, cy = W / 2, H / 2
-    for _ in range(28):
-        a = rng.random() * 3.14; L = rng.uniform(7, 12)
-        x0, y0 = cx + (rng.random() - .5) * 17, cy + (rng.random() - .5) * 12
+    for _ in range(46):
+        a = rng.random() * 3.14; L = rng.uniform(9, 15)
+        x0, y0 = cx + (rng.random() - .5) * 24, cy + (rng.random() - .5) * 17
         pts = [(x0 + np.cos(a) * t, y0 + np.sin(a) * t * .8) for t in np.arange(-L / 2, L / 2, .5)]
         for (x, y) in pts:                                     # shadow under the stick
             X, Y = int(round(x)), int(round(y)) + 1

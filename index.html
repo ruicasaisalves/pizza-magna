@@ -1158,7 +1158,8 @@ const BIG_SHRED=new Set(['mozzarella','burrata','parmesao','cheddar','provolone'
 // big whole pieces count as several portions (cost, weight, how full the pizza is): a whole lobster covers the pizza (8),
 // a whole beef slice is four ordinary slices (4), a supermarket slice of flamengo is two portions (2),
 // a whole banana is eight slices (8), a drumstick five chunks (5), a bone-in steak four beef slices (4), a whole carrot six slices (6)
-const WHOLE_W={lagosta:8,vaca:4,bife_osso:4,cenoura:6,flamengo:2,banana:8,coxa:5},CENTRED=new Set(['lagosta']);   // centred: the whole piece always lands in the middle of the pizza
+const WHOLE_W={lagosta:8,vaca:4,bife_osso:4,cenoura:6,flamengo:2,banana:8,coxa:5},CENTRED=new Set(['lagosta']);   // big pieces: the whole one lands near the middle of the pizza, at most CENTRE_R from it
+const CENTRE_R=.25,nearMid=p=>{const d=Math.hypot(p.x,p.y),k=d>CENTRE_R?CENTRE_R/d:1;return {x:p.x*k,y:p.y*k}};
 const portion=x=>x.g?(BIG_SHRED.has(x.i)?SHRED_W:GRATED_W):(WHOLE_W[x.i]||1);
 const GRAMS={mozzarella:8,fiambre:12,pepperoni:4,cogumelos:8,azeitonas:4,pimento:8,cebola:6,ananas:12,manjericao:1,atum:10,bacon:10,tomate:18,milho:4,frango:12,
   salame:5,espinafres:3,tomate_cherry:10,jalapenos:3,alho:3,beringela:12,batata:12,curgete:10,salsicha:10,frankfurt:28,vaca:12,ribs:30,lagosta:40,amora:5,mirtilo:2,framboesa:4,nutella:15,banana:10,coxa:15,feta:10,oregaos:.5,
@@ -1312,7 +1313,7 @@ function drawBench(){
   c.fillStyle='rgba(40,30,20,.32)';c.beginPath();c.ellipse(PCX+3,PCY+4,PR+1,PR,0,0,Math.PI*2);c.fill();
   if(!pz.pizza)pz.pizza=composePizza(d);
   c.drawImage(pz.pizza,PX,PY);
-  if(pz.ghost){const mid=CENTRED.has(sel)&&!cut;spr(c,cut?sel+'_g0':wholeKey(sel,0,curAng()),PCX+(mid?0:pz.ghost.x)*PR,PCY+(mid?0:pz.ghost.y)*PR,.6)}
+  if(pz.ghost){const g=CENTRED.has(sel)&&!cut?nearMid(pz.ghost):pz.ghost;spr(c,cut?sel+'_g0':wholeKey(sel,0,curAng()),PCX+g.x*PR,PCY+g.y*PR,.6)}
   {   // the name of the pizza being made, dark title on the marble strip on top (like the menu cards)
     // one line at full size if it fits; otherwise two lines, shrinking only if two are still not enough
     const nm=(isNewName(d.name)?t('k.newname'):d.name).toUpperCase(),F=f=>{c.font=`bold ${f}px Silkscreen, monospace`};
@@ -1362,7 +1363,8 @@ function addPiece(p){
   if(state.draft.pieces.length>=300){toast(t('k.full'));return false}   // demo limit
   const mid=CENTRED.has(state.sel)&&!curCut(),ps=state.draft.pieces,lp=ps[ps.length-1];
   if(mid&&lp&&lp.i===state.sel&&!lp.g)return false;   // a drag would pile lobsters up: one at a time
-  const piece={i:state.sel,x:mid?0:+p.x.toFixed(3),y:mid?0:+p.y.toFixed(3),r:+(Math.random()*6.28).toFixed(2),v:Math.floor(Math.random()*3)};
+  if(mid)p=nearMid(p);
+  const piece={i:state.sel,x:+p.x.toFixed(3),y:+p.y.toFixed(3),r:+(Math.random()*6.28).toFixed(2),v:Math.floor(Math.random()*3)};
   if(curCut())piece.g=1;else if(canRotate(state.sel))piece.a=curAng();
   state.draft.pieces.push(piece);
   drawDraft();updateAnalysis();return true;
