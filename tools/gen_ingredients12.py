@@ -50,24 +50,28 @@ def provolone(seed, D=21):
     return img
 
 # ---------------- MINCED BEEF (handful of cooked meat crumbs) ----------------
-def minced_beef(seed, W=34, H=30):
-    """raw minced beef scattered over the pizza: a loose patch of short pink-red strands, thinning out at the edges"""
+def minced_beef(seed, W=32, H=28):
+    """raw minced beef in one packed patch: a knobbly heap of small pink-red lumps with dark crevices"""
     rng = np.random.default_rng(seed + 6100)
     ys, xs, cx, cy = grid(W, H)
-    mask = np.zeros((H, W), bool); height = np.zeros((H, W))
-    for _ in range(34 + seed % 5):                            # strands, as they come out of the mincer
-        t, rr0 = rng.random() * 6.28, np.sqrt(rng.random()) * (1.15 if rng.random() < .8 else 1.45)
-        bx, by = cx + np.cos(t) * rr0 * 12, cy + np.sin(t) * rr0 * 10
-        if rr0 > 1 and rng.random() < .5: continue            # the edge thins out into a few loose bits
-        a, L, w = rng.random() * 3.14, rng.uniform(1.5, 3.5), rng.uniform(.9, 1.4)
-        uu = (xs - bx) * np.cos(a) + (ys - by) * np.sin(a); vv = -(xs - bx) * np.sin(a) + (ys - by) * np.cos(a)
-        vv = vv - .5 * np.sin(uu * 1.3)                       # a little wriggle
-        d = np.hypot(np.clip(np.abs(uu) - L, 0, None), vv)
-        m = d <= w
-        mask |= m; height = np.maximum(height, np.where(m, 1 + np.sqrt(np.clip(1 - (d / w) ** 2, 0, 1)) * 1.4 + max(0, 1 - rr0) * 1.2, 0))
-    height += (rng.random((H, W)) - .5) * .5
+    mask = np.zeros((H, W), bool)
+    for _ in range(8):                                        # the outline: overlapping blobs, so the edge is lobed
+        bx, by = cx + (rng.random() - .5) * 15, cy + (rng.random() - .5) * 11
+        mask |= np.hypot((xs - bx) / (5 + rng.random() * 3), (ys - by) / (4.5 + rng.random() * 2.5)) <= 1
+    height = np.zeros((H, W))
+    er = np.hypot((xs - cx) / 13, (ys - cy) / 11)
+    for _ in range(150):                                      # packed lumps: the bumps of the mince
+        bx, by = rng.random() * W, rng.random() * H
+        r = 1.1 + rng.random() * 1.1
+        rr = np.hypot(xs - bx, ys - by) / r
+        lump = np.where(rr <= 1, np.sqrt(np.clip(1 - rr ** 2, 0, 1)) * (1.2 + rng.random()), 0)
+        height = np.maximum(height, lump)
+        if not mask[min(H - 1, int(by)), min(W - 1, int(bx))] and er[min(H - 1, int(by)), min(W - 1, int(bx))] < 1.15 and rng.random() < .6:
+            mask |= rr <= 1                                   # a few crumbs stick out of the edge
+    height = (height + np.clip(1 - er, 0, 1) * 2.2) * mask    # a low heap under the lumps
     mat = [['mince'] * W for _ in range(H)]
-    return render(mat, np.clip(shade(height, mask) * .9 + .2, 0, 1) * mask, mask, {})
+    light = np.clip(shade(height, mask) * .9 + .22 - np.where(height < 1.0, .32, 0), 0, 1) * mask   # crevices darker
+    return render(mat, light, mask, {})
 
 # ---------------- RED ONION (ring arcs: purple edge, pale inside) ----------------
 def red_onion(seed, D=24):
