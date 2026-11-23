@@ -896,7 +896,6 @@ local function lcdRows()
     { t("lcd.ovens"), tostring(S.ovens) },
     { t("lcd.tables"), D.ROOM.tables .. " · " .. D.ROOM.seats },
     { t("lcd.cap"), c.served .. "/" .. math.min(G.capacity(S), G.serviceCap(S)) },
-    { t("lcd.rv"), (S.rival.promo and "2X1 " or "") .. P.eur(S.rival.price) },
     false,
     { t("lcd.rev"), P.eur(c.rev) },
     { t("lcd.cash"), P.eur(S.money) },
