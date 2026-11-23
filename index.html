@@ -2462,6 +2462,32 @@ function setLogo(v){state.logo=v;save();renderHeader();const box=$('#logopick');
 const CAM='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg>';
 function logoPickHTML(){const L=state.logo||'',photo=/^data:/.test(L);
   return `<div class="logopick" id="logopick"><button data-act="logo" data-v="" aria-pressed="${!L}" title="${esc(t('logo.game'))}"><img src="assets/icon-32.png" alt=""></button>${LOGOS.map(x=>`<button data-act="logo" data-v="${x.id}" aria-pressed="${L===x.id}" title="${esc(t('logo.'+x.id))}"><img src="${presetLogo(x.id)}" alt=""></button>`).join('')}<label aria-pressed="${photo}" title="${esc(t('logo.photo'))}">${photo?`<img src="${L}" alt="">`:CAM}<span>${t('logo.photo')}</span><input id="logoFile" type="file" accept="image/*" hidden></label></div>`}
+/* ================= PAGE BACKGROUND ================= */
+/* Behind the screens: one of three pixel-art walls, picked at random each time the game opens (wood planks, brick,
+   a dimmed check cloth), drawn here once at 1x and tripled; the CSS planks on body stay underneath as the fallback. */
+(function pageBg(){
+  let s=Math.floor(Math.random()*1e6)+1;const r=()=>(s=s*16807%2147483647)/2147483647;
+  const K=document.createElement('canvas'),P=(w,h)=>{K.width=w;K.height=h;return K.getContext('2d')};
+  const px=(x,X,Y,c,v,k=[1,.6,.35])=>{x.fillStyle=`rgb(${c[0]+v|0},${c[1]+v*k[1]|0},${c[2]+v*k[2]|0})`;x.fillRect(X,Y,1,1)};
+  const walls=[
+    ()=>{const N=96,ph=16,x=P(N,N),tones=[[78,43,20],[86,48,22],[72,39,18],[82,45,21],[75,41,19],[84,47,22]];   // wood: planks, grain, joints, nails, knots
+      for(let pl=0;pl<N/ph;pl++){const c=tones[pl],j=Math.floor(r()*(N-20))+10,j2=(j+N/2)%N,off=r()*10;
+        for(let y=0;y<ph;y++)for(let X=0;X<N;X++){let v=Math.sin((X+off*7)*.09+Math.sin(y*.7+pl)*1.6)*4+Math.sin(X*.37+y*1.3)*1.5+(r()-.5)*4;
+          if(y===0)v+=14;if(y>=ph-2)v-=22;if(X===j||X===j2)v-=20;px(x,X,pl*ph+y,c,v)}
+        for(const n of [j-3,j+2,j2-3,j2+2]){const X=(n+N)%N;x.fillStyle='#1d0e05';x.fillRect(X,pl*ph+4,1,1);x.fillRect(X,pl*ph+ph-6,1,1);x.fillStyle='#8a6a4a';x.fillRect(X,pl*ph+3,1,1)}
+        if(r()<.7){const kx=Math.floor(r()*(N-5))+1,ky=pl*ph+5+Math.floor(r()*5);x.fillStyle='rgba(30,14,4,.55)';x.fillRect(kx,ky,3,2);x.fillStyle='rgba(30,14,4,.3)';x.fillRect(kx-1,ky+1,5,1)}}},
+    ()=>{const W=64,H=48,bw=16,bh=8,x=P(W,H);x.fillStyle='#3a1d0c';x.fillRect(0,0,W,H);   // brick, like the oven wall
+      for(let row=0;row<H/bh;row++)for(let col=-1;col<=W/bw;col++){const X=col*bw+(row%2)*bw/2,t=r(),c=t<.33?[150,62,38]:t<.66?[136,55,34]:[162,72,44];
+        for(let y=1;y<bh;y++)for(let xx=1;xx<bw;xx++)px(x,((X+xx)%W+W)%W,row*bh+y,c,(r()-.5)*14+(y===1?10:0)+(y===bh-1?-14:0),[1,.6,.5])}
+      x.fillStyle='rgba(25,10,3,.42)';x.fillRect(0,0,W,H)},
+    ()=>{const S=16,x=P(S*2,S*2);   // a red and white check cloth, dimmed so the cards stand out
+      for(let y=0;y<S*2;y++)for(let X=0;X<S*2;X++){const v=(r()-.5)*10+((X+y)%2?6:-6);px(x,X,y,(X<S)!==(y<S)?[178,48,38]:[226,212,186],v,[1,1,1])}
+      x.fillStyle='rgba(42,20,7,.62)';x.fillRect(0,0,S*2,S*2)}];
+  try{walls[Math.floor(Math.random()*walls.length)]();
+    const Z=3,o=document.createElement('canvas');o.width=K.width*Z;o.height=K.height*Z;const c=o.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(K,0,0,o.width,o.height);
+    document.body.style.backgroundImage=`url(${o.toDataURL()})`;document.body.style.backgroundSize=`${o.width}px ${o.height}px`}catch(e){}   // no canvas: the CSS planks
+})();
+
 /* ================= INSTALL ================= */
 /* Install the game as an app (home-screen icon, full screen). Chrome/Edge/Android hand us their install
    prompt (beforeinstallprompt); Safari on iPhone/iPad has none, so there we explain Share > Add to Home Screen.
