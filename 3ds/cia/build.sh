@@ -5,7 +5,7 @@
 # LÖVE Potion is built from source with one patch (lovepotion-cia.patch): installed as a .cia it has no program file
 # to read the game from, so it reads it from romfs:/game.love. The game goes into both files as a zip of 3ds/game:
 # glued to the end of the .3dsx (as LÖVE Potion's own fused builds do) and as game.love in the .cia's RomFS.
-# makerom and bannertool come from their GitHub releases.
+# makerom (3DSGuy/Project_CTR) and bannertool (Epicpkmn11's fork) come from their GitHub releases.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 CIA=$ROOT/3ds/cia
@@ -29,7 +29,7 @@ asset() {   # the newest asset matching $2 among the repo's recent releases (Pro
   echo "$url"; }
 mkdir -p "$W/bin"
 MR=$(asset 3DSGuy/Project_CTR 'makerom.*(ubuntu|linux).*x86_64.*\.zip$'); echo "makerom: $MR"; curl -fsSL -o "$W/makerom.zip" "$MR"
-BT=$(asset Steveice10/bannertool 'bannertool\.zip$'); echo "bannertool: $BT"; curl -fsSL -o "$W/bannertool.zip" "$BT"
+BT=$(asset Epicpkmn11/bannertool 'bannertool\.zip$')   # the maintained fork (Steveice10's is gone); echo "bannertool: $BT"; curl -fsSL -o "$W/bannertool.zip" "$BT"
 (cd "$W/bin" && unzip -oq ../makerom.zip && unzip -oq ../bannertool.zip)
 MAKEROM=$(find "$W/bin" -type f -name makerom | head -1)
 BANNERTOOL=$(find "$W/bin" -type f -path '*linux-x86_64*' -name bannertool | head -1)
