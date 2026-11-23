@@ -29,7 +29,8 @@ asset() {   # the newest asset matching $2 among the repo's recent releases (Pro
   echo "$url"; }
 mkdir -p "$W/bin"
 MR=$(asset 3DSGuy/Project_CTR 'makerom.*(ubuntu|linux).*x86_64.*\.zip$'); echo "makerom: $MR"; curl -fsSL -o "$W/makerom.zip" "$MR"
-BT=$(asset Epicpkmn11/bannertool 'bannertool\.zip$')   # the maintained fork (Steveice10's is gone); echo "bannertool: $BT"; curl -fsSL -o "$W/bannertool.zip" "$BT"
+# bannertool: the maintained fork (Steveice10's repository is gone)
+BT=$(asset Epicpkmn11/bannertool 'bannertool\.zip$'); echo "bannertool: $BT"; curl -fsSL -o "$W/bannertool.zip" "$BT"
 (cd "$W/bin" && unzip -oq ../makerom.zip && unzip -oq ../bannertool.zip)
 MAKEROM=$(find "$W/bin" -type f -name makerom | head -1)
 BANNERTOOL=$(find "$W/bin" -type f -path '*linux-x86_64*' -name bannertool | head -1)
