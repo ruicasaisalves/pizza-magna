@@ -1174,7 +1174,7 @@ const pizzaGrams=p=>Math.round(p.pieces.reduce((t,x)=>t+pieceGrams(x),0));
 const fmtG=g=>g>=1000?(g/1000).toFixed(2).replace('.',LANG==='pt'?',':'.')+' kg':g+' g';
 const CATS=['queijo','carne','peixe','vegetal','ervas','doce','extras'];
 const HERBS=['manjericao','oregaos','alecrim','tomilho','salsa','coentros','pimenta','piripiri'];
-const FAV=['mozzarella','tomate','fiambre','coxa','bacon','frango','oregaos','manjericao'];   // most used on pizzas: top of their tab
+const FAV=['mozzarella','tomate','fiambre','coxa','bacon','frango','pepperoni','oregaos','manjericao'];   // most used on pizzas: top of their tab
 const EXTRAS=['azeite','balsamico','maionese','natas_azedas','ovo','nozes','pinhoes','batata_palha'];
 function ingCat(id){const t=ING[id].t;if(HERBS.includes(id))return 'ervas';if(EXTRAS.includes(id))return 'extras';
   for(const c of ['queijo','carne','peixe','doce','vegetal'])if(t.includes(c))return c;return 'extras'}
