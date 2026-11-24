@@ -1,6 +1,6 @@
 # Pizza Magna character pilot
 
-The pack contains 21 customer looks, four waiters and five stationary cooks (the staff expansion adds waiters 05–08 and cooks 06–11, in the same format). Extract the ZIP and open preview.html in a browser to inspect the exported art. The game-facing identifiers are zero based. Folder 01 maps to look 0 and folder 21 maps to look 20.
+The pack contains 21 customer looks, four waiters and five stationary cooks (the staff expansion adds waiters 05–09 and cooks 06–11, in the same format). Extract the ZIP and open preview.html in a browser to inspect the exported art. The game-facing identifiers are zero based. Folder 01 maps to look 0 and folder 21 maps to look 20.
 
 ## Customers
 
