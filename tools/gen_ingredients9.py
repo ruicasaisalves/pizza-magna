@@ -91,22 +91,29 @@ def zucchini(seed, D=18):
     return render(mat, light, mask, {'zuc': 'zucskin'})
 
 # ---------------- ITALIAN SAUSAGE (crumbly piece, with fennel seeds) ----------------
-def sausage(seed, W=18, H=16):
+def sausage(seed, W=34, H=34):
+    """a whole Italian sausage link, gently curved, tied at both ends; each variant lies at its own angle"""
     rng = np.random.default_rng(seed + 4500)
-    ys, xs, cx, cy = grid(W, H)
-    mask = np.zeros((H, W), bool); height = np.zeros((H, W))
-    for _ in range(4):                                       # pieces stuck together
-        bx, by = cx + (rng.random() - .5) * 7, cy + (rng.random() - .5) * 5
-        rr = np.hypot((xs - bx) / (3 + rng.random() * 1.6), (ys - by) / (2.6 + rng.random() * 1.4))
-        m = rr <= 1
-        mask |= m; height = np.maximum(height, np.where(m, np.sqrt(np.clip(1 - rr ** 2, 0, 1)) * 1.8, 0))
-    height += (rng.random((H, W)) - .5) * .5                 # grainy texture
+    a = (.35, -.55, 1.15)[(seed - 1) % 3]
+    u, v = axes(W, H, a)
+    L, r = 13.5, 4.6                                          # half length, radius
+    v = v - 3.2 * (1 - (u / L) ** 2)                          # the curve of the link
+    d = np.hypot(np.clip(np.abs(u) - (L - r), 0, None), v)    # a capsule: rounded at both ends
+    mask = d <= r
+    height = np.sqrt(np.clip(1 - (d / r) ** 2, 0, 1)) * 3.2
+    height += (rng.random((H, W)) - .5) * .45                 # coarse ground meat under the casing
     mat = [['sals'] * W for _ in range(H)]
-    img = render(mat, np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask, mask, {})
+    light = np.clip(shade(height, mask) * .85 + .2, 0, 1) * mask
+    img = render(mat, light, mask, {})
     px = img.load()
-    for _ in range(5):                                       # fennel seeds: little light streaks
+    for s in (-1, 1):                                         # the twist where the casing is tied
+        for k in (0, 1):
+            uu, vv = s * (L - .5 + k), 0
+            x = int(round(W / 2 - .5 + uu * np.cos(a) - vv * np.sin(a))); y = int(round(H / 2 - .5 + uu * np.sin(a) + vv * np.cos(a)))
+            if 0 <= x < W and 0 <= y < H: px[x, y] = R['sals'][k] + (255,)
+    for _ in range(14):                                       # fennel seeds and specks of fat
         x, y = int(rng.integers(1, W - 2)), int(rng.integers(1, H - 1))
-        if mask[y, x] and mask[y, x + 1]:
+        if mask[y, x] and mask[y, x + 1] and d[y, x] < r - 1.2:
             px[x, y] = R['fennel'][2] + (255,); px[x + 1, y] = R['fennel'][1] + (255,)
     return img
 

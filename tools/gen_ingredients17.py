@@ -60,11 +60,13 @@ def beef(seed): return beef_slice(seed, 2)               # whole: as big as four
 def beef_cubes(seed): return beef_slice(seed % 3 + 1)    # chopped: one ordinary slice
 
 # ---------------- LOBSTER (whole, claws to the right) ----------------
-LOB_W, LOB_H = 140, 112
+LOB_K = .78                                                  # drawn at 78% so it can be moved a little on the pizza
+LOB_W, LOB_H = round(140 * LOB_K), round(112 * LOB_K)
 def lobster(seed, ang=None):
     a = 0 if ang is None else ang                            # rotates: always drawn lying down
     W, H = turn(LOB_W, LOB_H, ang)
     u, v = axes(W, H, a)
+    u, v = u / LOB_K, v / LOB_K                              # designed at full size, drawn at LOB_K
     av = np.abs(v)
     parts = np.zeros((H, W), int)                            # 1 tail fan, 2 tail, 3 body, 4 arm, 5 claw, 6 leg
     # tail fan: five plates
@@ -114,6 +116,7 @@ def lobster(seed, ang=None):
     img = render(mat, light, mask, {'lobdark': 'lobdark'})
     px = img.load()
     def put(uu, vv, col):                                    # a point given along/across the piece
+        uu, vv = uu * LOB_K, vv * LOB_K
         x = W / 2 - .5 + uu * np.cos(a) - vv * np.sin(a); y = H / 2 - .5 + uu * np.sin(a) + vv * np.cos(a)
         xi, yi = int(round(x)), int(round(y))
         if 0 <= xi < W and 0 <= yi < H: px[xi, yi] = col + (255,)
