@@ -46,9 +46,15 @@ BASE_ROMFS=$W/lovepotion/platform/ctr/romfs     # LÖVE Potion's own RomFS: the 
 test -f "$BASE_ROMFS/shaders/main_v_pica.shbin"   # the GPU shader LÖVE Potion needs; without it nothing draws
 echo "elf: $ELF  romfs: $BASE_ROMFS"; ls -R "$BASE_ROMFS"
 
-# the game, as a zip
-rm -f "$W/game.love"
-(cd "$ROOT/3ds/game" && zip -qr -9 "$W/game.love" .)
+# the game, as a zip. On the 3DS LÖVE Potion loads newImage("x.png") from "x.t3x", the console's texture format, so the
+# PNGs are converted as bundle.lovebrew.org does (tex3ds -f rgba) and left out; 3ds/game itself keeps the PNGs for the PC
+rm -rf "$W/game" "$W/game.love"
+cp -r "$ROOT/3ds/game" "$W/game"
+find "$W/game" -name '*.png' | while read -r png; do
+  /opt/devkitpro/tools/bin/tex3ds -f rgba "$png" -o "${png%.png}.t3x" && rm "$png"
+done
+(cd "$W/game" && zip -qr -9 "$W/game.love" .)
+unzip -l "$W/game.love" | tail -n +4 | head -20
 
 # .3dsx: LÖVE Potion with our icon and title, the game glued to the end
 smdhtool --create "$TITLE" "$DESC" "$AUTHOR" "$ROOT/3ds/icon.png" "$W/icon.smdh"
