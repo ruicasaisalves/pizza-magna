@@ -179,7 +179,7 @@ html.phone .stage{gap:6px}
 .ings{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:6px}
 .ing{border:2px solid var(--line);background:#fbf3df;color:var(--ink);border-radius:2px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.8rem;line-height:1.1;text-align:center}
 .ing canvas{width:48px;height:48px}
-@media (min-width:820px) and (max-resolution:1.5dppx){.ing canvas{width:64px;height:64px}}
+@media (min-width:820px){.pantry .ings{grid-template-columns:repeat(3,1fr);gap:4px}.pantry .ing{padding:3px 2px 2px;gap:1px;font-size:.72rem;line-height:1}.pantry .ing canvas{width:40px;height:40px}.pantry .ing small{font-size:.66rem}}   /* wide screens: three short cards a row */
 .ing small{color:var(--muted);font-size:.7rem}
 .ing.on{border-color:var(--tomato);background:#fff;box-shadow:inset 0 0 0 2px var(--tomato)}
 .analysis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
