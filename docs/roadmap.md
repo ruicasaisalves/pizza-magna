@@ -80,6 +80,13 @@ See also "Shopping by weight" in `docs/ideas.md`.
 - Logo generator (see `docs/ideas.md`).
 - ~~Save format for several shops, with defaults so old saves still open~~: done with the City (`SHOP_KEYS`, `ensureShops()`).
 
+### 9. Premium pack (how the game will make money)
+Decided in 0.04r: a paid pack, bought once. **Nothing is locked yet**: everything below is still free in Options and in the game until the pack exists.
+- **Advanced analytics** (Options › Advanced analytics, `ADV`): the demand curve, "Who picks it", "Who bought what", and why customers leave (the icons beside the faces in the room).
+- **Classic characters** (Options › Characters › Classic, the room atlas people).
+- **Up to 3 market studies a week** instead of one (`STUDY_COST`, `state.studyWeek`).
+- **A second city** to open shops in (today there is only Porto Magno, `city.js`).
+
 ## Suggested order
 
 1. **Staff profiles** and **placed furniture**: they deepen the one shop that exists, and the current simulation can take them without touching the rest.
