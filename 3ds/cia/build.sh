@@ -4,9 +4,9 @@
 # container (.github/workflows/3ds.yml); cia.sh then packs the .cia on the runner itself, because makerom's Linux
 # build needs a newer glibc than the container has.
 #
-# LÖVE Potion is built from source with one patch (lovepotion-cia.patch): installed as a .cia it has no program file
-# to read the game from, so it reads it from romfs:/game.love. The game goes into both files as a zip of 3ds/game:
-# glued to the end of the .3dsx (as LÖVE Potion's own fused builds do) and as game.love in the .cia's RomFS.
+# LÖVE Potion is built from source with one patch (lovepotion-cia.patch): it reads the game from romfs:/game.love when
+# that file exists, since installed as a .cia it has no program file to read it from (argc is 0). The game, a zip of
+# 3ds/game, goes into the RomFS of both files, so both start the same way whatever launches them.
 # bannertool (Epicpkmn11's fork) comes from its GitHub releases.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -56,15 +56,16 @@ done
 (cd "$W/game" && zip -qr -9 "$W/game.love" .)
 unzip -l "$W/game.love" | tail -n +4 | head -20
 
-# .3dsx: LÖVE Potion with our icon and title, the game glued to the end
-smdhtool --create "$TITLE" "$DESC" "$AUTHOR" "$ROOT/3ds/icon.png" "$W/icon.smdh"
-3dsxtool "$ELF" "$OUT/PizzaMagna.3dsx" --smdh="$W/icon.smdh" --romfs="$BASE_ROMFS"
-cat "$W/game.love" >> "$OUT/PizzaMagna.3dsx"
-
-# the .cia's parts: the same program, the game in the RomFS, the HOME Menu icon and banner (cia.sh packs them)
+# the RomFS of both: LÖVE Potion's own and the game
 rm -rf "$P/romfs" && mkdir -p "$P/romfs"
 cp -r "$BASE_ROMFS/." "$P/romfs/"
 cp "$W/game.love" "$P/romfs/game.love"
+
+# .3dsx: LÖVE Potion with our icon and title
+smdhtool --create "$TITLE" "$DESC" "$AUTHOR" "$ROOT/3ds/icon.png" "$W/icon.smdh"
+3dsxtool "$ELF" "$OUT/PizzaMagna.3dsx" --smdh="$W/icon.smdh" --romfs="$P/romfs"
+
+# the .cia's other parts: the same program, the HOME Menu icon and banner (cia.sh packs them)
 cp "$ELF" "$P/lovepotion.elf"
 "$BANNERTOOL" makesmdh -s "$TITLE" -l "$DESC" -p "$AUTHOR" -i "$ROOT/3ds/icon.png" -o "$P/icon.icn"
 "$BANNERTOOL" makebanner -i "$CIA/banner.png" -a "$CIA/banner.wav" -o "$P/banner.bnr"
