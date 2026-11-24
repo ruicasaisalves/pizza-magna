@@ -635,7 +635,6 @@ D.I18N={en={
   ["lcd.ovens"]="OVENS",
   ["lcd.tables"]="TABLES · SEATS",
   ["lcd.cap"]="CAPACITY",
-  ["lcd.rv"]="RIVAL",
   ["lcd.rev"]="TAKINGS TODAY",
   ["lcd.cash"]="CASH",
   ["shop.lead"]="Invest in the pizzeria. You have {m} in cash.",
@@ -1615,7 +1614,6 @@ D.I18N={en={
   ["lcd.ovens"]="FORNOS",
   ["lcd.tables"]="MESAS · LUGARES",
   ["lcd.cap"]="CAPACIDADE",
-  ["lcd.rv"]="RIVAL",
   ["lcd.rev"]="RECEITA HOJE",
   ["lcd.cash"]="CAIXA",
   ["shop.lead"]="Investe na pizzaria. Tens {m} em caixa.",
@@ -2249,7 +2247,7 @@ D.GRAMS={
 D.GRAMS_GRATED={burrata=12,banana=14}
 D.CATS={"queijo","carne","peixe","vegetal","ervas","doce","extras"}
 D.HERBS={"manjericao","oregaos","alecrim","tomilho","salsa","coentros","pimenta","piripiri"}
-D.FAV={"mozzarella","tomate","fiambre","coxa","bacon","frango","oregaos","manjericao"}
+D.FAV={"mozzarella","tomate","fiambre","coxa","bacon","frango","pepperoni","oregaos","manjericao"}
 D.EXTRAS={"azeite","balsamico","maionese","natas_azedas","ovo","nozes","pinhoes","batata_palha"}
 D.CAT_ICON={
  queijo="cheddar",

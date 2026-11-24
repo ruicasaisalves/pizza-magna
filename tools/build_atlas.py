@@ -123,7 +123,7 @@ INGS = {
     'cheddar':      (G11.cheddar,   ('ched', 'shred', 130, BIG)),
     'coentros':     (G11.coriander, ('coent', 'flake', 44)),
     'provolone':    (G12.provolone, ('prov', 'shred', 130, BIG)),
-    'carne_picada': (G12.minced_beef, ('beef', 'cube', 12)),
+    'carne_picada': (G12.minced_beef, ('mince', 'cube', 12)),   # chopped: raw red crumbs, like the whole
     'cebola_roxa':  (G12.red_onion, ('redon', 'flake', 44)),
     'alecrim':      (G12.rosemary,  ('rosem', 'flake', 44)),
     'maca':         (G12.apple,     ('apple', 'cube', 11)),

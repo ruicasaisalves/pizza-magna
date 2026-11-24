@@ -22,6 +22,7 @@ R.update({
     'prov': hexs(['#b09a5a', '#d2be7e', '#e8d8a2', '#f6ecc8', '#fffbe8']),
     'provrind': hexs(['#7a5a14', '#a47a22', '#c89a36', '#e2b852']),
     'beef': hexs(['#2e140a', '#4a2212', '#6a361e', '#8a4e2e', '#ac6c44']),
+    'mince': hexs(['#5a1016', '#9a2834', '#cc4c56', '#ea7c80', '#fcaaa6']),   # raw minced beef: pink-red, dark maroon outline
     'redon': hexs(['#3e0a2e', '#62124a', '#8a2468', '#b0408a', '#d070a8']),
     'redonw': hexs(['#a8789a', '#c89ab8', '#e2bcd4', '#f4dcea']),
     'rosem': hexs(['#142418', '#22382a', '#34503c', '#4e6c54', '#7a9a7e']),
@@ -49,18 +50,28 @@ def provolone(seed, D=21):
     return img
 
 # ---------------- MINCED BEEF (handful of cooked meat crumbs) ----------------
-def minced_beef(seed, W=19, H=16):
+def minced_beef(seed, W=48, H=42):
+    """raw minced beef in one packed patch: a knobbly heap of small pink-red lumps with dark crevices"""
     rng = np.random.default_rng(seed + 6100)
     ys, xs, cx, cy = grid(W, H)
-    mask = np.zeros((H, W), bool); height = np.zeros((H, W))
-    for _ in range(8 + seed % 3):                             # small loose lumps
-        bx, by = cx + (rng.random() - .5) * 11, cy + (rng.random() - .5) * 8
-        rr = np.hypot((xs - bx) / (1.6 + rng.random() * 1.2), (ys - by) / (1.4 + rng.random() * 1.0))
-        m = rr <= 1
-        mask |= m; height = np.maximum(height, np.where(m, np.sqrt(np.clip(1 - rr ** 2, 0, 1)) * 1.6, 0))
-    height += (rng.random((H, W)) - .5) * .7                  # grain of the meat
-    mat = [['beef'] * W for _ in range(H)]
-    return render(mat, np.clip(shade(height, mask) * .9 + .16, 0, 1) * mask, mask, {})
+    mask = np.zeros((H, W), bool)
+    for _ in range(10):                                       # the outline: overlapping blobs, so the edge is lobed
+        bx, by = cx + (rng.random() - .5) * 22, cy + (rng.random() - .5) * 16
+        mask |= np.hypot((xs - bx) / (7.5 + rng.random() * 4.5), (ys - by) / (6.7 + rng.random() * 3.7)) <= 1
+    height = np.zeros((H, W))
+    er = np.hypot((xs - cx) / 19.5, (ys - cy) / 16.5)
+    for _ in range(330):                                      # packed lumps: the bumps of the mince
+        bx, by = rng.random() * W, rng.random() * H
+        r = 1.1 + rng.random() * 1.1
+        rr = np.hypot(xs - bx, ys - by) / r
+        lump = np.where(rr <= 1, np.sqrt(np.clip(1 - rr ** 2, 0, 1)) * (1.2 + rng.random()), 0)
+        height = np.maximum(height, lump)
+        if not mask[min(H - 1, int(by)), min(W - 1, int(bx))] and er[min(H - 1, int(by)), min(W - 1, int(bx))] < 1.15 and rng.random() < .6:
+            mask |= rr <= 1                                   # a few crumbs stick out of the edge
+    height = (height + np.clip(1 - er, 0, 1) * 3) * mask    # a low heap under the lumps
+    mat = [['mince'] * W for _ in range(H)]
+    light = np.clip(shade(height, mask) * .9 + .22 - np.where(height < 1.0, .32, 0), 0, 1) * mask   # crevices darker
+    return render(mat, light, mask, {})
 
 # ---------------- RED ONION (ring arcs: purple edge, pale inside) ----------------
 def red_onion(seed, D=24):
@@ -117,14 +128,14 @@ def apple(seed, ang=None, W=22, H=22):
                   {'apple': 'apple', 'appleskin': 'appleskin', 'appleseed': 'apple'})
 
 # ---------------- POTATO STICKS (little pile of thin golden sticks) ----------------
-def straw_potato(seed, W=21, H=17):
+def straw_potato(seed, W=40, H=32):     # a big loose handful: smaller ones read as crumbs
     rng = np.random.default_rng(seed + 6500)
     rp = R['straw']
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0)); px = img.load()
     cx, cy = W / 2, H / 2
-    for _ in range(16):
-        a = rng.random() * 3.14; L = rng.uniform(5, 9)
-        x0, y0 = cx + (rng.random() - .5) * 11, cy + (rng.random() - .5) * 8
+    for _ in range(46):
+        a = rng.random() * 3.14; L = rng.uniform(9, 15)
+        x0, y0 = cx + (rng.random() - .5) * 24, cy + (rng.random() - .5) * 17
         pts = [(x0 + np.cos(a) * t, y0 + np.sin(a) * t * .8) for t in np.arange(-L / 2, L / 2, .5)]
         for (x, y) in pts:                                     # shadow under the stick
             X, Y = int(round(x)), int(round(y)) + 1
@@ -138,7 +149,7 @@ def straw_potato(seed, W=21, H=17):
 
 SETS = [
     ('Provolone', provolone, ('prov', 'shred', 40)),
-    ('Carne picada', minced_beef, ('beef', 'cube', 12)),
+    ('Carne picada', minced_beef, ('mince', 'cube', 12)),
     ('Cebola roxa', red_onion, ('redon', 'flake', 44)),
     ('Alecrim', rosemary, ('rosem', 'flake', 44)),
     ('Maçã', apple, ('apple', 'cube', 11)),
