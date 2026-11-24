@@ -1,0 +1,56 @@
+# Builds the 3DS port as a .3dsx and a .cia (3ds/cia/build.sh in the devkitPro container, then 3ds/cia/cia.sh) and publishes them in a GitHub release, with a QR code
+# for FBI's Remote Install > Scan QR Code. main goes to the release "3ds-latest" (fixed links, so the QR never changes);
+# any other branch goes to "3ds-test", to try a build before it is merged.
+name: 3DS build
+on:
+  push:
+    paths: ['3ds/**', '.github/workflows/3ds.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: apt-get update -qq && apt-get install -y -qq zip unzip patch curl git >/dev/null
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash 3ds/cia/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pizza-magna-3ds
+          path: |
+            build-3ds/PizzaMagna.3dsx
+            build-3ds/cia-parts
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: pizza-magna-3ds
+          path: build-3ds
+      - name: Pack the .cia
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash 3ds/cia/cia.sh
+      - name: QR code and release
+        working-directory: build-3ds
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG=$([ "$GITHUB_REF_NAME" = main ] && echo 3ds-latest || echo 3ds-test)
+          URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/PizzaMagna.cia"
+          pip install -q "qrcode[pil]"
+          python3 -c "import qrcode,sys; qrcode.make(sys.argv[1], border=2, box_size=8).save('PizzaMagna-QR.png')" "$URL"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --target "$GITHUB_SHA" --prerelease \
+            --title "Pizza Magna for the 3DS ($TAG)" \
+            --notes "Install: FBI > Remote Install > Scan QR Code, and scan PizzaMagna-QR.png (or the QR in 3ds/README.md). Or copy PizzaMagna.3dsx to sdmc:/3ds/ and open it from the Homebrew Launcher. Rebuilt on every change to 3ds/."
+          gh release upload "$TAG" PizzaMagna.cia PizzaMagna.3dsx PizzaMagna-QR.png --clobber
+          echo "QR link: $URL"

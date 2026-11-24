@@ -1,0 +1,17 @@
+--- a/source/modules/filesystem/physfs/filesystem.cpp
++++ b/source/modules/filesystem/physfs/filesystem.cpp
+@@ -36,6 +36,14 @@
+         return "fs:/vol/external01/wiiu/apps/lovepotion/lovepotion.wuhb";
+ #endif
+ 
++#if defined(__3DS__)
++    /* Pizza Magna: the game is a zip in the RomFS (romfs:/game.love), in the .cia and the .3dsx alike, so it is found
++       whatever started the program: installed as a .cia there is no program file at all (argc is 0). A LÖVE Potion
++       without that file behaves as before. */
++    if (access("romfs:/game.love", F_OK) == 0)
++        return "romfs:/game.love";
++#endif
++
+     if (!love::Console::Is(love::Console::CAFE))
+         return origin;
+ 

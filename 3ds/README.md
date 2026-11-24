@@ -49,9 +49,19 @@ After adding toppings or changing data in the browser game, run both exporters a
 
 ## Putting it on a 3DS
 
-1. Zip `lovebrew.toml`, `icon.png` and the `game/` folder (all three at the top of the zip).
-2. Upload the zip to <https://bundle.lovebrew.org> and download the `.3dsx`. The bundler converts the PNGs to the 3DS texture format.
-3. Copy the `.3dsx` to `sdmc:/3ds/` and open it from the Homebrew Launcher.
+Every push that changes `3ds/` builds the game in GitHub Actions (`.github/workflows/3ds.yml`) and publishes it in a release: from `main` in [**3ds-latest**](https://github.com/ruicasaisalves/pizza-magna/releases/tag/3ds-latest), from any other branch in `3ds-test`.
+
+- **Installed in the HOME Menu, by QR code** (a console with custom firmware, Luma3DS): open FBI, **Remote Install › Scan QR Code**, and scan this code. FBI downloads `PizzaMagna.cia` and installs it; Pizza Magna then has its own icon and banner in the HOME Menu.
+
+  ![QR code for PizzaMagna.cia](cia/qr.png)
+
+- **From the Homebrew Launcher:** copy `PizzaMagna.3dsx` from the release to `sdmc:/3ds/` and open it from the Homebrew Launcher.
+
+Both need the console's sound firmware, `sdmc:/3ds/dspfirm.cdc` (made by DSP1 when custom firmware is installed, as in the 3ds.hacks.guide); without it the game stops at start with "Failed to initialize ndsp".
+
+How it is built (`3ds/cia/`): `build.sh` runs in the devkitPro container and builds LÖVE Potion 3.0.2 from source with one small patch (`lovepotion-cia.patch`: it reads the game from `romfs:/game.love` when that file exists, because a LÖVE Potion installed as a `.cia` has no program file to find the game in). The game is a zip of `game/` with its PNGs turned into `.t3x` (`tex3ds -f rgba`, as the bundler does; LÖVE Potion opens `x.png` as `x.t3x`), placed in the RomFS of both the `.3dsx` and the `.cia`. `cia.sh` then packs the `.cia` with makerom on the runner itself (its Linux build needs a newer glibc than the container), with `app.rsf` (the usual homebrew template), the icon and `banner.png`/`banner.wav` for the HOME Menu. The title ID is `000400000F8A5700`.
+
+By hand, without the workflow, the old way still works: zip `lovebrew.toml`, `icon.png` and the `game/` folder, upload the zip to <https://bundle.lovebrew.org>, and copy the `.3dsx` it gives to `sdmc:/3ds/`.
 
 Text uses the console's system font, loaded once and scaled to each size (each new font copies the whole system font, about 3 MB, and four of them crashed a New 3DS). To use the game's own pixel fonts, they first have to be converted to TTF (they're stored as woff2), and the bundler then converts them for the 3DS.
 
@@ -61,4 +71,4 @@ With [LÖVE](https://love2d.org) 11.4 or newer: `love 3ds/game`. The window show
 
 ## Not tested yet
 
-Runs on a New 3DS (Homebrew Launcher, bundled with bundle.lovebrew.org). Still to check: speed with many pieces (up to 300) on an old 3DS, the circular clip of big pieces (it uses a stencil; if the 3DS lacks it, a lobster's legs show past the crust), the touch coordinates, and the button names.
+Runs on a New 3DS (Homebrew Launcher, bundled with bundle.lovebrew.org). The `.cia` from the workflow installs and runs in the Azahar emulator (the Kitchen at full speed); on a console it is still to be tried. Still to check: speed with many pieces (up to 300) on an old 3DS, the circular clip of big pieces (it uses a stencil; if the 3DS lacks it, a lobster's legs show past the crust), the touch coordinates, and the button names.
