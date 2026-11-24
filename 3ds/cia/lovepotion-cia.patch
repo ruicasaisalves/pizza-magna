@@ -1,6 +1,43 @@
+diff --git a/source/modules/filesystem/filesystem.cpp b/source/modules/filesystem/filesystem.cpp
+index 9fde2e2..c62f7fe 100644
+--- a/source/modules/filesystem/filesystem.cpp
++++ b/source/modules/filesystem/filesystem.cpp
+@@ -19,14 +19,16 @@ FileData* Filesystem::NewFileData(const void* data, size_t size, const char* fil
+ 
+ bool Filesystem::GetRealPathType(const std::string& path, FileType& type) const
+ {
+-    if (!std::filesystem::exists(path))
++    std::error_code error;
++    auto status = std::filesystem::status(path, error);
++    if (error || !std::filesystem::exists(status))
+         return false;
+ 
+-    if (std::filesystem::is_regular_file(path))
++    if (std::filesystem::is_regular_file(status))
+         type = FILETYPE_FILE;
+-    else if (std::filesystem::is_directory(path))
++    else if (std::filesystem::is_directory(status))
+         type = FILETYPE_DIRECTORY;
+-    else if (std::filesystem::is_symlink(path))
++    else if (std::filesystem::is_symlink(std::filesystem::symlink_status(path, error)))
+         type = FILETYPE_SYMLINK;
+     else
+         type = FILETYPE_OTHER;
+@@ -51,7 +53,8 @@ bool Filesystem::CreateRealDirectory(const std::string& path)
+     if (this->GetRealPathType(path, type))
+         return type == FileType::FILETYPE_DIRECTORY;
+ 
+-    return std::filesystem::create_directories(path);
++    std::error_code error;
++    return std::filesystem::create_directories(path, error);
+ }
+ 
+ std::string Filesystem::GetExecutablePath() const
+diff --git a/source/modules/filesystem/physfs/filesystem.cpp b/source/modules/filesystem/physfs/filesystem.cpp
+index 4edd599..a33af3c 100644
 --- a/source/modules/filesystem/physfs/filesystem.cpp
 +++ b/source/modules/filesystem/physfs/filesystem.cpp
-@@ -36,6 +36,14 @@
+@@ -36,6 +36,14 @@ static std::string getApplicationPath(std::string origin)
          return "fs:/vol/external01/wiiu/apps/lovepotion/lovepotion.wuhb";
  #endif
  
@@ -15,3 +52,19 @@
      if (!love::Console::Is(love::Console::CAFE))
          return origin;
  
+@@ -306,6 +314,15 @@ std::string Filesystem::GetFullCommonPath(CommonPath path)
+         }
+         case CommonPath::USER_APPDATA:
+         {
++#if defined(__3DS__)
++            // PhysicsFS derives its user directory from the executable. Our bundled
++            // game lives on read-only RomFS, so keep its saves on the SD card.
++            if (this->executablePath == "romfs:/game.love")
++            {
++                this->fullPaths[path] = "sdmc:/3ds/save/";
++                break;
++            }
++#endif
+             if (Console::Is(Console::CAFE))
+                 this->fullPaths[path] = normalize(parentize(this->executablePath)) + "/save/";
+             else

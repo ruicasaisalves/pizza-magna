@@ -96,6 +96,11 @@ local function readShops(val)
   end
   return list
 end
+local function toast(s)   -- a new message cuts the one on screen short, so a "press again" never waits in a queue
+  if toasts[1] and toasts[1].time > .6 then toasts[1].time = .6 end
+  toasts[#toasts + 1] = { s = s, time = 3 }
+end
+local saveFailed = false
 local function save()
   local rot = {}
   for k, v in pairs(S.rot) do rot[#rot + 1] = k .. ":" .. v end
@@ -130,8 +135,13 @@ local function save()
   for _, p in ipairs(S.menu) do
     lines[#lines + 1] = "pizza=" .. table.concat({ p.id, string.format("%.2f", p.price), p.dough, p.sauce, p.name, P.packPieces(p.pieces) }, "\t")
   end
-  love.filesystem.write("save.txt", table.concat(lines, "\n") .. "\n")
-  dirty = false
+  local ok = love.filesystem.write("save.txt", table.concat(lines, "\n") .. "\n")
+  if not ok and not saveFailed then
+    toast(P.lang() == "pt" and "Falha ao gravar no cartão SD." or "Could not save to the SD card.")
+  end
+  saveFailed = not ok
+  dirty = not ok
+  return ok
 end
 local function load()
   local ok, txt = pcall(love.filesystem.read, "save.txt")
@@ -209,10 +219,6 @@ local function load()
   if v.pieces and v.pieces ~= "" then pcall(function() S.pieces = P.unpackPieces(v.pieces) end) end
 end
 
-local function toast(s)   -- a new message cuts the one on screen short, so a "press again" never waits in a queue
-  if toasts[1] and toasts[1].time > .6 then toasts[1].time = .6 end
-  toasts[#toasts + 1] = { s = s, time = 3 }
-end
 local function r2(v) return math.floor(v * 100 + .5) / 100 end
 
 -- the three pizzas a new game starts with (freshState() in index.html; spread() lays a topping out in a spiral)
@@ -1784,7 +1790,7 @@ function love.update(dt)
   if toasts[1] then toasts[1].time = toasts[1].time - dt; if toasts[1].time <= 0 then table.remove(toasts, 1) end end
   if armed then armed.time = armed.time - dt; if armed.time <= 0 then armed = nil end end
   if anim then updateDay(dt) end
-  if dirty then saveTimer = saveTimer + dt; if saveTimer > 1 then save(); saveTimer = 0 end end
+  if dirty then saveTimer = saveTimer + dt; if saveTimer > (saveFailed and 10 or 1) then save(); saveTimer = 0 end end
 end
 
 function love.draw(screen)
