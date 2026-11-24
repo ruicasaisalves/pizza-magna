@@ -967,7 +967,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.04n';
+const VERSION='0.04o';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1037,6 +1037,9 @@ const OVEN_CAP=36,COOK_CAP=27;   // pizzas a day per oven / per pizzaiolo
    manners) adds to each customer's satisfaction. Every morning brings new people to hire (state.cands, HIRE_COST). ---- */
 const WAITER_CAP=30,WAITER_SALARY=20,HIRE_COST=100,MAX_STAFF={cook:5,waiter:4};
 const STAFF_NAMES=['Ana','Bruno','Carla','Duarte','Eva','Filipe','Gina','Hugo','Inês','João','Lara','Marco','Nádia','Óscar','Paola','Rui','Sara','Tiago','Vera','Luca','Giulia','Matteo','Sofia','Rita','Pedro','Marta','Nuno','Bia','Dário','Joana','Enzo','Chiara','Tomás','Leonor','Gabriel','Mafalda'];
+const STAFF_WOMEN=new Set(['Ana','Carla','Eva','Gina','Inês','Lara','Nádia','Paola','Sara','Vera','Giulia','Sofia','Rita','Marta','Bia','Joana','Chiara','Leonor','Mafalda']);
+const STAFF_LOOKS={waiter:[[0,2,3],[1]],cook:[[0,2,3],[1,4]]};   // [men, women]: the figures, in the same order in the cast sheets and the room atlas
+const staffV=p=>{const L=STAFF_LOOKS[p.r][STAFF_WOMEN.has(p.n)?1:0];return L[(p.v||0)%L.length]};   // a woman's name gets a woman's figure
 const spMul=sp=>1+.16*(sp-3);   // 1★ .68 … 3★ 1 … 5★ 1.32
 const wageOf=(r,sp,sk)=>(r==='cook'?SALARY:WAITER_SALARY)+2*(sp-3)+2*(sk-3);
 function newPerson(r,sp,sk,also=[]){const used=new Set([...(state&&state.staff||[]),...(state&&state.cands||[]),...also].map(p=>p.n));const free=STAFF_NAMES.filter(n=>!used.has(n));
@@ -1801,8 +1804,8 @@ const tileOf=a=>[Math.round(a.x/T),Math.round(a.y/T)];
 const toPx=p=>p.map(([c,r])=>({x:c*T,y:r*T}));
 function makeScene(){
   const map=buildMap();
-  const waiters=crew('waiter').slice(0,WAITER_HOME.length).map((p,i)=>{const [c,r]=WAITER_HOME[i];return {x:c*T,y:r*T,home:[c,r],path:[],job:null,carry:false,dir:'down',ph:0,v:p.v,spd:spMul(p.sp),pilot:castWaiter(p.v),look:{body:'#2a2a33',role:'waiter',hair:pick(HAIR),skin:pick(SKIN),long:i%2===1}}});
-  const cooks=crew('cook').slice(0,COOK_POS.length).map((p,i)=>{const [c,r]=COOK_POS[i];return {x:c*T,y:r*T,dir:'down',v:p.v,look:{body:'#f4efe4',hat:true,role:'cook',hair:HAIR[i%HAIR.length],skin:SKIN[(i+1)%SKIN.length]}}});
+  const waiters=crew('waiter').slice(0,WAITER_HOME.length).map((p,i)=>{const [c,r]=WAITER_HOME[i];return {x:c*T,y:r*T,home:[c,r],path:[],job:null,carry:false,dir:'down',ph:0,v:staffV(p),spd:spMul(p.sp),pilot:castWaiter(staffV(p)),look:{body:'#2a2a33',role:'waiter',hair:pick(HAIR),skin:pick(SKIN),long:STAFF_WOMEN.has(p.n)}}});
+  const cooks=crew('cook').slice(0,COOK_POS.length).map((p,i)=>{const [c,r]=COOK_POS[i];return {x:c*T,y:r*T,dir:'down',v:staffV(p),look:{body:'#f4efe4',hat:true,role:'cook',hair:HAIR[i%HAIR.length],skin:SKIN[(i+1)%SKIN.length]}}});
   return {map,seats:map.seats,waiters,cooks};
 }
 let anim=null,room=null,idleScene=null;
