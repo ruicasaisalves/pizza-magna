@@ -1037,6 +1037,10 @@ const OVEN_CAP=36,COOK_CAP=27;   // pizzas a day per oven / per pizzaiolo
    manners) adds to each customer's satisfaction. Every morning brings new people to hire (state.cands, HIRE_COST). ---- */
 const WAITER_CAP=30,WAITER_SALARY=20,HIRE_COST=100,MAX_STAFF={cook:5,waiter:4};
 const STAFF_NAMES=['Ana','Bruno','Carla','Duarte','Eva','Filipe','Gina','Hugo','Inês','João','Lara','Marco','Nádia','Óscar','Paola','Rui','Sara','Tiago','Vera','Luca','Giulia','Matteo','Sofia','Rita','Pedro','Marta','Nuno','Bia','Dário','Joana','Enzo','Chiara','Tomás','Leonor','Gabriel','Mafalda'];
+const STAFF_WOMEN=new Set(['Ana','Carla','Eva','Gina','Inês','Lara','Nádia','Paola','Sara','Vera','Giulia','Sofia','Rita','Marta','Bia','Joana','Chiara','Leonor','Mafalda']);
+const STAFF_LOOKS={waiter:[[0,2,3],[1]],cook:[[0,2,3],[1,4]]};   // [men, women]: the room atlas's figures
+const CAST_STAFF={waiter:[[0,2,3],[1,4,5,6,7]],cook:[[0,2,3,8,9,10],[1,4,5,6,7]]};   // [men, women]: assets/cast folders NN − 1
+const staffV=(p,cast)=>{const L=(cast?CAST_STAFF:STAFF_LOOKS)[p.r][STAFF_WOMEN.has(p.n)?1:0];return L[(p.v||0)%L.length]};   // a woman's name gets a woman's figure
 const spMul=sp=>1+.16*(sp-3);   // 1★ .68 … 3★ 1 … 5★ 1.32
 const wageOf=(r,sp,sk)=>(r==='cook'?SALARY:WAITER_SALARY)+2*(sp-3)+2*(sk-3);
 function newPerson(r,sp,sk,also=[]){const used=new Set([...(state&&state.staff||[]),...(state&&state.cands||[]),...also].map(p=>p.n));const free=STAFF_NAMES.filter(n=>!used.has(n));
@@ -1801,8 +1805,8 @@ const tileOf=a=>[Math.round(a.x/T),Math.round(a.y/T)];
 const toPx=p=>p.map(([c,r])=>({x:c*T,y:r*T}));
 function makeScene(){
   const map=buildMap();
-  const waiters=crew('waiter').slice(0,WAITER_HOME.length).map((p,i)=>{const [c,r]=WAITER_HOME[i];return {x:c*T,y:r*T,home:[c,r],path:[],job:null,carry:false,dir:'down',ph:0,v:p.v,spd:spMul(p.sp),pilot:castWaiter(p.v),look:{body:'#2a2a33',role:'waiter',hair:pick(HAIR),skin:pick(SKIN),long:i%2===1}}});
-  const cooks=crew('cook').slice(0,COOK_POS.length).map((p,i)=>{const [c,r]=COOK_POS[i];return {x:c*T,y:r*T,dir:'down',v:p.v,look:{body:'#f4efe4',hat:true,role:'cook',hair:HAIR[i%HAIR.length],skin:SKIN[(i+1)%SKIN.length]}}});
+  const waiters=crew('waiter').slice(0,WAITER_HOME.length).map((p,i)=>{const [c,r]=WAITER_HOME[i];return {x:c*T,y:r*T,home:[c,r],path:[],job:null,carry:false,dir:'down',ph:0,v:staffV(p),spd:spMul(p.sp),pilot:castWaiter(staffV(p,1)),look:{body:'#2a2a33',role:'waiter',hair:pick(HAIR),skin:pick(SKIN),long:STAFF_WOMEN.has(p.n)}}});
+  const cooks=crew('cook').slice(0,COOK_POS.length).map((p,i)=>{const [c,r]=COOK_POS[i];return {x:c*T,y:r*T,dir:'down',v:staffV(p),cv:staffV(p,1),look:{body:'#f4efe4',hat:true,role:'cook',hair:HAIR[i%HAIR.length],skin:SKIN[(i+1)%SKIN.length]}}});
   return {map,seats:map.seats,waiters,cooks};
 }
 let anim=null,room=null,idleScene=null;
@@ -1993,8 +1997,8 @@ function castSheet(src){if(!src||!castOn())return null;let p=castSheets[src];
   if(!p){const img=new Image();p=castSheets[src]={img,ok:false};img.src=src;img.decode().then(()=>{p.ok=true;if(!anim)drawRoom()}).catch(()=>{})}
   return p.ok?p.img:null}
 const castCustomer=(p,kind)=>castOn()?CAST+`customers/${castNN((p.rlook||0)%29)}/${kind}.png`:null;   // 21 looks, the wizard, the goth and the VIPs (guestLook())
-const castWaiter=v=>castOn()?CAST+`waiters/${castNN(v%4)}/service.png`:null;
-const castCook=v=>castOn()?CAST+`cooks/${castNN(v%5)}/idle.png`:null;
+const castWaiter=v=>castOn()?CAST+`waiters/${castNN(v)}/service.png`:null;   // v: the folder, from staffV(p,1)
+const castCook=v=>castOn()?CAST+`cooks/${castNN(v)}/idle.png`:null;
 const PILOT_DX={'customers/01/walk':{3:[0,-3,0,-3,0]},'customers/08/walk':{1:[0,0,0,2,0],3:[0,0,0,-2,0]},
   'customers/12/walk':{1:[0,0,0,2,0],3:[0,0,0,-2,0]},'customers/14/walk':{1:[0,2,0,0,0],3:[0,-2,0,0,0]},
   'customers/17/walk':{1:[0,2,0,2,0],3:[0,-2,0,-2,0]},'customers/20/walk':{1:[0,0,0,2,0],3:[0,0,0,-2,0]},
@@ -2035,7 +2039,7 @@ function drawRoom(){
     add(y0+tz+.2,rspr(p.st==='eat'&&p.timer>1?'pizza':'plate'),x0+Math.round(qx)-12,y0+Math.round(qy)-8)}
   const person=(a,key)=>L.push({z:a.y+T,draw:()=>drawChar(c,a,key)});
   const staff=(a,role)=>{const v=a.v%((L_.staff||{})[role]||1);person(a,v?role+'_'+v:role)};   // the atlas has a few of each, handed out in turn
-  for(const k of sc.cooks){const ksrc=castCook(k.v),im=castSheet(ksrc);if(im)L.push({z:k.y+T,draw:()=>drawPilotFoot(c,im,ksrc,0,0,k.x,k.y)});else staff(k,'cook')}   // dev pilot, standing; else the atlas
+  for(const k of sc.cooks){const ksrc=castCook(k.cv),im=castSheet(ksrc);if(im)L.push({z:k.y+T,draw:()=>drawPilotFoot(c,im,ksrc,0,0,k.x,k.y)});else staff(k,'cook')}   // dev pilot, standing; else the atlas
   for(const w of sc.waiters){const wim=w.pilot&&castSheet(w.pilot);if(wim){L.push({z:w.y+T,draw:()=>drawPilotWaiter(c,w,wim)});continue}   // dev pilot: its own sheet, the pizza in its hands
     staff(w,'waiter');if(w.carry)add(w.y+T+.1,rspr('pizza'),Math.round(w.x)+4,Math.round(w.y)+2-bobOf(w))}   // held in both hands, in front
   if(anim)for(const p of anim.people){if(p.st==='wait'||p.st==='eat')continue;
