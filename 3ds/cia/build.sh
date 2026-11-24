@@ -42,8 +42,8 @@ patch -d "$W/lovepotion" -p1 < "$CIA/lovepotion-cia.patch"
 /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -S "$W/lovepotion" -B "$W/lp-build" >/dev/null
 make -C "$W/lp-build" -j"$(nproc)" >/dev/null
 ELF=$(find "$W/lp-build" -name 'lovepotion.elf' | head -1)
-SHBIN=$(find "$W/lp-build" -name '*.shbin' | head -1)
-BASE_ROMFS=$(dirname "$(dirname "$SHBIN")")     # LÖVE Potion's own RomFS: shaders/ and nogame/
+BASE_ROMFS=$W/lovepotion/platform/ctr/romfs     # LÖVE Potion's own RomFS: the build copies shaders/ and nogame/ in here
+test -f "$BASE_ROMFS/shaders/main_v_pica.shbin"   # the GPU shader LÖVE Potion needs; without it nothing draws
 echo "elf: $ELF  romfs: $BASE_ROMFS"; ls -R "$BASE_ROMFS"
 
 # the game, as a zip
