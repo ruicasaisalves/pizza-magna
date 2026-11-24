@@ -1,11 +1,13 @@
 #!/bin/bash
-# Builds the 3DS port as PizzaMagna.3dsx (Homebrew Launcher) and PizzaMagna.cia (installed to the HOME Menu,
-# e.g. with FBI's Remote Install > Scan QR Code). Runs in the devkitpro/devkitarm container (.github/workflows/3ds.yml).
+# Builds the 3DS port as PizzaMagna.3dsx (Homebrew Launcher) and the parts of PizzaMagna.cia (installed to the HOME
+# Menu, e.g. with FBI's Remote Install > Scan QR Code), in build-3ds/cia-parts. Runs in the devkitpro/devkitarm
+# container (.github/workflows/3ds.yml); cia.sh then packs the .cia on the runner itself, because makerom's Linux
+# build needs a newer glibc than the container has.
 #
 # LÖVE Potion is built from source with one patch (lovepotion-cia.patch): installed as a .cia it has no program file
 # to read the game from, so it reads it from romfs:/game.love. The game goes into both files as a zip of 3ds/game:
 # glued to the end of the .3dsx (as LÖVE Potion's own fused builds do) and as game.love in the .cia's RomFS.
-# makerom (3DSGuy/Project_CTR) and bannertool (Epicpkmn11's fork) come from their GitHub releases.
+# bannertool (Epicpkmn11's fork) comes from its GitHub releases.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 CIA=$ROOT/3ds/cia
@@ -15,12 +17,11 @@ LOVEPOTION_TAG=3.0.2
 TITLE="Pizza Magna"
 DESC="Pizzeria tycoon in 90s pixel art"
 AUTHOR="Pizza Magna"
-UNIQUE_ID=0xF8A57          # homebrew range; the title ID becomes 000400000F8A5700
-PRODUCT_CODE=CTR-H-PZMG
-mkdir -p "$W" "$OUT"
+P=$OUT/cia-parts
+mkdir -p "$W" "$OUT" "$P"
 
-# tools: makerom (Project_CTR) and bannertool, the Linux builds from their latest releases
-asset() {   # the newest asset matching $2 among the repo's recent releases (Project_CTR releases makerom and ctrtool apart)
+# bannertool, the Linux build from its latest release
+asset() {   # the newest asset matching $2 among the repo's recent releases
   local all url
   all=$(curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} "https://api.github.com/repos/$1/releases?per_page=30" \
     | grep -o '"browser_download_url": *"[^"]*"' | cut -d'"' -f4)
@@ -28,13 +29,11 @@ asset() {   # the newest asset matching $2 among the repo's recent releases (Pro
   if [ -z "$url" ]; then echo "no asset matching $2 in $1; found:" >&2; echo "$all" | head -40 >&2; return 1; fi
   echo "$url"; }
 mkdir -p "$W/bin"
-MR=$(asset 3DSGuy/Project_CTR 'makerom.*(ubuntu|linux).*x86_64.*\.zip$'); echo "makerom: $MR"; curl -fsSL -o "$W/makerom.zip" "$MR"
 # bannertool: the maintained fork (Steveice10's repository is gone)
 BT=$(asset Epicpkmn11/bannertool 'bannertool\.zip$'); echo "bannertool: $BT"; curl -fsSL -o "$W/bannertool.zip" "$BT"
-(cd "$W/bin" && unzip -oq ../makerom.zip && unzip -oq ../bannertool.zip)
-MAKEROM=$(find "$W/bin" -type f -name makerom | head -1)
+(cd "$W/bin" && unzip -oq ../bannertool.zip)
 BANNERTOOL=$(find "$W/bin" -type f -path '*linux-x86_64*' -name bannertool | head -1)
-chmod +x "$MAKEROM" "$BANNERTOOL"
+chmod +x "$BANNERTOOL"
 
 # LÖVE Potion, patched
 rm -rf "$W/lovepotion" "$W/lp-build"
@@ -56,15 +55,11 @@ smdhtool --create "$TITLE" "$DESC" "$AUTHOR" "$ROOT/3ds/icon.png" "$W/icon.smdh"
 3dsxtool "$ELF" "$OUT/PizzaMagna.3dsx" --smdh="$W/icon.smdh" --romfs="$BASE_ROMFS"
 cat "$W/game.love" >> "$OUT/PizzaMagna.3dsx"
 
-# .cia: the same program, the game in the RomFS, the HOME Menu icon and banner
-rm -rf "$W/romfs" && mkdir -p "$W/romfs"
-cp -r "$BASE_ROMFS/." "$W/romfs/"
-cp "$W/game.love" "$W/romfs/game.love"
-"$BANNERTOOL" makesmdh -s "$TITLE" -l "$DESC" -p "$AUTHOR" -i "$ROOT/3ds/icon.png" -o "$W/icon.icn"
-"$BANNERTOOL" makebanner -i "$CIA/banner.png" -a "$CIA/banner.wav" -o "$W/banner.bnr"
-"$MAKEROM" -f cia -o "$OUT/PizzaMagna.cia" -target t -exefslogo -elf "$ELF" -rsf "$CIA/app.rsf" \
-  -icon "$W/icon.icn" -banner "$W/banner.bnr" \
-  -DAPP_TITLE="PizzaMagna" -DAPP_PRODUCT_CODE="$PRODUCT_CODE" -DAPP_UNIQUE_ID="$UNIQUE_ID" -DAPP_ROMFS="$W/romfs" \
-  -DAPP_CATEGORY=Application -DAPP_USE_ON_SD=true -DAPP_ENCRYPTED=false -DAPP_MEMORY_TYPE=Application \
-  -DAPP_SYSTEM_MODE=64MB -DAPP_SYSTEM_MODE_EXT=124MB -DAPP_CPU_SPEED=804MHz -DAPP_VERSION_MAJOR=1
-ls -la "$OUT"/PizzaMagna.*
+# the .cia's parts: the same program, the game in the RomFS, the HOME Menu icon and banner (cia.sh packs them)
+rm -rf "$P/romfs" && mkdir -p "$P/romfs"
+cp -r "$BASE_ROMFS/." "$P/romfs/"
+cp "$W/game.love" "$P/romfs/game.love"
+cp "$ELF" "$P/lovepotion.elf"
+"$BANNERTOOL" makesmdh -s "$TITLE" -l "$DESC" -p "$AUTHOR" -i "$ROOT/3ds/icon.png" -o "$P/icon.icn"
+"$BANNERTOOL" makebanner -i "$CIA/banner.png" -a "$CIA/banner.wav" -o "$P/banner.bnr"
+ls -la "$OUT/PizzaMagna.3dsx" "$P"

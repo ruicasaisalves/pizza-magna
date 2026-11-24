@@ -1,4 +1,4 @@
-# Builds the 3DS port (3ds/cia/build.sh) as a .cia and a .3dsx and publishes them in a GitHub release, with a QR code
+# Builds the 3DS port as a .3dsx and a .cia (3ds/cia/build.sh in the devkitPro container, then 3ds/cia/cia.sh) and publishes them in a GitHub release, with a QR code
 # for FBI's Remote Install > Scan QR Code. main goes to the release "3ds-latest" (fixed links, so the QR never changes);
 # any other branch goes to "3ds-test", to try a build before it is merged.
 name: 3DS build
@@ -24,16 +24,23 @@ jobs:
         with:
           name: pizza-magna-3ds
           path: |
-            build-3ds/PizzaMagna.cia
             build-3ds/PizzaMagna.3dsx
+            build-3ds/cia-parts
   publish:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: pizza-magna-3ds
+          path: build-3ds
+      - name: Pack the .cia
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash 3ds/cia/cia.sh
       - name: QR code and release
+        working-directory: build-3ds
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
