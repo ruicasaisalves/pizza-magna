@@ -176,6 +176,77 @@ const MUSIC = (() => {
         harm: 'G3+A3+C4+E4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | F3+A3+C4+E4 - - - - - - - | F3+G3+B3+D4 - - - - - - - | G3+A3+C4+E4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | F3+A3+C4+E4 - - - - - - - | F3+G3+B3+D4 - - - - - - -',
         arp: 'G4 - C5 - E5 - A4 - | G4 - D5 - E5 - B4 - | F4 - C5 - E5 - A4 - | F4 - B4 - D5 - G4 - | G4 - C5 - E5 - A4 - | G4 - D5 - E5 - B4 - | F4 - C5 - E5 - A4 - | F4 - B4 - D5 - G4 -' },
       drums: 'k . . . s . . .' },
+    // six more lo-fi tunes, each with its own idea again: a music-box waltz, a lovers-rock skank, a film-noir line cliché,
+    // a sunny chillhop with a syncopated hook, a Sunday-morning soul ballad, a misty half-time call and answer.
+    { id: 'basilico', title: 'Valzer del Basilico', lofi: true, tone: 'bell', bpm: 150, beat: 6, loops: 2, trem: false, parts: 'AB',
+      A: {
+        lead: 'D5 - - B4 - - | G4 - - B4 - D5 | E5 - - C5 - - | A4 - - - - . | F#5 - - D5 - - | B4 - - G#4 - B4 | C5 - - E5 - G5 | F#5 - - - - .',
+        bass: 'G2 - - - - - | E2 - - - - - | A2 - - - - - | D2 - - - - - | B1 - - - - - | E2 - - - - - | A2 - - - - - | D2 - - - - -',
+        harm: '. . G3+B3+D4+F#4 - G3+B3+D4+F#4 - | . . G3+B3+D4+E4 - G3+B3+D4+E4 - | . . G3+A3+C4+E4 - G3+A3+C4+E4 - | . . F#3+A3+C4+D4 - F#3+A3+C4+D4 - | . . F#3+A3+B3+D4 - F#3+A3+B3+D4 - | . . G#3+B3+D4+E4 - G#3+B3+D4+E4 - | . . G3+A3+C4+E4 - G3+A3+C4+E4 - | . . F#3+A3+C4+D4 - F#3+A3+C4+D4 -' },
+      B: {
+        lead: 'E5 - - - - - | D5 - - - - - | C5 - - E5 - - | D5 - - - - . | G5 - - E5 - - | F#5 - - D5 - - | E5 - - C5 - - | B4 - - - - -',
+        bass: 'C2 - - - - - | B1 - - - - - | A1 - - - - - | D2 - - - - - | C2 - - - - - | B1 - - - - - | A1 - - D2 - - | G1 - - - - -',
+        harm: '. . G3+B3+C4+E4 - G3+B3+C4+E4 - | . . F#3+A3+B3+D4 - F#3+A3+B3+D4 - | . . G3+A3+C4+E4 - G3+A3+C4+E4 - | . . F#3+A3+C4+D4 - F#3+A3+C4+D4 - | . . G3+B3+C4+E4 - G3+B3+C4+E4 - | . . F#3+A3+B3+D4 - F#3+A3+B3+D4 - | . . G3+A3+C4+E4 - F#3+A3+C4+D4 - | . . G3+B3+D4 - G3+B3+D4 -',
+        arp: 'C4 E4 G4 B4 G4 E4 | B3 D4 F#4 A4 F#4 D4 | A3 C4 E4 G4 E4 C4 | D4 F#4 A4 C5 A4 F#4 | C4 E4 G4 B4 G4 E4 | B3 D4 F#4 A4 F#4 D4 | A3 C4 E4 D4 F#4 A4 | G3 B3 D4 G4 D4 B3' },
+      drums: 'k . h . h .' },
+    { id: 'lungomare', title: 'Lungomare', lofi: true, tone: 'round', bpm: 156, beat: 8, loops: 2, trem: false, parts: 'AB',
+      A: {
+        lead: '. . E5 - - - D5 - | C5 - - - A4 - - - | . . F5 - - - E5 - | D5 - - - - - . . | . . E5 - C5 - A4 - | B4 - - - G4 - - - | A4 - - - - - - - | . . . . . . . .',
+        bass: 'A2 - - . C3 - E3 . | A2 - - . C3 - E3 . | D2 - - . F2 - A2 . | D2 - - . F2 - A2 . | F2 - - . A2 - C3 . | E2 - - . G2 - B2 . | A2 - - . C3 - E3 . | A2 - - . C3 - G2 .',
+        harm: 'A3+C4+E4+G4 - - - - - - - | A3+C4+E4+G4 - - - - - - - | A3+C4+D4+F4 - - - - - - - | A3+C4+D4+F4 - - - - - - - | A3+C4+E4+F4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | A3+C4+E4+G4 - - - - - - - | A3+C4+E4+G4 - - - - - - -',
+        arp: '. . C4+E4+G4 . . . C4+E4+G4 . | . . C4+E4+G4 . . . C4+E4+G4 . | . . C4+D4+F4 . . . C4+D4+F4 . | . . C4+D4+F4 . . . C4+D4+F4 . | . . C4+E4+F4 . . . C4+E4+F4 . | . . B3+D4+E4 . . . B3+D4+E4 . | . . C4+E4+G4 . . . C4+E4+G4 . | . . C4+E4+G4 . . . C4+E4+G4 .' },
+      B: {
+        lead: 'A4 - C5 - F5 - - - | E5 - - - B4 - - - | D5 - - - F5 - E5 - | C5 - - - - - . . | A4 - C5 - E5 - G5 - | G5 - - - E5 - - - | F5 - - - D5 - - - | E5 - - - G#4 - - -',
+        bass: 'F2 - - . A2 - C3 . | E2 - - . G2 - B2 . | D2 - - . F2 - A2 . | A2 - - . C3 - E3 . | F2 - - . A2 - C3 . | E2 - - . G2 - B2 . | D2 - - . F2 - A2 . | E2 - - . G#2 - B2 .',
+        harm: 'A3+C4+E4+F4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | A3+C4+D4+F4 - - - - - - - | A3+C4+E4+G4 - - - - - - - | A3+C4+E4+F4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | A3+C4+D4+F4 - - - - - - - | G#3+B3+D4+E4 - - - - - - -',
+        arp: '. . C4+E4+F4 . . . C4+E4+F4 . | . . B3+D4+E4 . . . B3+D4+E4 . | . . C4+D4+F4 . . . C4+D4+F4 . | . . C4+E4+G4 . . . C4+E4+G4 . | . . C4+E4+F4 . . . C4+E4+F4 . | . . B3+D4+E4 . . . B3+D4+E4 . | . . C4+D4+F4 . . . C4+D4+F4 . | . . B3+D4+G#4 . . . B3+D4+G#4 .' },
+      drums: 'h . h . k . h .' },
+    { id: 'tram', title: "L'Ultimo Tram", lofi: true, tone: 'bell', bpm: 120, beat: 8, loops: 1, trem: false, parts: 'ABA',
+      A: {
+        lead: 'F5 - E5 - D5 - A4 - | . . . . E5 - - - | G5 - F5 - E5 - C5 - | . . . . D5 - - - | D5 - C5 - Bb4 - F4 - | . . . . E5 - D5 - | Bb4 - - - G4 - Bb4 - | A4 - - - - - . .',
+        bass: 'D2 - - - - - - - | C#2 - - - - - - - | C2 - - - - - - - | B1 - - - - - - - | Bb1 - - - - - - - | A1 - - - - - - - | G1 - - - - - - - | A1 - - - - - - -',
+        harm: 'F3+A3+D4 - - - - - - - | F3+A3+C#4 - - - - - - - | F3+A3+C4 - - - - - - - | F3+A3+B3 - - - - - - - | F3+A3+Bb3+D4 - - - - - - - | E3+G3+A3+D4 - - - - - - - | E3+G3+Bb3+D4 - - - - - - - | E3+G3+A3+C#4 - - - - - - -',
+        drums: 'h . . h . . h .' },
+      B: {
+        lead: 'D5 - - - F5 - - - | Bb4 - - - D5 - - - | C#5 - - - E5 - G5 - | F5 - - - - - . . | F5 - - - D5 - Bb4 - | G4 - Bb4 - D5 - - - | E5 - D5 - C#5 - - - | D5 - - - - - . .',
+        bass: 'Bb1 - - - F2 - - - | G1 - - - D2 - - - | A1 - - - E2 - - - | D2 - - - A2 - - - | Bb1 - - - F2 - - - | G1 - - - D2 - - - | E2 - - - A1 - - - | D2 - - - - - - -',
+        harm: 'F3+A3+Bb3+D4 - - - - - - - | F3+Bb3+D4 - - - - - - - | E3+G3+C#4 - - - - - - - | F3+A3+D4 - - - - - - - | F3+A3+Bb3+D4 - - - - - - - | F3+Bb3+D4 - - - - - - - | E3+G3+Bb3+D4 - - - E3+G3+C#4 - - - | F3+A3+D4 - - - - - - -',
+        arp: 'Bb3 D4 F4 A4 F4 D4 Bb3 D4 | G3 Bb3 D4 F4 D4 Bb3 G3 Bb3 | A3 C#4 E4 G4 E4 C#4 A3 C#4 | D4 F4 A4 D5 A4 F4 D4 F4 | Bb3 D4 F4 A4 F4 D4 Bb3 D4 | G3 Bb3 D4 F4 D4 Bb3 G3 Bb3 | E4 G4 Bb4 G4 A3 C#4 E4 G4 | D4 F4 A4 F4 D4 - - -' },
+      drums: 'k . h . s . h .' },
+    { id: 'gelato', title: 'Gelato al Limone', lofi: true, tone: 'bell', bpm: 176, beat: 8, loops: 1, trem: false, parts: 'AABA',
+      A: {
+        lead: '. Bb4 . D5 . F5 G5 - | F5 - D5 - . . . . | . G4 . Bb4 . Eb5 F5 - | Eb5 - C5 - . . . . | . Bb4 . D5 . F5 G5 - | G5 - F5 - D5 - . . | . Eb5 . D5 . C5 Bb4 - | C5 - - - . . . .',
+        bass: 'Eb2 - - Bb2 . Eb2 - . | D2 - - A2 . D2 - . | C2 - - G2 . C2 - . | F2 - - C3 . F2 - Eb2 | Eb2 - - Bb2 . Eb2 - . | D2 - - A2 . D2 - . | C2 - - G2 . C2 - . | F2 - - C3 . F2 - Eb2',
+        harm: 'G3+Bb3+D4 - - - - - - - | F3+A3+C4 - - - - - - - | Eb3+G3+Bb3 - - - - - - - | Eb3+A3+C4 - - - - - - - | G3+Bb3+D4 - - - - - - - | F3+A3+C4 - - - - - - - | Eb3+G3+Bb3 - - - - - - - | Eb3+A3+C4 - - - - - - -' },
+      B: {
+        lead: 'D5 - - - - - Eb5 - | F5 - - - - - . . | Eb5 - - - - - D5 - | C5 - - - - - . . | Bb4 - - - D5 - - - | C5 - - - A4 - - - | Bb4 - - - G4 - - - | A4 - - - C5 - - -',
+        bass: 'Eb2 - - - - - - - | D2 - - - - - - - | C2 - - - - - - - | F2 - - - - - - - | Eb2 - - - - - - - | D2 - - - - - - - | C2 - - - - - - - | F2 - - - - - - -',
+        harm: 'G3+Bb3+D4 - - - - - - - | F3+A3+C4 - - - - - - - | Eb3+G3+Bb3 - - - - - - - | Eb3+A3+C4 - - - - - - - | G3+Bb3+D4 - - - - - - - | F3+A3+C4 - - - - - - - | Eb3+G3+Bb3 - - - - - - - | Eb3+A3+C4 - - - - - - -',
+        arp: 'Eb4 G4 Bb4 D5 Bb4 G4 Eb4 G4 | D4 F4 A4 C5 A4 F4 D4 F4 | C4 Eb4 G4 Bb4 G4 Eb4 C4 Eb4 | C4 F4 A4 Eb5 A4 F4 C4 F4 | Eb4 G4 Bb4 D5 Bb4 G4 Eb4 G4 | D4 F4 A4 C5 A4 F4 D4 F4 | C4 Eb4 G4 Bb4 G4 Eb4 C4 Eb4 | C4 F4 A4 Eb5 A4 F4 C4 F4',
+        drums: 'h . h . h . h .' },
+      drums: 'k . h k s . h . k . h k s . h h' },
+    { id: 'domenica', title: 'Domenica Mattina', lofi: true, tone: 'round', bpm: 116, beat: 8, loops: 1, trem: false, parts: 'AAB',
+      A: {
+        lead: 'A4 - C5 - D5 - - - | C5 - - - A4 - - - | G4 - A4 - C5 - D5 - | F5 - - - - - . . | D5 - - - C5 - A4 - | Bb4 - - - G4 - - - | Db5 - - - C5 - Bb4 - | G4 - - - - - . .',
+        bass: 'F2 - - - C3 - - - | F2 - - - Bb2 - - - | F2 - - - C3 - - - | F2 - - - Bb2 - A2 - | D2 - - - A2 - - - | G2 - - - D3 - - - | Bb1 - - - F2 - - - | C2 - - - G2 - Bb2 -',
+        harm: 'A3+C4+E4+G4 - - - - - - - | Bb3+D4+F4 - - - - - - - | A3+C4+E4+G4 - - - - - - - | Bb3+D4+F4 - - - - - - - | F3+A3+C4 - - - - - - - | F3+Bb3+D4 - - - - - - - | Db4+F4+G4 - - - - - - - | Bb3+C4+F4 - - - - - - -' },
+      B: {
+        lead: 'F5 - - - E5 - D5 - | C5 - - - - - . . | D5 - - - C5 - Bb4 - | A4 - - - - - . . | G4 - Bb4 - D5 - F5 - | E5 - - - C5 - - - | D5 - - - F5 - - - | C5 - - - - - . .',
+        bass: 'D2 - - - A2 - - - | C2 - - - G2 - - - | Bb1 - - - F2 - - - | A1 - - - E2 - - - | G1 - - - D2 - - - | A1 - - - E2 - - - | Bb1 - - - F2 - - - | C2 - - - G2 - - -',
+        harm: 'F3+A3+C4 - - - - - - - | E3+G3+C4 - - - - - - - | F3+Bb3+D4 - - - - - - - | F3+A3+C4 - - - - - - - | F3+Bb3+D4 - - - - - - - | E3+A3+C4 - - - - - - - | F3+A3+Bb3+D4 - - - - - - - | Bb3+C4+F4 - - - - - - -',
+        arp: 'D4 F4 A4 C5 A4 F4 D4 F4 | C4 E4 G4 C5 G4 E4 C4 E4 | Bb3 D4 F4 Bb4 F4 D4 Bb3 D4 | A3 C4 F4 A4 F4 C4 A3 C4 | G3 Bb3 D4 F4 D4 Bb3 G3 Bb3 | A3 C4 E4 G4 E4 C4 A3 C4 | Bb3 D4 F4 A4 F4 D4 Bb3 D4 | C4 F4 G4 Bb4 G4 F4 C4 F4' },
+      drums: 'k . . . s . . h' },
+    { id: 'nebbia', title: 'Nebbia sul Porto', lofi: true, tone: 'flute', bpm: 168, beat: 8, loops: 1, trem: false, parts: 'AABA',
+      A: {
+        lead: 'B4 - D5 - E5 - - - | D5 - B4 - - - . . | . . . . . . . . | . . . . . . . . | G5 - F#5 - E5 - D5 - | E5 - - - - - . . | . . . . . . . . | . . . . . . . .',
+        bass: 'E2 - - - - - D2 B1 | A1 - - - - - - . | E2 - - - - - D2 B1 | A1 - - - - - - . | E2 - - - - - D2 B1 | A1 - - - - - - . | E2 - - - - - D2 B1 | A1 - - - - - - .',
+        harm: 'G3+B3+D4+F#4 - - - - - - - | G3+C#4+F#4 - - - - - - - | G3+B3+D4+F#4 - - - - - - - | G3+C#4+F#4 - - - - - - - | G3+B3+D4+F#4 - - - - - - - | G3+C#4+F#4 - - - - - - - | G3+B3+D4+F#4 - - - - - - - | G3+C#4+F#4 - - - - - - -',
+        arp: '. . . . . . . . | . . . . . . . . | E4 G4 B4 D5 . B4 . G4 | C#4 E4 F#4 A4 . F#4 E4 . | . . . . . . . . | . . . . . . . . | E4 G4 B4 E5 . D5 B4 . | F#4 A4 C#5 E5 . C#5 A4 .' },
+      B: {
+        lead: 'E5 - - - G5 - - - | F#5 - - - D5 - - - | C5 - - - E5 - D5 - | D#5 - - - - - . . | E5 - G5 - - - E5 - | D5 - - - B4 - - - | A4 - C5 - E5 - D5 - | D#5 - - - F#4 - - -',
+        bass: 'C2 - - - G2 - - - | B1 - - - F#2 - - - | A1 - - - E2 - - - | B1 - - - D#2 - F#2 - | C2 - - - G2 - - - | B1 - - - F#2 - - - | A1 - - - E2 - - - | B1 - - - D#2 - F#2 -',
+        harm: 'G3+B3+E4 - - - - - - - | F#3+A3+D4 - - - - - - - | G3+C4+E4 - - - - - - - | F#3+A3+D#4 - - - - - - - | G3+B3+E4 - - - - - - - | F#3+A3+D4 - - - - - - - | G3+C4+E4 - - - - - - - | F#3+A3+D#4 - - - - - - -' },
+      drums: 'k . h . . . h . s . h . . . h k' },
   ];
 
   // play order: every tune, Italian and lo-fi mixed, in a random order; once all have played, a new shuffle
