@@ -178,12 +178,15 @@ const MUSIC = (() => {
       drums: 'k . . . s . . .' },
   ];
 
-  // play order: an Italian tune, then a lo-fi one, and so on (both in the order listed in SONGS; the lo-fi ones come round again
-  // while the Italian ones go on), then from the top again (calm ones are not put in between)
+  // play order: an Italian tune, then a lo-fi one, and so on, each kind shuffled (the lo-fi ones are shuffled again
+  // when they run out, as there are fewer); once every Italian tune has played, a new shuffle (calm ones are not put in between)
   const ITALIAN = SONGS.filter(s => !s.lofi), LOFI = SONGS.filter(s => s.lofi);
-  const ORDER = ITALIAN.flatMap((s, i) => LOFI.length ? [s, LOFI[i % LOFI.length]] : [s]);
+  const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] } return a };
+  let ORDER = [];
+  function deal() { let lo = []; ORDER = shuffle(ITALIAN).flatMap(s => { if (!LOFI.length) return [s]; if (!lo.length) lo = shuffle(LOFI); return [s, lo.pop()] }) }
+  deal();
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
-  let lastIdx = Math.floor(Math.random() * ORDER.length) - 1, ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;   // the first tune is random (then the fixed order carries on from it)
+  let lastIdx = -1, ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;   // the order is shuffled, so it starts at the top
   const VOL = 'pm-music-vol', LEVELS = [.25, .5, 1, 1.6, 2.3];   // 1 = low ... 5 = max; 2 is the default
   const getVol = () => { try { const v = +localStorage.getItem(VOL); return v >= 1 && v <= 5 ? v : 2 } catch (_) { return 2 } };
   const gainFor = v => .16 * LEVELS[v - 1];
@@ -317,9 +320,10 @@ const MUSIC = (() => {
     if (!init()) return;
     if (ctx.state === 'suspended') ctx.resume();
     stopAll();
-    // fixed order: each new tune is the one after the last played (it starts with the first)
+    // each new tune is the next in the shuffled order; at the end, a new shuffle
     const asked = SONGS.find(s => s.id === id);
-    lastIdx = asked ? ORDER.indexOf(asked) : (lastIdx + 1) % ORDER.length;
+    if (!asked && lastIdx + 1 >= ORDER.length) { deal(); lastIdx = -1 }
+    lastIdx = asked ? ORDER.indexOf(asked) : lastIdx + 1;
     const song = asked || ORDER[lastIdx];
     current = song;
     bus = ctx.createGain(); bus.gain.setValueAtTime(0, ctx.currentTime); bus.gain.linearRampToValueAtTime(song.calm ? .7 : 1, ctx.currentTime + .1); if (song.lofi) { const warm = ctx.createBiquadFilter(); warm.type = 'lowpass'; warm.frequency.value = 1500; warm.Q.value = .5; bus.connect(warm); warm.connect(master) } else bus.connect(master);   // calm tunes play a little quieter; lo-fi ones through a warmer filter
