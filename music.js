@@ -8,7 +8,7 @@
    Drums: k = kick, s = snare, h = hat, . = nothing.
    The lo-fi tunes (lofi: true, original) add an arpeggio line (arp) and hold chords in harm ("F3+A3+C4" plays them together);
    they play with a softer lead (tone: round, bell or flute), a soft pad, quieter drums and a warmer filter, a part may bring its
-   own drums, and they alternate with the Italian tunes (ORDER). */
+   own drums. All the tunes play in a random order (ORDER). */
 const MUSIC = (() => {
   const SONGS = [
     { id: 'tarantella', title: 'Tarantella della Pizza', bpm: 380, beat: 6, loops: 2, trem: false, parts: 'AABA',
@@ -178,12 +178,11 @@ const MUSIC = (() => {
       drums: 'k . . . s . . .' },
   ];
 
-  // play order: an Italian tune, then a lo-fi one, and so on, each kind shuffled (the lo-fi ones are shuffled again
-  // when they run out, as there are fewer); once every Italian tune has played, a new shuffle (calm ones are not put in between)
-  const ITALIAN = SONGS.filter(s => !s.lofi), LOFI = SONGS.filter(s => s.lofi);
+  // play order: every tune, Italian and lo-fi mixed, in a random order; once all have played, a new shuffle
+  // (never the same tune twice in a row across the two)
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] } return a };
   let ORDER = [];
-  function deal() { let lo = []; ORDER = shuffle(ITALIAN).flatMap(s => { if (!LOFI.length) return [s]; if (!lo.length) lo = shuffle(LOFI); return [s, lo.pop()] }) }
+  function deal() { const last = ORDER[ORDER.length - 1]; ORDER = shuffle(SONGS); if (ORDER[0] === last) ORDER.push(ORDER.shift()) }
   deal();
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
   let lastIdx = -1, ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;   // the order is shuffled, so it starts at the top
