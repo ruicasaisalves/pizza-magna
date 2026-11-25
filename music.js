@@ -5,7 +5,9 @@
    plus a swaying 1950s crooner tune and a slow romantic ballad.
    The last four are public-domain classics, melody as written: converted from ABC by tools/abc2music.py.
    Notation: one token per step (an eighth note); "-" holds the previous note, "." is silence.
-   Drums: k = kick, s = snare, h = hat, . = nothing. */
+   Drums: k = kick, s = snare, h = hat, . = nothing.
+   The lo-fi tunes (lofi: true, original) add an arpeggio line (arp) and hold chords in harm ("F3+A3+C4" plays them together);
+   they play with a rounder lead, a soft pad, quieter drums and a warmer filter, and alternate with the Italian tunes (ORDER). */
 const MUSIC = (() => {
   const SONGS = [
     { id: 'tarantella', title: 'Tarantella della Pizza', bpm: 380, beat: 6, loops: 2, trem: false, parts: 'AABA',
@@ -109,10 +111,55 @@ const MUSIC = (() => {
         bass: 'G2 - - - D3 - - - | D2 - - - A2 - - - | C2 - - - G2 - - - | G2 - - - D3 - - - | C2 - - - G2 - - - | G2 - - - D3 - - - | D2 - - - A2 - - - | G2 - - - - - . .',
         harm: 'B3 - - - - - - - | F#4 - - - - - - - | E4 - - - - - - - | D4 - - - - - - - | G4 - - - - - - - | D4 - - - - - - - | C4 - - - - - - - | B3 - - - - - . .' },
       drums: 'k . . . h . . .' },
+    // lo-fi tunes: soft jazzy chords, a light arpeggio, a round bass and a sparse melody (the first one is from the reactions clip)
+    { id: 'margherita', title: 'Lo-fi Margherita', lofi: true, bpm: 152, beat: 8, loops: 4, trem: false, parts: 'A',
+      A: {
+        lead: '. . C5 - . A4 - - | . . . G4 - - . . | . A4 - . C5 - D5 - | . . . B4 - - - . | . . A4 - . F4 - - | . . G4 - E4 - - -',
+        bass: 'F2 - - - C3 - - - | E2 - - - B2 - - - | D2 - - - A2 - - - | C2 - - - G2 - - - | Bb1 - - - F2 - - - | C2 - - - G2 - - -',
+        harm: 'A3+C4+E4+F4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | F3+A3+C4+D4 - - - - - - - | E3+G3+B3+C4 - - - - - - - | D3+F3+A3+Bb3 - - - - - - - | E3+G3+B3+C4 - - - - - - -',
+        arp: 'A4 C5 E5 F5 E5 C5 E5 C5 | G4 B4 D5 E5 D5 B4 D5 B4 | F4 A4 C5 D5 C5 A4 C5 A4 | E4 G4 B4 C5 B4 G4 B4 G4 | D4 F4 A4 Bb4 A4 F4 A4 F4 | E4 G4 B4 C5 B4 G4 B4 G4' },
+      drums: 'k h s k . h s h' },
+    { id: 'pioggia', title: 'Pioggia su Napoli', lofi: true, bpm: 140, beat: 8, loops: 3, trem: false, parts: 'A',
+      A: {
+        lead: 'E5 - - . D5 C5 - - | . . A4 - C5 - - - | B4 - . D5 - . F5 - | E5 - - - - - . . | . C5 - A4 C5 - E5 - | D5 - - . B4 - - - | Ab4 - B4 - D5 - E5 - | C5 - - - . B4 A4 -',
+        bass: 'A2 - - - E3 - - - | D2 - - - A2 - - - | G2 - - - D3 - - - | C2 - - - G2 - - - | F2 - - - C3 - - - | B1 - - - F#2 - - - | E2 - - - B2 - - - | A2 - - - E3 - - -',
+        harm: 'A3+C4+E4+B4 - - - - - - - | F3+A3+C4+E4 - - - - - - - | G3+B3+D4+F4 - - - - - - - | G3+B3+C4+E4 - - - - - - - | F3+A3+C4+E4 - - - - - - - | F3+A3+B3+D4 - - - - - - - | E3+Ab3+B3+D4 - - - - - - - | G3+A3+C4+E4 - - - - - - -',
+        arp: 'A4 C5 E5 B5 E5 C5 E5 C5 | F4 A4 C5 E5 C5 A4 C5 A4 | G4 B4 D5 F5 D5 B4 D5 B4 | G4 B4 C5 E5 C5 B4 C5 B4 | F4 A4 C5 E5 C5 A4 C5 A4 | F4 A4 B4 D5 B4 A4 B4 A4 | E4 Ab4 B4 D5 B4 Ab4 B4 Ab4 | G4 A4 C5 E5 C5 A4 C5 A4' },
+      drums: 'k h s k . h s h' },
+    { id: 'mezzanotte', title: 'Forno a Mezzanotte', lofi: true, bpm: 148, beat: 8, loops: 3, trem: false, parts: 'A',
+      A: {
+        lead: 'F5 - E5 D5 - - . C5 | B4 - - - . D5 F5 - | E5 - - - - - . . | . . C#5 - E5 - G5 - | F5 - - . D5 - C5 - | B4 - D5 - G5 - - - | G5 - . E5 - D5 - - | C#5 - - - A4 - - -',
+        bass: 'D2 - A2 - D3 - A2 - | G2 - D3 - G3 - D3 - | C2 - G2 - C3 - G2 - | A2 - E3 - A3 - E3 - | D2 - A2 - D3 - A2 - | G2 - D3 - G3 - D3 - | E2 - B2 - E3 - B2 - | A2 - E3 - A3 - E3 -',
+        harm: 'A3+C4+D4+F4 - - - - - - - | G3+B3+D4+F4 - - - - - - - | G3+B3+C4+E4 - - - - - - - | G3+A3+C#4+E4 - - - - - - - | A3+C4+D4+F4 - - - - - - - | G3+B3+D4+F4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | G3+A3+C#4+E4 - - - - - - -',
+        arp: 'A4 C5 D5 F5 D5 C5 D5 C5 | G4 B4 D5 F5 D5 B4 D5 B4 | G4 B4 C5 E5 C5 B4 C5 B4 | G4 A4 C#5 E5 C#5 A4 C#5 A4 | A4 C5 D5 F5 D5 C5 D5 C5 | G4 B4 D5 F5 D5 B4 D5 B4 | G4 B4 D5 E5 D5 B4 D5 B4 | G4 A4 C#5 E5 C#5 A4 C#5 A4' },
+      drums: 'k h s k . h s h' },
+    { id: 'vespa', title: 'Vespa Lenta', lofi: true, bpm: 136, beat: 8, loops: 3, trem: false, parts: 'A',
+      A: {
+        lead: 'Bb4 - - . C5 D5 - - | . Eb5 - . C5 - - - | Ab4 - C5 - . Eb5 - - | D5 - - - . . Bb4 - | G4 - . Bb4 - D5 - - | C5 - - . Eb5 - - - | . F5 - Eb5 C5 - - - | D5 - - . Bb4 - Ab4 -',
+        bass: 'Eb2 - - Eb2 Bb2 - - Ab2 | C2 - - C2 G2 - - F2 | F2 - - F2 C3 - - Bb2 | Bb2 - - Bb2 F3 - - Eb3 | Eb2 - - Eb2 Bb2 - - Ab2 | Ab2 - - Ab2 Eb3 - - C#3 | F2 - - F2 C3 - - Bb2 | Bb2 - - Bb2 F3 - - Eb3',
+        harm: 'G3+Bb3+D4+Eb4 - - - - - - - | G3+Bb3+C4+Eb4 - - - - - - - | F3+Ab3+C4+Eb4 - - - - - - - | F3+Ab3+Bb3+D4 - - - - - - - | G3+Bb3+D4+Eb4 - - - - - - - | G3+Ab3+C4+Eb4 - - - - - - - | F3+Ab3+C4+Eb4 - - - - - - - | F3+Ab3+Bb3+D4 - - - - - - -',
+        arp: 'G4 Bb4 D5 Eb5 D5 Bb4 D5 Bb4 | G4 Bb4 C5 Eb5 C5 Bb4 C5 Bb4 | F4 Ab4 C5 Eb5 C5 Ab4 C5 Ab4 | F4 Ab4 Bb4 D5 Bb4 Ab4 Bb4 Ab4 | G4 Bb4 D5 Eb5 D5 Bb4 D5 Bb4 | G4 Ab4 C5 Eb5 C5 Ab4 C5 Ab4 | F4 Ab4 C5 Eb5 C5 Ab4 C5 Ab4 | F4 Ab4 Bb4 D5 Bb4 Ab4 Bb4 Ab4' },
+      drums: 'k . s . k k s .' },
+    { id: 'caffe', title: 'Caffè Sospeso', lofi: true, bpm: 156, beat: 8, loops: 3, trem: false, parts: 'A',
+      A: {
+        lead: 'D5 - F#5 - G5 - - - | . E5 - D5 B4 - - - | C5 - - . E5 - G5 - | F#5 - - - - - . . | D5 - E5 F#5 - - . A5 | Ab5 - - - E5 - - - | . E5 - D5 C5 - - - | D5 - - - . C5 B4 -',
+        bass: 'G2 - D3 - G3 - D3 - | E2 - B2 - E3 - B2 - | A2 - E3 - A3 - E3 - | D2 - A2 - D3 - A2 - | B2 - F#3 - B3 - F#3 - | E2 - B2 - E3 - B2 - | A2 - E3 - A3 - E3 - | D2 - A2 - D3 - A2 -',
+        harm: 'G3+B3+D4+F#4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | G3+A3+C4+E4 - - - - - - - | A3+C4+D4+F#4 - - - - - - - | A3+B3+D4+F#4 - - - - - - - | Ab3+B3+D4+E4 - - - - - - - | G3+A3+C4+E4 - - - - - - - | A3+C4+D4+F#4 - - - - - - -',
+        arp: 'G4 B4 D5 F#5 D5 B4 D5 B4 | G4 B4 D5 E5 D5 B4 D5 B4 | G4 A4 C5 E5 C5 A4 C5 A4 | A4 C5 D5 F#5 D5 C5 D5 C5 | A4 B4 D5 F#5 D5 B4 D5 B4 | Ab4 B4 D5 E5 D5 B4 D5 B4 | G4 A4 C5 E5 C5 A4 C5 A4 | A4 C5 D5 F#5 D5 C5 D5 C5' },
+      drums: 'k h s k . h s h' },
+    { id: 'terrazza', title: 'Terrazza al Tramonto', lofi: true, bpm: 144, beat: 8, loops: 3, trem: false, parts: 'A',
+      A: {
+        lead: 'C5 - E5 - F5 - - - | . D5 - E5 G5 - - - | G5 - - . E5 - D5 - | C5 - - - - - . . | D5 - F5 - A5 - - - | . G5 - F5 D5 - - - | E5 - - - - - - - | . . D5 - C5 - B4 -',
+        bass: 'F2 - - - C3 - - - | G2 - - - D3 - - - | E2 - - - B2 - - - | A2 - - - E3 - - - | D2 - - - A2 - - - | G2 - - - D3 - - - | C2 - - - G2 - - - | C2 - - - G2 - - -',
+        harm: 'A3+C4+E4+F4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | G3+A3+C4+E4 - - - - - - - | A3+C4+D4+F4 - - - - - - - | G3+B3+D4+F4 - - - - - - - | G3+B3+C4+E4 - - - - - - - | G3+B3+C4+E4 - - - - - - -',
+        arp: 'A4 C5 E5 F5 E5 C5 E5 C5 | G4 B4 D5 E5 D5 B4 D5 B4 | G4 B4 D5 E5 D5 B4 D5 B4 | G4 A4 C5 E5 C5 A4 C5 A4 | A4 C5 D5 F5 D5 C5 D5 C5 | G4 B4 D5 F5 D5 B4 D5 B4 | G4 B4 C5 E5 C5 B4 C5 B4 | G4 B4 C5 E5 C5 B4 C5 B4' },
+      drums: 'k . s h . k s h' },
   ];
 
-  // play order: every tune once, as listed in SONGS, then from the top again (calm ones are not put in between)
-  const ORDER = SONGS;
+  // play order: an Italian tune, then a lo-fi one, and so on (both in the order listed in SONGS; the lo-fi ones come round again
+  // while the Italian ones go on), then from the top again (calm ones are not put in between)
+  const ITALIAN = SONGS.filter(s => !s.lofi), LOFI = SONGS.filter(s => s.lofi);
+  const ORDER = ITALIAN.flatMap((s, i) => LOFI.length ? [s, LOFI[i % LOFI.length]] : [s]);
   const PREF = 'pm-music';               // per-browser setting, kept apart from the game save
   let lastIdx = Math.floor(Math.random() * ORDER.length) - 1, ctx = null, master = null, bus = null, wobble = null, voices = [], timer = null, current = null, armed = false;   // the first tune is random (then the fixed order carries on from it)
   const VOL = 'pm-music-vol', LEVELS = [.25, .5, 1, 1.6, 2.3];   // 1 = low ... 5 = max; 2 is the default
@@ -124,13 +171,14 @@ const MUSIC = (() => {
   const NOTE = { C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11 };
   const freq = n => { const m = /^([A-G][#b]?)(\d)$/.exec(n); if (!m) return 0; return 440 * Math.pow(2, (NOTE[m[1]] + (+m[2] + 1) * 12 - 69) / 12) };
 
-  // turn "A4 - - B4 . ." into [{f, start, len}] in steps
+  // turn "A4 - - B4 . ." into [{f, start, len}] in steps; "F3+A3+C4" is a chord, its notes held together by "-"
   function parse(str) {
     const toks = str.replace(/\|/g, ' ').trim().split(/\s+/), out = [];
+    let last = [];
     toks.forEach((tk, i) => {
-      if (tk === '-') { if (out.length && out[out.length - 1].start + out[out.length - 1].len === i) out[out.length - 1].len++; return }
-      if (tk === '.') return;
-      out.push({ f: freq(tk), start: i, len: 1 });
+      if (tk === '-') { for (const n of last) if (n.start + n.len === i) n.len++; return }
+      if (tk === '.') { last = []; return }
+      last = tk.split('+').map(x => ({ f: freq(x), start: i, len: 1 })); out.push(...last);
     });
     return { notes: out, steps: toks.length };
   }
@@ -174,17 +222,17 @@ const MUSIC = (() => {
   }
 
   let noiseBuf = null;
-  function drumNow(kind, t0) {
+  function drumNow(kind, t0, sc = 1) {   // sc: quieter drums for the lo-fi tunes
     if (kind === 'k') {                                  // kick: sine sweeping down
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.frequency.setValueAtTime(150, t0); o.frequency.exponentialRampToValueAtTime(45, t0 + .12);
-      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.55, t0 + .004); g.gain.exponentialRampToValueAtTime(.001, t0 + .15);
+      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.55 * sc, t0 + .004); g.gain.exponentialRampToValueAtTime(.001, t0 + .15);
       o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + .16); voices.push(o); return;
     }
     if (!noiseBuf) { noiseBuf = ctx.createBuffer(1, ctx.sampleRate * .2, ctx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1 }
     const s = ctx.createBufferSource(), g = ctx.createGain(), hp = ctx.createBiquadFilter();
     s.buffer = noiseBuf; hp.type = 'highpass'; hp.frequency.value = kind === 'h' ? 7000 : 1800;
-    const len = kind === 'h' ? .03 : .11, vol = kind === 'h' ? .08 : .22;
+    const len = kind === 'h' ? .03 : .11, vol = (kind === 'h' ? .08 : .22) * sc;
     g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + .003); g.gain.exponentialRampToValueAtTime(.001, t0 + len);
     s.connect(hp); hp.connect(g); g.connect(bus); s.start(t0); s.stop(t0 + len + .01); voices.push(s);
   }
@@ -201,7 +249,7 @@ const MUSIC = (() => {
   }
   function schedule(song) {
     queue = []; qi = 0; clearTimeout(pumpT);
-    const tone = (...a) => queue.push([a[2], () => toneNow(...a)]), drum = (k, t0) => queue.push([t0, () => drumNow(k, t0)]);
+    const tone = (...a) => queue.push([a[2], () => toneNow(...a)]), drum = (k, t0) => queue.push([t0, () => drumNow(k, t0, song.lofi ? .45 : 1)]);
     const step = 60 / song.bpm;
     let t = ctx.currentTime + .15;
     const start = t;
@@ -214,10 +262,13 @@ const MUSIC = (() => {
           if (song.trem && n.len >= 2) {                // mandolin tremolo: the long notes are picked again and again
             const pick = step / 2;
             for (let k = 0; k < dur - .01; k += pick) tone('pulse', n.f, t + n.start * step + k, Math.min(pick, dur - k) * .95, .22 - (k / dur) * .06, { wobble: true });
-          } else tone('pulse', n.f, t + n.start * step, dur * .92, .24, { wobble: true });
+          } else if (song.lofi) tone('pulse', n.f, t + n.start * step, dur * .9, .15, { duty: .5, wobble: true });   // rounder and softer
+          else tone('pulse', n.f, t + n.start * step, dur * .92, .24, { wobble: true });
         }
         for (const n of bass.notes) tone('triangle', n.f, t + n.start * step, n.len * step * .95, .38);
-        for (const n of harm.notes) tone('pulse', n.f, t + n.start * step, n.len * step * .9, .07, { duty: .5 });
+        if (song.lofi) for (const n of harm.notes) tone('triangle', n.f, t + n.start * step, n.len * step, .05);   // a soft pad
+        else for (const n of harm.notes) tone('pulse', n.f, t + n.start * step, n.len * step * .9, .07, { duty: .5 });
+        if (part.arp) for (const n of parse(part.arp).notes) tone('pulse', n.f, t + n.start * step, n.len * step * .9, .06, { duty: .5 });
         const dr = song.drums.split(/\s+/);
         for (let i = 0; i < lead.steps; i++) { const d = dr[i % dr.length]; if (d !== '.') drum(d, t + i * step) }
         t += lead.steps * step;
@@ -247,7 +298,7 @@ const MUSIC = (() => {
     lastIdx = asked ? ORDER.indexOf(asked) : (lastIdx + 1) % ORDER.length;
     const song = asked || ORDER[lastIdx];
     current = song;
-    bus = ctx.createGain(); bus.gain.setValueAtTime(0, ctx.currentTime); bus.gain.linearRampToValueAtTime(song.calm ? .7 : 1, ctx.currentTime + .1); bus.connect(master);   // calm tunes play a little quieter
+    bus = ctx.createGain(); bus.gain.setValueAtTime(0, ctx.currentTime); bus.gain.linearRampToValueAtTime(song.calm ? .7 : 1, ctx.currentTime + .1); if (song.lofi) { const warm = ctx.createBiquadFilter(); warm.type = 'lowpass'; warm.frequency.value = 1500; warm.Q.value = .5; bus.connect(warm); warm.connect(master) } else bus.connect(master);   // calm tunes play a little quieter; lo-fi ones through a warmer filter
     const startAt = ctx.currentTime, endAt = startAt + schedule(song);
     // after the tune (by the audio clock, which stops while the phone suspends sound), a quiet break: a new tune starts every 3 minutes
     const done = () => { if (ctx.currentTime < endAt) { timer = setTimeout(done, 2000); return }
