@@ -225,7 +225,7 @@ const MUSIC = (() => {
         arp: 'Eb4 G4 Bb4 D5 Bb4 G4 Eb4 G4 | D4 F4 A4 C5 A4 F4 D4 F4 | C4 Eb4 G4 Bb4 G4 Eb4 C4 Eb4 | C4 F4 A4 Eb5 A4 F4 C4 F4 | Eb4 G4 Bb4 D5 Bb4 G4 Eb4 G4 | D4 F4 A4 C5 A4 F4 D4 F4 | C4 Eb4 G4 Bb4 G4 Eb4 C4 Eb4 | C4 F4 A4 Eb5 A4 F4 C4 F4',
         drums: 'h . h . h . h .' },
       drums: 'k . h k s . h . k . h k s . h h' },
-    { id: 'domenica', title: 'Domenica Mattina', lofi: true, tone: 'round', bpm: 116, beat: 8, loops: 1, trem: false, parts: 'AAB',
+    { id: 'domenica', title: 'Domenica Mattina', lofi: true, calm: true, tone: 'round', bpm: 116, beat: 8, loops: 1, trem: false, parts: 'AAB',
       A: {
         lead: 'A4 - C5 - D5 - - - | C5 - - - A4 - - - | G4 - A4 - C5 - D5 - | F5 - - - - - . . | D5 - - - C5 - A4 - | Bb4 - - - G4 - - - | Db5 - - - C5 - Bb4 - | G4 - - - - - . .',
         bass: 'F2 - - - C3 - - - | F2 - - - Bb2 - - - | F2 - - - C3 - - - | F2 - - - Bb2 - A2 - | D2 - - - A2 - - - | G2 - - - D3 - - - | Bb1 - - - F2 - - - | C2 - - - G2 - Bb2 -',
