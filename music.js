@@ -7,7 +7,8 @@
    Notation: one token per step (an eighth note); "-" holds the previous note, "." is silence.
    Drums: k = kick, s = snare, h = hat, . = nothing.
    The lo-fi tunes (lofi: true, original) add an arpeggio line (arp) and hold chords in harm ("F3+A3+C4" plays them together);
-   they play with a rounder lead, a soft pad, quieter drums and a warmer filter, and alternate with the Italian tunes (ORDER). */
+   they play with a softer lead (tone: round, bell or flute), a soft pad, quieter drums and a warmer filter, a part may bring its
+   own drums, and they alternate with the Italian tunes (ORDER). */
 const MUSIC = (() => {
   const SONGS = [
     { id: 'tarantella', title: 'Tarantella della Pizza', bpm: 380, beat: 6, loops: 2, trem: false, parts: 'AABA',
@@ -111,7 +112,9 @@ const MUSIC = (() => {
         bass: 'G2 - - - D3 - - - | D2 - - - A2 - - - | C2 - - - G2 - - - | G2 - - - D3 - - - | C2 - - - G2 - - - | G2 - - - D3 - - - | D2 - - - A2 - - - | G2 - - - - - . .',
         harm: 'B3 - - - - - - - | F#4 - - - - - - - | E4 - - - - - - - | D4 - - - - - - - | G4 - - - - - - - | D4 - - - - - - - | C4 - - - - - - - | B3 - - - - - . .' },
       drums: 'k . . . h . . .' },
-    // lo-fi tunes: soft jazzy chords, a light arpeggio, a round bass and a sparse melody (the first one is from the reactions clip)
+    // lo-fi tunes, each with its own idea: soft jazzy chords and an arpeggio (from the reactions clip), a rainy 6/8 with raindrop notes,
+    // a swing with a walking bass, a bossa nova, a boom-bap with a hook riff, a ballad over a held bass.
+    // tone: the lead's sound, 'round' (a 50% pulse), 'bell' (a thin, short pulse) or 'flute' (a triangle); a part's own drums replace the tune's
     { id: 'margherita', title: 'Lo-fi Margherita', lofi: true, bpm: 152, beat: 8, loops: 4, trem: false, parts: 'A',
       A: {
         lead: '. . C5 - . A4 - - | . . . G4 - - . . | . A4 - . C5 - D5 - | . . . B4 - - - . | . . A4 - . F4 - - | . . G4 - E4 - - -',
@@ -119,41 +122,58 @@ const MUSIC = (() => {
         harm: 'A3+C4+E4+F4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | F3+A3+C4+D4 - - - - - - - | E3+G3+B3+C4 - - - - - - - | D3+F3+A3+Bb3 - - - - - - - | E3+G3+B3+C4 - - - - - - -',
         arp: 'A4 C5 E5 F5 E5 C5 E5 C5 | G4 B4 D5 E5 D5 B4 D5 B4 | F4 A4 C5 D5 C5 A4 C5 A4 | E4 G4 B4 C5 B4 G4 B4 G4 | D4 F4 A4 Bb4 A4 F4 A4 F4 | E4 G4 B4 C5 B4 G4 B4 G4' },
       drums: 'k h s k . h s h' },
-    { id: 'pioggia', title: 'Pioggia su Napoli', lofi: true, bpm: 140, beat: 8, loops: 3, trem: false, parts: 'A',
+    { id: 'pioggia', title: 'Pioggia su Napoli', lofi: true, tone: 'bell', bpm: 132, beat: 6, loops: 2, trem: false, parts: 'AB',
       A: {
-        lead: 'E5 - - . D5 C5 - - | . . A4 - C5 - - - | B4 - . D5 - . F5 - | E5 - - - - - . . | . C5 - A4 C5 - E5 - | D5 - - . B4 - - - | Ab4 - B4 - D5 - E5 - | C5 - - - . B4 A4 -',
-        bass: 'A2 - - - E3 - - - | D2 - - - A2 - - - | G2 - - - D3 - - - | C2 - - - G2 - - - | F2 - - - C3 - - - | B1 - - - F#2 - - - | E2 - - - B2 - - - | A2 - - - E3 - - -',
-        harm: 'A3+C4+E4+B4 - - - - - - - | F3+A3+C4+E4 - - - - - - - | G3+B3+D4+F4 - - - - - - - | G3+B3+C4+E4 - - - - - - - | F3+A3+C4+E4 - - - - - - - | F3+A3+B3+D4 - - - - - - - | E3+Ab3+B3+D4 - - - - - - - | G3+A3+C4+E4 - - - - - - -',
-        arp: 'A4 C5 E5 B5 E5 C5 E5 C5 | F4 A4 C5 E5 C5 A4 C5 A4 | G4 B4 D5 F5 D5 B4 D5 B4 | G4 B4 C5 E5 C5 B4 C5 B4 | F4 A4 C5 E5 C5 A4 C5 A4 | F4 A4 B4 D5 B4 A4 B4 A4 | E4 Ab4 B4 D5 B4 Ab4 B4 Ab4 | G4 A4 C5 E5 C5 A4 C5 A4' },
-      drums: 'k h s k . h s h' },
-    { id: 'mezzanotte', title: 'Forno a Mezzanotte', lofi: true, bpm: 148, beat: 8, loops: 3, trem: false, parts: 'A',
+        lead: '. . E5 . . A5 | . F5 . . C5 . | D5 . F5 . . A5 | . . . Ab5 E5 - | . C6 . A5 . E5 | G5 . E5 . C5 - | F5 . D5 E5 . Ab5 | A5 - - . . .',
+        bass: 'A2 - - - - - | F2 - - - - - | D2 - - - - - | E2 - - - - - | A2 - - - - - | C2 - - - - - | D2 - - E2 - - | A2 - - - - -',
+        harm: '. . . . . . | . . . . . . | . . . . . . | . . . . . . | . . . . . . | . . . . . . | . . . . . . | . . . . . .',
+        arp: 'A3 E4 A4 C5 A4 E4 | F3 C4 F4 A4 F4 C4 | D3 A3 D4 F4 D4 A3 | E3 B3 E4 Ab4 E4 B3 | A3 E4 A4 C5 A4 E4 | C3 G3 C4 E4 C4 G3 | D3 A3 D4 E3 B3 E4 | A3 E4 A4 C5 A4 E4' },
+      B: {
+        lead: 'C5 - - B4 A4 - | C5 - - - D5 - | F5 - - E5 D5 - | B4 - - - - - | E5 - D5 C5 - - | G5 - - - F5 - | F5 - E5 D5 B4 - | A4 - - - - -',
+        bass: 'A2 - - - - - | F2 - - - - - | D2 - - - - - | E2 - - - - - | A2 - - - - - | C2 - - - - - | D2 - - E2 - - | A2 - - - - -',
+        harm: 'A3+E4+A4 - - - - - | F3+C4+F4 - - - - - | D3+A3+D4 - - - - - | E3+B3+E4 - - - - - | A3+E4+A4 - - - - - | C3+G3+C4 - - - - - | D3+A3+D4 - - - - - | A3+E4+A4 - - - - -',
+        arp: 'A3 E4 A4 C5 A4 E4 | F3 C4 F4 A4 F4 C4 | D3 A3 D4 F4 D4 A3 | E3 B3 E4 Ab4 E4 B3 | A3 E4 A4 C5 A4 E4 | C3 G3 C4 E4 C4 G3 | D3 A3 D4 E3 B3 E4 | A3 E4 A4 C5 A4 E4' },
+      drums: '. . . h . .' },
+    { id: 'mezzanotte', title: 'Forno a Mezzanotte', lofi: true, tone: 'round', bpm: 196, beat: 8, loops: 1, trem: false, parts: 'AAB',
       A: {
-        lead: 'F5 - E5 D5 - - . C5 | B4 - - - . D5 F5 - | E5 - - - - - . . | . . C#5 - E5 - G5 - | F5 - - . D5 - C5 - | B4 - D5 - G5 - - - | G5 - . E5 - D5 - - | C#5 - - - A4 - - -',
-        bass: 'D2 - A2 - D3 - A2 - | G2 - D3 - G3 - D3 - | C2 - G2 - C3 - G2 - | A2 - E3 - A3 - E3 - | D2 - A2 - D3 - A2 - | G2 - D3 - G3 - D3 - | E2 - B2 - E3 - B2 - | A2 - E3 - A3 - E3 -',
-        harm: 'A3+C4+D4+F4 - - - - - - - | G3+B3+D4+F4 - - - - - - - | G3+B3+C4+E4 - - - - - - - | G3+A3+C#4+E4 - - - - - - - | A3+C4+D4+F4 - - - - - - - | G3+B3+D4+F4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | G3+A3+C#4+E4 - - - - - - -',
-        arp: 'A4 C5 D5 F5 D5 C5 D5 C5 | G4 B4 D5 F5 D5 B4 D5 B4 | G4 B4 C5 E5 C5 B4 C5 B4 | G4 A4 C#5 E5 C#5 A4 C#5 A4 | A4 C5 D5 F5 D5 C5 D5 C5 | G4 B4 D5 F5 D5 B4 D5 B4 | G4 B4 D5 E5 D5 B4 D5 B4 | G4 A4 C#5 E5 C#5 A4 C#5 A4' },
-      drums: 'k h s k . h s h' },
-    { id: 'vespa', title: 'Vespa Lenta', lofi: true, bpm: 136, beat: 8, loops: 3, trem: false, parts: 'A',
+        lead: 'A4 C5 D5 F5 E5 D5 C5 - | B4 - . D5 F5 - G5 F5 | E5 - - - . C5 D5 E5 | G5 F#5 E5 C#5 E5 - - . | F5 E5 D5 C5 A4 C5 D5 - | F5 G5 F5 D5 B4 D5 G5 - | E5 - - - - - . . | . . A4 C5 E5 . C5 -',
+        bass: 'D2 - F#2 - A2 - F#2 - | G2 - B2 - D3 - B1 - | C2 - E2 - G2 - Ab2 - | A2 - C#3 - E3 - C#2 - | D2 - F#2 - A2 - F#2 - | G2 - B2 - D3 - B1 - | C2 - E2 - G2 - B1 - | C2 - E2 - G2 - C#2 -',
+        harm: 'A3+C4+E4+F4 . . A3+C4+E4+F4 . . . . | F3+B3+D4+F4 . . F3+B3+D4+F4 . . . . | G3+B3+C4+E4 . . G3+B3+C4+E4 . . . . | G3+C#4+E4+G4 . . G3+C#4+E4+G4 . . . . | A3+C4+E4+F4 . . A3+C4+E4+F4 . . . . | F3+B3+D4+F4 . . F3+B3+D4+F4 . . . . | G3+B3+C4+E4 . . G3+B3+C4+E4 . . . . | G3+A3+C4+E4 . . G3+A3+C4+E4 . . . .' },
+      B: {
+        lead: 'C5 - E5 - F5 - - - | D5 - F5 - Ab5 - - . | G5 - - - E5 - D5 - | C#5 - E5 - G5 - A5 - | A5 - F5 - D5 - - - | F5 E5 D5 B4 G4 - - - | C5 - - E5 C5 - - - | B4 - D5 - F5 - G5 -',
+        bass: 'F2 - A2 - C3 - A2 - | Bb2 - D3 - F3 - Eb2 - | E2 - Ab2 - B2 - Ab2 - | A2 - C#3 - E3 - C#2 - | D2 - F#2 - A2 - F#2 - | G2 - B2 - D3 - B1 - | C2 - E2 - G2 - F#2 - | G2 - B2 - D3 - E2 -',
+        harm: 'A3+C4+E4+F4 . . A3+C4+E4+F4 . . . . | Ab3+Bb3+D4+F4 . . Ab3+Bb3+D4+F4 . . . . | G3+B3+D4+E4 . . G3+B3+D4+E4 . . . . | G3+C#4+E4+G4 . . G3+C#4+E4+G4 . . . . | A3+C4+E4+F4 . . A3+C4+E4+F4 . . . . | F3+B3+D4+F4 . . F3+B3+D4+F4 . . . . | G3+A3+C4+E4 . . G3+A3+C4+E4 . . . . | F3+B3+D4+F4 . . F3+B3+D4+F4 . . . .' },
+      drums: 'k . h h s . h h' },
+    { id: 'vespa', title: 'Vespa Lenta', lofi: true, tone: 'flute', bpm: 240, beat: 8, loops: 4, trem: false, parts: 'A',
       A: {
-        lead: 'Bb4 - - . C5 D5 - - | . Eb5 - . C5 - - - | Ab4 - C5 - . Eb5 - - | D5 - - - . . Bb4 - | G4 - . Bb4 - D5 - - | C5 - - . Eb5 - - - | . F5 - Eb5 C5 - - - | D5 - - . Bb4 - Ab4 -',
-        bass: 'Eb2 - - Eb2 Bb2 - - Ab2 | C2 - - C2 G2 - - F2 | F2 - - F2 C3 - - Bb2 | Bb2 - - Bb2 F3 - - Eb3 | Eb2 - - Eb2 Bb2 - - Ab2 | Ab2 - - Ab2 Eb3 - - C#3 | F2 - - F2 C3 - - Bb2 | Bb2 - - Bb2 F3 - - Eb3',
-        harm: 'G3+Bb3+D4+Eb4 - - - - - - - | G3+Bb3+C4+Eb4 - - - - - - - | F3+Ab3+C4+Eb4 - - - - - - - | F3+Ab3+Bb3+D4 - - - - - - - | G3+Bb3+D4+Eb4 - - - - - - - | G3+Ab3+C4+Eb4 - - - - - - - | F3+Ab3+C4+Eb4 - - - - - - - | F3+Ab3+Bb3+D4 - - - - - - -',
-        arp: 'G4 Bb4 D5 Eb5 D5 Bb4 D5 Bb4 | G4 Bb4 C5 Eb5 C5 Bb4 C5 Bb4 | F4 Ab4 C5 Eb5 C5 Ab4 C5 Ab4 | F4 Ab4 Bb4 D5 Bb4 Ab4 Bb4 Ab4 | G4 Bb4 D5 Eb5 D5 Bb4 D5 Bb4 | G4 Ab4 C5 Eb5 C5 Ab4 C5 Ab4 | F4 Ab4 C5 Eb5 C5 Ab4 C5 Ab4 | F4 Ab4 Bb4 D5 Bb4 Ab4 Bb4 Ab4' },
-      drums: 'k . s . k k s .' },
-    { id: 'caffe', title: 'Caffè Sospeso', lofi: true, bpm: 156, beat: 8, loops: 3, trem: false, parts: 'A',
+        lead: 'F#5 - - - - - E5 - | D5 - - - C#5 - - - | B4 - - - - - D5 - | C#5 - - - - - - - | A5 - - - F#5 - E5 - | F#5 - - - C5 - - - | B4 - - - D5 - F#5 - | E5 - - - - - Bb4 -',
+        bass: 'D2 - - A2 A2 - - D2 | B1 - - F#2 F#2 - - B1 | E2 - - B2 B2 - - E2 | A2 - - E3 E3 - - A2 | D2 - - A2 A2 - - D2 | D2 - - A2 A2 - - D2 | G2 - - D3 D3 - - G2 | G2 - - D3 D3 - - G2',
+        harm: 'F#3+A3+C#4+D4 - . F#3+A3+C#4+D4 . F#3+A3+C#4+D4 - . | . . F#3+A3+B3+D4 - F#3+A3+B3+D4 . F#3+A3+B3+D4 - | G3+B3+D4+E4 - . G3+B3+D4+E4 . G3+B3+D4+E4 - . | . . G3+A3+C#4+E4 - G3+A3+C#4+E4 . G3+A3+C#4+E4 - | F#3+A3+C#4+D4 - . F#3+A3+C#4+D4 . F#3+A3+C#4+D4 - . | . . F#3+A3+C4+D4 - F#3+A3+C4+D4 . F#3+A3+C4+D4 - | F#3+G3+B3+D4 - . F#3+G3+B3+D4 . F#3+G3+B3+D4 - . | . . G3+Bb3+D4+E4 - G3+Bb3+D4+E4 . G3+Bb3+D4+E4 -' },
+      drums: 'k h h s h h s h k h s h h s h h' },
+    { id: 'caffe', title: 'Caffè Sospeso', lofi: true, tone: 'round', bpm: 172, beat: 8, loops: 2, trem: false, parts: 'AB',
       A: {
-        lead: 'D5 - F#5 - G5 - - - | . E5 - D5 B4 - - - | C5 - - . E5 - G5 - | F#5 - - - - - . . | D5 - E5 F#5 - - . A5 | Ab5 - - - E5 - - - | . E5 - D5 C5 - - - | D5 - - - . C5 B4 -',
-        bass: 'G2 - D3 - G3 - D3 - | E2 - B2 - E3 - B2 - | A2 - E3 - A3 - E3 - | D2 - A2 - D3 - A2 - | B2 - F#3 - B3 - F#3 - | E2 - B2 - E3 - B2 - | A2 - E3 - A3 - E3 - | D2 - A2 - D3 - A2 -',
-        harm: 'G3+B3+D4+F#4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | G3+A3+C4+E4 - - - - - - - | A3+C4+D4+F#4 - - - - - - - | A3+B3+D4+F#4 - - - - - - - | Ab3+B3+D4+E4 - - - - - - - | G3+A3+C4+E4 - - - - - - - | A3+C4+D4+F#4 - - - - - - -',
-        arp: 'G4 B4 D5 F#5 D5 B4 D5 B4 | G4 B4 D5 E5 D5 B4 D5 B4 | G4 A4 C5 E5 C5 A4 C5 A4 | A4 C5 D5 F#5 D5 C5 D5 C5 | A4 B4 D5 F#5 D5 B4 D5 B4 | Ab4 B4 D5 E5 D5 B4 D5 B4 | G4 A4 C5 E5 C5 A4 C5 A4 | A4 C5 D5 F#5 D5 C5 D5 C5' },
-      drums: 'k h s k . h s h' },
-    { id: 'terrazza', title: 'Terrazza al Tramonto', lofi: true, bpm: 144, beat: 8, loops: 3, trem: false, parts: 'A',
+        lead: '. . . . . . . . | . . . . . . . . | . . . . . . . . | . . . . . . . . | . . . . . . . . | . . . . . . . . | . . . . . . . . | . . . . . . . .',
+        bass: 'F2 - . F2 . F3 Eb3 - | C#2 - . C#2 . C#3 B2 - | Bb1 - . Bb1 . Bb2 Ab2 - | C2 - . C2 . C3 Bb2 - | F2 - . F2 . F3 Eb3 - | C#2 - . C#2 . C#3 B2 - | Bb1 - . Bb1 . Bb2 Ab2 - | C2 - . C2 . C3 Bb2 -',
+        harm: '. . . . . . . . | . . . . . . . . | . . . . . . . . | . . . . . . . . | . . . . . . . . | . . . . . . . . | . . . . . . . . | . . . . . . . .',
+        arp: 'G5 . Eb5 C5 - . Eb5 . | F5 . C#5 C5 - . C#5 . | F5 . C#5 Bb4 - . C#5 . | E5 . C5 Bb4 - . C5 . | G5 . Eb5 C5 - . Eb5 . | F5 . C#5 C5 - . C#5 . | F5 . C#5 Bb4 - . C#5 . | E5 . C5 Bb4 - . C5 .' },
+      B: {
+        lead: 'Ab5 - G5 F5 - - . . | . . C5 Eb5 F5 - - - | C#5 - F5 - Ab5 - - . | G5 - - - - - . . | C6 - Bb5 Ab5 - - . . | . F5 - Ab5 - C6 - - | Bb5 - Ab5 - F5 - - - | E5 - G5 - C5 - - -',
+        bass: 'F2 - . F2 . F3 Eb3 - | C#2 - . C#2 . C#3 B2 - | Bb1 - . Bb1 . Bb2 Ab2 - | C2 - . C2 . C3 Bb2 - | F2 - . F2 . F3 Eb3 - | C#2 - . C#2 . C#3 B2 - | Bb1 - . Bb1 . Bb2 Ab2 - | C2 - . C2 . C3 Bb2 -',
+        harm: 'Ab3+C4+Eb4+G4 - - - - - - - | Ab3+C4+C#4+F4 - - - - - - - | Ab3+Bb3+C#4+F4 - - - - - - - | G3+Bb3+C4+E4 - - - - - - - | Ab3+C4+Eb4+G4 - - - - - - - | Ab3+C4+C#4+F4 - - - - - - - | Ab3+Bb3+C#4+F4 - - - - - - - | G3+Bb3+C4+E4 - - - - - - -',
+        arp: 'G5 . Eb5 C5 - . Eb5 . | F5 . C#5 C5 - . C#5 . | F5 . C#5 Bb4 - . C#5 . | E5 . C5 Bb4 - . C5 . | G5 . Eb5 C5 - . Eb5 . | F5 . C#5 C5 - . C#5 . | F5 . C#5 Bb4 - . C#5 . | E5 . C5 Bb4 - . C5 .' },
+      drums: 'k . h . s . h k . k h . s . h .' },
+    { id: 'terrazza', title: 'Terrazza al Tramonto', lofi: true, tone: 'flute', bpm: 120, beat: 8, loops: 1, trem: false, parts: 'AB',
       A: {
-        lead: 'C5 - E5 - F5 - - - | . D5 - E5 G5 - - - | G5 - - . E5 - D5 - | C5 - - - - - . . | D5 - F5 - A5 - - - | . G5 - F5 D5 - - - | E5 - - - - - - - | . . D5 - C5 - B4 -',
-        bass: 'F2 - - - C3 - - - | G2 - - - D3 - - - | E2 - - - B2 - - - | A2 - - - E3 - - - | D2 - - - A2 - - - | G2 - - - D3 - - - | C2 - - - G2 - - - | C2 - - - G2 - - -',
-        harm: 'A3+C4+E4+F4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | G3+A3+C4+E4 - - - - - - - | A3+C4+D4+F4 - - - - - - - | G3+B3+D4+F4 - - - - - - - | G3+B3+C4+E4 - - - - - - - | G3+B3+C4+E4 - - - - - - -',
-        arp: 'A4 C5 E5 F5 E5 C5 E5 C5 | G4 B4 D5 E5 D5 B4 D5 B4 | G4 B4 D5 E5 D5 B4 D5 B4 | G4 A4 C5 E5 C5 A4 C5 A4 | A4 C5 D5 F5 D5 C5 D5 C5 | G4 B4 D5 F5 D5 B4 D5 B4 | G4 B4 C5 E5 C5 B4 C5 B4 | G4 B4 C5 E5 C5 B4 C5 B4' },
-      drums: 'k . s h . k s h' },
+        lead: 'E5 - - - - - D5 - | C5 - - - F5 - - - | D5 - - - - - C5 - | B4 - - - - - - - | G5 - - - E5 - - - | A5 - - - - - G5 - | F5 - - - D5 - - - | D5 - - - - - - -',
+        bass: 'C2 - - - - - - - | C2 - - - - - - - | C2 - - - - - - - | C2 - - - - - - - | C2 - - - - - - - | C2 - - - - - - - | C2 - - - - - - - | C2 - - - - - - -',
+        harm: 'G3+B3+C4+E4 - - - - - - - | F3+A3+C4+F4 - - - - - - - | F3+A3+C4+D4 - - - - - - - | G3+B3+D4+G4 - - - - - - - | G3+B3+C4+E4 - - - - - - - | F3+A3+C4+F4 - - - - - - - | F3+A3+C4+D4 - - - - - - - | G3+B3+D4+G4 - - - - - - -',
+        drums: '. . . . . . . .' },
+      B: {
+        lead: 'E5 - - - G5 - - - | G5 - - - - - F5 - | E5 - - - C5 - - - | D5 - - - - - - - | A5 - - - G5 - E5 - | G5 - - - E5 - - - | F5 - - - E5 - D5 - | D5 - - - B4 - - -',
+        bass: 'A2 - - - E3 - - - | E2 - - - B2 - - - | F2 - - - C3 - - - | G2 - - - D3 - - - | A2 - - - E3 - - - | E2 - - - B2 - - - | F2 - - - C3 - - - | G2 - - - D3 - - -',
+        harm: 'G3+A3+C4+E4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | F3+A3+C4+E4 - - - - - - - | F3+G3+B3+D4 - - - - - - - | G3+A3+C4+E4 - - - - - - - | G3+B3+D4+E4 - - - - - - - | F3+A3+C4+E4 - - - - - - - | F3+G3+B3+D4 - - - - - - -',
+        arp: 'G4 - C5 - E5 - A4 - | G4 - D5 - E5 - B4 - | F4 - C5 - E5 - A4 - | F4 - B4 - D5 - G4 - | G4 - C5 - E5 - A4 - | G4 - D5 - E5 - B4 - | F4 - C5 - E5 - A4 - | F4 - B4 - D5 - G4 -' },
+      drums: 'k . . . s . . .' },
   ];
 
   // play order: an Italian tune, then a lo-fi one, and so on (both in the order listed in SONGS; the lo-fi ones come round again
@@ -262,14 +282,16 @@ const MUSIC = (() => {
           if (song.trem && n.len >= 2) {                // mandolin tremolo: the long notes are picked again and again
             const pick = step / 2;
             for (let k = 0; k < dur - .01; k += pick) tone('pulse', n.f, t + n.start * step + k, Math.min(pick, dur - k) * .95, .22 - (k / dur) * .06, { wobble: true });
-          } else if (song.lofi) tone('pulse', n.f, t + n.start * step, dur * .9, .15, { duty: .5, wobble: true });   // rounder and softer
+          } else if (song.tone === 'bell') tone('pulse', n.f, t + n.start * step, Math.min(dur * .9, step * 1.5), .13, { duty: .125, wobble: true });
+          else if (song.tone === 'flute') tone('triangle', n.f, t + n.start * step, dur * .92, .22, { wobble: true });
+          else if (song.lofi) tone('pulse', n.f, t + n.start * step, dur * .9, .15, { duty: .5, wobble: true });   // rounder and softer
           else tone('pulse', n.f, t + n.start * step, dur * .92, .24, { wobble: true });
         }
         for (const n of bass.notes) tone('triangle', n.f, t + n.start * step, n.len * step * .95, .38);
         if (song.lofi) for (const n of harm.notes) tone('triangle', n.f, t + n.start * step, n.len * step, .05);   // a soft pad
         else for (const n of harm.notes) tone('pulse', n.f, t + n.start * step, n.len * step * .9, .07, { duty: .5 });
         if (part.arp) for (const n of parse(part.arp).notes) tone('pulse', n.f, t + n.start * step, n.len * step * .9, .06, { duty: .5 });
-        const dr = song.drums.split(/\s+/);
+        const dr = (part.drums || song.drums).split(/\s+/);
         for (let i = 0; i < lead.steps; i++) { const d = dr[i % dr.length]; if (d !== '.') drum(d, t + i * step) }
         t += lead.steps * step;
       }
