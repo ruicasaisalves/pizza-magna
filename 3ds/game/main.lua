@@ -9,6 +9,7 @@
      On a PC (LÖVE 11/12) the window shows the top screen above the bottom one, and the mouse is the stylus. ]]
 local P = require("pizza")
 local G = require("day")
+local MUS = require("musica")   -- the browser game's tunes, recorded (tools/export_3ds_music.js)
 local D, A, t = P.D, P.A, P.t
 
 local CONSOLE = love._console ~= nil or love.system.getOS() == "Horizon" or love.system.getOS() == "3DS"
@@ -24,6 +25,7 @@ local L3 = {
          ckeys = "Up/Down pizza   A enter it", skeys = "Up/Down choose   A buy / choose   touch: hire, let go, bank",
          hkeys = "Y sales history", hback = "Y back to the day",
          citykeys = "D-pad or map: move   A rent, buy, go   Y close, sell   X zoom",
+         mkeys = "A music on/off   </> volume   X next song",
          },
   pt = { keys1 = "</> ingrediente   L/R grupo   Cima massa   Baixo molho",
          keys2 = "A picar   X rodar   B desfazer   Y limpar   SELECT ecrã seguinte   START sair",
@@ -33,6 +35,7 @@ local L3 = {
          ckeys = "Cima/Baixo pizza   A inscrever", skeys = "Cima/Baixo escolher   A comprar / escolher   toque: contratar, dispensar, banco",
          hkeys = "Y histórico de vendas", hback = "Y voltar ao dia",
          citykeys = "Cruz ou mapa: mover   A arrendar, comprar, ir   Y fechar, vender   X zoom",
+         mkeys = "A música sim/não   </> volume   X música seguinte",
          },
 }
 local function l3(k) return L3[P.lang()][k] end
@@ -105,6 +108,7 @@ local function save()
     "name=" .. (S.name or ""), "editing=" .. (S.editing or ""), "tab=" .. S.tab, "msel=" .. S.msel, "nextid=" .. S.nextId, "menu=1",
     "day=" .. S.day, "money=" .. string.format("%.2f", S.money), "rep=" .. string.format("%.4f", S.rep), "ovens=" .. S.ovens,
     "loan=" .. string.format("%.2f", S.loan or 0), "candday=" .. (S.candDay or ""), "ads=" .. (S.ads and 1 or 0), "supplier=" .. S.supplier, "entry=" .. (S.contestEntry or ""),
+    "music=" .. (MUS.on and 1 or 0), "musvol=" .. MUS.vol,
     "studyweek=" .. S.studyWeek, "over=" .. (S.over and 1 or 0), "goal=" .. (S.goalDone and 1 or 0),
     "rival=" .. table.concat({ S.rival.name, S.rival.q, string.format("%.2f", S.rival.price), S.rival.promo and 1 or 0 }, "\t"),
   }
@@ -177,6 +181,7 @@ local function load()
   if v.name and v.name ~= "" then S.name = v.name end
   if v.editing and v.editing ~= "" then S.editing = v.editing end
   if v.tab then S.tab = v.tab end
+  MUS.init(v.music ~= "0", v.musvol)   -- music on unless turned off; the first tune a minute after the start
   S.msel = tonumber(v.msel) or 1
   S.nextId = tonumber(v.nextid) or 1
   if v.day then   -- saves from before the restaurant start a new game in load (S.day stays nil)
@@ -1223,7 +1228,7 @@ local function drawContestBottom()
 end
 
 -- ---------------------------------------------------------------- the shop
-local SHOP_ROWS = { "oven", "team", "hire", "ads", "supplier", "study", "bank", "reset" }
+local SHOP_ROWS = { "oven", "team", "hire", "ads", "supplier", "study", "bank", "music", "reset" }
 local function shopItem(id) for _, it in ipairs(G.SHOP) do if it.id == id then return it end end end
 local function buyItem(it)
   if not it.ok(S) then return end
@@ -1250,6 +1255,7 @@ local function shopAction(id)
   if it then buyItem(it)
   elseif id == "supplier" then setSupplier(S.supplier % 3 + 1)
   elseif id == "study" then runStudy()
+  elseif id == "music" then MUS.setOn(not MUS.on); dirty = true
   elseif id == "reset" then resetGame() end
 end
 local function shopRow(id)   -- name, state, price
@@ -1260,6 +1266,9 @@ local function shopRow(id)   -- name, state, price
   if id == "team" then return t("staff.title"), t("staff.pay", { w = P.eur(G.wages(S)) }), "" end
   if id == "hire" then return t("staff.cands"), "", P.eur(D.HIRE_COST) end
   if id == "bank" then return t("bank.title"), t("bank.owe") .. " " .. P.eur(S.loan or 0), "" end
+  if id == "music" then
+    return t("mus.title"), MUS.on and (MUS.title() and t("mus.now", { x = MUS.title() }) or t("mus.waiting")) or t("mus.offlead"), t("mus.v" .. MUS.vol)
+  end
   return t("shop.reset"), "", ""
 end
 local function drawShopTop()
@@ -1268,16 +1277,16 @@ local function drawShopTop()
   text(fitText(t("shop.lead", { m = P.eur(S.money) }), "small", 388), 6, 21, "small", C.dim)
   S.ssel = math.max(1, math.min(S.ssel, #SHOP_ROWS))
   for k, id in ipairs(SHOP_ROWS) do
-    local y = 38 + (k - 1) * 21
+    local y = 37 + (k - 1) * 19
     local on = k == S.ssel
-    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, 19)
-    if on then pxRect(5, y - 1, 390, 21, C.gold) end
+    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, 17)
+    if on then pxRect(5, y - 1, 390, 19, C.gold) end
     local n, l, c = shopRow(id)
-    text(fitText(n, "small", 166), 12, y + 3, "small", id == "reset" and C.bad or C.cream)
-    text(fitText(l, "tiny", 150), 180, y + 4, "tiny", C.dim)
-    text(c, 12, y + 3, "small", C.gold, "right", 376)
+    text(fitText(n, "small", 166), 12, y + 2, "small", id == "reset" and C.bad or C.cream)
+    text(fitText(l, "tiny", 150), 180, y + 3, "tiny", C.dim)
+    text(c, 12, y + 2, "small", C.gold, "right", 376)
   end
-  text(l3("skeys"), 0, 214, "tiny", C.dim, "center", 400)
+  text(l3(SHOP_ROWS[S.ssel] == "music" and "mkeys" or "skeys"), 0, 214, "tiny", C.dim, "center", 400)
   text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
 end
 local function drawShopBottom()
@@ -1360,6 +1369,15 @@ local function drawShopBottom()
         local _, wr = fonts.tiny.f:getWrap("- " .. line, 300 / fonts.tiny.s)
         y = y + #wr * fonts.tiny.f:getHeight() * fonts.tiny.s + 2
       end
+    end
+  elseif id == "music" then   -- on / off, next song, the volume
+    text(fitText(MUS.on and (MUS.title() and t("mus.now", { x = MUS.title() }) or t("mus.waiting")) or t("mus.offlead"), "small", 300), 10, 30, "small", brown)
+    plateBtn(P.upper(t(MUS.on and "mus.off" or "mus.on")), 10, 52, function() MUS.setOn(not MUS.on); dirty = true end, 145, 24)
+    plateBtn(P.upper(t("mus.next")), 165, 52, function() MUS.on = true; MUS.play(); dirty = true end, 145, 24)
+    text(t("mus.vol"), 10, 90, "small", C.ink)
+    for v = 1, 5 do
+      local lv = v
+      plateBtn(P.upper(t("mus.v" .. v)), 10 + (v - 1) * 61, 108, function() MUS.setVol(lv); dirty = true end, 57, 22, MUS.vol == v)
     end
   else
     plateBtn(P.upper(isArmed("reset") and t("ts.sure") or t("shop.reset")), 10, 40, resetGame, 300, 24, true)
@@ -1651,6 +1669,8 @@ local function otherButton(b)
     if b == "dpup" then S.ssel = math.max(1, S.ssel - 1); armed = nil
     elseif b == "dpdown" then S.ssel = math.min(#SHOP_ROWS, S.ssel + 1); armed = nil
     elseif b == "a" then shopAction(SHOP_ROWS[S.ssel])
+    elseif SHOP_ROWS[S.ssel] == "music" and (b == "dpleft" or b == "dpright") then MUS.setVol(MUS.vol + (b == "dpleft" and -1 or 1)); dirty = true
+    elseif SHOP_ROWS[S.ssel] == "music" and b == "x" then MUS.on = true; MUS.play(); dirty = true
     else navButton(b) end
   end
 end
@@ -1764,6 +1784,7 @@ function love.update(dt)
   if toasts[1] then toasts[1].time = toasts[1].time - dt; if toasts[1].time <= 0 then table.remove(toasts, 1) end end
   if armed then armed.time = armed.time - dt; if armed.time <= 0 then armed = nil end end
   if anim then updateDay(dt) end
+  MUS.update(dt)
   if dirty then saveTimer = saveTimer + dt; if saveTimer > 1 then save(); saveTimer = 0 end end
 end
 
