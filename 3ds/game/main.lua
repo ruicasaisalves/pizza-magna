@@ -820,12 +820,13 @@ local drawTopScreen
 -- ---------------------------------------------------------------- the day: open the doors, the street, the report
 local SEGC = {}
 for _, k in ipairs(D.SEG_ORDER) do SEGC[k] = hex(D.SEG[k].col) end
-local DOOR_OURS, DOOR_RIVAL, WALK = 86, 238, 70   -- door positions in the street, walking speed (px/s at x1)
+local SALA = require("sala")   -- the dining room on the touch screen (as the browser's day)
+local idleScene   -- the room before the doors open: the staff in their places
 local function startDay()
   if anim or report then return end
   if #S.menu == 0 then toast(t("ct.need")); return end
-  syncWorld(); histOn = false
-  anim = { res = G.simulateDay(S), t = 0, speed = 1, idx = 1, cnt = { served = 0, rival = 0, left = 0, rev = 0 }, walkers = {}, bubbles = {} }
+  syncWorld(); histOn = false; idleScene = nil
+  anim = { res = G.simulateDay(S), t = 0, speed = 1, idx = 1, cnt = { served = 0, rival = 0, left = 0, rev = 0 }, bubbles = {}, sc = SALA.scene(S, G) }
 end
 local function endDay()
   local a = anim
@@ -833,45 +834,15 @@ local function endDay()
   report = G.finishDay(S, a.res)
   syncWorld(); save()
 end
-local function arrive(w)   -- a customer reaches a door: the counters move then
-  local e, c = w.e, anim.cnt
-  if e.target == "ours" then
-    if e.out == "happy" or e.out == "meh" then
-      c.served = c.served + 1; c.rev = c.rev + e.price
-      anim.bubbles[#anim.bubbles + 1] = { x = w.x, y = 150, s = "+" .. P.eur(e.price), c = e.out == "happy" and C.good or C.combo, life = 1.2 }
-    else
-      c.left = c.left + 1
-      anim.bubbles[#anim.bubbles + 1] = { x = w.x, y = 150, s = "x", c = C.bad, life = 1.2 }
-    end
-  elseif e.target == "rival" then c.rival = c.rival + 1 end
-end
 local function updateDay(dt)
   local a = anim
-  local DS = D.DAY_SECONDS
-  a.t = a.t + dt * a.speed
-  local ev = a.res.events
-  while ev[a.idx] and ev[a.idx].t * DS <= a.t do   -- a new customer comes down the street, from either side
-    local e = ev[a.idx]
-    local left = math.random() < .5
-    local tx = e.target == "ours" and DOOR_OURS or e.target == "rival" and DOOR_RIVAL or (left and 340 or -20)
-    a.walkers[#a.walkers + 1] = { e = e, x = left and -8 or 328, y = 178 + math.random() * 14, tx = tx, step = 0 }
-    a.idx = a.idx + 1
+  local k = SALA.pace(a, D.DAY_SECONDS)
+  -- small steps, so a fast day does not jump through walls
+  local left = math.min(dt, .1) * a.speed * k
+  while left > 0 do
+    local d = math.min(left, .05); left = left - d
+    if SALA.step(a, d, S, D.DAY_SECONDS, P.eur, C) then endDay(); return end
   end
-  for k = #a.walkers, 1, -1 do
-    local w = a.walkers[k]
-    local d = WALK * dt * a.speed
-    w.step = w.step + d
-    if math.abs(w.tx - w.x) <= d then
-      if w.e.target ~= "none" then arrive(w) end
-      table.remove(a.walkers, k)
-    else w.x = w.x + (w.tx > w.x and d or -d) end
-  end
-  for k = #a.bubbles, 1, -1 do
-    local b = a.bubbles[k]
-    b.life = b.life - dt * a.speed; b.y = b.y - dt * a.speed * 14
-    if b.life <= 0 then table.remove(a.bubbles, k) end
-  end
-  if a.idx > #ev and #a.walkers == 0 and a.t >= DS * .92 then endDay() end
 end
 local function skipDay()
   if not anim then return end
@@ -889,7 +860,7 @@ local function lcdRows()
   return {
     { t("lcd.day") .. " " .. S.day .. " " .. P.upper(G.weekday(S.day)), clock },
     { t("lcd.pop"), rep .. "/5" },
-    { a and t("lcd.street") or t("lcd.exp"), a and tostring(#a.res.events - a.idx + 1 + #a.walkers) or ("~" .. G.expected(S)) },
+    { a and t("lcd.street") or t("lcd.exp"), a and tostring(#a.res.events - a.idx + 1 + #a.sc.people) or ("~" .. G.expected(S)) },
     { t("lcd.served"), tostring(c.served) },
     { t("lcd.rival"), tostring(c.rival) },
     { t("lcd.left"), tostring(c.left) },
@@ -1008,49 +979,30 @@ local function drawHistTop()
   text(l3("hback") .. "   " .. l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
 end
 
--- the street: our pizzeria and the rival's, and the people walking by
-local function shopFront(x, w, name, wall, awning, sign)
-  col(wall); love.graphics.rectangle("fill", x, 46, w, 124)
-  for k = 0, 5 do col(k % 2 == 0 and awning or hex("#f6e7c8")); love.graphics.rectangle("fill", x + k * w / 6, 70, w / 6, 12) end
-  col(hex("#1a0d05")); love.graphics.rectangle("fill", x + 8, 50, w - 16, 16)
-  text(fitText(P.upper(name), "tiny", w - 20), x + 8, 53, "tiny", sign, "center", w - 16)
-  col(hex("#9fd3e8")); love.graphics.rectangle("fill", x + 8, 94, 34, 34); love.graphics.rectangle("fill", x + w - 42, 94, 34, 34)
-  col(hex("#3a2213")); love.graphics.rectangle("fill", x + w / 2 - 12, 128, 24, 42)
-  col(C.gold); love.graphics.rectangle("fill", x + w / 2 + 6, 148, 3, 3)
-end
-local function drawStreet()
-  col(hex("#7fb6d6")); love.graphics.rectangle("fill", 0, 0, 320, 170)
-  col(hex("#a7c9de")); love.graphics.rectangle("fill", 0, 0, 320, 20)
-  shopFront(DOOR_OURS - 66, 132, G.shopName(S), hex("#c96f3b"), hex("#2f8f4e"), C.gold)
-  shopFront(DOOR_RIVAL - 60, 120, S.rival.name, hex("#8d8f96"), hex("#c4352a"), hex("#ff8a6a"))
-  col(hex("#b9a58a")); love.graphics.rectangle("fill", 0, 170, 320, 30)
-  col(hex("#9c8a72")); for x = 0, 320, 20 do love.graphics.rectangle("fill", x, 170, 1, 30) end
-  col(hex("#4a4a50")); love.graphics.rectangle("fill", 0, 200, 320, 24)
-  col(hex("#d9d9d9")); for x = 4, 320, 28 do love.graphics.rectangle("fill", x, 211, 14, 2) end
+-- the dining room (sala.lua), the rival's name by the street, and the money bubbles
+local function drawRoomBottom()
+  if not anim and not idleScene then idleScene = SALA.scene(S, G) end
+  SALA.draw(anim, anim and anim.sc or idleScene, S)
+  local lbl = P.upper(S.rival.name) .. " >"
+  local w = fw("tiny", lbl) + 8
+  col(hex("#120a04", .75)); love.graphics.rectangle("fill", 4, 224, w, 13)   -- bottom left: the language button is on the right
+  text(lbl, 4, 226, "tiny", hex("#ffcf4a"), "center", w)
   if not anim then return end
-  table.sort(anim.walkers, function(a, b) return a.y < b.y end)
-  for _, w in ipairs(anim.walkers) do   -- a little person: legs that step, body in the group's colour, head
-    local x, y = math.floor(w.x), math.floor(w.y)
-    local leg = math.floor(w.step / 4) % 2
-    col(hex("#2a1a10")); love.graphics.rectangle("fill", x - 2, y - 4, 2, 4 - leg); love.graphics.rectangle("fill", x + 1, y - 4, 2, 3 + leg)
-    col(SEGC[w.e.seg]); love.graphics.rectangle("fill", x - 3, y - 12, 7, 8)
-    col(hex("#f1c7a0")); love.graphics.rectangle("fill", x - 2, y - 17, 5, 5)
-    col(hex("#2b1b10")); love.graphics.rectangle("fill", x - 2, y - 18, 5, 2)
-  end
   for _, b in ipairs(anim.bubbles) do
     local w = fw("tiny", b.s) + 6
-    col(hex("#000000", .7)); love.graphics.rectangle("fill", b.x - w / 2, b.y, w, 12)
-    text(b.s, b.x - w / 2, b.y + 1, "tiny", b.c, "center", w)
+    local x = math.max(2, math.min(318 - w, b.x - w / 2))
+    col(hex("#000000", .7)); love.graphics.rectangle("fill", x, b.y, w, 12)
+    text(b.s, x, b.y + 1, "tiny", b.c, "center", w)
   end
 end
 local function drawDayBottom()
-  drawStreet()
-  if anim then
+  drawRoomBottom()
+  if anim then   -- on the back wall, out of the people's way
     local x = 4
     for _, v in ipairs({ 1, 2, 4 }) do
-      x = plateBtn("x" .. v, x, 224, function() anim.speed = v end, 28, 14, anim.speed == v) + 4
+      x = plateBtn("x" .. v, x, 2, function() anim.speed = v end, 28, 14, anim.speed == v) + 4
     end
-    plateBtn(P.upper(t("run.skip")), x, 224, skipDay)
+    plateBtn(P.upper(t("run.skip")), x, 2, skipDay)
   else
     plateBtn(fitText(P.upper(t("day.open", { d = S.day })), "tiny", 300), 20, 196, startDay, 280, 24)
     langBtn()
@@ -1745,6 +1697,7 @@ BOOT[#BOOT + 1] = { "fonts", function() fonts.tiny, fonts.small, fonts.body, fon
 for i = 1, A.pages do
   BOOT[#BOOT + 1] = { "texture " .. i .. "/" .. A.pages, function() pages[i] = love.graphics.newImage("gfx/atlas" .. i .. ".png") end }
 end
+BOOT[#BOOT + 1] = { "room", function() SALA.load() end }
 BOOT[#BOOT + 1] = { "save", function()
   math.randomseed(os.time())
   load()

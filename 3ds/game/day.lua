@@ -12,6 +12,7 @@ local function round(v) return math.floor(v + .5) end
 local function clamp(v, a, b) return math.max(a, math.min(b, v)) end
 local function noise() return (math.random() + math.random() + math.random() - 1.5) * 1.6 end
 local function shuffle(l) for i = #l, 2, -1 do local j = math.random(i); l[i], l[j] = l[j], l[i] end; return l end
+local MEH_BAND = require("roomdata").MEH_BAND   -- served but not happy: within it neutral, further below unhappy (as index.html)
 G.r2 = r2
 
 local baseCost = D.DOUGHS.fina.c + D.SAUCES.tomate.c
@@ -239,6 +240,7 @@ function G.simulateDay(S)
           if math.random() < .25 then quote(seg, t("qh." .. seg .. math.random(QH_N), { x = m.p.name })) end
         else
           res.unhappy = res.unhappy + 1; res.repDelta = res.repDelta - .03; e.out = "meh"
+          e.face = sat >= G.happyAt(S) - MEH_BAND and "meh" or "bad"   -- the face they leave with in the room
           local bad
           for _, n in ipairs(m.a.notes) do if n[1] == "bad" and n[3] and not bad then bad = n[3] end end
           quote(seg, over > 1.5 and t("qt.dear", { p = P.eur(m.p.price) }) or bad or t("qt.meh"))
