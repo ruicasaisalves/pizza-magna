@@ -20,20 +20,20 @@ Everything the itch.io page needs. The images are made by `node itch/make_media.
 
 ## Colours (Theme editor)
 
-The Azulejo palette (since November 2026; it replaced the brown and brass one): white tiles on Portuguese blue, with the tomato red of the game for the button, so the game's warm screenshots stand out on a cool page. itch.io names some of these fields a little differently; use the nearest one.
+The warm parchment palette (since November 2026; it replaced the Azulejo blue and white one, which looked cold beside the game's warm art): the content is the parchment of the game's menu cards, with the tomato red of the game for headings, links and the button, so the page reads like the pizzeria's own menu. itch.io names some of these fields a little differently; use the nearest one.
 
 | Field | Colour | |
 |---|---|---|
-| Background colour (page) | `#1E4C8F` | azulejo blue |
-| Content / widget background | `#F4F7FB` | tile white |
-| Text | `#1B2A44` | ink navy |
-| Link | `#1E4C8F` | azulejo blue |
-| Button | `#D2402F` | tomato red |
+| Background colour (page) | `#2A1407` | wood, darkest |
+| Content / widget background | `#F3E6C6` | parchment |
+| Text | `#2C1A0B` | dark brown ink |
+| Link | `#B02C20` | tomato red, deep |
+| Button | `#C4352A` | tomato red |
 | Button text | `#FFF6E0` | cream |
-| Border | `#9DB7DD` | pale blue |
-| Headings accent (if offered) | `#1E4C8F` | azulejo blue |
+| Border | `#94661A` | brass |
+| Headings accent (if offered) | `#B02C20` | tomato red, deep |
 
-Fonts: **title font Silkscreen** (titles and buttons), **body font Lato** (the description). A pixel font in capitals for the whole description is hard to read, and Pixelify Sans joins "fi" and "fl" into one glyph ("fill" reads "Ail") where the page's CSS can't turn it off. The section headings are pictures (`head-*.png`) in the same blues. Page width: leave at the default.
+Fonts: **title font Silkscreen** (titles and buttons), **body font Lato** (the description). A pixel font in capitals for the whole description is hard to read, and Pixelify Sans joins "fi" and "fl" into one glyph ("fill" reads "Ail") where the page's CSS can't turn it off. The section headings are pictures (`head-*.png`) in the same tomato reds. Page width: leave at the default.
 
 ## Basics
 

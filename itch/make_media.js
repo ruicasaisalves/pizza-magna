@@ -29,7 +29,7 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
     const tint = (c, col) => { const [o, x] = K(c.width, c.height); x.drawImage(c, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, o.width, o.height); return o };
     const up = (c, k) => { const [o, x] = K(c.width * k, c.height * k); x.drawImage(c, 0, 0, o.width, o.height); return o };
     // a title in two tones with a dark outline and a red drop shadow, at 1x
-    function title(lines, font, gap = 0, P = C) {   // P: the colours (hi, brass, deep, tlo); the headings use the page's blue ones
+    function title(lines, font, gap = 0, P = C) {   // P: the colours (hi, brass, deep, tlo); the headings use the page's red ones
       const ms = lines.map(l => mask(l, font)), px = +font.match(/(\d+)px/)[1], lh = px + 2 + gap;
       const w = Math.max(...ms.map(m => m.width)) + 6, h = lh * lines.length + 8, [c, x] = K(w, h);
       ms.forEach((m, i) => {
@@ -83,13 +83,13 @@ const save = (name, url) => fs.writeFileSync(path.join(OUT, name), Buffer.from(u
       x.drawImage(T, P + 30, Math.round((c.height - T.height) / 2));
       out.logo = c.toDataURL('image/png'); out.logoSize = [c.width, c.height];
     }
-    // section headings for the description (transparent): the title style at 3x in the page's Azulejo blues
-    // (light and mid blue, navy outline, pale blue shadow), a topping on each side
-    const BLUE = { hi: '#6FA3EC', brass: '#2F6BC0', deep: '#0A1E40', tlo: '#9DB7DD' };
+    // section headings for the description (transparent): the title style at 3x in the page's tomato reds
+    // (light and deep tomato, dark wood outline, brass shadow), a topping on each side
+    const RED = { hi: '#E8604C', brass: '#B02C20', deep: '#2A1407', tlo: '#E3B34A' };
     out.heads = {};
     for (const [k, text, l, r] of [['cook', 'COOK', 'tomate', 'manjericao'], ['run', 'RUN THE PLACE', 'pepperoni', 'cogumelos'], ['grow', 'GROW', 'azeitonas', 'pimento'],
       ['compete', 'COMPETE', 'ananas', 'fiambre'], ['also', 'ALSO', 'oregaos', 'alho']]) {
-      const T = up(title([text], 'bold 16px Silkscreen', 0, BLUE), 3), I = 72, gap = 18, [c, x] = K(T.width + 2 * (I + gap), Math.max(T.height, I) + 8);
+      const T = up(title([text], 'bold 16px Silkscreen', 0, RED), 3), I = 72, gap = 18, [c, x] = K(T.width + 2 * (I + gap), Math.max(T.height, I) + 8);
       x.drawImage(T, I + gap, Math.round((c.height - T.height) / 2));
       [[l, 0], [r, c.width - I]].forEach(([id, ix]) => { try { x.drawImage(icon(id, 2), ix, Math.round((c.height - I) / 2), I, I) } catch (e) {} });
       out.heads[k] = c.toDataURL('image/png');
