@@ -194,7 +194,7 @@ function G.simulateDay(S)
   end
   table.sort(arrivals)
   local res = { events = {}, served = 0, toRival = 0, full = 0, noseat = 0, nostock = 0, passed = 0, revenue = 0, ingCost = 0,
-    repDelta = 0, happy = 0, unhappy = 0, sales = {}, bySeg = {}, quotes = {}, N = N, cap = cap, seats = D.ROOM.seats }
+    repDelta = 0, happy = 0, unhappy = 0, meh = 0, sad = 0, sales = {}, bySeg = {}, quotes = {}, N = N, cap = cap, seats = D.ROOM.seats }
   local function pickSeg()
     local x = math.random()
     for _, k in ipairs(D.SEG_ORDER) do x = x - mix[k]; if x <= 0 then return k end end
@@ -240,7 +240,8 @@ function G.simulateDay(S)
           if math.random() < .25 then quote(seg, t("qh." .. seg .. math.random(QH_N), { x = m.p.name })) end
         else
           res.unhappy = res.unhappy + 1; res.repDelta = res.repDelta - .03; e.out = "meh"
-          e.face = sat >= G.happyAt(S) - MEH_BAND and "meh" or "bad"   -- the face they leave with in the room
+          e.face = sat >= G.happyAt(S) - MEH_BAND and "meh" or "bad"   -- the face they leave with: neutral or unhappy
+          if e.face == "meh" then res.meh = res.meh + 1 else res.sad = res.sad + 1 end
           local bad
           for _, n in ipairs(m.a.notes) do if n[1] == "bad" and n[3] and not bad then bad = n[3] end end
           quote(seg, over > 1.5 and t("qt.dear", { p = P.eur(m.p.price) }) or bad or t("qt.meh"))
@@ -344,7 +345,8 @@ function G.shopDay(S, res, day, watched)
   -- the day goes into the history (HIST_DAYS days kept), with its best seller by name
   local top, topN = "", 0
   for _, p in ipairs(S.menu) do local n = res.sales[p.id] or 0; if n > topN then top, topN = p.name, n end end
-  S.hist[#S.hist + 1] = { d = day, n = res.served, N = res.N, rv = res.toRival, p = profit, v = res.revenue, r = S.rep, top = top, topN = topN }
+  S.hist[#S.hist + 1] = { d = day, n = res.served, N = res.N, rv = res.toRival, p = profit, v = res.revenue, r = S.rep, top = top, topN = topN,
+    f = { res.happy, res.meh or 0, (res.sad or 0) + res.full + res.noseat + res.nostock } }   -- how they left: happy, neutral, unhappy
   while #S.hist > D.HIST_DAYS do table.remove(S.hist, 1) end
   S.ads = false
   local nw = {}

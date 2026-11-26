@@ -232,7 +232,7 @@ local function sprite(s, x, y)   -- a room sprite at a half-pixel place
 end
 -- a face over everyone walking out (faceArt() in index.html): yellow, a see-through ring, eyes and mouth
 local RING = { good = { .27, .78, .24, .55 }, meh = { 1, .8, .16, .6 }, bad = { .78, .1, .06, .85 } }
-local function face(k, cx, top)
+function M.face(k, cx, top)   -- also in the report and the history
   local r = RING[k]
   love.graphics.setColor(r); love.graphics.circle("fill", cx, top + 5, 5)
   love.graphics.setColor(.35, .2, .06); love.graphics.circle("fill", cx, top + 5, 3.6)
@@ -298,7 +298,7 @@ function M.draw(a, sc, S)
   if a and a.dusk then love.graphics.setColor(30 / 255, 22 / 255, 70 / 255, .4 * a.dusk); love.graphics.rectangle("fill", 0, 0, 320, 240) end
   if a then
     for _, p in ipairs(sc.people) do
-      if p.st == "exit" or p.st == "leave" then face(faceOf(p), hx(p.x + 16), hy(p.y) - 26) end
+      if p.st == "exit" or p.st == "leave" then M.face(faceOf(p), hx(p.x + 16), hy(p.y) - 26) end
     end
   end
 end

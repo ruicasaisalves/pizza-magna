@@ -20,7 +20,7 @@ local L3 = {
          keys2 = "A cut   X turn   B undo   Y clear   SELECT next screen   START quit",
          mkeys1 = "Up/Down pizza   </> price   A edit   X rename   Y remove",
          nav = "L/R or SELECT other screens   START quit", rename = "RENAME",
-         dkeys = "A open the doors", drun = "</> speed   A skip to closing", rkeys = "A continue",
+         dkeys = "A open the doors", drun = "</> speed   B pause   A skip to closing", rkeys = "A continue",
          ckeys = "Up/Down pizza   A enter it", skeys = "Up/Down choose   A buy / choose   touch: hire, let go, bank",
          hkeys = "Y sales history", hback = "Y back to the day",
          citykeys = "D-pad or map: move   A rent, buy, go   Y close, sell   X zoom",
@@ -29,7 +29,7 @@ local L3 = {
          keys2 = "A picar   X rodar   B desfazer   Y limpar   SELECT ecrã seguinte   START sair",
          mkeys1 = "Cima/Baixo pizza   </> preço   A editar   X nome   Y remover",
          nav = "L/R ou SELECT outros ecrãs   START sair", rename = "MUDAR NOME",
-         dkeys = "A abrir portas", drun = "</> velocidade   A saltar para o fecho", rkeys = "A continuar",
+         dkeys = "A abrir portas", drun = "</> velocidade   B pausa   A saltar para o fecho", rkeys = "A continuar",
          ckeys = "Cima/Baixo pizza   A inscrever", skeys = "Cima/Baixo escolher   A comprar / escolher   toque: contratar, dispensar, banco",
          hkeys = "Y histórico de vendas", hback = "Y voltar ao dia",
          citykeys = "Cruz ou mapa: mover   A arrendar, comprar, ir   Y fechar, vender   X zoom",
@@ -123,7 +123,7 @@ local function save()
     for _, x in ipairs(l[2]) do lines[#lines + 1] = l[1] .. "=" .. table.concat({ x.id, x.n, x.r, x.sp, x.sk, x.w, x.v }, "\t") end
   end
   for _, h in ipairs(S.hist) do
-    lines[#lines + 1] = "hist=" .. table.concat({ h.d, h.n, h.N, h.rv, string.format("%.2f", h.p), string.format("%.2f", h.v), string.format("%.2f", h.r), (h.top or ""):gsub("[\t\n]", " "), h.topN or 0 }, "\t")
+    lines[#lines + 1] = "hist=" .. table.concat({ h.d, h.n, h.N, h.rv, string.format("%.2f", h.p), string.format("%.2f", h.v), string.format("%.2f", h.r), (h.top or ""):gsub("[\t\n]", " "), h.topN or 0, h.f and h.f[1] or "", h.f and h.f[2] or "", h.f and h.f[3] or "" }, "\t")
   end
   for _, c in ipairs(S.contestLog) do lines[#lines + 1] = "ctlog=" .. table.concat({ c.day, c.theme, c.pizza, c.pos, c.prize }, "\t") end
   for _, x in ipairs(S.tips) do lines[#lines + 1] = "tip=" .. table.concat({ x.day, x.seg, x.ing, x.combo or "" }, "\t") end
@@ -157,7 +157,8 @@ local function load()
     elseif k == "hist" then
       local f = fields(val)
       local n = function(i) return tonumber(f[i]) or 0 end
-      hist[#hist + 1] = { d = n(1), n = n(2), N = n(3), rv = n(4), p = n(5), v = n(6), r = n(7), top = f[8] or "", topN = n(9) }
+      hist[#hist + 1] = { d = n(1), n = n(2), N = n(3), rv = n(4), p = n(5), v = n(6), r = n(7), top = f[8] or "", topN = n(9),
+        f = (f[10] or "") ~= "" and { n(10), n(11), n(12) } or nil }   -- how they left (days before the faces have none)
     elseif k == "tip" then
       local f = fields(val)
       if D.SEG[f[2]] and D.ING[f[3]] then tips[#tips + 1] = { day = tonumber(f[1]) or 1, seg = f[2], ing = f[3], combo = f[4] ~= "" and f[4] or nil } end
@@ -836,6 +837,7 @@ local function endDay()
 end
 local function updateDay(dt)
   local a = anim
+  if a.paused then return end
   local k = SALA.pace(a, D.DAY_SECONDS)
   -- small steps, so a fast day does not jump through walls
   local left = math.min(dt, .1) * a.speed * k
@@ -964,6 +966,19 @@ local function drawHistTop()
       col(H[k].p >= 0 and C.good or C.bad)
       love.graphics.rectangle("fill", x0 + (k - from) * bw, H[k].p >= 0 and y0 - h or y0 + 1, bw - 2, h)
     end
+    -- how they left, over the kept days (days before the faces have none)
+    local tot, any = { 0, 0, 0 }, false
+    for _, h in ipairs(H) do if h.f then any = true; for i = 1, 3 do tot[i] = tot[i] + h.f[i] end end end
+    if any then
+      local all = math.max(1, tot[1] + tot[2] + tot[3])
+      local x = 8
+      text(t("face.title"), x, 140, "tiny", C.dim); x = x + fw("tiny", t("face.title")) + 10
+      for k, key in ipairs({ "good", "meh", "bad" }) do
+        SALA.face(key, x + 5, 138)
+        local s = math.floor(tot[k] / all * 100 + .5) .. "% " .. t("face." .. key)
+        text(s, x + 13, 140, "tiny", C.cream); x = x + 13 + fw("tiny", s) + 12
+      end
+    end
     -- day by day, the newest first
     local cols = { 8, 60, 120, 190 }
     local y = 162
@@ -999,8 +1014,9 @@ local function drawDayBottom()
   drawRoomBottom()
   if anim then   -- on the back wall, out of the people's way
     local x = 4
-    for _, v in ipairs({ 1, 2, 4 }) do
-      x = plateBtn("x" .. v, x, 2, function() anim.speed = v end, 28, 14, anim.speed == v) + 4
+    x = plateBtn(P.upper(t(anim.paused and "run.resume" or "run.pause")), x, 2, function() anim.paused = not anim.paused end, nil, 14, anim.paused) + 4
+    for _, v in ipairs({ 1, 2, 4 }) do   -- a speed button also resumes
+      x = plateBtn("x" .. v, x, 2, function() anim.speed = v; anim.paused = false end, 28, 14, anim.speed == v and not anim.paused) + 4
     end
     plateBtn(P.upper(t("run.skip")), x, 2, skipDay)
   else
@@ -1022,7 +1038,6 @@ local function drawReportTop()
     { t("rep.rival", { x = S.rival.name }), tostring(res.toRival) },
     { t("rep.full"), tostring(res.full) },
     { t("rep.noseat"), tostring(res.noseat) },
-    { t("rep.happy"), res.happy .. " / " .. res.unhappy },
   }
   local money = {
     { t("rep.revenue"), P.eur(res.revenue) },
@@ -1040,13 +1055,24 @@ local function drawReportTop()
     local y = 60 + (k - 1) * (#money > 5 and 13 or 15)
     text(row[1], 208, y, "small", row[3] or C.cream); text(row[2], 208, y, "small", row[3] or C.cream, "right", 186)
   end
+  -- how they left: the three faces with their counts, and why the unhappy ones were (as facesHTML() in index.html)
+  local fc = { res.happy, res.meh or 0, (res.sad or 0) + res.full + res.noseat + (res.nostock or 0) }
+  local x = 8
+  text(t("face.title"), x, 142, "tiny", C.dim)
+  x = x + fw("tiny", t("face.title")) + 10
+  for k, key in ipairs({ "good", "meh", "bad" }) do
+    SALA.face(key, x + 5, 140)
+    local s = fc[k] .. " " .. t("face." .. key)
+    text(s, x + 13, 142, "tiny", C.cream); x = x + 13 + fw("tiny", s) + 12
+  end
+  if fc[3] > 0 then text(fitText(t("face.why", { f = res.sad or 0, g = fc[3] - (res.sad or 0) }), "tiny", 384), 8, 153, "tiny", C.dim) end
   local f = function(v) local s = string.format("%.2f", v); return P.lang() == "pt" and s:gsub("%.", ",") or s end
-  text(t("rep.rep") .. ": " .. f(r.repBefore) .. " -> " .. f(r.repAfter) .. "*", 8, 140, "small", C.gold)
+  text(t("rep.rep") .. ": " .. f(r.repBefore) .. " -> " .. f(r.repAfter) .. "*", 8, 164, "small", C.gold)
   local w = P.week(S.day)
   local wk = t("wk.ing", { x = P.ingName(w.ing) }) .. "  " .. t("wk.low", { x = P.ingName(w.low) }) .. "  " ..
     t("wk.combo", { x = t("combo." .. w.combo), r = G.comboReq(w.combo) })
-  col(hex("#4a260f")); love.graphics.rectangle("fill", 6, 158, 388, 50)
-  text(wk, 10, 161, "tiny", C.combo, "left", 380)
+  col(hex("#4a260f")); love.graphics.rectangle("fill", 6, 180, 388, 36)
+  text(wk, 10, 181, "tiny", C.combo, "left", 380)
   text(l3("rkeys"), 0, 220, "tiny", C.dim, "center", 400)
 end
 local function closeReport()
@@ -1602,8 +1628,9 @@ local function otherButton(b)
   if S.tab == "day" then
     if anim then
       if b == "a" then skipDay()
-      elseif b == "dpleft" then anim.speed = math.max(1, anim.speed / 2)
-      elseif b == "dpright" then anim.speed = math.min(4, anim.speed * 2) end
+      elseif b == "b" then anim.paused = not anim.paused   -- the clock stops; the room is still drawn
+      elseif b == "dpleft" then anim.speed = math.max(1, anim.speed / 2); anim.paused = false
+      elseif b == "dpright" then anim.speed = math.min(4, anim.speed * 2); anim.paused = false end
     elseif b == "a" then startDay()
     elseif b == "y" then histOn = not histOn
     else navButton(b) end
