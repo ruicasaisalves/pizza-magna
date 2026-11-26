@@ -137,7 +137,7 @@ function M.step(a, dt, S, DS, eur, colors)
         if p.e.target == "ours" then
           local o = p.e.out
           if o == "full" or o == "noseat" or o == "nostock" then
-            a.cnt.left = a.cnt.left + 1; p.st = "leave"; p.path = { { x = p.x < RW / 2 and -T or RW + T, y = p.y } }
+            a.cnt.left = a.cnt.left + 1; a.faces.bad = a.faces.bad + 1; p.st = "leave"; p.path = { { x = p.x < RW / 2 and -T or RW + T, y = p.y } }
           else p.st = "queue"; p.spot = nil end
         else
           if p.e.target == "rival" then a.cnt.rival = a.cnt.rival + 1 end
@@ -155,6 +155,7 @@ function M.step(a, dt, S, DS, eur, colors)
         local h = p.e.out == "happy"
         bubble(a, p.x + 16, p.y - 44, "+" .. eur(p.e.price or 0), h and colors.good or colors.combo)
         local s = p.seat; s.occ = nil; p.st = "exit"
+        local fk = M.faceOf(p); a.faces[fk] = a.faces[fk] + 1
         p.path = bfs({ s.s.cx, s.s.cy }, { R.DOOR[1], R.STREET_ROW })
         p.path[#p.path + 1] = { x = math.random() < .5 and -T or RW + T, y = R.STREET_ROW * T }
       end
@@ -243,7 +244,7 @@ function M.face(k, cx, top)   -- also in the report and the history
   elseif k == "meh" then love.graphics.rectangle("fill", cx - 2, top + 7, 4, 1)
   else love.graphics.rectangle("fill", cx - 1, top + 6, 2, 1); love.graphics.rectangle("fill", cx - 2, top + 7, 1, 1); love.graphics.rectangle("fill", cx + 1, top + 7, 1, 1) end
 end
-local function faceOf(p)
+function M.faceOf(p)
   if p.st == "leave" or p.e.face == "bad" then return "bad" end
   return p.e.out == "happy" and "good" or "meh"
 end
@@ -298,7 +299,7 @@ function M.draw(a, sc, S)
   if a and a.dusk then love.graphics.setColor(30 / 255, 22 / 255, 70 / 255, .4 * a.dusk); love.graphics.rectangle("fill", 0, 0, 320, 240) end
   if a then
     for _, p in ipairs(sc.people) do
-      if p.st == "exit" or p.st == "leave" then M.face(faceOf(p), hx(p.x + 16), hy(p.y) - 26) end
+      if p.st == "exit" or p.st == "leave" then M.face(M.faceOf(p), hx(p.x + 16), hy(p.y) - 26) end
     end
   end
 end
