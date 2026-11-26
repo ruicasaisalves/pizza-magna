@@ -20,20 +20,20 @@ Everything the itch.io page needs. The images are made by `node itch/make_media.
 
 ## Colours (Theme editor)
 
-The same palette the game uses, so the page and the game feel like one thing. itch.io names some of these fields a little differently; use the nearest one.
+The Azulejo palette (since November 2026; it replaced the brown and brass one): white tiles on Portuguese blue, with the tomato red of the game for the button, so the game's warm screenshots stand out on a cool page. itch.io names some of these fields a little differently; use the nearest one.
 
 | Field | Colour | |
 |---|---|---|
-| Background colour (page) | `#2A1407` | wood, darkest |
-| Content / widget background | `#4A260F` | dark wood |
-| Text | `#F3E6C6` | parchment |
-| Link | `#FBE39A` | pale brass |
-| Button | `#C4352A` | tomato red |
+| Background colour (page) | `#1E4C8F` | azulejo blue |
+| Content / widget background | `#F4F7FB` | tile white |
+| Text | `#1B2A44` | ink navy |
+| Link | `#1E4C8F` | azulejo blue |
+| Button | `#D2402F` | tomato red |
 | Button text | `#FFF6E0` | cream |
-| Border | `#94661A` | brass |
-| Headings accent (if offered) | `#E3B34A` | brass |
+| Border | `#9DB7DD` | pale blue |
+| Headings accent (if offered) | `#1E4C8F` | azulejo blue |
 
-Fonts: the section headings are pictures now, so the **text font must be a plain, readable one** (the page default, or Lato / Open Sans); a pixel font in capitals for the whole description is hard to read on a phone. Title font: a pixel one (Silkscreen or "Press Start 2P") if offered. Page width: leave at the default.
+Fonts: **title font Silkscreen** (titles and buttons), **body font Lato** (the description). A pixel font in capitals for the whole description is hard to read, and Pixelify Sans joins "fi" and "fl" into one glyph ("fill" reads "Ail") where the page's CSS can't turn it off. The section headings are pictures (`head-*.png`) in the same blues. Page width: leave at the default.
 
 ## Basics
 
