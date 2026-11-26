@@ -9,6 +9,7 @@
      On a PC (LÖVE 11/12) the window shows the top screen above the bottom one, and the mouse is the stylus. ]]
 local P = require("pizza")
 local G = require("day")
+local MUS = require("musica")   -- the browser game's tunes, recorded (tools/export_3ds_music.js)
 local D, A, t = P.D, P.A, P.t
 
 local CONSOLE = love._console ~= nil or love.system.getOS() == "Horizon" or love.system.getOS() == "3DS"
@@ -20,19 +21,21 @@ local L3 = {
          keys2 = "A cut   X turn   B undo   Y clear   SELECT next screen   START quit",
          mkeys1 = "Up/Down pizza   </> price   A edit   X rename   Y remove",
          nav = "L/R or SELECT other screens   START quit", rename = "RENAME",
-         dkeys = "A open the doors", drun = "</> speed   A skip to closing", rkeys = "A continue",
+         dkeys = "A open the doors", drun = "</> speed   B pause   A skip to closing", rkeys = "A continue",
          ckeys = "Up/Down pizza   A enter it", skeys = "Up/Down choose   A buy / choose   touch: hire, let go, bank",
          hkeys = "Y sales history", hback = "Y back to the day",
          citykeys = "D-pad or map: move   A rent, buy, go   Y close, sell   X zoom",
+         mkeys = "A music on/off   </> volume   X next song",
          },
   pt = { keys1 = "</> ingrediente   L/R grupo   Cima massa   Baixo molho",
          keys2 = "A picar   X rodar   B desfazer   Y limpar   SELECT ecrã seguinte   START sair",
          mkeys1 = "Cima/Baixo pizza   </> preço   A editar   X nome   Y remover",
          nav = "L/R ou SELECT outros ecrãs   START sair", rename = "MUDAR NOME",
-         dkeys = "A abrir portas", drun = "</> velocidade   A saltar para o fecho", rkeys = "A continuar",
+         dkeys = "A abrir portas", drun = "</> velocidade   B pausa   A saltar para o fecho", rkeys = "A continuar",
          ckeys = "Cima/Baixo pizza   A inscrever", skeys = "Cima/Baixo escolher   A comprar / escolher   toque: contratar, dispensar, banco",
          hkeys = "Y histórico de vendas", hback = "Y voltar ao dia",
          citykeys = "Cruz ou mapa: mover   A arrendar, comprar, ir   Y fechar, vender   X zoom",
+         mkeys = "A música sim/não   </> volume   X música seguinte",
          },
 }
 local function l3(k) return L3[P.lang()][k] end
@@ -105,6 +108,7 @@ local function save()
     "name=" .. (S.name or ""), "editing=" .. (S.editing or ""), "tab=" .. S.tab, "msel=" .. S.msel, "nextid=" .. S.nextId, "menu=1",
     "day=" .. S.day, "money=" .. string.format("%.2f", S.money), "rep=" .. string.format("%.4f", S.rep), "ovens=" .. S.ovens,
     "loan=" .. string.format("%.2f", S.loan or 0), "candday=" .. (S.candDay or ""), "ads=" .. (S.ads and 1 or 0), "supplier=" .. S.supplier, "entry=" .. (S.contestEntry or ""),
+    "music=" .. (MUS.on and 1 or 0), "musvol=" .. MUS.vol,
     "studyweek=" .. S.studyWeek, "over=" .. (S.over and 1 or 0), "goal=" .. (S.goalDone and 1 or 0),
     "rival=" .. table.concat({ S.rival.name, S.rival.q, string.format("%.2f", S.rival.price), S.rival.promo and 1 or 0 }, "\t"),
   }
@@ -123,7 +127,7 @@ local function save()
     for _, x in ipairs(l[2]) do lines[#lines + 1] = l[1] .. "=" .. table.concat({ x.id, x.n, x.r, x.sp, x.sk, x.w, x.v }, "\t") end
   end
   for _, h in ipairs(S.hist) do
-    lines[#lines + 1] = "hist=" .. table.concat({ h.d, h.n, h.N, h.rv, string.format("%.2f", h.p), string.format("%.2f", h.v), string.format("%.2f", h.r), (h.top or ""):gsub("[\t\n]", " "), h.topN or 0 }, "\t")
+    lines[#lines + 1] = "hist=" .. table.concat({ h.d, h.n, h.N, h.rv, string.format("%.2f", h.p), string.format("%.2f", h.v), string.format("%.2f", h.r), (h.top or ""):gsub("[\t\n]", " "), h.topN or 0, h.f and h.f[1] or "", h.f and h.f[2] or "", h.f and h.f[3] or "" }, "\t")
   end
   for _, c in ipairs(S.contestLog) do lines[#lines + 1] = "ctlog=" .. table.concat({ c.day, c.theme, c.pizza, c.pos, c.prize }, "\t") end
   for _, x in ipairs(S.tips) do lines[#lines + 1] = "tip=" .. table.concat({ x.day, x.seg, x.ing, x.combo or "" }, "\t") end
@@ -157,7 +161,8 @@ local function load()
     elseif k == "hist" then
       local f = fields(val)
       local n = function(i) return tonumber(f[i]) or 0 end
-      hist[#hist + 1] = { d = n(1), n = n(2), N = n(3), rv = n(4), p = n(5), v = n(6), r = n(7), top = f[8] or "", topN = n(9) }
+      hist[#hist + 1] = { d = n(1), n = n(2), N = n(3), rv = n(4), p = n(5), v = n(6), r = n(7), top = f[8] or "", topN = n(9),
+        f = (f[10] or "") ~= "" and { n(10), n(11), n(12) } or nil }   -- how they left (days before the faces have none)
     elseif k == "tip" then
       local f = fields(val)
       if D.SEG[f[2]] and D.ING[f[3]] then tips[#tips + 1] = { day = tonumber(f[1]) or 1, seg = f[2], ing = f[3], combo = f[4] ~= "" and f[4] or nil } end
@@ -176,6 +181,7 @@ local function load()
   if v.name and v.name ~= "" then S.name = v.name end
   if v.editing and v.editing ~= "" then S.editing = v.editing end
   if v.tab then S.tab = v.tab end
+  MUS.init(v.music ~= "0", v.musvol)   -- music on unless turned off; the first tune a minute after the start
   S.msel = tonumber(v.msel) or 1
   S.nextId = tonumber(v.nextid) or 1
   if v.day then   -- saves from before the restaurant start a new game in load (S.day stays nil)
@@ -818,14 +824,13 @@ end
 local drawTopScreen
 
 -- ---------------------------------------------------------------- the day: open the doors, the street, the report
-local SEGC = {}
-for _, k in ipairs(D.SEG_ORDER) do SEGC[k] = hex(D.SEG[k].col) end
-local DOOR_OURS, DOOR_RIVAL, WALK = 86, 238, 70   -- door positions in the street, walking speed (px/s at x1)
+local SALA = require("sala")   -- the dining room on the touch screen (as the browser's day)
+local idleScene   -- the room before the doors open: the staff in their places
 local function startDay()
   if anim or report then return end
   if #S.menu == 0 then toast(t("ct.need")); return end
-  syncWorld(); histOn = false
-  anim = { res = G.simulateDay(S), t = 0, speed = 1, idx = 1, cnt = { served = 0, rival = 0, left = 0, rev = 0 }, walkers = {}, bubbles = {} }
+  syncWorld(); histOn = false; idleScene = nil
+  anim = { res = G.simulateDay(S), t = 0, speed = 1, idx = 1, cnt = { served = 0, rival = 0, left = 0, rev = 0 }, faces = { good = 0, meh = 0, bad = 0 }, bubbles = {}, sc = SALA.scene(S, G) }
 end
 local function endDay()
   local a = anim
@@ -833,45 +838,16 @@ local function endDay()
   report = G.finishDay(S, a.res)
   syncWorld(); save()
 end
-local function arrive(w)   -- a customer reaches a door: the counters move then
-  local e, c = w.e, anim.cnt
-  if e.target == "ours" then
-    if e.out == "happy" or e.out == "meh" then
-      c.served = c.served + 1; c.rev = c.rev + e.price
-      anim.bubbles[#anim.bubbles + 1] = { x = w.x, y = 150, s = "+" .. P.eur(e.price), c = e.out == "happy" and C.good or C.combo, life = 1.2 }
-    else
-      c.left = c.left + 1
-      anim.bubbles[#anim.bubbles + 1] = { x = w.x, y = 150, s = "x", c = C.bad, life = 1.2 }
-    end
-  elseif e.target == "rival" then c.rival = c.rival + 1 end
-end
 local function updateDay(dt)
   local a = anim
-  local DS = D.DAY_SECONDS
-  a.t = a.t + dt * a.speed
-  local ev = a.res.events
-  while ev[a.idx] and ev[a.idx].t * DS <= a.t do   -- a new customer comes down the street, from either side
-    local e = ev[a.idx]
-    local left = math.random() < .5
-    local tx = e.target == "ours" and DOOR_OURS or e.target == "rival" and DOOR_RIVAL or (left and 340 or -20)
-    a.walkers[#a.walkers + 1] = { e = e, x = left and -8 or 328, y = 178 + math.random() * 14, tx = tx, step = 0 }
-    a.idx = a.idx + 1
+  if a.paused then return end
+  local k = SALA.pace(a, D.DAY_SECONDS)
+  -- small steps, so a fast day does not jump through walls
+  local left = math.min(dt, .1) * a.speed * k
+  while left > 0 do
+    local d = math.min(left, .05); left = left - d
+    if SALA.step(a, d, S, D.DAY_SECONDS, P.eur, C) then endDay(); return end
   end
-  for k = #a.walkers, 1, -1 do
-    local w = a.walkers[k]
-    local d = WALK * dt * a.speed
-    w.step = w.step + d
-    if math.abs(w.tx - w.x) <= d then
-      if w.e.target ~= "none" then arrive(w) end
-      table.remove(a.walkers, k)
-    else w.x = w.x + (w.tx > w.x and d or -d) end
-  end
-  for k = #a.bubbles, 1, -1 do
-    local b = a.bubbles[k]
-    b.life = b.life - dt * a.speed; b.y = b.y - dt * a.speed * 14
-    if b.life <= 0 then table.remove(a.bubbles, k) end
-  end
-  if a.idx > #ev and #a.walkers == 0 and a.t >= DS * .92 then endDay() end
 end
 local function skipDay()
   if not anim then return end
@@ -889,7 +865,7 @@ local function lcdRows()
   return {
     { t("lcd.day") .. " " .. S.day .. " " .. P.upper(G.weekday(S.day)), clock },
     { t("lcd.pop"), rep .. "/5" },
-    { a and t("lcd.street") or t("lcd.exp"), a and tostring(#a.res.events - a.idx + 1 + #a.walkers) or ("~" .. G.expected(S)) },
+    { a and t("lcd.street") or t("lcd.exp"), a and tostring(#a.res.events - a.idx + 1 + #a.sc.people) or ("~" .. G.expected(S)) },
     { t("lcd.served"), tostring(c.served) },
     { t("lcd.rival"), tostring(c.rival) },
     { t("lcd.left"), tostring(c.left) },
@@ -904,62 +880,6 @@ local function lcdRows()
     { t("lcd.rev"), P.eur(c.rev) },
     { t("lcd.cash"), P.eur(S.money) },
   }
-end
-local function drawDayTop()
-  col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
-  drawHeader()
-  -- the LCD
-  col(hex("#2a1407")); love.graphics.rectangle("fill", 4, 22, 196, 178)
-  col(hex("#081008")); love.graphics.rectangle("fill", 6, 24, 192, 174)
-  local y = 27
-  for _, r in ipairs(lcdRows()) do
-    if r then
-      text(fitText(r[1], "tiny", 130), 10, y, "tiny", C.lcd)
-      text(r[2], 10, y, "tiny", C.lcd, "right", 184)
-      y = y + 10
-    else
-      col(C.lcd, .35); love.graphics.rectangle("fill", 10, y + 4, 184, 1); y = y + 9
-    end
-  end
-  -- right: contest today, news, the manager's notes
-  local x, w = 206, 190
-  y = 22
-  if S.day % 5 == 0 then
-    local entry
-    for _, p in ipairs(S.menu) do if p.id == S.contestEntry then entry = p end end
-    local s = "> " .. t("day.ban", { x = P.upper(t("th." .. G.themeFor(S.day))) }) .. " " ..
-      (entry and t("day.ban.in", { p = P.upper(entry.name) }) or t("day.ban.none"))
-    col(hex("#4a260f")); love.graphics.rectangle("fill", x - 2, y, w + 4, 38)
-    text(s, x + 2, y + 2, "tiny", C.combo, "left", w - 4)
-    y = y + 42
-  end
-  text(t("day.news"), x, y, "small", C.gold); y = y + 15
-  local notes = {}
-  if D.ROOM.seats * 3 < G.expected(S) then notes[#notes + 1] = t("day.seats") end
-  if math.min(G.capacity(S), G.serviceCap(S)) < G.expected(S) * .6 then notes[#notes + 1] = t("day.queue") end
-  local lines = {}
-  for _, n in ipairs(S.news) do lines[#lines + 1] = { G.newsText(n), C.cream } end
-  for _, n in ipairs(notes) do table.insert(lines, 1, { t("day.warn") .. ": " .. n, C.bad }) end
-  local F = fonts.tiny
-  for _, l in ipairs(lines) do
-    local _, wrapped = F.f:getWrap(l[1], (w - 4) / F.s)
-    local h = #wrapped * F.f:getHeight() * F.s
-    if y + h > 200 then break end
-    text(l[1], x, y, "tiny", l[2], "left", w - 4)
-    y = y + h + 3
-  end
-  -- who the colours are, centred under both columns
-  local lw = 0
-  for _, k in ipairs(D.SEG_ORDER) do lw = lw + 20 + fw("tiny", t("seg." .. k)) end
-  local lx = math.floor(200 - lw / 2)
-  for _, k in ipairs(D.SEG_ORDER) do
-    col(SEGC[k]); love.graphics.rectangle("fill", lx, 205, 6, 6)
-    local s = t("seg." .. k)
-    text(s, lx + 9, 203, "tiny", C.dim)
-    lx = lx + 20 + fw("tiny", s)
-  end
-  text(anim and l3("drun") or (l3("dkeys") .. "   " .. l3("hkeys")), 0, 214, "tiny", C.dim, "center", 400)
-  text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
 end
 
 -- the sales history (as Menu › Sales history in the browser game): totals, profit by day, the last days
@@ -993,6 +913,19 @@ local function drawHistTop()
       col(H[k].p >= 0 and C.good or C.bad)
       love.graphics.rectangle("fill", x0 + (k - from) * bw, H[k].p >= 0 and y0 - h or y0 + 1, bw - 2, h)
     end
+    -- how they left, over the kept days (days before the faces have none)
+    local tot, any = { 0, 0, 0 }, false
+    for _, h in ipairs(H) do if h.f then any = true; for i = 1, 3 do tot[i] = tot[i] + h.f[i] end end end
+    if any then
+      local all = math.max(1, tot[1] + tot[2] + tot[3])
+      local x = 8
+      text(t("face.title"), x, 140, "tiny", C.dim); x = x + fw("tiny", t("face.title")) + 10
+      for k, key in ipairs({ "good", "meh", "bad" }) do
+        SALA.face(key, x + 5, 138)
+        local s = math.floor(tot[k] / all * 100 + .5) .. "% " .. t("face." .. key)
+        text(s, x + 13, 140, "tiny", C.cream); x = x + 13 + fw("tiny", s) + 12
+      end
+    end
     -- day by day, the newest first
     local cols = { 8, 60, 120, 190 }
     local y = 162
@@ -1008,51 +941,116 @@ local function drawHistTop()
   text(l3("hback") .. "   " .. l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
 end
 
--- the street: our pizzeria and the rival's, and the people walking by
-local function shopFront(x, w, name, wall, awning, sign)
-  col(wall); love.graphics.rectangle("fill", x, 46, w, 124)
-  for k = 0, 5 do col(k % 2 == 0 and awning or hex("#f6e7c8")); love.graphics.rectangle("fill", x + k * w / 6, 70, w / 6, 12) end
-  col(hex("#1a0d05")); love.graphics.rectangle("fill", x + 8, 50, w - 16, 16)
-  text(fitText(P.upper(name), "tiny", w - 20), x + 8, 53, "tiny", sign, "center", w - 16)
-  col(hex("#9fd3e8")); love.graphics.rectangle("fill", x + 8, 94, 34, 34); love.graphics.rectangle("fill", x + w - 42, 94, 34, 34)
-  col(hex("#3a2213")); love.graphics.rectangle("fill", x + w / 2 - 12, 128, 24, 42)
-  col(C.gold); love.graphics.rectangle("fill", x + w / 2 + 6, 148, 3, 3)
-end
-local function drawStreet()
-  col(hex("#7fb6d6")); love.graphics.rectangle("fill", 0, 0, 320, 170)
-  col(hex("#a7c9de")); love.graphics.rectangle("fill", 0, 0, 320, 20)
-  shopFront(DOOR_OURS - 66, 132, G.shopName(S), hex("#c96f3b"), hex("#2f8f4e"), C.gold)
-  shopFront(DOOR_RIVAL - 60, 120, S.rival.name, hex("#8d8f96"), hex("#c4352a"), hex("#ff8a6a"))
-  col(hex("#b9a58a")); love.graphics.rectangle("fill", 0, 170, 320, 30)
-  col(hex("#9c8a72")); for x = 0, 320, 20 do love.graphics.rectangle("fill", x, 170, 1, 30) end
-  col(hex("#4a4a50")); love.graphics.rectangle("fill", 0, 200, 320, 24)
-  col(hex("#d9d9d9")); for x = 4, 320, 28 do love.graphics.rectangle("fill", x, 211, 14, 2) end
-  if not anim then return end
-  table.sort(anim.walkers, function(a, b) return a.y < b.y end)
-  for _, w in ipairs(anim.walkers) do   -- a little person: legs that step, body in the group's colour, head
-    local x, y = math.floor(w.x), math.floor(w.y)
-    local leg = math.floor(w.step / 4) % 2
-    col(hex("#2a1a10")); love.graphics.rectangle("fill", x - 2, y - 4, 2, 4 - leg); love.graphics.rectangle("fill", x + 1, y - 4, 2, 3 + leg)
-    col(SEGC[w.e.seg]); love.graphics.rectangle("fill", x - 3, y - 12, 7, 8)
-    col(hex("#f1c7a0")); love.graphics.rectangle("fill", x - 2, y - 17, 5, 5)
-    col(hex("#2b1b10")); love.graphics.rectangle("fill", x - 2, y - 18, 5, 2)
+-- the day: the dining room on the top screen (sala.lua, 320 wide, centred), with the clock and the takings on the
+-- left and how customers left on the right; the LCD, the news and the buttons on the touch screen
+local function drawDayTop()
+  col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
+  if not anim and not idleScene then idleScene = SALA.scene(S, G) end
+  love.graphics.push(); love.graphics.translate(40, 0)
+  SALA.draw(anim, anim and anim.sc or idleScene, S)
+  local lbl = P.upper(S.rival.name) .. " >"
+  local w = fw("tiny", lbl) + 8
+  col(hex("#120a04", .75)); love.graphics.rectangle("fill", 316 - w, 225, w, 13)
+  text(lbl, 316 - w, 227, "tiny", hex("#ffcf4a"), "center", w)
+  if anim then
+    for _, b in ipairs(anim.bubbles) do
+      local bw = fw("tiny", b.s) + 6
+      local x = math.max(2, math.min(318 - bw, b.x - bw / 2))
+      col(hex("#000000", .7)); love.graphics.rectangle("fill", x, math.max(20, b.y), bw, 12)
+      text(b.s, x, math.max(20, b.y) + 1, "tiny", b.c, "center", bw)
+    end
+    if anim.paused then
+      local s = P.upper(t("run.pause"))
+      local pw = fw("small", s) + 16
+      col(hex("#120a04", .8)); love.graphics.rectangle("fill", 160 - pw / 2, 110, pw, 20)
+      text(s, 160 - pw / 2, 113, "small", C.gold, "center", pw)
+    end
   end
-  for _, b in ipairs(anim.bubbles) do
-    local w = fw("tiny", b.s) + 6
-    col(hex("#000000", .7)); love.graphics.rectangle("fill", b.x - w / 2, b.y, w, 12)
-    text(b.s, b.x - w / 2, b.y + 1, "tiny", b.c, "center", w)
+  love.graphics.pop()
+  -- the side strips: day and clock, takings; the faces so far
+  local rows = lcdRows()
+  col(hex("#2a1407")); love.graphics.rectangle("fill", 0, 18, 40, 222); love.graphics.rectangle("fill", 360, 18, 40, 222)
+  text(t("lcd.day"), 0, 26, "tiny", C.dim, "center", 40)
+  text(tostring(S.day), 0, 36, "small", C.cream, "center", 40)
+  text(rows[1][2], 0, 54, "tiny", C.lcd, "center", 40)
+  if anim then
+    text("$", 0, 76, "tiny", C.dim, "center", 40)
+    text(fitText(P.eur(anim.cnt.rev):gsub("%.%d+$", ""), "tiny", 38), 0, 86, "tiny", C.good, "center", 40)
+    for k, key in ipairs({ "good", "meh", "bad" }) do
+      local y = 30 + (k - 1) * 30
+      SALA.face(key, 380, y)
+      text(tostring(anim.faces[key]), 360, y + 13, "tiny", C.cream, "center", 40)
+    end
   end
+  -- the header on top, see-through over the back wall
+  col(C.panel, .85); love.graphics.rectangle("fill", 0, 0, 400, 18)
+  local x = 6
+  for _, tb in ipairs(TABS) do
+    local s = P.upper(t(TAB_KEY[tb]))
+    local on = tb == S.tab
+    text(s, x, 4, "tiny", on and C.gold or C.dim)
+    if on then col(C.gold); love.graphics.rectangle("fill", x, 15, fw("tiny", s), 1) end
+    x = x + fw("tiny", s) + 9
+  end
+  text(P.eur(S.money) .. "   " .. stars(S.rep), 200, 3, "small", S.money < 0 and C.bad or C.cream, "right", 194)
 end
 local function drawDayBottom()
-  drawStreet()
-  if anim then
-    local x = 4
-    for _, v in ipairs({ 1, 2, 4 }) do
-      x = plateBtn("x" .. v, x, 224, function() anim.speed = v end, 28, 14, anim.speed == v) + 4
+  col(C.bg); love.graphics.rectangle("fill", 0, 0, 320, 240)
+  -- the LCD
+  col(hex("#2a1407")); love.graphics.rectangle("fill", 2, 2, 156, 172)
+  col(hex("#081008")); love.graphics.rectangle("fill", 4, 4, 152, 168)
+  local y = 7
+  for _, r in ipairs(lcdRows()) do
+    if r then
+      text(fitText(r[1], "tiny", 96), 7, y, "tiny", C.lcd)
+      text(r[2], 7, y, "tiny", C.lcd, "right", 146)
+      y = y + 10
+    else
+      col(C.lcd, .35); love.graphics.rectangle("fill", 7, y + 4, 146, 1); y = y + 9
     end
-    plateBtn(P.upper(t("run.skip")), x, 224, skipDay)
+  end
+  -- right: contest today, news, the manager's notes
+  local x, w = 164, 152
+  y = 2
+  if S.day % 5 == 0 then
+    local entry
+    for _, p in ipairs(S.menu) do if p.id == S.contestEntry then entry = p end end
+    local s = "> " .. t("day.ban", { x = P.upper(t("th." .. G.themeFor(S.day))) }) .. " " ..
+      (entry and t("day.ban.in", { p = P.upper(entry.name) }) or t("day.ban.none"))
+    local F = fonts.tiny
+    local _, wr = F.f:getWrap(s, (w - 4) / F.s)
+    local h = #wr * F.f:getHeight() * F.s + 4
+    col(hex("#4a260f")); love.graphics.rectangle("fill", x - 2, y, w + 4, h)
+    text(s, x + 2, y + 2, "tiny", C.combo, "left", w - 4)
+    y = y + h + 4
+  end
+  text(t("day.news"), x, y, "small", C.gold); y = y + 15
+  local notes = {}
+  if D.ROOM.seats * 3 < G.expected(S) then notes[#notes + 1] = t("day.seats") end
+  if math.min(G.capacity(S), G.serviceCap(S)) < G.expected(S) * .6 then notes[#notes + 1] = t("day.queue") end
+  local lines = {}
+  for _, n in ipairs(S.news) do lines[#lines + 1] = { G.newsText(n), C.cream } end
+  for _, n in ipairs(notes) do table.insert(lines, 1, { t("day.warn") .. ": " .. n, C.bad }) end
+  local F = fonts.tiny
+  for _, l in ipairs(lines) do
+    local _, wrapped = F.f:getWrap(l[1], (w - 4) / F.s)
+    local h = #wrapped * F.f:getHeight() * F.s
+    if y + h > 176 then break end
+    text(l[1], x, y, "tiny", l[2], "left", w - 4)
+    y = y + h + 3
+  end
+  text(anim and l3("drun") or (l3("dkeys") .. "   " .. l3("hkeys")), 0, 180, "tiny", C.dim, "center", 320)
+  if anim then
+    local bx = 6
+    bx = plateBtn(P.upper(t(anim.paused and "run.resume" or "run.pause")), bx, 196, function() anim.paused = not anim.paused end, nil, 22, anim.paused) + 6
+    for _, v in ipairs({ 1, 2, 4 }) do   -- a speed button also resumes
+      bx = plateBtn("x" .. v, bx, 196, function() anim.speed = v; anim.paused = false end, 34, 22, anim.speed == v and not anim.paused) + 6
+    end
+    plateBtn(P.upper(t("run.skip")), bx, 196, skipDay, 314 - bx, 22)
+    text(l3("nav"), 0, 226, "tiny", C.dim, "center", 320)
   else
-    plateBtn(fitText(P.upper(t("day.open", { d = S.day })), "tiny", 300), 20, 196, startDay, 280, 24)
+    plateBtn(fitText(P.upper(t("day.open", { d = S.day })), "tiny", 300), 20, 194, startDay, 280, 24)
+    text(l3("nav"), 0, 226, "tiny", C.dim, "left", 260)
     langBtn()
   end
 end
@@ -1070,7 +1068,6 @@ local function drawReportTop()
     { t("rep.rival", { x = S.rival.name }), tostring(res.toRival) },
     { t("rep.full"), tostring(res.full) },
     { t("rep.noseat"), tostring(res.noseat) },
-    { t("rep.happy"), res.happy .. " / " .. res.unhappy },
   }
   local money = {
     { t("rep.revenue"), P.eur(res.revenue) },
@@ -1088,13 +1085,24 @@ local function drawReportTop()
     local y = 60 + (k - 1) * (#money > 5 and 13 or 15)
     text(row[1], 208, y, "small", row[3] or C.cream); text(row[2], 208, y, "small", row[3] or C.cream, "right", 186)
   end
+  -- how they left: the three faces with their counts, and why the unhappy ones were (as facesHTML() in index.html)
+  local fc = { res.happy, res.meh or 0, (res.sad or 0) + res.full + res.noseat + (res.nostock or 0) }
+  local x = 8
+  text(t("face.title"), x, 142, "tiny", C.dim)
+  x = x + fw("tiny", t("face.title")) + 10
+  for k, key in ipairs({ "good", "meh", "bad" }) do
+    SALA.face(key, x + 5, 140)
+    local s = fc[k] .. " " .. t("face." .. key)
+    text(s, x + 13, 142, "tiny", C.cream); x = x + 13 + fw("tiny", s) + 12
+  end
+  if fc[3] > 0 then text(fitText(t("face.why", { f = res.sad or 0, g = fc[3] - (res.sad or 0) }), "tiny", 384), 8, 153, "tiny", C.dim) end
   local f = function(v) local s = string.format("%.2f", v); return P.lang() == "pt" and s:gsub("%.", ",") or s end
-  text(t("rep.rep") .. ": " .. f(r.repBefore) .. " -> " .. f(r.repAfter) .. "*", 8, 140, "small", C.gold)
+  text(t("rep.rep") .. ": " .. f(r.repBefore) .. " -> " .. f(r.repAfter) .. "*", 8, 164, "small", C.gold)
   local w = P.week(S.day)
   local wk = t("wk.ing", { x = P.ingName(w.ing) }) .. "  " .. t("wk.low", { x = P.ingName(w.low) }) .. "  " ..
     t("wk.combo", { x = t("combo." .. w.combo), r = G.comboReq(w.combo) })
-  col(hex("#4a260f")); love.graphics.rectangle("fill", 6, 158, 388, 50)
-  text(wk, 10, 161, "tiny", C.combo, "left", 380)
+  col(hex("#4a260f")); love.graphics.rectangle("fill", 6, 180, 388, 36)
+  text(wk, 10, 181, "tiny", C.combo, "left", 380)
   text(l3("rkeys"), 0, 220, "tiny", C.dim, "center", 400)
 end
 local function closeReport()
@@ -1245,7 +1253,7 @@ local function drawContestBottom()
 end
 
 -- ---------------------------------------------------------------- the shop
-local SHOP_ROWS = { "oven", "team", "hire", "ads", "supplier", "study", "bank", "reset" }
+local SHOP_ROWS = { "oven", "team", "hire", "ads", "supplier", "study", "bank", "music", "reset" }
 local function shopItem(id) for _, it in ipairs(G.SHOP) do if it.id == id then return it end end end
 local function buyItem(it)
   if not it.ok(S) then return end
@@ -1272,6 +1280,7 @@ local function shopAction(id)
   if it then buyItem(it)
   elseif id == "supplier" then setSupplier(S.supplier % 3 + 1)
   elseif id == "study" then runStudy()
+  elseif id == "music" then MUS.setOn(not MUS.on); dirty = true
   elseif id == "reset" then resetGame() end
 end
 local function shopRow(id)   -- name, state, price
@@ -1282,6 +1291,9 @@ local function shopRow(id)   -- name, state, price
   if id == "team" then return t("staff.title"), t("staff.pay", { w = P.eur(G.wages(S)) }), "" end
   if id == "hire" then return t("staff.cands"), "", P.eur(D.HIRE_COST) end
   if id == "bank" then return t("bank.title"), t("bank.owe") .. " " .. P.eur(S.loan or 0), "" end
+  if id == "music" then
+    return t("mus.title"), MUS.on and (MUS.title() and t("mus.now", { x = MUS.title() }) or t("mus.waiting")) or t("mus.offlead"), t("mus.v" .. MUS.vol)
+  end
   return t("shop.reset"), "", ""
 end
 local function drawShopTop()
@@ -1290,16 +1302,16 @@ local function drawShopTop()
   text(fitText(t("shop.lead", { m = P.eur(S.money) }), "small", 388), 6, 21, "small", C.dim)
   S.ssel = math.max(1, math.min(S.ssel, #SHOP_ROWS))
   for k, id in ipairs(SHOP_ROWS) do
-    local y = 38 + (k - 1) * 21
+    local y = 37 + (k - 1) * 19
     local on = k == S.ssel
-    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, 19)
-    if on then pxRect(5, y - 1, 390, 21, C.gold) end
+    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, 17)
+    if on then pxRect(5, y - 1, 390, 19, C.gold) end
     local n, l, c = shopRow(id)
-    text(fitText(n, "small", 166), 12, y + 3, "small", id == "reset" and C.bad or C.cream)
-    text(fitText(l, "tiny", 150), 180, y + 4, "tiny", C.dim)
-    text(c, 12, y + 3, "small", C.gold, "right", 376)
+    text(fitText(n, "small", 166), 12, y + 2, "small", id == "reset" and C.bad or C.cream)
+    text(fitText(l, "tiny", 150), 180, y + 3, "tiny", C.dim)
+    text(c, 12, y + 2, "small", C.gold, "right", 376)
   end
-  text(l3("skeys"), 0, 214, "tiny", C.dim, "center", 400)
+  text(l3(SHOP_ROWS[S.ssel] == "music" and "mkeys" or "skeys"), 0, 214, "tiny", C.dim, "center", 400)
   text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
 end
 local function drawShopBottom()
@@ -1382,6 +1394,15 @@ local function drawShopBottom()
         local _, wr = fonts.tiny.f:getWrap("- " .. line, 300 / fonts.tiny.s)
         y = y + #wr * fonts.tiny.f:getHeight() * fonts.tiny.s + 2
       end
+    end
+  elseif id == "music" then   -- on / off, next song, the volume
+    text(fitText(MUS.on and (MUS.title() and t("mus.now", { x = MUS.title() }) or t("mus.waiting")) or t("mus.offlead"), "small", 300), 10, 30, "small", brown)
+    plateBtn(P.upper(t(MUS.on and "mus.off" or "mus.on")), 10, 52, function() MUS.setOn(not MUS.on); dirty = true end, 145, 24)
+    plateBtn(P.upper(t("mus.next")), 165, 52, function() MUS.on = true; MUS.play(); dirty = true end, 145, 24)
+    text(t("mus.vol"), 10, 90, "small", C.ink)
+    for v = 1, 5 do
+      local lv = v
+      plateBtn(P.upper(t("mus.v" .. v)), 10 + (v - 1) * 61, 108, function() MUS.setVol(lv); dirty = true end, 57, 22, MUS.vol == v)
     end
   else
     plateBtn(P.upper(isArmed("reset") and t("ts.sure") or t("shop.reset")), 10, 40, resetGame, 300, 24, true)
@@ -1650,8 +1671,9 @@ local function otherButton(b)
   if S.tab == "day" then
     if anim then
       if b == "a" then skipDay()
-      elseif b == "dpleft" then anim.speed = math.max(1, anim.speed / 2)
-      elseif b == "dpright" then anim.speed = math.min(4, anim.speed * 2) end
+      elseif b == "b" then anim.paused = not anim.paused   -- the clock stops; the room is still drawn
+      elseif b == "dpleft" then anim.speed = math.max(1, anim.speed / 2); anim.paused = false
+      elseif b == "dpright" then anim.speed = math.min(4, anim.speed * 2); anim.paused = false end
     elseif b == "a" then startDay()
     elseif b == "y" then histOn = not histOn
     else navButton(b) end
@@ -1672,6 +1694,8 @@ local function otherButton(b)
     if b == "dpup" then S.ssel = math.max(1, S.ssel - 1); armed = nil
     elseif b == "dpdown" then S.ssel = math.min(#SHOP_ROWS, S.ssel + 1); armed = nil
     elseif b == "a" then shopAction(SHOP_ROWS[S.ssel])
+    elseif SHOP_ROWS[S.ssel] == "music" and (b == "dpleft" or b == "dpright") then MUS.setVol(MUS.vol + (b == "dpleft" and -1 or 1)); dirty = true
+    elseif SHOP_ROWS[S.ssel] == "music" and b == "x" then MUS.on = true; MUS.play(); dirty = true
     else navButton(b) end
   end
 end
@@ -1745,6 +1769,7 @@ BOOT[#BOOT + 1] = { "fonts", function() fonts.tiny, fonts.small, fonts.body, fon
 for i = 1, A.pages do
   BOOT[#BOOT + 1] = { "texture " .. i .. "/" .. A.pages, function() pages[i] = love.graphics.newImage("gfx/atlas" .. i .. ".png") end }
 end
+BOOT[#BOOT + 1] = { "room", function() SALA.load() end }
 BOOT[#BOOT + 1] = { "save", function()
   math.randomseed(os.time())
   load()
@@ -1784,6 +1809,7 @@ function love.update(dt)
   if toasts[1] then toasts[1].time = toasts[1].time - dt; if toasts[1].time <= 0 then table.remove(toasts, 1) end end
   if armed then armed.time = armed.time - dt; if armed.time <= 0 then armed = nil end end
   if anim then updateDay(dt) end
+  MUS.update(dt)
   if dirty then saveTimer = saveTimer + dt; if saveTimer > 1 then save(); saveTimer = 0 end end
 end
 
