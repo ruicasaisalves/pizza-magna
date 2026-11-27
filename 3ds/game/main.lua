@@ -191,7 +191,7 @@ local function load()
   if v.name and v.name ~= "" then S.name = v.name end
   if v.editing and v.editing ~= "" then S.editing = v.editing end
   if v.tab then S.tab = v.tab end
-  MUS.init(v.music ~= "0", v.musvol)   -- music on unless turned off; the first tune a minute after the start
+  MUS.init(v.music ~= "0" and not CONSOLE, v.musvol)   -- music on unless turned off; on the console it starts off for now (a crash is being looked into: Shop › Music turns it on)
   S.msel = tonumber(v.msel) or 1
   S.nextId = tonumber(v.nextid) or 1
   if v.day then   -- saves from before the restaurant start a new game in load (S.day stays nil)
@@ -1319,7 +1319,8 @@ end
 local function drawShopTop()
   col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
   drawHeader()
-  text(fitText(t("shop.lead", { m = P.eur(S.money) }), "small", 388), 6, 21, "small", C.dim)
+  text(fitText(t("shop.lead", { m = P.eur(S.money) }), "small", 330), 6, 21, "small", C.dim)
+  text("v" .. (D.VERSION or "?"), 6, 23, "tiny", C.dim, "right", 388)   -- the build, for bug reports
   S.ssel = math.max(1, math.min(S.ssel, #SHOP_ROWS))
   for k, id in ipairs(SHOP_ROWS) do
     local y = 37 + (k - 1) * 17
@@ -1958,7 +1959,7 @@ end
 local function drawBoot()
   love.graphics.clear(0.1, 0.05, 0.02)
   love.graphics.setColor(1, 1, 1)
-  love.graphics.print("Pizza Magna", 10, 10)
+  love.graphics.print("Pizza Magna " .. (D.VERSION or ""), 10, 10)
   love.graphics.print("Loading: " .. BOOT[bootStep][1] .. " (" .. bootStep .. "/" .. #BOOT .. ")", 10, 30)
 end
 
@@ -1994,3 +1995,14 @@ function love.draw(screen)
 end
 
 function love.quit() if dirty then save() end end
+
+-- a Lua error is written to erro.txt in the save folder (next to save.txt) before LÖVE shows it, so it can be sent
+local function logged(f)
+  if not f then return nil end
+  return function(...)
+    local a, n = { ... }, select("#", ...)
+    local ok, err = xpcall(function() return f((table.unpack or unpack)(a, 1, n)) end, debug.traceback)
+    if not ok then pcall(love.filesystem.write, "erro.txt", "Pizza Magna " .. tostring(D.VERSION) .. "\n" .. tostring(err)); error(err, 0) end
+  end
+end
+for _, k in ipairs({ "update", "draw", "gamepadpressed", "gamepadreleased", "touchpressed", "touchmoved", "touchreleased", "keypressed", "mousepressed" }) do love[k] = logged(love[k]) end

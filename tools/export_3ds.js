@@ -41,6 +41,7 @@ const O=ctx.OUT;
 // the names are filled from I18N at runtime in the 3DS game; keep the data language-free
 for(const k in O.ING)delete O.ING[k].n;for(const k in O.DOUGHS)delete O.DOUGHS[k].n;for(const k in O.SAUCES)delete O.SAUCES[k].n;
 for(const k in O.SEG)delete O.SEG[k].n;for(const c of O.COMBOS){delete c.n;delete c.quote}
+O.VERSION=(html.match(/const VERSION='([^']+)'/)||[])[1]||'?';   // the build, shown on the 3DS (boot screen, Shop) so bug reports say which
 O.ING_ORDER=Object.keys(O.ING);O.DOUGH_ORDER=Object.keys(O.DOUGHS);O.SAUCE_ORDER=Object.keys(O.SAUCES);O.SEG_ORDER=Object.keys(O.SEG);
 const str=s=>'"'+String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n')+'"';
 const key=k=>/^[0-9]+$/.test(k)?'['+k+']':/^[A-Za-z_][A-Za-z0-9_]*$/.test(k)&&!['and','or','not','end','if','then','do','for','in','local','function','nil','true','false','repeat','until','while','return','break','else','elseif'].includes(k)?k:'['+str(k)+']';
