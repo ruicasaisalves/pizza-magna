@@ -774,7 +774,7 @@ def d_rug(kind):
     return c
 
 # ======================= WALL PIECES (a 64 px slot, wall 64 px high) =======================
-def window():
+def window(snow=False):
     W, H = 68, 50; c = Canvas(W, H)
     c.paint(c.rect(10, 2, 58, 42), 'oak', np.where(c.xs < 13, .75, np.where(c.ys < 5, .8, .45)), part=1)
     glass = c.rect(14, 6, 54, 38)
@@ -782,6 +782,14 @@ def window():
     c.paint(glass, 'sky', np.clip(sky, 0, 1), part=1, noline=True)
     c.paint((c.rect(32, 6, 36, 38) | c.rect(14, 20, 54, 23)) & glass, 'oak', np.where((c.xs == 32) | (c.ys == 20), .8, .4), part=2)
     c.paint(c.rect(7, 40, 61, 46), 'oak', np.where(c.ys < 42, .9, .35), part=3)
+    if snow:   # Christmas: snowflakes on the glass, snow in its lower corners and on the sill
+        g = np.random.default_rng(62)
+        flakes = np.zeros((H, W), bool)
+        for _ in range(26): flakes |= c.rect(*(lambda x, y: (x, y, x + 1, y + 1))(int(g.uniform(14, 54)), int(g.uniform(6, 34))))
+        c.paint(flakes & glass, 'white', 1, part=2, noline=True)
+        drift = glass & (c.ys > 33 - 3 * np.cos((c.xs - 14) / 40 * np.pi * 2) ** 2)
+        c.paint(drift, 'white', .75 + (c.ys < 35) * .25, part=2, noline=True)
+        c.paint(c.rect(6, 37, 62, 41) & c.ell(34, 41, 29, 5), 'white', np.where(c.ys < 39, 1, .6), part=6)
     for x0, side in ((0, 1), (W - 16, -1)):
         t = (c.xs - x0) / 16
         cur = c.rect(x0, 0, x0 + 16, 44) & ~(((t > .75) if side == 1 else (t < .25)) & (c.ys > 22) & (c.ys < 38))
@@ -865,6 +873,121 @@ def w_neon(f=0):
                     m = c.rect(x0 + i * 3, 7 + j * 3, x0 + i * 3 + 3, 7 + j * 3 + 3)
                     c.paint(m, 'neonC' if ch == 'A' else 'neonP', (.85 if on else .2), part=3, noline=True)
         x0 += len(gph[0]) * 3 + 3
+    return c
+
+# ======================= CHRISTMAS (since 0.04z) =======================
+RAMP.update({
+    'pine':  hexs(['#06200e', '#0c3418', '#144a24', '#1e6432', '#2c8044', '#46a05a']),
+    'blue':  hexs(['#0c1a4a', '#16307a', '#2650b0', '#4a7ad8', '#8ab0f0']),
+})
+XMAS_BULBS = ['red', 'gold', 'screen', 'blue', 'neonP']
+
+def d_xmas_tree(f=0):
+    """a Christmas tree in three tiers, a gold star, baubles and small lights that twinkle (two frames), gifts at its foot"""
+    c = Canvas(46, 92); g = rng(60)
+    c.cast(c.ell(24, 88, 17, 4), .5)
+    c.paint(c.rect(20, 72, 26, 84), 'oakD', c.cyl_x(20, 26), part=1)                       # trunk
+    needles = noise(92, 46, 1, g)
+    for top, bot, half in ((8, 36, 11), (22, 56, 16), (40, 78, 21)):                         # tiers, back to front (TIERS below)
+        hw = half * np.clip((c.ys + .5 - top) / (bot - top), 0, 1)
+        m = (c.ys >= top) & (c.ys < bot) & (np.abs(c.xs + .5 - 23) <= hw + (needles - .5) * 1.6)
+        lit = c.cyl_x(23 - half, 23 + half, .2, .85) * .75 + (needles - .5) * .35 + ((c.ys - top) % 5 == 0) * -.12
+        c.paint(m, 'pine', np.clip(lit, 0, 1), part=2 + (bot > 40) + (bot > 60))
+    TIERS = ((8, 36, 11), (22, 56, 16), (40, 78, 21))
+    hw = lambda y: max([h * (y - t) / (b - t) for t, b, h in TIERS if t <= y < b] or [0])
+    rr = np.random.default_rng(61)
+    for k in range(12):                                                                      # baubles, spread over the width
+        y = rr.uniform(14, 74); x = 23 + rr.uniform(-.75, .75) * hw(y)
+        c.paint(c.ell(x, y, 2.1, 2.1), ['red', 'gold', 'blue'][k % 3], c.sphere(x, y, 2.1, 2.1), part=6)
+    for k in range(26):                                                                      # lights: half of them on in each frame
+        y = rr.uniform(12, 77); x = 23 + rr.uniform(-.85, .85) * hw(y)
+        on = (k + f) % 2 == 0
+        c.paint(c.rect(int(x), int(y), int(x) + 1 + on, int(y) + 1 + on), ['lamp', 'neonP', 'neonC', 'fish'][k % 4], .97 if on else .2, part=7, noline=on)
+    star = (np.abs(c.xs + .5 - 23) + np.abs(c.ys + .5 - 6) * .55 < 3.2) | (np.abs(c.xs + .5 - 23) * .55 + np.abs(c.ys + .5 - 6) < 3.2)
+    c.paint(star, 'gold', .95 if f % 2 == 0 else .75, part=8)
+    c.paint(c.rect(7, 78, 17, 87), 'red', c.cyl_x(7, 17, .3, .8), part=5)                      # gifts
+    c.paint(c.rect(11, 78, 13, 87) | c.rect(7, 81, 17, 83), 'gold', .8, part=6)
+    c.paint(c.rect(29, 80, 39, 87), 'blue', c.cyl_x(29, 39, .3, .8), part=5)
+    c.paint(c.rect(33, 80, 35, 87) | c.rect(29, 82, 39, 84), 'wax', .9, part=6)
+    return c
+
+def w_wreath():
+    """a Christmas wreath: a ring of pine with red berries, a red bow at its foot"""
+    c = Canvas(64, 46); g = rng(63)
+    ring = c.ell(32, 20, 16, 16) & ~c.ell(32, 20, 8, 8)
+    needles = noise(46, 64, 1, g)
+    c.paint(ring & (needles > .12), 'pine', np.clip(c.sphere(32, 20, 16, 16) * .7 + (needles - .5) * .5, 0, 1), part=1)
+    rr = np.random.default_rng(64)
+    for _ in range(9):
+        a = rr.uniform(0, 2 * np.pi); r = rr.uniform(10, 14)
+        x, y = 32 + np.cos(a) * r, 20 + np.sin(a) * r
+        c.paint(c.ell(x, y, 1.5, 1.5), 'red', c.sphere(x, y, 1.5, 1.5), part=2)
+    c.paint(c.ell(26, 36, 5, 3.5) | c.ell(38, 36, 5, 3.5), 'red', c.sphere(32, 36, 10, 4) * .8 + .1, part=3)       # the bow
+    c.paint(c.rect(28, 38, 31, 45) & (c.xs < 31 - (c.ys - 38) * .3) | c.rect(33, 38, 36, 45) & (c.xs > 33 + (c.ys - 38) * .3), 'red', .55, part=3)
+    c.paint(c.ell(32, 36, 2.2, 2.2), 'red', .9, part=4)
+    return c
+
+def w_stockings():
+    """three Christmas stockings hanging from a pine garland"""
+    c = Canvas(64, 46); g = rng(65)
+    needles = noise(46, 64, 1, g)
+    c.paint(c.rect(0, 2, 64, 8) & (needles > .1), 'pine', np.clip(.5 + (needles - .5) * .6 - (c.ys - 2) * .05, 0, 1), part=1)
+    for x0, m in ((6, 'red'), (26, 'pine'), (46, 'red')):
+        leg = c.rect(x0, 10, x0 + 10, 34)
+        foot = c.ell(x0 + 9, 36, 8, 5)
+        c.paint(leg | foot & (c.ys > 31), m, c.cyl_x(x0, x0 + 12, .3, .85), part=2)
+        c.paint(c.rect(x0 - 1, 8, x0 + 11, 14), 'white', np.where(c.ys < 10, 1, .7), part=3)                       # the white cuff
+        c.paint(c.rect(x0 + 4, 5, x0 + 6, 9), 'gold', .7, part=4)
+    return c
+
+def d_snowman():
+    c = Canvas(34, 62)
+    c.cast(c.ell(18, 59, 12, 3), .5)
+    for cx, cy, r in ((17, 48, 11), (17, 31, 8.5), (17, 17, 6.5)):
+        c.paint(c.ell(cx, cy, r, r), 'white', np.clip(c.sphere(cx, cy, r, r) * .8 + .2, 0, 1), part=1 + (cy < 40) + (cy < 25))
+    c.paint(c.rect(10, 8, 24, 10) | c.rect(12, 0, 22, 9), 'onyx', np.where(c.xs < 15, .6, .3), part=5)         # hat
+    c.paint(c.rect(12, 6, 22, 8), 'red', .7, part=6)
+    for x in (14, 20): c.paint(c.rect(x, 15, x + 2, 17), 'onyx', .2, part=6, noline=True)                    # eyes
+    c.paint(c.rect(17, 18, 24, 20) & (c.ys < 20 - (c.xs - 17) * .2), 'clay', .85, part=6)                     # carrot
+    c.paint(c.rect(9, 23, 26, 27), 'red', c.cyl_x(9, 26, .3, .8), part=5)                                      # scarf
+    c.paint(c.rect(21, 26, 25, 36), 'red', .55, part=5)
+    for y in (29, 33, 37): c.paint(c.rect(16, y, 18, y + 2), 'onyx', .2, part=6, noline=True)                   # buttons
+    c.paint(c.rect(2, 26, 9, 28) & (np.abs(c.ys + .5 - (27 + (9 - c.xs) * .4)) < 1), 'oakD', .5, part=4)      # arms
+    c.paint(c.rect(25, 24, 32, 30) & (np.abs(c.ys + .5 - (27 - (c.xs - 25) * .4)) < 1), 'oakD', .5, part=4)
+    return c
+
+def d_poinsettia():
+    c = Canvas(36, 52); g = rng(66)
+    c.cast(c.ell(19, 49, 11, 3), .5); pot(c, 10, 26, 34, 49, 'gold')
+    foliage(c, [(18, 26, 10), (10, 28, 6), (26, 28, 6)], g, part=3)
+    for cx, cy in ((18, 16), (9, 22), (27, 22), (14, 27), (23, 27)):                                            # red bracts, star shaped
+        star = (np.abs(c.xs + .5 - cx) + np.abs(c.ys + .5 - cy) * 1.6 < 6) | (np.abs(c.xs + .5 - cx) * 1.6 + np.abs(c.ys + .5 - cy) < 6)
+        c.paint(star, 'red', np.clip(c.sphere(cx, cy, 6, 6) * .8 + .15, 0, 1), part=4)
+        c.paint(c.ell(cx, cy, 1.2, 1.2), 'gold', .9, part=5)
+    return c
+
+def d_gifts():
+    c = Canvas(40, 44)
+    c.cast(c.ell(21, 41, 16, 3.5), .5)
+    for x0, y0, w, h, m, rib, part in ((3, 22, 18, 19, 'red', 'gold', 1), (19, 26, 17, 15, 'blue', 'white', 1), (9, 6, 16, 16, 'pine', 'red', 2)):
+        c.paint(c.rect(x0, y0, x0 + w, y0 + h), m, np.where(c.ys < y0 + 3, .85, c.cyl_x(x0, x0 + w, .3, .7)), part=part)
+        c.paint(c.rect(x0 + w // 2 - 1, y0, x0 + w // 2 + 1, y0 + h) | c.rect(x0, y0 + h // 2 - 1, x0 + w, y0 + h // 2 + 1), rib, .8, part=part + 1)
+        c.paint(c.ell(x0 + w / 2 - 3, y0 - 1, 3, 2) | c.ell(x0 + w / 2 + 3, y0 - 1, 3, 2), rib, .9, part=part + 2)
+    return c
+
+def w_lights(f=0):
+    """a string of lights for the top of the back wall, 128 px that repeat: the wire droops twice, a bulb every 8 px;
+    the bulbs take turns (two frames)"""
+    c = Canvas(128, 22)
+    sag = lambda x: 3 + 7 * (1 - ((x % 64) - 32) ** 2 / 32 ** 2)
+    wire = np.zeros((22, 128), bool)
+    for x in range(128): wire[int(round(sag(x))), x] = True
+    c.paint(wire, 'onyx', .4, part=1, noline=True)
+    for k, x in enumerate(range(4, 128, 8)):
+        y = int(round(sag(x))) + 1
+        on = (k + f) % 2 == 0
+        c.paint(c.rect(x, y, x + 1, y + 1), 'iron2', .5, part=2, noline=True)               # socket
+        c.paint(c.ell(x + .5, y + 3, 1.8, 2.4), XMAS_BULBS[k % len(XMAS_BULBS)], .98 if on else .22, part=3, noline=on)   # a lit bulb glows, without an outline
     return c
 
 def w_clock():
@@ -1268,9 +1391,12 @@ DECOR = {   # key, footprint w, h, frames
     'vaso': ('d_plant', 1, 1, 1), 'ficus': ('d_ficus', 1, 1, 1), 'oliveira': ('d_olive', 1, 1, 1), 'barril': ('d_barrel', 1, 1, 1),
     'garrafeira': ('d_winerack', 2, 1, 1), 'jukebox': ('d_jukebox', 1, 1, 1), 'arcade': ('d_arcade', 1, 1, 1), 'aquario': ('d_aquarium', 2, 1, 4),
     'candeeiro': ('d_lamp', 1, 1, 1), 'estatua': ('d_statue', 1, 1, 1), 'fonte': ('d_fountain', 2, 2, 4), 'piano': ('d_piano', 3, 2, 1),
-    'persa': ('rug_persa', 3, 2, 1), 'trapos': ('rug_trapos', 3, 2, 1)}
+    'persa': ('rug_persa', 3, 2, 1), 'trapos': ('rug_trapos', 3, 2, 1), 'arvore': ('d_xmas', 1, 1, 2),
+    'boneco_neve': ('d_snowman', 1, 1, 1), 'poinsettia': ('d_poinsettia', 1, 1, 1), 'presentes': ('d_gifts', 1, 1, 1)}
 WALLPIECES = {'janela': ('w_window', -2, 8), 'quadro': ('w_painting', 10, 12), 'giz': ('w_chalk', -2, 6), 'azulejos': ('w_azulejos', 0, 8),
-              'prateleira': ('w_shelf', 0, 12), 'espelho': ('w_mirror', 10, 4), 'neon': ('w_neon', 0, 16), 'relogio': ('w_clock', 16, 14), 'fotos': ('w_photos', 0, 10)}
+              'prateleira': ('w_shelf', 0, 12), 'espelho': ('w_mirror', 10, 4), 'neon': ('w_neon', 0, 16), 'relogio': ('w_clock', 16, 14), 'fotos': ('w_photos', 0, 10),
+              'grinalda': ('w_wreath', 0, 8), 'meias': ('w_stockings', 0, 8), 'janela_neve': ('w_window_snow', -2, 8),
+              'luzes': ('w_lights', 0, 2)}   # the lights span the whole back wall (room.lights), not a slot
 
 def sprites():
     out = {}
@@ -1293,6 +1419,9 @@ def sprites():
     put('w_window', window()); put('w_painting', w_painting()); put('w_chalk', w_chalkboard()); put('w_azulejos', w_azulejos())
     put('w_shelf', w_shelf()); put('w_mirror', w_mirror()); put('w_clock', w_clock()); put('w_photos', w_photos())
     put('w_neon_0', w_neon(0)); put('w_neon_1', w_neon(1))
+    for f in range(2): put(f'd_xmas_{f}', d_xmas_tree(f)); put(f'w_lights_{f}', w_lights(f))
+    put('d_snowman', d_snowman()); put('d_poinsettia', d_poinsettia()); put('d_gifts', d_gifts())
+    put('w_wreath', w_wreath()); put('w_stockings', w_stockings()); put('w_window_snow', window(True))
     put('k_oven_0', oven(0)); put('k_oven_1', oven(1)); put('k_counter', counter(8)); put('k_register', register())
     put('k_boxes', boxes()); put('k_logs', logs()); put('k_rack', rack())
     # the people come from pilot_people.py (cel shaded, three views, a real walk); person(), walker() and standing()
@@ -1315,7 +1444,7 @@ def layout_json(imgs):
         if id_ in ('persa', 'trapos'): items[id_] = {'parts': [[k, 0, 0, -1]], 'rug': 1}; continue
         x = (w * 32 - im.width) // 2; y = h * 32 - im.height + 2
         items[id_] = {'parts': [[k, x, y, h * 32] + ([frames] if frames > 1 else [])]}
-    walls = {id_: [k + ('_1' if k == 'w_neon' else ''), x, y] for id_, (k, x, y) in WALLPIECES.items()}
+    walls = {id_: [k + ('_1' if k == 'w_neon' else '_0' if k == 'w_lights' else ''), x, y] for id_, (k, x, y) in WALLPIECES.items()}
     kitchen = [['k_oven', 414, 42, 128, 2], ['k_logs', 606, 104, 128], ['k_counter', 382, 202, 256], ['k_register', 388, 178, 256.1],
                ['k_boxes', 606, 190, 256.2], ['cook', 456, 58, 129]]
     return json.dumps({'items': items, 'walls': walls, 'kitchen': kitchen, 'looks': 21, 'staff': {'waiter': len(PP.WAITERS), 'cook': len(PP.COOKS)}, 'plain': PLAIN}, separators=(',', ':'))
