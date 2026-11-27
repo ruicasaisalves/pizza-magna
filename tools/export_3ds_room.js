@@ -26,25 +26,19 @@ for(let i=1;i<=dirs('cooks');i++)cast.cooks.push(png(`assets/cast/cooks/${NN(i)}
   await pg.waitForFunction(()=>typeof roomArt==='function');
   await pg.evaluate(()=>roomArt());await pg.waitForFunction(()=>roomArt());
   const out=await pg.evaluate(async cast=>{
-    const room=starterRoom(0);state.room=room;
     const K=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return [c,c.getContext('2d')]};
     // half size, aligned on even pixels first: returns the shrunk canvas and its place in half pixels
     const half=(img,x,y)=>{const ox=((x%2)+2)%2,oy=((y%2)+2)%2,w=img.width+ox,h=img.height+oy;const [a,ac]=K(w+w%2,h+h%2);ac.drawImage(img,ox,oy);
       const [s,sc]=K(a.width/2,a.height/2);sc.imageSmoothingEnabled=true;sc.imageSmoothingQuality='high';sc.drawImage(a,0,0,s.width,s.height);return {c:s,x:(x-ox)/2,y:(y-oy)/2}};
     const load=src=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=src});
-    // the room's base
-    const [base,bc]=K(RW,RH);paintRoomBase(bc,room,0);const B=half(base,0,0);
-    // the pieces that stand, at their depth (frame 0: the 3DS room does not animate them), and the ovens' frames
-    const pieces=[];for(const it of room.items)for(const q of itemParts(it,0))pieces.push({key:'piece',img:q.img,x:q.x,y:q.y,z:q.z});
-    const ovens=[];
-    for(const [k,x,y,z,n] of ROOM_ART.layout.kitchen){if(k==='cook')continue;
-      if(k==='k_oven'){for(let f=0;f<(n||1);f++)ovens.push({key:'oven'+f,img:rspr('k_oven_'+f),x,y,z});continue}
-      pieces.push({key:'piece',img:rspr(n>1?k+'_0':k),x,y,z})}
-    const spr=[...pieces,...ovens,{key:'pizza',img:rspr('pizza'),x:0,y:0,z:0},{key:'plate',img:rspr('plate'),x:0,y:0,z:0}].map(p=>({...p,h:half(p.img,p.x,p.y)}));
-    // pack room.png: the base on top, the rest on shelves below it
-    const [R,rc]=K(512,512);rc.drawImage(B.c,0,0);let cx=0,cy=B.c.height+1,sh=0;
-    for(const s of [...spr].sort((a,b)=>b.h.c.height-a.h.c.height)){const c=s.h.c;if(cx+c.width>512){cx=0;cy+=sh+1;sh=0}rc.drawImage(c,cx,cy);s.q=[cx,cy,c.width,c.height];cx+=c.width+1;sh=Math.max(sh,c.height)}
-    if(cy+sh>512)throw new Error('room.png is full');
+    // room.png: every piece of the room atlas (not its people) at half size, packed on shelves; the 3DS draws the
+    // room from state.room like paintRoomBase() and drawRoom() (floors and walls tile, pieces sorted by depth)
+    const keys=Object.keys(ROOM_ART.frames).filter(k=>!/^(w\d+_|p\d+_|waiter|cook)/.test(k));
+    const spr=keys.map(k=>({key:k,h:half(rspr(k),0,0)})).sort((a,b)=>b.h.c.height-a.h.c.height||b.h.c.width-a.h.c.width);
+    const RWIDTH=1024;let cx=0,cy=0,sh=0;const placed=[];
+    for(const s of spr){const c=s.h.c;if(cx+c.width>RWIDTH){cx=0;cy+=sh+1;sh=0}placed.push([s,cx,cy]);cx+=c.width+1;sh=Math.max(sh,c.height)}
+    let RH2=64;while(RH2<cy+sh)RH2*=2;if(RH2>1024)throw new Error('room.png is full');
+    const [R,rc]=K(RWIDTH,RH2);const SPR={};for(const [s,x,y] of placed){rc.drawImage(s.h.c,x,y);SPR[s.key]=[x,y,s.h.c.width,s.h.c.height]}
     // people.png: every cast sheet at half size
     const [P,pc]=K(1024,1024);let px=0,py=0,ps=0;
     const put=async src=>{const im=await load(src),h=half(im,0,0).c;if(px+h.width>1024){px=0;py+=ps+1;ps=0}pc.drawImage(h,px,py);const q=[px,py];px+=h.width+1;ps=Math.max(ps,h.height);return q};
@@ -53,23 +47,20 @@ for(let i=1;i<=dirs('cooks');i++)cast.cooks.push(png(`assets/cast/cooks/${NN(i)}
     for(const w of cast.waiters)people.waiters.push(await put(w));
     for(const c of cast.cooks)people.cooks.push(await put(c));
     if(py+ps>1024)throw new Error('people.png is full');
-    // seats: where the sitter is drawn, the plate on the table, and the tile the customer walks to
-    const map=buildMap(),L_=ROOM_ART.layout;
-    const seats=map.seats.map(st=>{const it=st.t,s_=st.s,lay=L_.items[it.id],x0=it.c*T,y0=it.r*T,[tx,ty,rx,ry]=lay.top;
-      const qx=s_.d==='right'?tx-rx+14:s_.d==='left'?tx+rx-14:(s_.chair?tx:s_.p[0]+16),qy=s_.d==='down'?ty-ry+9:s_.d==='up'?ty+ry-9:ty,tz=lay.parts.find(q=>q[0].startsWith('t_'))[3];
-      return {cx:st.cx,cy:st.cy,d:s_.d,x:x0+s_.p[0],y:y0+s_.p[1],z:y0+s_.p[2],px:x0+Math.round(qx)-12,py:y0+Math.round(qy)-8,pz:y0+tz+.2}});
-    const solid=[];for(let r=0;r<ROWS;r++){let s='';for(let c=0;c<COLS;c++)s+=map.solid[r*COLS+c]?'#':'.';solid.push(s)}
+    // what a piece is (ITEMS), its layout in the atlas (parts, chairs, sitters, table top), the floors and walls
+    const L_=ROOM_ART.layout,items={};
+    for(const id in ITEMS){const d=ITEMS[id];items[id]={...d,layout:L_.items[id]||null,wallpiece:L_.walls[id]||null}}
     const dx={};for(const k in PILOT_DX)dx[k]=PILOT_DX[k];
     return {room:R.toDataURL('image/png'),people:P.toDataURL('image/png'),
-      sprites:spr.map(s=>({key:s.key,q:s.q,x:s.h.x,y:s.h.y,z:s.z})),people_q:people,seats,solid,
-      T,COLS,ROWS,STREET_ROW,DOOR,DOOR_IN,PICK,QUEUE:map.queue,WAITER_HOME,COOK_POS,OVEN_STEP:58,
-      GUEST_P,GUEST_WIZARD,GUEST_GOTH,VIPS,CAST_STAFF,STAFF_WOMEN:[...STAFF_WOMEN],MEH_BAND,PILOT_DX:dx,PILOT_HANDOFF}},cast);
+      SPR,people_q:people,ITEMS:items,FLOORS,WALLS,STYLE_BONUS,SEGK,WALL_SLOTS,TABLES,KITCHEN:L_.kitchen,STARTER:starterRoom(0),
+      T,COLS,ROWS,STREET_ROW,DOOR,DOOR_IN,PICK,QUEUE,WAITER_HOME,COOK_POS,OVEN_STEP:58,
+      GUEST_P,GUEST_WIZARD,GUEST_GOTH,VIPS,XMAS_SANTA_LOOK,XMAS_LOOKS,XMAS_HOODIE,XMAS_P,XMAS_SANTA,CAST_STAFF,STAFF_WOMEN:[...STAFF_WOMEN],MEH_BAND,PILOT_DX:dx,PILOT_HANDOFF}},cast);
   await b.close();
   for(const [name,url] of [['room.png',out.room],['people.png',out.people]]){const f=path.join(root,'3ds/game/gfx',name);fs.writeFileSync(f,Buffer.from(url.split(',')[1],'base64'));console.log('3ds/game/gfx/'+name+':',fs.statSync(f).size,'bytes')}
   // Lua
-  const lua=v=>v===null||v===undefined?'nil':Array.isArray(v)?'{'+v.map(lua).join(',')+'}':typeof v==='object'?'{'+Object.entries(v).map(([k,x])=>(/^[A-Za-z_]\w*$/.test(k)?k:`[${JSON.stringify(k)}]`)+'='+lua(x)).join(',')+'}':typeof v==='string'?JSON.stringify(v):String(v);
+  const lua=v=>v===null||v===undefined?'false':Array.isArray(v)?'{'+v.map(lua).join(',')+'}':typeof v==='object'?'{'+Object.entries(v).map(([k,x])=>(/^[A-Za-z_]\w*$/.test(k)?k:`[${JSON.stringify(k)}]`)+'='+lua(x)).join(',')+'}':typeof v==='string'?JSON.stringify(v):String(v);
   delete out.room;delete out.people;
   const body=Object.entries(out).map(([k,v])=>`  ${k} = ${lua(v)},`).join('\n');
   fs.writeFileSync(path.join(root,'3ds/game/roomdata.lua'),`-- Generated by tools/export_3ds_room.js from index.html, assets/room.js and assets/cast. Do not edit by hand.\n-- Positions (x, y, z) in the browser's 32 px units, except sprite places (x, y, q) in the half-size pictures.\nreturn {\n${body}\n}\n`);
-  console.log('3ds/game/roomdata.lua:',out.sprites.length,'sprites,',out.seats.length,'seats,',out.people_q.customers.length,'customers');
+  console.log('3ds/game/roomdata.lua:',Object.keys(out.SPR).length,'sprites,',Object.keys(out.ITEMS).length,'pieces,',out.people_q.customers.length,'customers');
 })();

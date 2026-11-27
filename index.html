@@ -977,7 +977,7 @@ let EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}   // in an if
 document.documentElement.classList.toggle('embed',EMBED);
 const MINI_PANTRY=PHONE;   // phones get the picture-only pantry
 // game version, shown in Options and written into the save (for bug reports); one step per merged PR: 0.01a..0.01g, then 0.02a
-const VERSION='0.05b';
+const VERSION='0.05c';
 const SAVE_KEY=SANDBOX?'massa-mestra-sandbox-v1':'massa-mestra-v1';
 /* Compact pieces: 5 bytes each (ingredient index, x, y, random turn, flags) as base64url, with the ingredient ids
    alongside: "id1,id2|AAEC...". Used by saves, recipe links and .pizza files. Old saves with plain arrays still load. */
@@ -1463,7 +1463,7 @@ function dayHTML(){
 }
 function lcdText(){
   const a=anim,c=a?a.cnt:{served:0,rival:0,left:0,rev:0};
-  const m=a?(Math.min(a.t,DAY_SECONDS)+(a.after||0))/DAY_SECONDS*11*60:0;   // the doors close at 23:00 but the clock runs on while the last customers finish
+  const m=a?(Math.min(a.t,DAY_SECONDS)+(a.after||0)*AFTER_CLOCK)/DAY_SECONDS*11*60:0;   // the doors close at 23:00 but the clock runs on while the last customers finish
   const clock=`${String((12+Math.floor(m/60))%24).padStart(2,'0')}:${String(Math.floor(m%60/15)*15).padStart(2,'0')}`;
   const share=c.served+c.rival?Math.round(c.served/(c.served+c.rival)*100)+'%':'--';
   const W=26,L=(k,v)=>k+String(v).padStart(W-k.length,' ');
@@ -1904,6 +1904,9 @@ function step(dt){
   let qi=0;
   for(const p of anim.people){
     if(p.st!=='queue')continue;
+    if(anim.t>=DAY_SECONDS){   // closed: whoever is still in the queue takes the pizza to go (served all the same), so the room empties at walking pace
+      anim.cnt.served++;anim.cnt.rev+=p.e.price;bubble(p.x+16,p.y-44,'+'+eur(p.e.price),p.e.out==='happy'?'#8cff73':'#ffd36a');
+      p.st='exit';p.path=[...toPx(bfs(map,tileOf(p),[DOOR[0],STREET_ROW])),{x:Math.random()<.5?-T:RW+T,y:STREET_ROW*T}];continue}
     const s=anim.seats.find(s=>!s.occ);
     if(s){s.occ=p;p.seat=s;p.st='toSeat';p.path=toPx(bfs(map,tileOf(p),[s.cx,s.cy]));continue}
     const Q=map.queue.length?map.queue:[DOOR_IN],spot=Q[Math.min(qi++,Q.length-1)];
@@ -1919,8 +1922,8 @@ function step(dt){
         }else{if(p.e.target==='rival'){anim.cnt.rival++;if(Math.random()<.5)bubble(RW-60,p.y-36,'→ RIVAL','#ffb04a')}p.gone=true}
       }break;
       case 'toSeat':if(moveAlong(p,dt,p.v)){p.st='wait';p.dir=p.seat.face;anim.jobs.push(p)}break;
-      case 'wait':if(p.served){p.st='eat';p.timer=2.6}break;
-      case 'eat':p.timer-=dt;if(p.timer<=0){
+      case 'wait':if(p.served||anim.t>=DAY_SECONDS){p.served=true;p.st='eat';p.timer=2.6}break;   // closed: the kitchen sends out every pizza still owed at once
+      case 'eat':p.timer-=dt*(anim.t>=DAY_SECONDS?AFTER_EAT:1);if(p.timer<=0){
         anim.cnt.served++;anim.cnt.rev+=p.e.price;const h=p.e.out==='happy';bubble(p.x+16,p.y-44,'+'+eur(p.e.price)+(h?' ★':''),h?'#8cff73':'#ffd36a');
         const s=p.seat;s.occ=null;p.st='exit';p.path=[...toPx(bfs(map,[s.cx,s.cy],[DOOR[0],STREET_ROW])),{x:Math.random()<.5?-T:RW+T,y:STREET_ROW*T}];
       }break;
@@ -1929,6 +1932,7 @@ function step(dt){
   }
   anim.people=anim.people.filter(p=>!p.gone);
   for(const w of anim.waiters){
+    if(anim.t>=DAY_SECONDS)anim.jobs=anim.jobs.filter(j=>!j.served);   // closed: those pizzas went out on their own
     if(anim.jobs.length&&(!w.job||w.phase==='back')){w.job=anim.jobs.shift();w.phase='pick';w.path=toPx(bfs(map,tileOf(w),PICK))}
     if(!w.job){w.walking=false;if(w.dir!=='down'&&!w.path.length)w.dir='down';continue}
     if(w.handoff>0)w.handoff-=dt;
@@ -1949,14 +1953,15 @@ function step(dt){
   if(closing)anim.dusk=Math.min(1,(anim.dusk||0)+dt/1.5);
   if(closing&&!anim.people.length&&anim.dusk>=1)anim.done=true;
 }
+const AFTER_EAT=3,AFTER_CLOCK=.25;   // after closing: the last customers eat this much faster; the clock runs at this pace
 function bubble(x,y,text,col){anim.bubbles.push({x,y,text,col,life:1.6})}
 function loop(ts){
   if(!anim)return;
   const dt=anim.paused||!anim.last?0:Math.min(.05,(ts-anim.last)/1000);anim.last=ts;   // paused: the clock stops, the room is still drawn
-  // after closing the clock keeps its pace (anim.after) while the room plays fast, faster the fuller it is,
-  // so the last customers are gone around one in the morning instead of hours later
-  let k=1;if(anim.t>=DAY_SECONDS){anim.after=(anim.after||0)+dt*anim.speed;k=Math.min(16,3+anim.people.filter(p=>p.st!=='exit'&&p.st!=='leave'&&p.st!=='street').length*.8)}
-  step(dt*anim.speed*k);drawRoom();
+  // after closing the clock keeps its pace (anim.after) and people walk at the chosen speed (they used to rush up to
+  // 16x); the last customers eat faster instead (AFTER_EAT in step()), so the room empties soon after 23:00
+  if(anim.t>=DAY_SECONDS)anim.after=(anim.after||0)+dt*anim.speed;
+  step(dt*anim.speed);drawRoom();
   if(ts-anim.lcdT>120){anim.lcdT=ts;const l=$('#lcd');if(l)l.innerHTML=lcdText()}
   if(anim.done){endAnim();return}
   requestAnimationFrame(loop);
@@ -2688,6 +2693,9 @@ async function takeRecipe(text){
 const SITE='www.pizzamagna.xyz';
 function recipeIngs(p){const cnt={};for(const x of p.pieces)cnt[x.i]=(cnt[x.i]||0)+1;return Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(i=>ING[i].n)}
 function wrapLines(c,text,maxW){const out=[];let line='';for(const w of text.split(' ')){const tryL=line?line+' '+w:w;if(c.measureText(tryL).width>maxW&&line){out.push(line);line=w}else line=tryL}if(line)out.push(line);return out}
+// a 9x9 pixel star, gold, centred on cx,cy (the quality on the share card)
+const CARD_STAR=['....#....','...###...','...###...','#########','.#######.','..#####..','..##.##..','.##...##.','##.....##'];
+function cardStar(c,cx,cy,s=2.6){c.fillStyle='#e0a020';CARD_STAR.forEach((r,j)=>[...r].forEach((ch,i)=>{if(ch==='#')c.fillRect(Math.round(cx+(i-4.5)*s),Math.round(cy+(j-4.5)*s),Math.ceil(s),Math.ceil(s))}))}
 function shareCard(p,name,logo){
   const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   for(let y=0;y<H;y+=44){c.fillStyle=(y/44)%2?'#573117':'#4c2a13';c.fillRect(0,y,W,44);c.fillStyle='rgba(20,8,2,.55)';c.fillRect(0,y,W,3)}  // wood planks
@@ -2699,9 +2707,10 @@ function shareCard(p,name,logo){
   c.fillStyle='#2c1a0b';c.font='bold 60px Silkscreen, monospace';
   const tl=wrapLines(c,name.toUpperCase(),W-200).slice(0,2);tl.forEach((l,i)=>c.fillText(l,W/2,(tl.length>1?175:205)+i*66));   // recipe name is the headline
   c.font='34px "PM Digits", "Pixelify Sans", sans-serif';c.fillStyle='#6c5233';
-  c.fillText(DOUGHS[p.dough].n+' · '+SAUCES[p.sauce].n,W/2,900);
+  {const a=DOUGHS[p.dough].n+' · '+SAUCES[p.sauce].n+' · ',b=String(analyze(p).q),wa=c.measureText(a).width,x0=W/2-(wa+30+c.measureText(b).width)/2;   // the quality: a gold star and the score, on the dough line
+    c.textAlign='left';c.fillText(a,x0,900);cardStar(c,x0+wa+13,889);c.fillStyle='#6c5233';c.fillText(b,x0+wa+30,900);c.textAlign='center'}
   c.fillStyle='#2c1a0b';c.font='38px "PM Digits", "Pixelify Sans", sans-serif';
-  wrapLines(c,recipeIngs(p).join(' · '),W-200).slice(0,3).forEach((l,i)=>c.fillText(l,W/2,970+i*50));
+  wrapLines(c,recipeIngs(p).join(' · '),W-200).slice(0,3).forEach((l,i)=>c.fillText(l.replace(/\s*·\s*$/,'').replace(/^\s*·\s*/,''),W/2,970+i*50));   // no separator left hanging at a line's end
   const by=chefLine(p);if(by){c.fillStyle='#7a4520';c.font='bold 36px "PM Digits", "Pixelify Sans", sans-serif';
     if(logo){const L=96,g=18,tw=Math.min(c.measureText(by).width,W-240-L-g),x0=(W-(L+g+tw))/2;c.drawImage(logo,x0,1082,L,L);c.textAlign='left';c.fillText(by,x0+L+g,1146,W-240-L-g);c.textAlign='center'}   // the pizzeria's symbol beside the signature
     else c.fillText(by,W/2,1138)}
