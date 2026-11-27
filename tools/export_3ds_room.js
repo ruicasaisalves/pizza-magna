@@ -63,7 +63,7 @@ for(let i=1;i<=dirs('cooks');i++)cast.cooks.push(png(`assets/cast/cooks/${NN(i)}
     return {room:R.toDataURL('image/png'),people:P.toDataURL('image/png'),
       sprites:spr.map(s=>({key:s.key,q:s.q,x:s.h.x,y:s.h.y,z:s.z})),people_q:people,seats,solid,
       T,COLS,ROWS,STREET_ROW,DOOR,DOOR_IN,PICK,QUEUE:map.queue,WAITER_HOME,COOK_POS,OVEN_STEP:58,
-      GUEST_P,GUEST_WIZARD,GUEST_GOTH,VIPS,CAST_STAFF,STAFF_WOMEN:[...STAFF_WOMEN],MEH_BAND,PILOT_DX:dx,PILOT_HANDOFF}},cast);
+      GUEST_P,GUEST_WIZARD,GUEST_GOTH,VIPS,XMAS_SANTA_LOOK,XMAS_LOOKS,XMAS_HOODIE,XMAS_P,XMAS_SANTA,CAST_STAFF,STAFF_WOMEN:[...STAFF_WOMEN],MEH_BAND,PILOT_DX:dx,PILOT_HANDOFF}},cast);
   await b.close();
   for(const [name,url] of [['room.png',out.room],['people.png',out.people]]){const f=path.join(root,'3ds/game/gfx',name);fs.writeFileSync(f,Buffer.from(url.split(',')[1],'base64'));console.log('3ds/game/gfx/'+name+':',fs.statSync(f).size,'bytes')}
   // Lua

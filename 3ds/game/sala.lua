@@ -100,6 +100,14 @@ local function guestLook(a, e, S, DS)
       if not a.vips[v.id] and S.rep >= v.stars and (S.day + v.off) % v.every == 0 and a.t >= DS * v.from then a.vips[v.id] = true; return v.look end
     end
   end
+  local m = tonumber(os.date("%m"))
+  if m == 11 or m == 12 or m == 1 then   -- Christmas guests, from November to January (XMAS_ON() in index.html)
+    a.vips = a.vips or {}
+    if e.target == "ours" and not a.vips.santa and a.t >= DS * R.XMAS_SANTA then a.vips.santa = true; return R.XMAS_SANTA_LOOK end
+    local x = math.random()
+    for i, look in ipairs(R.XMAS_LOOKS) do if x < R.XMAS_P * i then return look end end
+    if x < R.XMAS_P * (#R.XMAS_LOOKS + .5) then return R.XMAS_HOODIE end
+  end
   local r = math.random()
   return r < R.GUEST_P and R.GUEST_WIZARD or r < 2 * R.GUEST_P and R.GUEST_GOTH or math.random(0, 20)
 end

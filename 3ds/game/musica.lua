@@ -16,7 +16,9 @@ local function shuffle(l) for i = #l, 2, -1 do local j = math.random(i); l[i], l
 local function deal()
   local last = ORDER[#ORDER]
   local L, N = {}, {}
-  for _, s in ipairs(SONGS) do if s.lofi then L[#L + 1] = s else N[#N + 1] = s end end
+  local m = tonumber(os.date("%m"))
+  local season = m == 11 or m == 12 or m == 1   -- the Christmas tunes only from November to January (XMAS_SEASON() in music.js)
+  for _, s in ipairs(SONGS) do if not s.xmas or season then if s.lofi then L[#L + 1] = s else N[#N + 1] = s end end end
   shuffle(L); shuffle(N)
   local a, b = L, N
   if math.random() < .5 then a, b = N, L end
