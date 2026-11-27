@@ -8,7 +8,9 @@
    Drums: k = kick, s = snare, h = hat, . = nothing.
    The lo-fi tunes (lofi: true, original) add an arpeggio line (arp) and hold chords in harm ("F3+A3+C4" plays them together);
    they play with a softer lead (tone: round, bell or flute), a soft pad, quieter drums and a warmer filter, a part may bring its
-   own drums. The tunes alternate lo-fi and Italian in a random order (ORDER, deal()). */
+   own drums. The tunes alternate lo-fi and Italian in a random order (ORDER, deal()). Four Christmas carols (xmas: true,
+   public domain: Jingle Bells, Deck the Halls, We Wish You a Merry Christmas, Silent Night, and an original swing tune,
+   Neve sulla Pizzeria) join only from November to January. */
 const MUSIC = (() => {
   const SONGS = [
     { id: 'tarantella', title: 'Tarantella della Pizza', bpm: 380, beat: 6, loops: 2, trem: false, parts: 'AABA',
@@ -247,6 +249,51 @@ const MUSIC = (() => {
         bass: 'C2 - - - G2 - - - | B1 - - - F#2 - - - | A1 - - - E2 - - - | B1 - - - D#2 - F#2 - | C2 - - - G2 - - - | B1 - - - F#2 - - - | A1 - - - E2 - - - | B1 - - - D#2 - F#2 -',
         harm: 'G3+B3+E4 - - - - - - - | F#3+A3+D4 - - - - - - - | G3+C4+E4 - - - - - - - | F#3+A3+D#4 - - - - - - - | G3+B3+E4 - - - - - - - | F#3+A3+D4 - - - - - - - | G3+C4+E4 - - - - - - - | F#3+A3+D#4 - - - - - - -' },
       drums: 'k . h . . . h . s . h . . . h k' },
+    // Christmas (xmas: true), public-domain carols arranged for the game: they play only from 1 November to 31 January
+    // (XMAS_SEASON, the player's own date, as the Christmas guests in index.html)
+    { id: 'jingle', title: 'Jingle Bells (Pierpont)', xmas: true, bpm: 300, beat: 8, loops: 1, trem: false, parts: 'ABB',
+      A: {
+        lead: 'D4 - B4 - A4 - G4 - | D4 - - - - - D4 D4 | D4 - B4 - A4 - G4 - | E4 - - - - - - - | E4 - C5 - B4 - A4 - | F#4 - - - - - - - | D5 - D5 - C5 - A4 - | B4 - - - - - - - | D4 - B4 - A4 - G4 - | D4 - - - - - - - | D4 - B4 - A4 - G4 - | E4 - - - - - E4 - | E4 - C5 - B4 - A4 - | D5 - D5 - D5 - D5 - | E5 - D5 - C5 - A4 - | G4 - - - D5 - - -',
+        bass: 'G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | C3 - G2 - C3 - G2 - | A2 - E2 - A2 - E2 - | D2 - A2 - D2 - A2 - | D2 - A2 - D2 - A2 - | G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | C3 - G2 - C3 - G2 - | A2 - E2 - A2 - E2 - | D2 - A2 - D2 - A2 - | D2 - A2 - D2 - A2 - | G2 - D3 - G2 - D3 -',
+        harm: '. . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+C4+E4 - . . G3+C4+E4 - | . . E3+A3+C4 - . . E3+A3+C4 - | . . F#3+A3+D4 - . . F#3+A3+D4 - | . . F#3+A3+D4 - . . F#3+A3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+C4+E4 - . . G3+C4+E4 - | . . E3+A3+C4 - . . E3+A3+C4 - | . . F#3+A3+D4 - . . F#3+A3+D4 - | . . F#3+A3+D4 - . . F#3+A3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 -' },
+      B: {
+        lead: 'B4 - B4 - B4 - - - | B4 - B4 - B4 - - - | B4 - D5 - G4 - - A4 | B4 - - - - - - - | C5 - C5 - C5 - - C5 | C5 - B4 - B4 - B4 B4 | B4 - A4 - A4 - B4 - | A4 - - - D5 - - - | B4 - B4 - B4 - - - | B4 - B4 - B4 - - - | B4 - D5 - G4 - - A4 | B4 - - - - - - - | C5 - C5 - C5 - - C5 | C5 - B4 - B4 - B4 B4 | D5 - D5 - C5 - A4 - | G4 - - - - - - -',
+        bass: 'G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | C3 - G2 - C3 - G2 - | G2 - D3 - G2 - D3 - | A2 - E2 - A2 - E2 - | D2 - A2 - D2 - A2 - | G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | G2 - D3 - G2 - D3 - | C3 - G2 - C3 - G2 - | G2 - D3 - G2 - D3 - | D2 - A2 - D2 - A2 - | G2 - D3 - G2 - D3 -',
+        harm: '. . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+C4+E4 - . . G3+C4+E4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . E3+A3+C#4 - . . E3+A3+C#4 - | . . F#3+A3+D4 - . . F#3+A3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . G3+C4+E4 - . . G3+C4+E4 - | . . G3+B3+D4 - . . G3+B3+D4 - | . . F#3+A3+D4 - . . F#3+A3+D4 - | . . G3+B3+D4 - . . G3+B3+D4 -' },
+      drums: 'k . h . s . h .' },
+    { id: 'deck', title: 'Deck the Halls (traditional)', xmas: true, bpm: 264, beat: 8, loops: 2, trem: false, parts: 'A',
+      A: {
+        lead: 'C5 - - Bb4 A4 - G4 - | F4 - G4 - A4 - F4 - | G4 A4 Bb4 G4 A4 - - G4 | F4 - E4 - F4 - - - | C5 - - Bb4 A4 - G4 - | F4 - G4 - A4 - F4 - | G4 A4 Bb4 G4 A4 - - G4 | F4 - E4 - F4 - - - | G4 - - A4 Bb4 - G4 - | A4 - - Bb4 C5 - G4 - | A4 B4 C5 - D5 E5 F5 - | E5 - D5 - C5 - - - | C5 - - Bb4 A4 - G4 - | F4 - G4 - A4 - F4 - | D5 D5 D5 D5 C5 - - Bb4 | A4 - G4 - F4 - - -',
+        bass: 'F2 - C3 - F2 - C3 - | F2 - C3 - F2 - C3 - | C3 - G2 - C3 - G2 - | F2 - C3 - F2 - C3 - | F2 - C3 - F2 - C3 - | F2 - C3 - F2 - C3 - | C3 - G2 - C3 - G2 - | F2 - C3 - F2 - C3 - | C3 - G2 - C3 - G2 - | F2 - C3 - F2 - C3 - | C3 - G2 - C3 - G2 - | C3 - G2 - C3 - G2 - | F2 - C3 - F2 - C3 - | F2 - C3 - F2 - C3 - | Bb2 - F2 - Bb2 - F2 - | F2 - C3 - F2 - C3 -',
+        harm: '. . F3+A3+C4 - . . F3+A3+C4 - | . . F3+A3+C4 - . . F3+A3+C4 - | . . E3+G3+Bb3 - . . E3+G3+Bb3 - | . . F3+A3+C4 - . . F3+A3+C4 - | . . F3+A3+C4 - . . F3+A3+C4 - | . . F3+A3+C4 - . . F3+A3+C4 - | . . E3+G3+Bb3 - . . E3+G3+Bb3 - | . . F3+A3+C4 - . . F3+A3+C4 - | . . E3+G3+Bb3 - . . E3+G3+Bb3 - | . . F3+A3+C4 - . . F3+A3+C4 - | . . E3+G3+Bb3 - . . E3+G3+Bb3 - | . . E3+G3+Bb3 - . . E3+G3+Bb3 - | . . F3+A3+C4 - . . F3+A3+C4 - | . . F3+A3+C4 - . . F3+A3+C4 - | . . F3+Bb3+D4 - . . F3+Bb3+D4 - | . . F3+A3+C4 - . . F3+A3+C4 -' },
+      drums: 'k . h h s . h .' },
+    { id: 'wewish', title: 'We Wish You a Merry Christmas (traditional)', xmas: true, bpm: 300, beat: 6, loops: 3, trem: false, parts: 'AB',
+      A: {
+        lead: '. . . . D4 - | G4 - G4 A4 G4 F#4 | E4 - E4 - E4 - | A4 - A4 B4 A4 G4 | F#4 - D4 - D4 - | B4 - B4 C5 B4 A4 | G4 - E4 - D4 D4 | E4 - A4 - F#4 - | G4 - - - D4 -',
+        bass: 'D2 - . . . . | G2 - . . . . | C3 - . . . . | A2 - . . . . | D2 - . . . . | B1 - . . . . | E2 - . . . . | C3 - . D2 - . | G2 - . . . .',
+        harm: '. . F#3+A3+D4 - F#3+A3+D4 - | . . G3+B3+D4 - G3+B3+D4 - | . . G3+C4+E4 - G3+C4+E4 - | . . E3+A3+C#4 - E3+A3+C#4 - | . . F#3+A3+D4 - F#3+A3+D4 - | . . D#3+F#3+A3 - D#3+F#3+A3 - | . . E3+G3+B3 - E3+G3+B3 - | . . G3+C4+E4 F#3+A3+D4 - . | . . G3+B3+D4 - G3+B3+D4 -' },
+      B: {
+        lead: 'G4 - G4 - G4 - | F#4 - - - F#4 - | G4 - F#4 - E4 - | D4 - - - A4 - | B4 - A4 - G4 - | D5 - D4 - D4 D4 | E4 - A4 - F#4 - | G4 - - - - -',
+        bass: 'G2 - . . . . | D2 - . . . . | E2 - . . . . | D2 - . . . . | G2 - . . . . | D2 - . . . . | C3 - . D2 - . | G2 - . . . .',
+        harm: '. . G3+B3+D4 - G3+B3+D4 - | . . F#3+A3+D4 - F#3+A3+D4 - | . . E3+G3+B3 - E3+G3+B3 - | . . F#3+A3+D4 - F#3+A3+D4 - | . . G3+B3+D4 - G3+B3+D4 - | . . F#3+A3+D4 - F#3+A3+D4 - | . . G3+C4+E4 F#3+A3+D4 - . | . . G3+B3+D4 - G3+B3+D4 -' },
+      drums: 'k . h . h .' },
+    { id: 'silentnight', title: 'Silent Night (Gruber)', xmas: true, lofi: true, calm: true, tone: 'flute', bpm: 132, beat: 6, loops: 1, trem: false, parts: 'A',
+      A: {
+        lead: 'G4 - - A4 G4 - | E4 - - - - - | G4 - - A4 G4 - | E4 - - - - - | D5 - - - D5 - | B4 - - - - - | C5 - - - C5 - | G4 - - - - - | A4 - - - A4 - | C5 - - B4 A4 - | G4 - - A4 G4 - | E4 - - - - - | A4 - - - A4 - | C5 - - B4 A4 - | G4 - - A4 G4 - | E4 - - - - - | D5 - - - D5 - | F5 - - D5 B4 - | C5 - - - - - | E5 - - - - - | C5 - - G4 E4 - | G4 - - F4 D4 - | C4 - - - - - | . . . . . .',
+        bass: 'C3 - - - - - | C3 - - - - - | C3 - - - - - | C3 - - - - - | G2 - - - - - | G2 - - - - - | C3 - - - - - | C3 - - - - - | F2 - - - - - | F2 - - - - - | C3 - - - - - | C3 - - - - - | F2 - - - - - | F2 - - - - - | C3 - - - - - | C3 - - - - - | G2 - - - - - | G2 - - - - - | C3 - - - - - | C3 - - - - - | C3 - - - - - | G2 - - - - - | C3 - - - - - | C3 - - - - -',
+        harm: 'E3+G3+C4 - - - - - | E3+G3+C4 - - - - - | E3+G3+C4 - - - - - | E3+G3+C4 - - - - - | D3+G3+B3 - - - - - | D3+G3+B3 - - - - - | E3+G3+C4 - - - - - | E3+G3+C4 - - - - - | F3+A3+C4 - - - - - | F3+A3+C4 - - - - - | E3+G3+C4 - - - - - | E3+G3+C4 - - - - - | F3+A3+C4 - - - - - | F3+A3+C4 - - - - - | E3+G3+C4 - - - - - | E3+G3+C4 - - - - - | D3+G3+B3 - - - - - | D3+F3+B3 - - - - - | E3+G3+C4 - - - - - | E3+G3+C4 - - - - - | E3+G3+C4 - - - - - | D3+F3+B3 - - - - - | E3+G3+C4 - - - - - | E3+G3+C4 - - - - -',
+        arp: 'C4 E4 G4 E4 C4 E4 | C4 E4 G4 E4 C4 E4 | C4 E4 G4 E4 C4 E4 | C4 E4 G4 E4 C4 E4 | B3 D4 G4 D4 B3 D4 | B3 D4 G4 D4 B3 D4 | C4 E4 G4 E4 C4 E4 | C4 E4 G4 E4 C4 E4 | A3 C4 F4 C4 A3 C4 | A3 C4 F4 C4 A3 C4 | C4 E4 G4 E4 C4 E4 | C4 E4 G4 E4 C4 E4 | A3 C4 F4 C4 A3 C4 | A3 C4 F4 C4 A3 C4 | C4 E4 G4 E4 C4 E4 | C4 E4 G4 E4 C4 E4 | B3 D4 G4 D4 B3 D4 | B3 D4 F4 D4 B3 D4 | C4 E4 G4 E4 C4 E4 | C4 E4 G4 E4 C4 E4 | C4 E4 G4 E4 C4 E4 | B3 D4 F4 D4 B3 D4 | C4 E4 G4 E4 C4 E4 | C4 E4 G4 E4 C4 E4' },
+      drums: '. . . . . .' },
+    { id: 'neve', title: 'Neve sulla Pizzeria', xmas: true, lofi: true, tone: 'round', bpm: 300, beat: 8, loops: 1, trem: false, parts: 'AABA',   // original, a swing crooner for Christmas
+      A: {
+        lead: 'D5 - - B4 - - G4 - | A4 - B4 - D5 - - - | C5 - - A4 - - E4 - | F#4 - A4 - C5 - - - | D5 - - B4 - - F#4 - | G#4 - B4 - D5 - E5 - | C5 - - - B4 - A4 - | A4 - - - - - . . | D5 - - B4 - - G4 - | F5 - E5 - D5 - B4 - | E5 - - C5 - - G4 - | A#4 - C#5 - E5 - - - | D5 - - B4 G4 - E4 - | G#4 - - - B4 - D5 - | C5 - - A4 F#4 - A4 - | G4 - - - - - . .',
+        bass: 'G2 - B2 - D3 - E3 - | E2 - G2 - B2 - D3 - | A2 - C3 - E3 - G2 - | D2 - F#2 - A2 - C3 - | B1 - D2 - F#2 - A2 - | E2 - G#2 - B2 - D3 - | A2 - C3 - E3 - G2 - | D2 - F#2 - A2 - C3 - | G2 - B2 - D3 - E3 - | G2 - B2 - D3 - F2 - | C3 - E3 - G2 - B2 - | C#3 - E3 - G2 - A#2 - | D2 - G2 - B2 - D3 - | E2 - G#2 - B2 - D3 - | A2 - C3 - D2 - F#2 - | G2 - B2 - D3 - E3 -',
+        harm: 'G3+B3+D4+E4 - - . . . G3+B3+D4+E4 - | E3+G3+B3+D4 - - . . . E3+G3+B3+D4 - | G3+A3+C4+E4 - - . . . G3+A3+C4+E4 - | F#3+A3+C4+D4 - - . . . F#3+A3+C4+D4 - | F#3+A3+B3+D4 - - . . . F#3+A3+B3+D4 - | G#3+B3+D4+E4 - - . . . G#3+B3+D4+E4 - | G3+A3+C4+E4 - - . . . G3+A3+C4+E4 - | F#3+A3+C4+D4 - - . . . F#3+A3+C4+D4 - | G3+B3+D4+E4 - - . . . G3+B3+D4+E4 - | F3+G3+B3+D4 - - . . . F3+G3+B3+D4 - | G3+B3+C4+E4 - - . . . G3+B3+C4+E4 - | G3+A#3+C#4+E4 - - . . . G3+A#3+C#4+E4 - | G3+B3+D4 - - . . . G3+B3+D4 - | G#3+B3+D4+E4 - - . . . G#3+B3+D4+E4 - | G3+A3+C4+E4 - - - F#3+A3+C4+D4 - - - | G3+B3+D4+E4 - - . . . G3+B3+D4+E4 -' },
+      B: {
+        lead: 'E5 - E5 - E5 - D5 E5 | D#5 - C5 - - - . . | D5 - D5 - D5 - C5 D5 | B4 - G#4 - - - . . | C5 - C5 - E5 - D5 C5 | A4 - - - F#4 - A4 - | C5 - B4 - A4 - G4 - | F#4 - - - D4 - - -',
+        bass: 'C3 - E3 - G2 - B2 - | C3 - D#3 - G2 - A2 - | B1 - D2 - F#2 - A2 - | E2 - G#2 - B2 - D3 - | A2 - C3 - E3 - G2 - | D2 - F#2 - A2 - C3 - | A2 - C3 - E3 - G2 - | D2 - F#2 - A2 - C3 -',
+        harm: 'G3+B3+C4+E4 - - . . . G3+B3+C4+E4 - | G3+A3+C4+D#4 - - . . . G3+A3+C4+D#4 - | F#3+A3+B3+D4 - - . . . F#3+A3+B3+D4 - | G#3+B3+D4+E4 - - . . . G#3+B3+D4+E4 - | G3+A3+C4+E4 - - . . . G3+A3+C4+E4 - | F#3+A3+C4+D4 - - . . . F#3+A3+C4+D4 - | G3+A3+C4+E4 - - . . . G3+A3+C4+E4 - | F#3+A3+C4+D4 - - . . . F#3+A3+C4+D4 -' },
+      drums: 'k . h h s . h h' },
   ];
 
   // play order: each round shuffles the lo-fi and the other tunes apart and alternates them (lo-fi, Italian, lo-fi...,
@@ -254,8 +301,10 @@ const MUSIC = (() => {
   // (never the same tune twice in a row across the two)
   const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] } return a };
   let ORDER = [];
+  const XMAS_SEASON = () => { const m = new Date().getMonth() + 1; return m === 11 || m === 12 || m === 1 };
   function deal() {
-    const last = ORDER[ORDER.length - 1], L = shuffle(SONGS.filter(s => s.lofi)), N = shuffle(SONGS.filter(s => !s.lofi));
+    const pool = SONGS.filter(s => !s.xmas || XMAS_SEASON());   // the Christmas carols only in their season
+    const last = ORDER[ORDER.length - 1], L = shuffle(pool.filter(s => s.lofi)), N = shuffle(pool.filter(s => !s.lofi));
     let [a, b] = Math.random() < .5 ? [L, N] : [N, L];
     ORDER = [];
     while (a.length || b.length) { if (a.length) ORDER.push(a.shift()); [a, b] = [b, a] }
