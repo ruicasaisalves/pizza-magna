@@ -1871,11 +1871,11 @@ const GUEST_P=.025,GUEST_WIZARD=21,GUEST_GOTH=22;
 const VIPS=[{id:'vipspeed',look:23,stars:3,every:2,off:0,from:.25},
   {id:'captain',look:24,stars:4,every:3,off:0,from:.3},{id:'redsuit',look:25,stars:4,every:3,off:1,from:.4},{id:'goldline',look:26,stars:4,every:3,off:2,from:.5},
   {id:'bow',look:27,stars:5,every:3,off:1,from:.6},{id:'moustache',look:28,stars:5,every:3,off:2,from:.7}];
-/* Christmas guests (customers/30-34, since 0.05a), from 25 November to 6 January only (the player's own date, XMAS_ON):
-   Santa visits our pizzeria once a day after XMAS_SANTA of the day, like a VIP; the two elves and the reindeer come
-   in XMAS_P of the people each, the grumpy green guest in half of that. Looks only, sales don't change. */
-const XMAS_SANTA_LOOK=29,XMAS_LOOKS=[30,31,32],XMAS_GREEN=33,XMAS_P=.03,XMAS_SANTA=.35;
-const XMAS_ON=()=>{const d=new Date(),m=d.getMonth()+1,dd=d.getDate();return (m===11&&dd>=25)||m===12||(m===1&&dd<=6)};
+/* Christmas guests (customers/30-34, since 0.05a), seasonal: from 1 November to 31 January only (the player's own
+   date, XMAS_ON): Santa visits our pizzeria once a day after XMAS_SANTA of the day, like a VIP; the two elves and the
+   reindeer guest come in XMAS_P of the people each, the green monster hoodie in half of that. Looks only, sales don't change. */
+const XMAS_SANTA_LOOK=29,XMAS_LOOKS=[30,31,32],XMAS_HOODIE=33,XMAS_P=.03,XMAS_SANTA=.35;
+const XMAS_ON=()=>{const m=new Date().getMonth()+1;return m===11||m===12||m===1};
 function guestLook(e){
   if(!castOn())return Math.floor(Math.random()*21);
   if(e.target==='ours'){const seen=anim.vips||(anim.vips={});
@@ -1883,7 +1883,7 @@ function guestLook(e){
   if(XMAS_ON()){const seen=anim.vips||(anim.vips={});
     if(e.target==='ours'&&!seen.santa&&anim.t>=DAY_SECONDS*XMAS_SANTA){seen.santa=1;return XMAS_SANTA_LOOK}
     const x=Math.random();for(let i=0;i<XMAS_LOOKS.length;i++)if(x<XMAS_P*(i+1))return XMAS_LOOKS[i];
-    if(x<XMAS_P*(XMAS_LOOKS.length+.5))return XMAS_GREEN}
+    if(x<XMAS_P*(XMAS_LOOKS.length+.5))return XMAS_HOODIE}
   const r=Math.random();return r<GUEST_P?GUEST_WIZARD:r<2*GUEST_P?GUEST_GOTH:Math.floor(Math.random()*21)}
 function spawn(e){
   const left=e.target==='rival'?true:Math.random()<.5,y=STREET_ROW*T+(e.target==='ours'?0:Math.round(Math.random()*16));
