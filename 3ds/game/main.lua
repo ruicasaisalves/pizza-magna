@@ -9,7 +9,8 @@
      On a PC (LÖVE 11/12) the window shows the top screen above the bottom one, and the mouse is the stylus. ]]
 local P = require("pizza")
 local G = require("day")
-local MUS = require("musica")   -- the browser game's tunes, recorded (tools/export_3ds_music.js)
+local MUS = require("musica")
+local RL = require("roomlib")   -- the room's rules (the room editor)   -- the browser game's tunes, recorded (tools/export_3ds_music.js)
 local D, A, t = P.D, P.A, P.t
 
 local CONSOLE = love._console ~= nil or love.system.getOS() == "Horizon" or love.system.getOS() == "3DS"
@@ -26,6 +27,9 @@ local L3 = {
          hkeys = "Y sales history", hback = "Y back to the day",
          citykeys = "D-pad or map: move   A rent, buy, go   Y close, sell   X zoom",
          mkeys = "A music on/off   </> volume   X next song",
+         edkeys = "L/R tab   Up/Down choose   A take / buy   B back", edplace = "Touch the room to place it (B: cancel)",
+         edpick = "X sell (+{x})   Y move   B done", edhint = "Touch a piece in the room to select it", ednofit = "It doesn't fit there.",
+         edroom = "Decorate the room",
          },
   pt = { keys1 = "</> ingrediente   L/R grupo   Cima massa   Baixo molho",
          keys2 = "A picar   X rodar   B desfazer   Y limpar   SELECT ecrã seguinte   START sair",
@@ -36,6 +40,9 @@ local L3 = {
          hkeys = "Y histórico de vendas", hback = "Y voltar ao dia",
          citykeys = "Cruz ou mapa: mover   A arrendar, comprar, ir   Y fechar, vender   X zoom",
          mkeys = "A música sim/não   </> volume   X música seguinte",
+         edkeys = "L/R separador   Cima/Baixo escolher   A pegar / comprar   B voltar", edplace = "Toca na sala para pôr (B: cancelar)",
+         edpick = "X vender (+{x})   Y mudar de sítio   B pronto", edhint = "Toca numa peça da sala para a escolher", ednofit = "Não cabe aí.",
+         edroom = "Decorar a sala",
          },
 }
 local function l3(k) return L3[P.lang()][k] end
@@ -48,6 +55,8 @@ for i, l in ipairs(D.CITY.LOTS) do if l.kind == "mine" then MINE_LOT = i end end
 local S = { dough = "napo", sauce = "tomate", pieces = {}, sel = "fiambre", cut = "w", rot = {}, found = {}, lang = nil,
   name = nil, editing = nil, menu = nil, tab = "kitchen", msel = 1, nextId = 1, csel = 1, ssel = 1 }
 local anim, report = nil, nil   -- the day running in the street; the close-of-day report on screen
+local ED = nil                   -- the room editor, when open (Shop › Decorate the room)
+local openEditor
 local histOn = false             -- the Day's top screen shows the sales history instead of the LCD (Y)
 local cleared = nil          -- the pizza the bin just cleared: undo on an empty bench brings it back
 local dirty, saveTimer = false, 0
@@ -116,6 +125,7 @@ local function save()
   for id, n in pairs(S.lastSales) do sales[#sales + 1] = id .. ":" .. n end
   lines[#lines + 1] = "sales=" .. table.concat(sales, ",")
   lines[#lines + 1] = "cur=" .. S.cur
+  lines[#lines + 1] = "room=" .. ser(G.room(S))
   lines[#lines + 1] = shopsLine()
   for _, n in ipairs(S.news) do
     local f = { n.k }
@@ -193,6 +203,8 @@ local function load()
     S.cands, S.candDay, S.hist = people.cand, tonumber(v.candday), hist
     -- the shops (saves from before the City: one shop on the first lot)
     S.shops = type(v.shops) == "table" and #v.shops > 0 and v.shops or { { lot = MINE_LOT } }
+    if v.room then local f = (loadstring or load)("return " .. v.room); local ok, room = pcall(f or error); S.room = ok and room or nil end
+    S.room = RL.ensure(S.room)   -- saves from before the room editor: the starter room
     S.cur = math.max(1, math.min(#S.shops, tonumber(v.cur) or 1))
     S.shops[S.cur].data = nil
     S.supplier = D.SUPPLIER[tonumber(v.supplier)] and tonumber(v.supplier) or 1
@@ -829,6 +841,9 @@ local idleScene   -- the room before the doors open: the staff in their places
 local function startDay()
   if anim or report then return end
   if #S.menu == 0 then toast(t("ct.need")); return end
+  local RS = G.roomStats(S)
+  if RS.seats == 0 then toast(t("rm.noseats")); return end
+  if not RS.kitchenOk then toast(t("rm.w.kitchen")); return end
   syncWorld(); histOn = false; idleScene = nil
   anim = { res = G.simulateDay(S), t = 0, speed = 1, idx = 1, cnt = { served = 0, rival = 0, left = 0, rev = 0 }, faces = { good = 0, meh = 0, bad = 0 }, bubbles = {}, sc = SALA.scene(S, G) }
 end
@@ -874,7 +889,7 @@ local function lcdRows()
     { t("lcd.cooks"), tostring(#G.crew(S, "cook")) },
     { t("lcd.waiters"), tostring(#G.crew(S, "waiter")) },
     { t("lcd.ovens"), tostring(S.ovens) },
-    { t("lcd.tables"), D.ROOM.tables .. " · " .. D.ROOM.seats },
+    { t("lcd.tables"), G.roomStats(S).tables .. " · " .. G.roomStats(S).seats },
     { t("lcd.cap"), c.served .. "/" .. math.min(G.capacity(S), G.serviceCap(S)) },
     false,
     { t("lcd.rev"), P.eur(c.rev) },
@@ -1026,7 +1041,7 @@ local function drawDayBottom()
   end
   text(t("day.news"), x, y, "small", C.gold); y = y + 15
   local notes = {}
-  if D.ROOM.seats * 3 < G.expected(S) then notes[#notes + 1] = t("day.seats") end
+  if G.roomStats(S).seats * 3 < G.expected(S) then notes[#notes + 1] = t("day.seats") end
   if math.min(G.capacity(S), G.serviceCap(S)) < G.expected(S) * .6 then notes[#notes + 1] = t("day.queue") end
   local lines = {}
   for _, n in ipairs(S.news) do lines[#lines + 1] = { G.newsText(n), C.cream } end
@@ -1253,7 +1268,7 @@ local function drawContestBottom()
 end
 
 -- ---------------------------------------------------------------- the shop
-local SHOP_ROWS = { "oven", "team", "hire", "ads", "supplier", "study", "bank", "music", "reset" }
+local SHOP_ROWS = { "oven", "team", "hire", "room", "ads", "supplier", "study", "bank", "music", "reset" }
 local function shopItem(id) for _, it in ipairs(G.SHOP) do if it.id == id then return it end end end
 local function buyItem(it)
   if not it.ok(S) then return end
@@ -1281,6 +1296,7 @@ local function shopAction(id)
   elseif id == "supplier" then setSupplier(S.supplier % 3 + 1)
   elseif id == "study" then runStudy()
   elseif id == "music" then MUS.setOn(not MUS.on); dirty = true
+  elseif id == "room" then openEditor()
   elseif id == "reset" then resetGame() end
 end
 local function shopRow(id)   -- name, state, price
@@ -1291,6 +1307,10 @@ local function shopRow(id)   -- name, state, price
   if id == "team" then return t("staff.title"), t("staff.pay", { w = P.eur(G.wages(S)) }), "" end
   if id == "hire" then return t("staff.cands"), "", P.eur(D.HIRE_COST) end
   if id == "bank" then return t("bank.title"), t("bank.owe") .. " " .. P.eur(S.loan or 0), "" end
+  if id == "room" then
+    local A = G.roomStats(S)
+    return l3("edroom"), t("rm.seats", { n = A.seats }) .. (A.nblocked > 0 and ("  ·  X " .. A.nblocked) or ""), ""
+  end
   if id == "music" then
     return t("mus.title"), MUS.on and (MUS.title() and t("mus.now", { x = MUS.title() }) or t("mus.waiting")) or t("mus.offlead"), t("mus.v" .. MUS.vol)
   end
@@ -1302,14 +1322,14 @@ local function drawShopTop()
   text(fitText(t("shop.lead", { m = P.eur(S.money) }), "small", 388), 6, 21, "small", C.dim)
   S.ssel = math.max(1, math.min(S.ssel, #SHOP_ROWS))
   for k, id in ipairs(SHOP_ROWS) do
-    local y = 37 + (k - 1) * 19
+    local y = 37 + (k - 1) * 17
     local on = k == S.ssel
-    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, 17)
-    if on then pxRect(5, y - 1, 390, 19, C.gold) end
+    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, 15)
+    if on then pxRect(5, y - 1, 390, 17, C.gold) end
     local n, l, c = shopRow(id)
-    text(fitText(n, "small", 166), 12, y + 2, "small", id == "reset" and C.bad or C.cream)
-    text(fitText(l, "tiny", 150), 180, y + 3, "tiny", C.dim)
-    text(c, 12, y + 2, "small", C.gold, "right", 376)
+    text(fitText(n, "small", 166), 12, y + 1, "small", id == "reset" and C.bad or C.cream)
+    text(fitText(l, "tiny", 150), 180, y + 2, "tiny", C.dim)
+    text(c, 12, y + 1, "small", C.gold, "right", 376)
   end
   text(l3(SHOP_ROWS[S.ssel] == "music" and "mkeys" or "skeys"), 0, 214, "tiny", C.dim, "center", 400)
   text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
@@ -1611,9 +1631,152 @@ local function drawCityBottom()
   langBtn()
 end
 
+
+local EDF = {}   -- the editor's functions (one local: main.lua is near Lua's 200 locals)
+-- ---------------------------------------------------------------- the room editor (Shop › Decorate the room)
+--[[ As the browser's (= UI: ROOM EDITOR =): the catalogue on the top screen (tabs with L/R, the list with up/down,
+     A takes a piece, or buys a floor, a wall finish or the Christmas lights), the room on the touch screen: with a piece
+     taken, touch where it goes (wall pieces on the back wall, in one of its slots); with none, touch a piece to select
+     it, then X sells it for half its price and Y moves it. Tables with no way in are crossed out. ]]
+EDF.TABS = { "table", "decor", "wall", "floor", "walls" }
+function EDF.edEntries(tab)
+  local out = {}
+  if tab == "floor" or tab == "walls" then
+    local src = tab == "floor" and RL.FLOORS or RL.WALLS
+    for k, d in pairs(src) do out[#out + 1] = { kind = tab, id = k, d = d, name = t((tab == "floor" and "rm.f." or "rm.w.") .. k) } end
+  else
+    for k, d in pairs(RL.ITEMS) do if d.cat == tab then out[#out + 1] = { kind = "item", id = k, d = d, name = t("rm.i." .. k) .. (d.n and (" · " .. d.n) or "") } end end
+  end
+  table.sort(out, function(a, b) return a.d.price < b.d.price or (a.d.price == b.d.price and a.id < b.id) end)
+  return out
+end
+openEditor = function() ED = { tab = 1, sel = 1 }; idleScene = nil; SALA.OY = 0 end
+function EDF.edChanged() local room = G.room(S); room.rev = (room.rev or 0) + 1; idleScene = nil; dirty = true end
+function EDF.edPay(v) if S.money < v then toast(t("rm.nomoney")); return false end; S.money = r2(S.money - v); return true end
+function EDF.edRefund(v) S.money = r2(S.money + math.floor(v * .5 + .5)) end
+function EDF.edActivate()
+  local e = EDF.edEntries(EDF.TABS[ED.tab])[ED.sel]; if not e then return end
+  local room = G.room(S)
+  if e.kind == "floor" then if room.floor ~= e.id and EDF.edPay(e.d.price) then room.floor = e.id; EDF.edChanged() end; return end
+  if e.kind == "walls" then if room.wall ~= e.id and EDF.edPay(e.d.price) then room.wall = e.id; EDF.edChanged() end; return end
+  if e.d.strip then   -- the Christmas lights: the whole back wall, bought or sold with one press
+    if room.lights then room.lights = false; EDF.edRefund(e.d.price); EDF.edChanged() elseif EDF.edPay(e.d.price) then room.lights = true; EDF.edChanged() end
+    return
+  end
+  ED.tool, ED.moving, ED.pick = e.id, nil, nil
+end
+function EDF.edSell()
+  local room, pk = G.room(S), ED.pick; if not pk then return end
+  if pk.wall then local id = room.walls[pk.wall]; if id then room.walls[pk.wall] = false; EDF.edRefund(RL.ITEMS[id].price) end
+  else for i, it in ipairs(room.items) do if it == pk then table.remove(room.items, i); EDF.edRefund(RL.ITEMS[it.id].price); break end end end
+  ED.pick = nil; EDF.edChanged()
+end
+function EDF.edTouch(x, y)
+  local room, X, Y = G.room(S), x * 2, (y + SALA.OY) * 2   -- the touch screen shows the room at half size, its top 16 px cut
+  local T = 32
+  if ED.tool then
+    local d = RL.ITEMS[ED.tool]
+    if d.cat == "wall" then
+      if Y < 2 * T and X < 12 * T then
+        local slot = math.floor(X / 64) + 1
+        if room.walls[slot] ~= ED.tool and EDF.edPay(d.price) then
+          if room.walls[slot] then EDF.edRefund(RL.ITEMS[room.walls[slot]].price) end
+          room.walls[slot] = ED.tool; ED.tool = nil; ED.pick = { wall = slot }; EDF.edChanged()
+        end
+      else toast(l3("ednofit")) end
+      return
+    end
+    local c, r = math.floor(X / T - d.w / 2 + .5), math.floor(Y / T - d.h / 2 + .5)
+    ED.ghost = { c = c, r = r }
+    if not RL.fits(room, ED.tool, c, r, ED.moving) then toast(l3("ednofit")); return end
+    local was = G.roomStats(S).nblocked
+    if ED.moving then ED.moving.c, ED.moving.r = c, r; ED.pick = ED.moving
+    elseif EDF.edPay(d.price) then local it = { id = ED.tool, c = c, r = r }; room.items[#room.items + 1] = it; ED.pick = it
+    else return end
+    ED.tool, ED.moving, ED.ghost = nil, nil, nil; EDF.edChanged()
+    local A = G.roomStats(S)
+    if ED.pick and A.blocked[ED.pick] then toast(t("rm.t.noseat"):gsub("%s*%(.-%)", "")) elseif A.nblocked > was then toast(t("rm.w.blocked", { n = A.nblocked }):gsub("%s*%(.-%)", "")) end
+    return
+  end
+  if Y < 2 * T and X < 12 * T then local slot = math.floor(X / 64) + 1; ED.pick = room.walls[slot] and { wall = slot } or nil; return end
+  ED.pick = RL.hit(room, X, Y)
+end
+function EDF.edButton(b)
+  local n = #EDF.edEntries(EDF.TABS[ED.tab])
+  if b == "leftshoulder" or b == "rightshoulder" then ED.tab = (ED.tab - 1 + (b == "leftshoulder" and -1 or 1)) % #EDF.TABS + 1; ED.sel = 1
+  elseif b == "dpup" then ED.sel = math.max(1, ED.sel - 1)
+  elseif b == "dpdown" then ED.sel = math.min(n, ED.sel + 1)
+  elseif b == "a" then EDF.edActivate()
+  elseif b == "x" then EDF.edSell()
+  elseif b == "y" then if ED.pick and not ED.pick.wall then ED.tool, ED.moving = ED.pick.id, ED.pick end
+  elseif b == "b" then if ED.tool or ED.pick then ED.tool, ED.moving, ED.pick, ED.ghost = nil, nil, nil, nil else ED = nil; idleScene = nil; SALA.OY = 16 end end
+end
+function EDF.drawEditorTop()
+  col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
+  drawHeader()
+  text(t("rm.title"), 6, 21, "small", C.gold)
+  local x = 6
+  for i, k in ipairs(EDF.TABS) do   -- the tabs
+    local s = t("rm.tab." .. k)
+    text(s, x, 37, "tiny", i == ED.tab and C.gold or C.dim)
+    if i == ED.tab then col(C.gold); love.graphics.rectangle("fill", x, 47, fw("tiny", s), 1) end
+    x = x + fw("tiny", s) + 10
+  end
+  local list, room = EDF.edEntries(EDF.TABS[ED.tab]), G.room(S)
+  local top = math.max(0, math.min(ED.sel - 5, #list - 9))
+  for i = top + 1, math.min(#list, top + 9) do   -- the list: name, style, price
+    local e, y = list[i], 52 + (i - top - 1) * 16
+    local mine = (e.kind == "floor" and room.floor == e.id) or (e.kind == "walls" and room.wall == e.id) or (e.d.strip and room.lights) or ED.tool == e.id
+    col(i == ED.sel and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 4, y, 252, 14)
+    if i == ED.sel then pxRect(3, y - 1, 254, 16, C.gold) end
+    text(fitText((mine and "> " or "") .. e.name, "tiny", 150), 8, y + 2, "tiny", mine and C.gold or C.cream)
+    text(t("rm.st." .. e.d.style), 160, y + 2, "tiny", C.dim)
+    text(P.eur(e.d.price):gsub("%.00$", ""), 8, y + 2, "tiny", S.money < e.d.price and C.bad or C.gold, "right", 244)
+  end
+  local A = G.roomStats(S)   -- on the right: seats and the atmosphere for each group
+  text(t("rm.seats", { n = A.seats }), 266, 54, "small", C.cream)
+  if A.nblocked > 0 then text("X " .. A.nblocked, 266, 70, "small", C.bad) end
+  text(fitText(t("rm.atm"), "tiny", 130), 266, 90, "tiny", C.dim)
+  for i, k in ipairs(D.SEG_ORDER) do
+    local y = 104 + (i - 1) * 20
+    text(fitText(t("seg." .. k), "tiny", 128), 266, y, "tiny", C.cream)
+    col(hex("#120a04")); love.graphics.rectangle("fill", 266, y + 10, 124, 5)
+    col(hex(D.SEG[k].col)); love.graphics.rectangle("fill", 266, y + 10, 124 * A.atm[k] / 100, 5)
+  end
+  local line
+  if ED.tool then line = l3("edplace")
+  elseif ED.pick then
+    local id = ED.pick.wall and room.walls[ED.pick.wall] or ED.pick.id
+    line = t("rm.i." .. id) .. ":  " .. l3("edpick"):gsub("{x}", P.eur(math.floor(RL.ITEMS[id].price * .5 + .5)))
+  else line = l3("edhint") end
+  text(fitText(line, "tiny", 390), 0, 200, "tiny", C.combo, "center", 400)
+  text(l3("edkeys"), 0, 214, "tiny", C.dim, "center", 400)
+  text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
+end
+function EDF.drawEditorBottom()
+  if not idleScene then idleScene = SALA.scene(S, G) end
+  SALA.draw(nil, idleScene, S)
+  local room, A, OY = G.room(S), G.roomStats(S), SALA.OY
+  local function box(c, r, w, h, colr) col(colr); love.graphics.rectangle("line", c * 16 + .5, r * 16 - OY + .5, w * 16 - 1, h * 16 - 1) end
+  for _, it in ipairs(room.items) do   -- tables with no way in: crossed out in red
+    if A.blocked[it] then
+      local d = RL.ITEMS[it.id]; local x0, y0 = it.c * 16, it.r * 16 - OY
+      col(C.bad); love.graphics.setLineWidth(2)
+      love.graphics.line(x0 + 4, y0 + 4, x0 + d.w * 16 - 4, y0 + d.h * 16 - 4); love.graphics.line(x0 + d.w * 16 - 4, y0 + 4, x0 + 4, y0 + d.h * 16 - 4)
+      love.graphics.setLineWidth(1)
+    end
+  end
+  if ED.tool and RL.ITEMS[ED.tool].cat == "wall" then for i = 0, 5 do box(i * 2, 0, 2, 2, hex("#ffd34a", .8)) end end
+  if ED.ghost and ED.tool then local d = RL.ITEMS[ED.tool]; box(ED.ghost.c, ED.ghost.r, d.w, d.h, RL.fits(room, ED.tool, ED.ghost.c, ED.ghost.r, ED.moving) and C.good or C.bad) end
+  if ED.pick then
+    if ED.pick.wall then box((ED.pick.wall - 1) * 2, 0, 2, 2, C.gold)
+    else local d = RL.ITEMS[ED.pick.id]; box(ED.pick.c, ED.pick.r, d.w, d.h, C.gold) end
+  end
+end
 drawBottom = function()
   hits = {}
-  if report then drawReportBottom()
+  if ED then EDF.drawEditorBottom()
+  elseif report then drawReportBottom()
   elseif S.tab == "menu" then drawMenuBottom()
   elseif S.tab == "day" then drawDayBottom()
   elseif S.tab == "contest" then drawContestBottom()
@@ -1622,7 +1785,8 @@ drawBottom = function()
   else drawKitchenBottom() end
 end
 drawTopScreen = function()
-  if report then drawReportTop()
+  if ED then EDF.drawEditorTop()
+  elseif report then drawReportTop()
   elseif S.tab == "menu" then drawMenuTop()
   elseif S.tab == "day" and histOn and not anim then drawHistTop()
   elseif S.tab == "day" then drawDayTop()
@@ -1639,6 +1803,7 @@ local function benchPoint(x, y) return (x - PCX) / PR, (y - PCY) / PR end
 local function touchDown(x, y)
   if renaming and not CONSOLE then finishRename(renameBuf) end   -- PC: a tap elsewhere keeps what was typed
   if S.tab == "city" and not report and inMini(x, y) then city.drag = true; cityTouch(x, y); return end
+  if ED and S.tab == "shop" then EDF.edTouch(x, y); return end
   for k = #hits, 1, -1 do
     local h = hits[k]
     if x >= h.x and x < h.x + h.w and y >= h.y and y < h.y + h.h then h.fn(); return end
@@ -1710,6 +1875,7 @@ local function menuButton(b)
   else navButton(b) end
 end
 local function button(b)
+  if ED and S.tab == "shop" and b ~= "start" then EDF.edButton(b); return end
   if report or S.tab == "day" or S.tab == "contest" or S.tab == "shop" or S.tab == "city" then otherButton(b); return end
   if S.tab == "menu" then menuButton(b); return end
   if b == "dpleft" then pickTopping(-1)

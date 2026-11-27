@@ -12,7 +12,8 @@ local function round(v) return math.floor(v + .5) end
 local function clamp(v, a, b) return math.max(a, math.min(b, v)) end
 local function noise() return (math.random() + math.random() + math.random() - 1.5) * 1.6 end
 local function shuffle(l) for i = #l, 2, -1 do local j = math.random(i); l[i], l[j] = l[j], l[i] end; return l end
-local MEH_BAND = require("roomdata").MEH_BAND   -- served but not happy: within it neutral, further below unhappy (as index.html)
+local MEH_BAND = require("roomdata").MEH_BAND
+local RL = require("roomlib")   -- the room: seats and atmosphere (the room editor on the 3DS)   -- served but not happy: within it neutral, further below unhappy (as index.html)
 G.r2 = r2
 
 local baseCost = D.DOUGHS.fina.c + D.SAUCES.tomate.c
@@ -32,6 +33,15 @@ end
      second skill adds to each customer's satisfaction (crewSat). New people come every day (candidates()). ]]
 function G.spMul(sp) return 1 + .16 * (sp - 3) end
 function G.wageOf(r, sp, sk) return (r == "cook" and D.SALARY or D.WAITER_SALARY) + 2 * (sp - 3) + 2 * (sk - 3) end
+-- the open shop's room, made safe, and what it gives (seats, tables, atmosphere); worked out again when it changes
+-- (the editor bumps room.rev)
+local roomCache = {}
+function G.room(S) S.room = RL.ensure(S.room); return S.room end
+function G.roomStats(S)
+  local room = G.room(S)
+  if roomCache.room ~= room or roomCache.rev ~= (room.rev or 0) then roomCache = { room = room, rev = room.rev or 0, A = RL.analyse(room) } end
+  return roomCache.A
+end
 function G.crew(S, r) local out = {}; for _, p in ipairs(S.staff) do if p.r == r then out[#out + 1] = p end end; return out end
 function G.wages(S) local w = 0; for _, p in ipairs(S.staff) do w = w + p.w end; return w end
 local function avgSkill(S, r) local c, n = G.crew(S, r), 0; for _, p in ipairs(c) do n = n + p.sk end; return #c > 0 and n / #c or 3 end
@@ -97,7 +107,7 @@ local function segMix(S)
   local H = sh and sh.hood and D.CITY.HOODS[sh.hood]   -- a new shop: its neighbourhood's customers
   local m = H and { estudante = H.mix[1] / 100, familia = H.mix[2] / 100, turista = H.mix[3] / 100, gourmet = H.mix[4] / 100 }
     or { estudante = .36, familia = .32, turista = .18, gourmet = .14 }
-  local atm, tot = D.ROOM.atm, 0
+  local atm, tot = G.roomStats(S).atm, 0
   for k, v in pairs(m) do m[k] = v * (.6 + atm[k] / 100 * .8); tot = tot + m[k] end   -- a room a group likes brings more of it
   for k in pairs(m) do m[k] = m[k] / tot end
   return m
@@ -178,8 +188,9 @@ function G.simulateDay(S)
   local mix, cap, r, N = segMix(S), math.min(G.capacity(S), G.serviceCap(S)), S.rival, G.expected(S)
   local crewSat = (avgSkill(S, "cook") - 3) + (avgSkill(S, "waiter") - 3)   -- a skilled pizzaiolo's hand and a charming waiter
   local TH, REGULARS = 4.2, .45
-  local atm, EAT, WAIT = D.ROOM.atm, .18, .04
-  local seatFree = {}; for k = 1, D.ROOM.seats do seatFree[k] = 0 end
+  local RS = G.roomStats(S)
+  local atm, EAT, WAIT = RS.atm, .18, .04
+  local seatFree = {}; for k = 1, RS.seats do seatFree[k] = 0 end
   local bought = 0
   local function useStock(m)   -- no pantry on the 3DS yet: everything is bought on the spot
     local v = 0
@@ -194,7 +205,7 @@ function G.simulateDay(S)
   end
   table.sort(arrivals)
   local res = { events = {}, served = 0, toRival = 0, full = 0, noseat = 0, nostock = 0, passed = 0, revenue = 0, ingCost = 0,
-    repDelta = 0, happy = 0, unhappy = 0, meh = 0, sad = 0, sales = {}, bySeg = {}, quotes = {}, N = N, cap = cap, seats = D.ROOM.seats }
+    repDelta = 0, happy = 0, unhappy = 0, meh = 0, sad = 0, sales = {}, bySeg = {}, quotes = {}, N = N, cap = cap, seats = RS.seats }
   local function pickSeg()
     local x = math.random()
     for _, k in ipairs(D.SEG_ORDER) do x = x - mix[k]; if x <= 0 then return k end end
@@ -298,7 +309,7 @@ end
 --[[ Several shops (the City), as in index.html: the open shop's fields (SHOP_KEYS) live at the root of S, the
      others in S.shops[i].data; S.shops[i] = {hood, lot, traffic, owned, data}; S.cur is the open one. The first shop
      has no hood (the original customer mix) and pays RENT; a rented one its lot's rent, a bought one none. ]]
-G.SHOP_KEYS = { "rep", "ovens", "staff", "ads", "menu", "rival", "lastSales", "hist", "supplier" }
+G.SHOP_KEYS = { "rep", "ovens", "staff", "ads", "menu", "rival", "lastSales", "hist", "supplier", "room" }
 function G.openShop(S, i)
   if i == S.cur or not S.shops[i] or not S.shops[i].data then return false end
   local park = {}; for _, k in ipairs(G.SHOP_KEYS) do park[k] = S[k] end
@@ -450,7 +461,7 @@ function G.openLot(S, i, buy)   -- nil and an I18N key when it can't
   end
   local RH = D.RIVAL_HOOD[l.hood]
   S.shops[#S.shops + 1] = { hood = l.hood, lot = i, traffic = l.traffic, owned = buy and true or false, data = {
-    rep = r2(1 + (best - 1) * .1), ovens = 1, staff = G.startStaff(S, 1, 1), ads = false, menu = copyMenu(S.menu),
+    rep = r2(1 + (best - 1) * .1), ovens = 1, staff = G.startStaff(S, 1, 1), ads = false, menu = copyMenu(S.menu), room = RL.starter(),
     rival = { name = rv.name, q = RH.q, price = RH.price, style = D.HOOD_STYLE[l.hood], promo = false },
     lastSales = {}, hist = {}, supplier = 1 } }
   G.openShop(S, #S.shops)

@@ -1,11 +1,13 @@
---[[ The dining room on the touch screen, as in the browser's day (index.html: makeScene(), step(), drawRoom()),
-     at half size: 16 px tiles, the starter room (the 3DS has no room editor), the cast characters.
-     Art and layout come from tools/export_3ds_room.js (gfx/room.png, gfx/people.png, roomdata.lua).
+--[[ The dining room of the day (top screen) and of the room editor (touch screen), as in the browser's day
+     (index.html: makeScene(), step(), paintRoomBase(), drawRoom()), at half size: 16 px tiles, the shop's own room
+     (S.room, roomlib.lua), the cast characters. Art and layout come from tools/export_3ds_room.js (gfx/room.png,
+     gfx/people.png, roomdata.lua).
      Positions are kept in the browser's 32 px units (x, y, and z for the depth), and drawn halved, OY pixels up
      (the top of the back wall is cut so the street fits). Customers come down the street; ours go in, wait in the
      queue, sit, a waiter brings the pizza from the counter, they eat and walk out with a face (happy, neutral or
      unhappy); the rest walk by, or on to the rival. ]]
 local R = require("roomdata")
+local RL = require("roomlib")
 local M = {}
 local T, COLS, ROWS = R.T, R.COLS, R.ROWS
 local RW = COLS * T
@@ -18,15 +20,13 @@ local function quad(img, x, y, w, h)
   if not quads[k] then quads[k] = love.graphics.newQuad(x, y, w, h, img:getDimensions()) end
   return quads[k]
 end
-local SPR = {}   -- room sprites by key (pieces are drawn from the list)
-for _, s in ipairs(R.sprites) do if s.key ~= "piece" then SPR[s.key] = s end end
+local SPR = R.SPR   -- room sprites by key: {x, y, w, h} in room.png, at half size
 function M.load()
   if not roomImg then roomImg = love.graphics.newImage("gfx/room.png"); peopleImg = love.graphics.newImage("gfx/people.png") end
 end
 
--- the walking grid, and the shortest way between two tiles (as bfs() in index.html)
+-- the shortest way between two tiles over the room's walking grid (as bfs() in index.html; M.scene sets it)
 local solid = {}
-for r = 0, ROWS - 1 do for c = 0, COLS - 1 do solid[r * COLS + c] = R.solid[r + 1]:sub(c + 1, c + 1) == "#" end end
 local function bfs(from, to)
   local start, goal = from[2] * COLS + from[1], to[2] * COLS + to[1]
   if start == goal then return {} end
@@ -78,8 +78,10 @@ local spMul = function(sp) return 1 + .16 * ((sp or 3) - 3) end
 
 -- the people of the room: the waiters in their corner and the cooks at the ovens (also before the doors open)
 function M.scene(S, G)
-  local sc = { people = {}, jobs = {}, waiters = {}, cooks = {}, seats = {} }
-  for k, s in ipairs(R.seats) do sc.seats[k] = { s = s, occ = nil } end
+  local map = RL.map(G.room(S))
+  solid = map.solid
+  local sc = { people = {}, jobs = {}, waiters = {}, cooks = {}, seats = {}, queue = map.queue, room = G.room(S) }
+  for k, s in ipairs(map.seats) do sc.seats[k] = { s = s, occ = nil } end
   for i, p in ipairs(G.crew(S, "waiter")) do
     local h = R.WAITER_HOME[i]; if not h then break end
     sc.waiters[#sc.waiters + 1] = { x = h[1] * T, y = h[2] * T, home = h, path = {}, dir = "down", ph = 0, f = staffV(p) + 1, spd = spMul(p.sp) }
@@ -125,7 +127,7 @@ function M.step(a, dt, S, DS, eur, colors)
   a.t = a.t + dt
   local sc, ev = a.sc, a.res.events
   while ev[a.idx] and ev[a.idx].t * DS <= a.t do spawn(a, ev[a.idx], S, DS); a.idx = a.idx + 1 end
-  local qi, Q = 0, (#R.QUEUE > 0 and R.QUEUE or { R.DOOR_IN })
+  local qi, Q = 0, (#sc.queue > 0 and sc.queue or { R.DOOR_IN })
   for _, p in ipairs(sc.people) do
     if p.st == "queue" and a.t >= DS then   -- closed: still in the queue, they take the pizza to go (served all the same)
       a.cnt.served = a.cnt.served + 1; a.cnt.rev = a.cnt.rev + (p.e.price or 0)
@@ -220,9 +222,8 @@ function M.pace(a, DS) return 1 end   -- people walk at the chosen speed after c
 
 -- drawing
 local DIRS = { down = 0, right = 1, up = 2, left = 3 }
-local OY = M.OY
 local function hx(x) return math.floor(x / 2 + .5) end
-local function hy(y) return math.floor(y / 2 + .5) - OY end
+local function hy(y) return math.floor(y / 2 + .5) - M.OY end   -- M.OY: 16 for the day (the street shows), 0 in the editor (the whole back wall shows)
 local function dxOf(key, row, col)   -- per-frame head nudges (PILOT_DX), halved
   local t = R.PILOT_DX[key]; t = t and t[tostring(row)]; local v = t and t[col + 1] or 0
   return v >= 0 and math.floor(v / 2) or -math.floor(-v / 2)
@@ -236,10 +237,55 @@ local function foot(origin, key, row, col, x, y)   -- a 16x29 cell with its feet
   love.graphics.setColor(1, 1, 1)
   love.graphics.draw(peopleImg, quad(peopleImg, origin[1] + col * 16, origin[2] + row * 29, 16, 29), hx(x) + dxOf(key, row, col), hy(y) - 14)
 end
-local function sprite(s, x, y)   -- a room sprite at a half-pixel place
+local function spr(k, x, y)   -- a room sprite, placed in the browser's 32 px units (x, y: its top left)
+  local q = SPR[k]; if not q then return end
   love.graphics.setColor(1, 1, 1)
-  love.graphics.draw(roomImg, quad(roomImg, s.q[1], s.q[2], s.q[3], s.q[4]), x, y)
+  love.graphics.draw(roomImg, quad(roomImg, q[1], q[2], q[3], q[4]), hx(x), hy(y))
 end
+local function tile(k, x0, y0, x1, y1)   -- a sprite repeated over a rectangle (paintRoomBase()'s rtile)
+  local q = SPR[k]; if not q then return end
+  local w, h = q[3] * 2, q[4] * 2
+  for y = y0, y1 - 1, h do
+    for x = x0, x1 - 1, w do
+      local cw, ch = math.min(w, x1 - x) / 2, math.min(h, y1 - y) / 2
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.draw(roomImg, quad(roomImg, q[1], q[2], math.ceil(cw), math.ceil(ch)), hx(x), hy(y))
+    end
+  end
+end
+-- floor, walls and wall pieces, the Christmas lights, the kitchen corner, the front wall with the door, the street
+local function base(room, fr)
+  tile("f_" .. room.floor, 0, 2 * T, 12 * T, 14 * T); tile("f_kitchen", 12 * T, 2 * T, RW, 8 * T); tile("f_" .. room.floor, 12 * T, 8 * T, RW, 14 * T)
+  tile("w_" .. room.wall, 0, 0, 12 * T, 2 * T); tile("w_kitchen", 12 * T, 0, RW, 2 * T)
+  for i = 1, R.WALL_SLOTS do
+    local id = room.walls[i]
+    local wp = id and RL.ITEMS[id] and RL.ITEMS[id].wallpiece
+    if wp then spr((wp[1] == "w_neon_1" and fr % 9 == 0) and "w_neon_0" or wp[1], (i - 1) * 64 + wp[2], wp[3]) end
+  end
+  if room.lights then for x = 0, 12 * T - 1, 128 do spr("w_lights_" .. (math.floor(fr / 3) % 2), x, RL.ITEMS.luzes.wallpiece[3]) end end
+  spr("k_rack", 19 * T - 6, 6); spr("divider", 12 * T - 16, 0)
+  for c = 0, COLS - 1, 2 do if c ~= R.DOOR[1] then spr("frontwall", c * T, 14 * T) end end
+  spr("doormat", R.DOOR[1] * T, 14 * T); spr("doormat", (R.DOOR[1] + 1) * T, 14 * T)
+  love.graphics.setColor(42 / 255, 20 / 255, 7 / 255)
+  love.graphics.rectangle("fill", hx(R.DOOR[1] * T - 6), hy(14 * T - 12), 3, 22); love.graphics.rectangle("fill", hx((R.DOOR[1] + 2) * T), hy(14 * T - 12), 3, 22)
+  tile("sidewalk", 0, 15 * T, RW, 17 * T); tile("curb", 0, 16 * T, RW, 17 * T)
+end
+-- a piece's sprites with their depth (itemParts()): its parts, then its chairs (seen from behind: two layers)
+local function parts(it, fr, add, rugs)
+  local d = RL.ITEMS[it.id]; local L = d.layout; if not L then return end
+  local x0, y0 = it.c * T, it.r * T
+  for _, p in ipairs(L.parts) do
+    local k = (p[5] and p[5] > 1) and (p[1] .. "_" .. (fr % p[5])) or p[1]
+    if L.rug then rugs[#rugs + 1] = function() spr(k, x0 + p[2], y0 + p[3]) end
+    else add(y0 + p[4], function() spr(k, x0 + p[2], y0 + p[3]) end) end
+  end
+  for _, st in ipairs(L.seats or {}) do
+    for _, ch in ipairs({ st.chair or false, st.back or false }) do
+      if ch then add(y0 + ch[4], function() spr(ch[1], x0 + ch[2], y0 + ch[3]) end) end
+    end
+  end
+end
+M.parts = parts
 -- a face over everyone walking out (faceArt() in index.html): yellow, a see-through ring, eyes and mouth
 local RING = { good = { .27, .78, .24, .55 }, meh = { 1, .8, .16, .6 }, bad = { .78, .1, .06, .85 } }
 function M.face(k, cx, top)   -- also in the report and the history
@@ -261,18 +307,20 @@ end
 -- the room with its people; a: the running day or nil (the room before the doors open), sc: its scene
 function M.draw(a, sc, S)
   M.load()
-  love.graphics.setColor(1, 1, 1)
-  love.graphics.draw(roomImg, quad(roomImg, 0, 0, 320, 272), 0, -OY)
-  local L = {}
+  local room = sc.room
+  local fr = a and math.floor(a.t * 6) or math.floor(love.timer.getTime() * 6)
+  base(room, fr)
+  local L, rugs = {}, {}
   local function add(z, fn) L[#L + 1] = { z = z, fn = fn } end
-  for _, s in ipairs(R.sprites) do if s.key == "piece" then add(s.z, function() sprite(s, s.x, s.y - OY) end) end end
-  local fr = a and math.floor(a.t * 6) or 0
-  for i = 0, (S.ovens or 1) - 1 do
-    local s = SPR["oven" .. ((fr + i) % 2)]
-    add(s.z, function() sprite(s, s.x + i * R.OVEN_STEP / 2, s.y - OY) end)
+  for _, it in ipairs(room.items) do parts(it, fr, add, rugs) end
+  for _, k in ipairs(R.KITCHEN) do   -- the kitchen's own pieces (kitchenParts()): ovens by how many were bought
+    local key, x, y, z, n = k[1], k[2], k[3], k[4], k[5]
+    if key == "k_oven" then for i = 0, (S.ovens or 1) - 1 do add(z, function() spr("k_oven_" .. ((fr + i) % (n or 1)), x + i * R.OVEN_STEP, y) end) end
+    elseif key ~= "cook" then add(z, function() spr((n and n > 1) and (key .. "_0") or key, x, y) end) end
   end
   local ready = a and math.min(3, #sc.jobs) or 0
-  for k = 0, ready - 1 do add(256.3, function() sprite(SPR.pizza, hx(15 * T + k * 26), hy(7 * T - 22)) end) end
+  for k = 0, ready - 1 do add(256.3, function() spr("pizza", 15 * T + k * 26, 7 * T - 22) end) end
+  for _, f in ipairs(rugs) do f() end
   for _, st in ipairs(sc.seats) do
     local p = st.occ
     if p and (p.st == "wait" or p.st == "eat") then
@@ -281,7 +329,7 @@ function M.draw(a, sc, S)
         love.graphics.setColor(1, 1, 1)
         love.graphics.draw(peopleImg, quad(peopleImg, c[1], c[2] + DIRS[s.d] * 24, 16, s.d == "up" and 18 or 24), hx(s.x), hy(s.y))
       end)
-      add(s.pz, function() sprite((p.st == "eat" and p.timer > 1) and SPR.pizza or SPR.plate, hx(s.px), hy(s.py)) end)
+      add(s.pz, function() spr((p.st == "eat" and p.timer > 1) and "pizza" or "plate", s.px, s.py) end)
     end
   end
   for _, k in ipairs(sc.cooks) do
