@@ -59,8 +59,12 @@ local ED = nil                   -- the room editor, when open (Shop › Decorat
 local openEditor
 local histOn = false             -- the Day's top screen shows the sales history instead of the LCD (Y)
 local cleared = nil          -- the pizza the bin just cleared: undo on an empty bench brings it back
-local dirty, saveTimer = false, 0
+local dirty, saveTimer, saveFailed = false, 0, false   -- saveFailed: the last write failed (retried every 10 s)
 local toasts = {}
+local function toast(s)   -- a new message cuts the one on screen short, so a "press again" never waits in a queue
+  if toasts[1] and toasts[1].time > .6 then toasts[1].time = .6 end
+  toasts[#toasts + 1] = { s = s, time = 3 }
+end
 local an                     -- analysis of the pizza on the bench (recomputed on every change)
 
 -- save.txt: one "key=value" a line; each menu pizza is a "pizza=" line of tab-separated fields
@@ -144,8 +148,13 @@ local function save()
   for _, p in ipairs(S.menu) do
     lines[#lines + 1] = "pizza=" .. table.concat({ p.id, string.format("%.2f", p.price), p.dough, p.sauce, p.name, P.packPieces(p.pieces) }, "\t")
   end
-  love.filesystem.write("save.txt", table.concat(lines, "\n") .. "\n")
-  dirty = false
+  local ok = love.filesystem.write("save.txt", table.concat(lines, "\n") .. "\n")
+  if not ok and not saveFailed then
+    toast(P.lang() == "pt" and "Falha ao gravar no cartão SD." or "Could not save to the SD card.")
+  end
+  saveFailed = not ok
+  dirty = not ok
+  return ok
 end
 local function load()
   local ok, txt = pcall(love.filesystem.read, "save.txt")
@@ -191,7 +200,7 @@ local function load()
   if v.name and v.name ~= "" then S.name = v.name end
   if v.editing and v.editing ~= "" then S.editing = v.editing end
   if v.tab then S.tab = v.tab end
-  MUS.init(v.music ~= "0" and not CONSOLE, v.musvol)   -- music on unless turned off; on the console it starts off for now (a crash is being looked into: Shop › Music turns it on)
+  MUS.init(v.music ~= "0", v.musvol)   -- music on unless turned off
   S.msel = tonumber(v.msel) or 1
   S.nextId = tonumber(v.nextid) or 1
   if v.day then   -- saves from before the restaurant start a new game in load (S.day stays nil)
@@ -227,10 +236,6 @@ local function load()
   if v.pieces and v.pieces ~= "" then pcall(function() S.pieces = P.unpackPieces(v.pieces) end) end
 end
 
-local function toast(s)   -- a new message cuts the one on screen short, so a "press again" never waits in a queue
-  if toasts[1] and toasts[1].time > .6 then toasts[1].time = .6 end
-  toasts[#toasts + 1] = { s = s, time = 3 }
-end
 local function r2(v) return math.floor(v * 100 + .5) / 100 end
 
 -- the three pizzas a new game starts with (freshState() in index.html; spread() lays a topping out in a spiral)
@@ -1977,7 +1982,7 @@ function love.update(dt)
   if armed then armed.time = armed.time - dt; if armed.time <= 0 then armed = nil end end
   if anim then updateDay(dt) end
   MUS.update(dt)
-  if dirty then saveTimer = saveTimer + dt; if saveTimer > 1 then save(); saveTimer = 0 end end
+  if dirty then saveTimer = saveTimer + dt; if saveTimer > (saveFailed and 10 or 1) then save(); saveTimer = 0 end end
 end
 
 function love.draw(screen)
