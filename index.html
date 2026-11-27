@@ -1871,10 +1871,19 @@ const GUEST_P=.025,GUEST_WIZARD=21,GUEST_GOTH=22;
 const VIPS=[{id:'vipspeed',look:23,stars:3,every:2,off:0,from:.25},
   {id:'captain',look:24,stars:4,every:3,off:0,from:.3},{id:'redsuit',look:25,stars:4,every:3,off:1,from:.4},{id:'goldline',look:26,stars:4,every:3,off:2,from:.5},
   {id:'bow',look:27,stars:5,every:3,off:1,from:.6},{id:'moustache',look:28,stars:5,every:3,off:2,from:.7}];
+/* Christmas guests (customers/30-34, since 0.05a), from 25 November to 6 January only (the player's own date, XMAS_ON):
+   Santa visits our pizzeria once a day after XMAS_SANTA of the day, like a VIP; the two elves and the reindeer come
+   in XMAS_P of the people each, the grumpy green guest in half of that. Looks only, sales don't change. */
+const XMAS_SANTA_LOOK=29,XMAS_LOOKS=[30,31,32],XMAS_GREEN=33,XMAS_P=.03,XMAS_SANTA=.35;
+const XMAS_ON=()=>{const d=new Date(),m=d.getMonth()+1,dd=d.getDate();return (m===11&&dd>=25)||m===12||(m===1&&dd<=6)};
 function guestLook(e){
   if(!castOn())return Math.floor(Math.random()*21);
   if(e.target==='ours'){const seen=anim.vips||(anim.vips={});
     for(const v of VIPS)if(!seen[v.id]&&state.rep>=v.stars&&(state.day+v.off)%v.every===0&&anim.t>=DAY_SECONDS*v.from){seen[v.id]=1;return v.look}}
+  if(XMAS_ON()){const seen=anim.vips||(anim.vips={});
+    if(e.target==='ours'&&!seen.santa&&anim.t>=DAY_SECONDS*XMAS_SANTA){seen.santa=1;return XMAS_SANTA_LOOK}
+    const x=Math.random();for(let i=0;i<XMAS_LOOKS.length;i++)if(x<XMAS_P*(i+1))return XMAS_LOOKS[i];
+    if(x<XMAS_P*(XMAS_LOOKS.length+.5))return XMAS_GREEN}
   const r=Math.random();return r<GUEST_P?GUEST_WIZARD:r<2*GUEST_P?GUEST_GOTH:Math.floor(Math.random()*21)}
 function spawn(e){
   const left=e.target==='rival'?true:Math.random()<.5,y=STREET_ROW*T+(e.target==='ours'?0:Math.round(Math.random()*16));
@@ -2015,7 +2024,7 @@ const castSheets={};
 function castSheet(src){if(!src||!castOn())return null;let p=castSheets[src];
   if(!p){const img=new Image();p=castSheets[src]={img,ok:false};img.src=src;img.decode().then(()=>{p.ok=true;if(!anim)drawRoom()}).catch(()=>{})}
   return p.ok?p.img:null}
-const castCustomer=(p,kind)=>castOn()?CAST+`customers/${castNN((p.rlook||0)%29)}/${kind}.png`:null;   // 21 looks, the wizard, the goth and the VIPs (guestLook())
+const castCustomer=(p,kind)=>castOn()?CAST+`customers/${castNN((p.rlook||0)%34)}/${kind}.png`:null;   // 21 looks, the wizard, the goth, the VIPs and the Christmas guests (guestLook())
 const castWaiter=v=>castOn()?CAST+`waiters/${castNN(v)}/service.png`:null;   // v: the folder, from staffV(p,1)
 const castCook=v=>castOn()?CAST+`cooks/${castNN(v)}/idle.png`:null;
 const PILOT_DX={'customers/01/walk':{3:[0,-3,0,-3,0]},'customers/08/walk':{1:[0,0,0,2,0],3:[0,0,0,-2,0]},
