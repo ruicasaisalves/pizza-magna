@@ -119,7 +119,13 @@ function M.step(a, dt, S, DS, eur, colors)
   while ev[a.idx] and ev[a.idx].t * DS <= a.t do spawn(a, ev[a.idx], S, DS); a.idx = a.idx + 1 end
   local qi, Q = 0, (#R.QUEUE > 0 and R.QUEUE or { R.DOOR_IN })
   for _, p in ipairs(sc.people) do
-    if p.st == "queue" then
+    if p.st == "queue" and a.t >= DS then   -- closed: still in the queue, they take the pizza to go (served all the same)
+      a.cnt.served = a.cnt.served + 1; a.cnt.rev = a.cnt.rev + (p.e.price or 0)
+      bubble(a, p.x + 16, p.y - 44, "+" .. eur(p.e.price or 0), p.e.out == "happy" and colors.good or colors.combo)
+      local fk = M.faceOf(p); a.faces[fk] = a.faces[fk] + 1
+      p.st = "exit"; p.path = bfs(tileOf(p), { R.DOOR[1], R.STREET_ROW })
+      p.path[#p.path + 1] = { x = math.random() < .5 and -T or RW + T, y = R.STREET_ROW * T }
+    elseif p.st == "queue" then
       local seat
       for _, s in ipairs(sc.seats) do if not s.occ then seat = s; break end end
       if seat then seat.occ = p; p.seat = seat; p.st = "toSeat"; p.path = bfs(tileOf(p), { seat.s.cx, seat.s.cy })
@@ -147,9 +153,9 @@ function M.step(a, dt, S, DS, eur, colors)
     elseif st == "toSeat" then
       if moveAlong(p, dt, p.v) then p.st = "wait"; p.dir = p.seat.s.d; sc.jobs[#sc.jobs + 1] = p end
     elseif st == "wait" then
-      if p.served then p.st = "eat"; p.timer = 2.6 end
+      if p.served or a.t >= DS then p.served = true; p.st = "eat"; p.timer = 2.6 end   -- closed: every pizza still owed goes out at once
     elseif st == "eat" then
-      p.timer = p.timer - dt
+      p.timer = p.timer - dt * (a.t >= DS and 3 or 1)   -- after closing the last customers eat faster (AFTER_EAT in index.html)
       if p.timer <= 0 then
         a.cnt.served = a.cnt.served + 1; a.cnt.rev = a.cnt.rev + (p.e.price or 0)
         local h = p.e.out == "happy"
@@ -164,6 +170,7 @@ function M.step(a, dt, S, DS, eur, colors)
     end
   end
   for k = #sc.people, 1, -1 do if sc.people[k].gone then table.remove(sc.people, k) end end
+  if a.t >= DS then for k = #sc.jobs, 1, -1 do if sc.jobs[k].served then table.remove(sc.jobs, k) end end end
   for _, w in ipairs(sc.waiters) do
     if sc.jobs[1] and (not w.job or w.phase == "back") then w.job = table.remove(sc.jobs, 1); w.phase = "pick"; w.path = bfs(tileOf(w), R.PICK) end
     if not w.job then w.walking = false; if not w.path[1] then w.dir = "down" end
@@ -201,13 +208,7 @@ function M.step(a, dt, S, DS, eur, colors)
   if closing then a.dusk = math.min(1, (a.dusk or 0) + dt / 1.5) end
   return closing and not sc.people[1] and a.dusk >= 1
 end
--- after closing the room plays faster, the fuller the faster (as loop() in index.html)
-function M.pace(a, DS)
-  if a.t < DS then return 1 end
-  local n = 0
-  for _, p in ipairs(a.sc.people) do if p.st ~= "exit" and p.st ~= "leave" and p.st ~= "street" then n = n + 1 end end
-  return math.min(16, 3 + n * .8)
-end
+function M.pace(a, DS) return 1 end   -- people walk at the chosen speed after closing too; the last ones eat faster (step)
 
 -- drawing
 local DIRS = { down = 0, right = 1, up = 2, left = 3 }
