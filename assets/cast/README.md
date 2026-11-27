@@ -21,3 +21,7 @@ Start a fresh branch from updated main. Load the new sheets behind PM_DEV after 
 ## Guests (in the game since 0.04l)
 
 Extra customer looks in the same format (walk.png and seated.png), handed out by `guestLook()` in index.html, not like the 21 regulars: 22 the wizard and 23 the goth (2.5% of people each); the VIPs, by nickname only: 24 vipspeed (from 3 stars), 25 captain, 26 redsuit, 27 goldline (from 4 stars), 28 bow, 29 moustache (from 5 stars). See `VIPS` for how often each visits.
+
+## Christmas guests (in the game since 0.05a)
+
+Five more looks in the same format, from the Christmas pack v2 (its folders were named by role): 30 Santa (`santa`), 31 the holly elf (`holly-elf`), 32 the pine elf (`pine-elf`), 33 the reindeer guest (`reindeer-guest`), 34 the green monster hoodie (`monster-hoodie`, "Capuz Traquina"; it replaced a first green guest). Seasonal: they come only from 1 November to 31 January (`XMAS_ON()` in index.html, by the player's own date): Santa visits our pizzeria once a day after `XMAS_SANTA` (35%) of the day; the elves and the reindeer guest are `XMAS_P` (3%) of the people each, the hoodie half of that.
