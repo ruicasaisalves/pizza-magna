@@ -18,28 +18,26 @@ local BOTTOM_X, BOTTOM_Y = 40, 240   -- where the bottom screen sits in the PC w
 
 -- text only the 3DS port has (the browser game has no buttons to explain)
 local L3 = {
-  en = { keys1 = "</> topping   L/R group   Up dough   Down sauce",
-         keys2 = "A cut   X turn   B undo   Y clear   SELECT next screen   START quit",
+  en = { keys1 = "✚ choose   A whole/chopped   X turn   B undo   Y clear",
+         kweek = "Topping of the week!", klow = "Least wanted this week", kcombo = "Combo", kcost = "Cost", ksugg = "Suggested price", kappeal = "Appeal",
          mkeys1 = "Up/Down pizza   </> price   A edit   X rename   Y remove",
-         nav = "L/R or SELECT other screens   START quit", rename = "RENAME",
+         nav = "START options", rename = "RENAME", quit = "Save and quit", on = "On", off = "Off", back = "Back", okeys = "✚ choose   A change   B back",
          dkeys = "A open the doors", drun = "</> speed   B pause   A skip to closing", rkeys = "A continue",
          ckeys = "Up/Down pizza   A enter it", skeys = "Up/Down choose   A buy / choose   touch: hire, let go, bank",
          hkeys = "Y sales history", hback = "Y back to the day",
          citykeys = "D-pad or map: move   A rent, buy, go   Y close, sell   X zoom",
-         mkeys = "A music on/off   </> volume   X next song",
          edkeys = "L/R tab   Up/Down choose   A take / buy   B back", edplace = "Touch the room to place it (B: cancel)",
          edpick = "X sell (+{x})   Y move   B done", edhint = "Touch a piece in the room to select it", ednofit = "It doesn't fit there.",
          edroom = "Decorate the room",
          },
-  pt = { keys1 = "</> ingrediente   L/R grupo   Cima massa   Baixo molho",
-         keys2 = "A picar   X rodar   B desfazer   Y limpar   SELECT ecrã seguinte   START sair",
+  pt = { keys1 = "✚ escolher   A inteiro/picado   X rodar   B desfazer   Y limpar",
+         kweek = "Ingrediente da semana!", klow = "Pouco procurado esta semana", kcombo = "Combo", kcost = "Custo", ksugg = "Preço sugerido", kappeal = "Apelo",
          mkeys1 = "Cima/Baixo pizza   </> preço   A editar   X nome   Y remover",
-         nav = "L/R ou SELECT outros ecrãs   START sair", rename = "MUDAR NOME",
+         nav = "START opções", rename = "MUDAR NOME", quit = "Gravar e sair", on = "Ligada", off = "Desligada", back = "Voltar", okeys = "✚ escolher   A mudar   B voltar",
          dkeys = "A abrir portas", drun = "</> velocidade   B pausa   A saltar para o fecho", rkeys = "A continuar",
          ckeys = "Cima/Baixo pizza   A inscrever", skeys = "Cima/Baixo escolher   A comprar / escolher   toque: contratar, dispensar, banco",
          hkeys = "Y histórico de vendas", hback = "Y voltar ao dia",
          citykeys = "Cruz ou mapa: mover   A arrendar, comprar, ir   Y fechar, vender   X zoom",
-         mkeys = "A música sim/não   </> volume   X música seguinte",
          edkeys = "L/R separador   Cima/Baixo escolher   A pegar / comprar   B voltar", edplace = "Toca na sala para pôr (B: cancelar)",
          edpick = "X vender (+{x})   Y mudar de sítio   B pronto", edhint = "Toca numa peça da sala para a escolher", ednofit = "Não cabe aí.",
          edroom = "Decorar a sala",
@@ -356,17 +354,6 @@ local function clear()
   if #S.pieces == 0 then return end
   cleared = S.pieces; S.pieces = {}; changed()
 end
-local function pickTopping(step)
-  local list = catList[catOf(S.sel)]
-  local k = (idxIn(list, S.sel) - 1 + step) % #list + 1
-  if list[k] ~= S.sel then S.cut = "w" end   -- a new topping starts whole
-  S.sel = list[k]; dirty = true
-end
-local function pickCat(step)
-  local k = (idxIn(D.CATS, catOf(S.sel)) - 1 + step) % #D.CATS + 1
-  S.sel = catList[D.CATS[k]][1]; S.cut = "w"; dirty = true
-end
-local function cycle(order, cur, step) return order[(idxIn(order, cur) - 1 + step) % #order + 1] end
 -- the day and the supplier change every pizza's analysis (topping of the week, supplier's quality and prices)
 local function syncWorld()
   P.world.day, P.world.supplier = S.day, S.supplier
@@ -487,24 +474,16 @@ local function sprFit(key, x, y, box)
   local f = A.frames[key]; if not f then return end
   spr(key, x, y, nil, math.min(1, box / math.max(f[4], f[5])))
 end
---[[ On the 3DS each new font copies the whole system font (about 3 MB), and four of them crashed the console
-     while loading. There the game uses only the default font, scaled to each size. On a PC each size is
-     its own font (PM3DS_ONEFONT=1 tries the console way). ]]
-local ONE_FONT = CONSOLE or (os.getenv and os.getenv("PM3DS_ONEFONT") ~= nil)
-local function mkFont(size)
-  if ONE_FONT then
-    local f = love.graphics.getFont()
-    pcall(f.setFilter, f, "linear", "linear")   -- scaled down with "nearest", thin letters (i, l) lost whole columns
-    return { f = f, s = size * 1.2 / f:getHeight() }   -- getHeight is the line, about 1.2 times the size
-  end
-  return { f = love.graphics.newFont(size), s = 1 }
+-- the letters: a bitmap font at fixed pixel sizes (bfont.lua); fonts[k] keeps the old shape ({f, s}) for getWrap
+local BF = require("bfont")
+local function mkFont(name)
+  return { s = 1, f = { getWrap = function(_, s, w) return 0, BF.wrap(name, s, w) end, getHeight = function() return BF.line(name) end } }
 end
-local function fw(font, s) local F = fonts[font]; return F.f:getWidth(s) * F.s end   -- width in pixels
-local function fprint(font, s, x, y) local F = fonts[font]; love.graphics.setFont(F.f); love.graphics.print(s, x, y, 0, F.s, F.s) end
+local function fw(font, s) return BF.width(font, s) end   -- width in pixels
+local function fprint(font, s, x, y) BF.print(font, s, x, y) end
 local function text(s, x, y, font, c, align, w)
-  local F = fonts[font]
-  love.graphics.setFont(F.f); col(c)
-  if align then love.graphics.printf(s, x, y, w / F.s, align, 0, F.s, F.s) else love.graphics.print(s, x, y, 0, F.s, F.s) end
+  col(c)
+  if align then BF.printf(font, s, x, y, w, align) else BF.print(font, s, x, y) end
 end
 local function fitText(s, font, w)   -- cut a line that does not fit, with an ellipsis
   if fw(font, s) <= w then return s end
@@ -523,11 +502,12 @@ local C = {
 
 -- ---------------------------------------------------------------- bottom screen: the bench
 local PR = A.pizza / 2
-local BW, OY, PX, PY = 320, 22, 12, 37
+local BW, OY, PX, PY = 320, 22, 6, 34
 local PCX, PCY = PX + PR, PY + PR
-local BOWLS = { { g = 0, x = 227, y = 26 }, { g = 1, x = 227, y = 94 } }
-local BOWL_W, BOWL_H = 58, 40
-local LANG_BTN = { x = 272, y = 224, w = 44, h = 14 }
+--[[ the Kitchen's picker, right of the pizza: the groups as tabs in two rows (the topping groups, then dough and
+     sauce), and the open group's toppings (or doughs, or sauces) as icons below. S.ktab: the open group;
+     S.kfocus: "grid" or "tabs", where the D-pad is. ]]
+local KP = { x = 186, ty = 22, tw = 26, gy = 68, cell = 26, cols = 5, cutY = 221, cutMid = 60 }
 
 -- big pieces (a lobster, cheese slices) never poke out past the crust: a circular stencil where it works
 local function clipCircle(cx, cy, r)
@@ -560,10 +540,6 @@ local function plateBtn(label, x, y, fn, w, h, danger)
   hit(x, y, w, h, fn)
   return x + w
 end
-local function langBtn()
-  local L = LANG_BTN
-  plateBtn(P.lang() == "pt" and "PT|en" or "EN|pt", L.x, L.y, function() setLang(P.lang() == "pt" and "en" or "pt") end, L.w, L.h)
-end
 local function nameStrip(name)   -- the pizza's name on the marble strip on top; tap it to rename
   local s = renaming and not CONSOLE and (renameBuf .. "_") or name
   benchLabel(fitText(P.upper(s), "tiny", BW - 8), BW / 2, 6, C.ink, { 1, 1, 1, .4 })
@@ -578,60 +554,113 @@ local function pizzaOnMarble(p)
   drawPizza(p, PCX, PCY)
 end
 
+-- the Kitchen's picker: its tabs, and the items of the open one with the key of their icon and whether it is chosen
+function KP.tabs() local l = {}; for _, c in ipairs(D.CATS) do l[#l + 1] = c end; l[#l + 1] = "_dough"; l[#l + 1] = "_sauce"; return l end
+function KP.open() return S.ktab or catOf(S.sel) end
+function KP.items(tab)
+  if tab == "_dough" then return D.DOUGH_ORDER end
+  if tab == "_sauce" then return D.SAUCE_ORDER end
+  return catList[tab]
+end
+function KP.icon(tab, id)
+  if tab == "_dough" then return "crust_" .. id end
+  if tab == "_sauce" then return id == "sem" and "crust_" .. S.dough or "sauce_" .. id end
+  return P.wholeKey(id, 0, 0)
+end
+function KP.chosen(tab) return tab == "_dough" and S.dough or tab == "_sauce" and S.sauce or S.sel end
+function KP.tabRect(i)   -- 5 tabs on the first row, 4 on the second
+  local row, k = i <= 5 and 0 or 1, i <= 5 and i - 1 or i - 6
+  return KP.x + k * KP.tw + row * 13, KP.ty + row * 21, KP.tw - 1, 19
+end
+function KP.cellXY(j) return KP.x + ((j - 1) % KP.cols) * KP.cell, KP.gy + math.floor((j - 1) / KP.cols) * KP.cell end
+function KP.choose(tab, id)
+  if tab == "_dough" then S.dough = id; changed()
+  elseif tab == "_sauce" then S.sauce = id; changed()
+  else if id ~= S.sel then S.cut = "w" end; S.sel = id; dirty = true end   -- a new topping starts whole
+end
+function KP.openTab(tab)
+  S.ktab = tab
+  if tab:sub(1, 1) ~= "_" and catOf(S.sel) ~= tab then KP.choose(tab, catList[tab][1]) end
+end
+-- the D-pad: around the icons; up from the first row goes to the tabs, where left/right change group
+function KP.button(b)
+  local tabs, tab = KP.tabs(), KP.open()
+  if S.kfocus == "tabs" then
+    if b == "dpleft" or b == "dpright" then KP.openTab(tabs[(idxIn(tabs, tab) - 1 + (b == "dpleft" and -1 or 1)) % #tabs + 1])
+    elseif b == "dpdown" then S.kfocus = "grid" end
+    return
+  end
+  local list = KP.items(tab)
+  local j = idxIn(list, KP.chosen(tab))
+  if b == "dpleft" then j = math.max(1, j - 1)
+  elseif b == "dpright" then j = math.min(#list, j + 1)
+  elseif b == "dpdown" then j = math.min(#list, j + KP.cols)
+  elseif b == "dpup" then if j <= KP.cols then S.kfocus = "tabs"; return end; j = j - KP.cols end
+  KP.choose(tab, list[j])
+end
+function KP.touch(x, y)
+  for i, tab in ipairs(KP.tabs()) do
+    local tx, ty, tw, th = KP.tabRect(i)
+    if x >= tx and x < tx + tw and y >= ty and y < ty + th then KP.openTab(tab); S.kfocus = "grid"; return true end
+  end
+  local tab = KP.open()
+  for j, id in ipairs(KP.items(tab)) do
+    local cx, cy = KP.cellXY(j)
+    if x >= cx and x < cx + KP.cell and y >= cy and y < cy + KP.cell then KP.choose(tab, id); S.kfocus = "grid"; return true end
+  end
+  if y >= KP.cutY - 2 and x < 180 then setCut(x < KP.cutMid and 0 or 1); return true end
+  return false
+end
+
 local function drawKitchenBottom()
   marble()
   pizzaOnMarble(S)
-  nameStrip(S.name or t("k.newname"))
-  hit(0, 0, BW, OY, renameDraft)
-  -- right side: name plate and two bowls (whole / chopped)
+  -- on top: new pizza, add to the menu, the menu; under them the pizza's name (tap it to rename)
+  local x = plateBtn(t("k.fresh"), 4, 2, newDraft, nil, 17, isArmed("new"))
+  x = plateBtn(t(S.editing and "k.save.edit" or "k.save.new"), x + 5, 2, savePizza, nil, 17)
+  plateBtn(t("nav.menu"), x + 5, 2, function() S.tab = "menu"; clampSel(); dirty = true end, nil, 17)
+  local s = renaming and not CONSOLE and (renameBuf .. "_") or S.name or t("k.newname")
+  benchLabel(fitText(s, "tiny", 176), PCX, 21, C.ink, { 1, 1, 1, .4 })
+  hit(PCX - 88, 20, 176, 14, renameDraft)
+  -- lower left: whole | chopped, as words
   local sel, cut = S.sel, curCut()
-  love.graphics.push(); love.graphics.translate(0, OY)
-  local cx = BOWLS[1].x + BOWL_W / 2
-  local label = P.upper(P.ingName(sel))
-  local hw = math.min(BW - cx - 3, math.max(46, math.ceil(fw("tiny", label) / 2) + 6))
-  col(hex("#4a260f")); love.graphics.rectangle("fill", cx - hw, 6, hw * 2, 13)
-  col(C.gold); love.graphics.rectangle("fill", cx - hw + 1, 7, hw * 2 - 2, 11)
-  col(hex("#fbe39a")); love.graphics.rectangle("fill", cx - hw + 1, 7, hw * 2 - 2, 1)
-  benchLabel(fitText(label, "tiny", hw * 2 - 4), cx, 7, hex("#3a2706"), hex("#fbe39a", .8))
-  for _, b in ipairs(BOWLS) do
-    local on, ok = b.g == cut, b.g == 0 or P.canGrate(sel)
-    local bx, by = b.x + BOWL_W / 2, b.y + 13
-    if on then
-      pxRect(b.x - 5, b.y - 4, BOWL_W + 10, BOWL_H + 18, hex("#3a2706"))
-      pxRect(b.x - 4, b.y - 3, BOWL_W + 8, BOWL_H + 16, C.gold)
-      pxRect(b.x - 3, b.y - 2, BOWL_W + 6, BOWL_H + 14, hex("#94661a"))
-    end
-    spr("bowl", bx, b.y + BOWL_H / 2)
-    if ok then
-      local f0 = A.frames[sel .. "_0"]
-      if b.g == 0 and P.canRotate(sel) then sprFit(P.wholeKey(sel, 0, curAng()), bx, by + 1, 44)
-      elseif b.g == 1 and P.BIG_SHRED[sel] then sprFit(sel .. "_g0", bx, by + 2, 46)   -- the big cheese handful
-      elseif b.g == 0 and f0 and f0[4] > 36 then sprFit(sel .. "_0", bx, by + 1, 40)   -- one big piece fills the bowl
-      else
-        local k = b.g == 1 and "_g" or "_"
-        spr(sel .. k .. 1, bx - 9, by - 1); spr(sel .. k .. 2, bx + 9, by); spr(sel .. k .. 0, bx, by + 2)
-      end
-    end
-    local key = b.g == 0 and "bench.whole" or (ok and (P.isCheese(sel) and "bench.grated" or "bench.chopped") or "bench.nograte." .. P.noCutKind(sel))
-    benchLabel(t(key), bx, b.y + BOWL_H + 3, on and C.ink or hex("#6c5233"))
+  local labels = { t("bench.whole"), t(P.canGrate(sel) and (P.isCheese(sel) and "bench.grated" or "bench.chopped") or "bench.nograte." .. P.noCutKind(sel)) }
+  local cx = 8
+  for g = 0, 1 do
+    local label, w = labels[g + 1], fw("tiny", labels[g + 1])
+    if g == cut then col(hex("#3a2706")); love.graphics.rectangle("fill", cx - 3, KP.cutY - 2, w + 6, 17); col(C.gold)
+    else col(g == 1 and not P.canGrate(sel) and hex("#b9a688") or hex("#6c5233")) end
+    fprint("tiny", label, cx, KP.cutY)
+    cx = cx + w + 6
+    if g == 0 then KP.cutMid = cx; col(hex("#6c5233")); fprint("tiny", "|", cx, KP.cutY); cx = cx + 10 end
   end
-  -- the little LCD: cost, pieces, weight
-  local lx, ly, lw = BOWLS[1].x - 13, 154, BOWL_W + 26
-  col(hex("#2a1407")); love.graphics.rectangle("fill", lx - 2, ly - 2, lw + 4, 44)
-  col(hex("#081008")); love.graphics.rectangle("fill", lx, ly, lw, 40)
-  col(C.lcd)
-  local rows = { { "bench.c", P.eur(an.cost) }, { "bench.n", tostring(#S.pieces) }, { "bench.w", P.fmtG(P.pizzaGrams(S)) } }
-  for k, r in ipairs(rows) do
-    local y = ly + 3 + (k - 1) * 12
-    fprint("tiny", t(r[1]), lx + 3, y)
-    fprint("tiny", r[2], lx + lw - 3 - fw("tiny", r[2]), y)
+  -- right: the groups, then the open group's icons
+  local tabs, open = KP.tabs(), KP.open()
+  for i, tab in ipairs(tabs) do
+    local tx, ty, tw, th = KP.tabRect(i)
+    local icon = function(a)
+      if tab == "_dough" then sprFit("crust_" .. S.dough, tx + tw / 2, ty + th / 2, 15)
+      elseif tab == "_sauce" then sprFit(S.sauce == "sem" and "crust_" .. S.dough or "sauce_" .. S.sauce, tx + tw / 2, ty + th / 2, 15)
+      else spr("cat_" .. tab, tx + tw / 2, ty + th / 2, a) end
+    end
+    if tab == open then
+      col(hex("#f3e6c6")); love.graphics.rectangle("fill", tx, ty, tw, th); pxRect(tx, ty, tw, th, C.gold); icon()
+      if S.kfocus == "tabs" then pxRect(tx - 2, ty - 2, tw + 4, th + 4, { 1, 1, 1 }) end
+    else
+      col(hex(tab:sub(1, 1) == "_" and "#5a3a1a" or "#7a4520")); love.graphics.rectangle("fill", tx, ty + 1, tw, th - 1); icon(.75)
+    end
   end
-  love.graphics.pop()
-  -- the strip at the bottom: new pizza, save to the menu, the menu, language
-  local x = plateBtn(P.upper(t("k.fresh")), 4, 224, newDraft, nil, nil, isArmed("new"))
-  x = plateBtn(P.upper(t(S.editing and "k.save.edit" or "k.save.new")), x + 4, 224, savePizza)
-  plateBtn(P.upper(t("nav.menu")), x + 4, 224, function() S.tab = "menu"; clampSel(); dirty = true end)
-  langBtn()
+  col(hex("#4a260f")); love.graphics.rectangle("fill", KP.x - 2, KP.gy - 4, 134, 1)
+  local chosen = KP.chosen(open)
+  for j, id in ipairs(KP.items(open)) do
+    local gx, gy = KP.cellXY(j)
+    if gy + KP.cell > 240 then break end
+    if id == chosen then
+      col(hex("#4a260f")); love.graphics.rectangle("fill", gx, gy, KP.cell, KP.cell)
+      pxRect(gx, gy, KP.cell, KP.cell, S.kfocus == "tabs" and C.gold or hex("#ffe08a"))
+    else col({ 1, 1, 1, .35 }); love.graphics.rectangle("fill", gx + 1, gy + 1, KP.cell - 2, KP.cell - 2) end
+    sprFit(KP.icon(open, id), gx + KP.cell / 2, gy + KP.cell / 2, 21)
+  end
 end
 
 -- ---------------------------------------------------------------- bottom screen: the chosen menu pizza
@@ -651,7 +680,6 @@ local function drawMenuBottom()
   local strip = function()
     local x = plateBtn(P.upper(t("nav.cozinha")), 4, 224, function() S.tab = "kitchen"; dirty = true end)
     plateBtn(P.upper(t("k.fresh")), x + 4, 224, newDraft, nil, nil, isArmed("new"))
-    langBtn()
   end
   if not p then   -- the "+ Create new pizza" row (or an empty menu)
     if #S.menu == 0 then text(t("menu.empty"), 20, 60, "body", C.ink, "center", 280) end
@@ -705,85 +733,70 @@ local function goTab(step)
   S.tab = TABS[k]; armed = nil; clampSel(); dirty = true
 end
 local function stars(r) return string.format(P.lang() == "pt" and "%.1f" or "%.1f", r):gsub("%.", P.lang() == "pt" and "," or ".") .. "*" end
-drawHeader = function()
-  col(C.panel); love.graphics.rectangle("fill", 0, 0, 400, 18)
-  local x = 6
-  for _, tb in ipairs(TABS) do
-    local s = P.upper(t(TAB_KEY[tb]))
-    local on = tb == S.tab
-    text(s, x, 4, "tiny", on and C.gold or C.dim)
-    if on then col(C.gold); love.graphics.rectangle("fill", x, 15, fw("tiny", s), 1) end
-    x = x + fw("tiny", s) + 9
-  end
-  text(P.eur(S.money) .. "   " .. stars(S.rep), 200, 3, "small", S.money < 0 and C.bad or C.cream, "right", 194)
+drawHeader = function()   -- L, the screen before, this screen, the one after, R; then cash and stars
+  col(C.panel); love.graphics.rectangle("fill", 0, 0, 400, 20)
+  local i = idxIn(TABS, S.tab)
+  local prev, cur, nxt = t(TAB_KEY[TABS[(i - 2) % #TABS + 1]]), t(TAB_KEY[S.tab]), t(TAB_KEY[TABS[i % #TABS + 1]])
+  local function key(k, x) col(hex("#4a260f")); love.graphics.rectangle("fill", x, 2, 15, 16); text(k, x, 3, "tiny", C.cream, "center", 15) end
+  key("L", 4)
+  text(prev, 24, 3, "tiny", C.dim)
+  local x = 24 + fw("tiny", prev) + 9
+  text(cur, x, 2, "body", C.gold)
+  x = x + fw("body", cur) + 9
+  text(nxt, x, 3, "tiny", C.dim)
+  key("R", x + fw("tiny", nxt) + 6)
+  text(P.eur(S.money) .. "  " .. stars(S.rep), 200, 2, "body", S.money < 0 and C.bad or C.cream, "right", 194)
 end
 
 local function drawTop()
   col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
   drawHeader()
-  -- left: the topping picker
-  local cat = catOf(S.sel)
-  local list = catList[cat]
-  local k = idxIn(list, S.sel)
-  -- the groups as tabs with their symbols (as on phones): L/R change group, the open one is light and raised
-  col(C.panel); love.graphics.rectangle("fill", 6, 20, 188, 20)
-  text("L", 8, 25, "small", C.dim); text("R", 6, 25, "small", C.dim, "right", 186)
-  for i, c in ipairs(D.CATS) do
-    local tx = 18 + (i - 1) * 24
-    if c == cat then
-      col(hex("#f3e6c6")); love.graphics.rectangle("fill", tx, 20, 23, 20)
-      pxRect(tx, 20, 23, 20, C.gold)
-      spr("cat_" .. c, tx + 11.5, 30)
-    else
-      col(hex("#7a4520")); love.graphics.rectangle("fill", tx + 1, 23, 21, 16)
-      spr("cat_" .. c, tx + 11.5, 31, .7)
-    end
-  end
-  for s = -2, 2 do
-    local id = list[(k - 1 + s) % #list + 1]
-    local cx, cy = 100 + s * 38, 58
-    col(hex(s == 0 and "#4a260f" or "#1a0d05")); love.graphics.rectangle("fill", cx - 17, cy - 17, 34, 34)
-    if s == 0 then pxRect(cx - 18, cy - 18, 36, 36, C.gold) end
-    sprFit(P.wholeKey(id, 0, 0), cx, cy, 31)
-  end
-  text(P.ingName(S.sel), 6, 80, "body", C.cream, "center", 188)
-  local cutL = curCut() == 1 and t(P.isCheese(S.sel) and "bench.grated" or "bench.chopped") or t("bench.whole")
-  text(P.eur(P.ingC(S.sel)) .. " · " .. cutL, 6, 97, "small", C.dim, "center", 188)
-  col(C.panel); love.graphics.rectangle("fill", 6, 116, 188, 38)
-  text(t("k.dough") .. ":", 10, 120, "small", C.dim); text(t("dough." .. S.dough), 70, 120, "small", C.cream)
-  text(t("k.sauce") .. ":", 10, 137, "small", C.dim); text(t("sauce." .. S.sauce), 70, 137, "small", C.cream)
-  -- notes
-  local y = 160
-  if an.n == 0 then
-    text(t("k.empty"), 6, y, "small", C.dim, "left", 188)
+  -- left: the chosen topping (its picture, price and weight a portion, who loves it, its combos)
+  local id = S.sel
+  col(C.panel); love.graphics.rectangle("fill", 4, 24, 194, 74)
+  col(hex("#f3e6c6")); love.graphics.rectangle("fill", 8, 28, 46, 46); pxRect(8, 28, 46, 46, C.gold)
+  sprFit(P.wholeKey(id, 0, curAng()), 31, 51, 40)
+  text(fitText(P.ingName(id), "body", 138), 60, 28, "body", C.cream)
+  local cutL = curCut() == 1 and t(P.isCheese(id) and "bench.grated" or "bench.chopped") or t("bench.whole")
+  text(fitText(P.eur(P.ingC(id)) .. " · " .. P.fmtG(P.pieceGrams({ i = id, g = curCut() == 1 or nil })) .. " · " .. cutL, "small", 136), 60, 47, "small", C.dim)
+  local wk = P.week()
+  local fan = P.has(D.CASA, id) and t("seg.estudante") or P.has(D.EXOTIC, id) and t("seg.turista") or nil
+  if wk.ing == id then text(l3("kweek"), 60, 62, "small", C.good)
+  elseif wk.low == id then text(l3("klow"), 60, 62, "small", C.bad)
+  elseif fan then text("♥ " .. fan, 60, 62, "small", C.good) end
+  local cs = {}
+  for _, c in ipairs(D.COMBOS) do for _, r in ipairs(c.req) do if r == id then cs[#cs + 1] = t("combo." .. c.id); break end end end
+  if #cs > 0 then text(fitText(l3("kcombo") .. ": " .. table.concat(cs, ", "), "small", 186), 8, 79, "small", C.combo) end
+  -- dough, sauce, the notes
+  col(C.panel); love.graphics.rectangle("fill", 4, 102, 194, 38)
+  text(t("dough." .. S.dough), 10, 105, "small", C.cream); text(t("k.dough"), 10, 105, "small", C.dim, "right", 182)
+  text(t("sauce." .. S.sauce), 10, 121, "small", C.cream); text(t("k.sauce"), 10, 121, "small", C.dim, "right", 182)
+  local y = 146
+  if an.n == 0 then text(t("k.empty"), 6, y, "small", C.dim, "left", 190)
   else
     for i = 1, math.min(4, #an.notes) do
       local nt = an.notes[i]
-      text(fitText(nt[2], "small", 188), 6, y, "small", nt[1] == "good" and C.good or nt[1] == "combo" and C.combo or C.bad)
-      y = y + 14
+      text(fitText(nt[2], "small", 190), 6, y, "small", nt[1] == "good" and C.good or nt[1] == "combo" and C.combo or C.bad)
+      y = y + 17
     end
   end
-  -- right: quality, cost, appeal
-  local rx = 206
-  col(C.panel); love.graphics.rectangle("fill", rx - 4, 22, 196, 196)
+  -- right: quality, cost, suggested price, appeal
+  local rx = 208
+  col(C.panel); love.graphics.rectangle("fill", rx - 4, 24, 192, 196)
   local qc = P.qColor(an.q)
-  text(t("k.q"), rx, 26, "small", C.dim)
-  text(tostring(an.q), rx, 38, "big", qc)
-  meter(rx + 52, 48, 130, 8, an.q, qc)
-  text(t("k.cost"), rx, 72, "small", C.dim)
-  text(P.eur(an.cost), rx, 86, "body", C.cream)
-  local nStr = tostring(an.n); if P.lang() == "pt" then nStr = nStr:gsub("%.", ",") end
-  text(fitText(t("k.portions", { n = nStr, p = P.eur(P.suggestPrice(an.cost)) }), "small", 186), rx, 104, "small", C.dim)
-  text(fitText(t("k.appeal"), "small", 186), rx, 124, "small", C.dim)
+  text(t("k.q"), rx, 27, "small", C.dim)
+  text(tostring(an.q), rx, 42, "big", qc)
+  meter(rx + 56, 54, 124, 8, an.q, qc)
+  text(l3("kcost"), rx, 80, "small", C.dim); text(P.eur(an.cost), rx, 78, "body", C.cream, "right", 180)
+  text(l3("ksugg"), rx, 98, "small", C.dim); text(P.eur(P.suggestPrice(an.cost)), rx, 96, "body", C.cream, "right", 180)
+  text(l3("kappeal"), rx, 122, "small", C.dim)
   for i, sk in ipairs(D.SEG_ORDER) do
-    local yy = 140 + (i - 1) * 18
-    text(fitText(t("seg." .. sk), "small", 70), rx, yy, "small", C.cream)
-    meter(rx + 74, yy + 3, 88, 8, an.appeal[sk], hex(D.SEG[sk].col))
-    text(tostring(an.appeal[sk]), rx + 166, yy, "small", C.cream)
+    local yy = 140 + (i - 1) * 19
+    text(fitText(t("seg." .. sk), "small", 76), rx, yy, "small", C.cream)
+    meter(rx + 80, yy + 5, 72, 8, an.appeal[sk], hex(D.SEG[sk].col))
+    text(tostring(an.appeal[sk]), rx, yy, "small", C.cream, "right", 180)
   end
-  -- buttons
-  text(l3("keys1"), 0, 214, "tiny", C.dim, "center", 400)
-  text(l3("keys2"), 0, 226, "tiny", C.dim, "center", 400)
+  text(l3("keys1"), 0, 223, "tiny", C.dim, "center", 400)
 end
 
 -- a menu pizza drawn small (the whole 170 px pizza scaled)
@@ -1071,7 +1084,6 @@ local function drawDayBottom()
   else
     plateBtn(fitText(P.upper(t("day.open", { d = S.day })), "tiny", 300), 20, 194, startDay, 280, 24)
     text(l3("nav"), 0, 226, "tiny", C.dim, "left", 260)
-    langBtn()
   end
 end
 
@@ -1250,7 +1262,7 @@ local function drawContestBottom()
   col(hex("#f3ead3")); love.graphics.rectangle("fill", 0, 0, 320, 240)
   text(t("ct.pick"), 8, 4, "small", C.ink)
   text(fitText(t(S.contestEntry and "ct.swap" or "ct.pay"), "tiny", 304), 8, 19, "tiny", hex("#6c5233"))
-  if #S.menu == 0 then text(t("ct.need"), 8, 60, "body", C.ink, "center", 304); langBtn(); return end
+  if #S.menu == 0 then text(t("ct.need"), 8, 60, "body", C.ink, "center", 304); return end
   S.csel = math.max(1, math.min(S.csel, #S.menu))
   local th = G.themeFor(G.nextContestDay(S))
   local RH, N = 30, 6
@@ -1269,11 +1281,10 @@ local function drawContestBottom()
     text(sc.dq and t("ct.dq", { x = sc.dq }) or t("ct.pre", { n = math.floor(sc.s + .5) }), 40, y + 15, "tiny", sc.dq and hex("#b0381c") or hex("#6c5233"))
     hit(6, y, 308, RH - 3, function() S.csel = k; enterContest(p) end)
   end
-  langBtn()
 end
 
 -- ---------------------------------------------------------------- the shop
-local SHOP_ROWS = { "oven", "team", "hire", "room", "ads", "supplier", "study", "bank", "music", "reset" }
+local SHOP_ROWS = { "oven", "team", "hire", "room", "ads", "supplier", "study", "bank", "reset" }
 local function shopItem(id) for _, it in ipairs(G.SHOP) do if it.id == id then return it end end end
 local function buyItem(it)
   if not it.ok(S) then return end
@@ -1300,7 +1311,6 @@ local function shopAction(id)
   if it then buyItem(it)
   elseif id == "supplier" then setSupplier(S.supplier % 3 + 1)
   elseif id == "study" then runStudy()
-  elseif id == "music" then MUS.setOn(not MUS.on); dirty = true
   elseif id == "room" then openEditor()
   elseif id == "reset" then resetGame() end
 end
@@ -1315,9 +1325,6 @@ local function shopRow(id)   -- name, state, price
   if id == "room" then
     local A = G.roomStats(S)
     return l3("edroom"), t("rm.seats", { n = A.seats }) .. (A.nblocked > 0 and ("  ·  X " .. A.nblocked) or ""), ""
-  end
-  if id == "music" then
-    return t("mus.title"), MUS.on and (MUS.title() and t("mus.now", { x = MUS.title() }) or t("mus.waiting")) or t("mus.offlead"), t("mus.v" .. MUS.vol)
   end
   return t("shop.reset"), "", ""
 end
@@ -1337,7 +1344,7 @@ local function drawShopTop()
     text(fitText(l, "tiny", 150), 180, y + 2, "tiny", C.dim)
     text(c, 12, y + 1, "small", C.gold, "right", 376)
   end
-  text(l3(SHOP_ROWS[S.ssel] == "music" and "mkeys" or "skeys"), 0, 214, "tiny", C.dim, "center", 400)
+  text(l3("skeys"), 0, 214, "tiny", C.dim, "center", 400)
   text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
 end
 local function drawShopBottom()
@@ -1421,19 +1428,9 @@ local function drawShopBottom()
         y = y + #wr * fonts.tiny.f:getHeight() * fonts.tiny.s + 2
       end
     end
-  elseif id == "music" then   -- on / off, next song, the volume
-    text(fitText(MUS.on and (MUS.title() and t("mus.now", { x = MUS.title() }) or t("mus.waiting")) or t("mus.offlead"), "small", 300), 10, 30, "small", brown)
-    plateBtn(P.upper(t(MUS.on and "mus.off" or "mus.on")), 10, 52, function() MUS.setOn(not MUS.on); dirty = true end, 145, 24)
-    plateBtn(P.upper(t("mus.next")), 165, 52, function() MUS.on = true; MUS.play(); dirty = true end, 145, 24)
-    text(t("mus.vol"), 10, 90, "small", C.ink)
-    for v = 1, 5 do
-      local lv = v
-      plateBtn(P.upper(t("mus.v" .. v)), 10 + (v - 1) * 61, 108, function() MUS.setVol(lv); dirty = true end, 57, 22, MUS.vol == v)
-    end
   else
     plateBtn(P.upper(isArmed("reset") and t("ts.sure") or t("shop.reset")), 10, 40, resetGame, 300, 24, true)
   end
-  langBtn()
 end
 
 -- ---------------------------------------------------------------- the city
@@ -1634,7 +1631,6 @@ local function drawCityBottom()
     end
   end
   text(t("city.yours") .. ": " .. #S.shops, 10, 226, "tiny", brown)
-  langBtn()
 end
 
 
@@ -1779,9 +1775,62 @@ function EDF.drawEditorBottom()
     else local d = RL.ITEMS[ED.pick.id]; box(ED.pick.c, ED.pick.r, d.w, d.h, C.gold) end
   end
 end
+-- ---------------------------------------------------------------- Options (START): language, music, quit
+local OPT = { rows = { "lang", "music", "vol", "next", "quit" } }
+function OPT.value(id)
+  if id == "lang" then return P.lang() == "pt" and "Português" or "English" end
+  if id == "music" then return l3(MUS.on and "on" or "off") end
+  if id == "vol" then return t("mus.v" .. MUS.vol) end
+  if id == "next" then return MUS.on and MUS.title() or "" end
+  return ""
+end
+function OPT.name(id)
+  return id == "lang" and t("lang.title") or id == "music" and t("mus.title") or id == "vol" and t("mus.vol")
+    or id == "next" and t("mus.next") or l3("quit")
+end
+function OPT.act(id, step)
+  if id == "lang" then setLang(P.lang() == "pt" and "en" or "pt"); dirty = true
+  elseif id == "music" then MUS.setOn(not MUS.on); dirty = true
+  elseif id == "vol" then MUS.setVol(math.max(1, math.min(5, MUS.vol + (step or 1)))); dirty = true
+  elseif id == "next" then MUS.on = true; MUS.play(); dirty = true
+  elseif id == "quit" then save(); love.event.quit() end
+end
+function OPT.button(b)
+  if b == "dpup" then OPT.sel = math.max(1, OPT.sel - 1)
+  elseif b == "dpdown" then OPT.sel = math.min(#OPT.rows, OPT.sel + 1)
+  elseif b == "dpleft" or b == "dpright" then local id = OPT.rows[OPT.sel]; if id ~= "quit" and id ~= "next" then OPT.act(id, b == "dpleft" and -1 or 1) end
+  elseif b == "a" then OPT.act(OPT.rows[OPT.sel])
+  elseif b == "b" or b == "start" then OPT.open = false end
+end
+function OPT.drawTop()
+  col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
+  col(C.panel); love.graphics.rectangle("fill", 0, 0, 400, 20)
+  text(t("opt.title"), 8, 2, "body", C.gold)
+  text("Pizza Magna " .. (D.VERSION or "?"), 6, 4, "tiny", C.dim, "right", 388)   -- the build, for bug reports
+  for k, id in ipairs(OPT.rows) do
+    local y = 30 + (k - 1) * 30
+    local on = k == OPT.sel
+    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 20, y, 360, 24)
+    if on then pxRect(19, y - 1, 362, 26, C.gold) end
+    text(OPT.name(id), 30, y + 4, "body", id == "quit" and C.bad or C.cream)
+    local v = OPT.value(id)
+    if v ~= "" then text(fitText((on and id ~= "next" and "‹ " .. v .. " ›" or v), "small", 190), 30, y + 6, "small", C.gold, "right", 340) end
+  end
+  text(l3("okeys"), 0, 223, "tiny", C.dim, "center", 400)
+end
+function OPT.drawBottom()
+  col(hex("#f3ead3")); love.graphics.rectangle("fill", 0, 0, 320, 240)
+  for k, id in ipairs(OPT.rows) do
+    local kk = k
+    plateBtn(OPT.name(id) .. (OPT.value(id) ~= "" and id ~= "next" and ":  " .. OPT.value(id) or ""), 20, 14 + (k - 1) * 36, function() OPT.sel = kk; OPT.act(id) end, 280, 28, id == "quit")
+  end
+  plateBtn(l3("back"), 110, 200, function() OPT.open = false end, 100, 26)
+end
+
 drawBottom = function()
   hits = {}
-  if ED then EDF.drawEditorBottom()
+  if OPT.open then OPT.drawBottom()
+  elseif ED then EDF.drawEditorBottom()
   elseif report then drawReportBottom()
   elseif S.tab == "menu" then drawMenuBottom()
   elseif S.tab == "day" then drawDayBottom()
@@ -1791,7 +1840,8 @@ drawBottom = function()
   else drawKitchenBottom() end
 end
 drawTopScreen = function()
-  if ED then EDF.drawEditorTop()
+  if OPT.open then OPT.drawTop()
+  elseif ED then EDF.drawEditorTop()
   elseif report then drawReportTop()
   elseif S.tab == "menu" then drawMenuTop()
   elseif S.tab == "day" and histOn and not anim then drawHistTop()
@@ -1808,6 +1858,7 @@ local drag = nil
 local function benchPoint(x, y) return (x - PCX) / PR, (y - PCY) / PR end
 local function touchDown(x, y)
   if renaming and not CONSOLE then finishRename(renameBuf) end   -- PC: a tap elsewhere keeps what was typed
+  if OPT.open then for k = #hits, 1, -1 do local h = hits[k]; if x >= h.x and x < h.x + h.w and y >= h.y and y < h.y + h.h then h.fn(); return end end; return end
   if S.tab == "city" and not report and inMini(x, y) then city.drag = true; cityTouch(x, y); return end
   if ED and S.tab == "shop" then EDF.edTouch(x, y); return end
   for k = #hits, 1, -1 do
@@ -1815,9 +1866,7 @@ local function touchDown(x, y)
     if x >= h.x and x < h.x + h.w and y >= h.y and y < h.y + h.h then h.fn(); return end
   end
   if S.tab ~= "kitchen" then return end
-  for _, b in ipairs(BOWLS) do
-    if x >= b.x - 6 and x <= b.x + BOWL_W + 6 and y - OY >= b.y - 4 and y - OY <= b.y + BOWL_H + 16 then setCut(b.g); return end
-  end
+  if KP.touch(x, y) then return end
   local px, py = benchPoint(x, y)
   if math.sqrt(px * px + py * py) > 1 then return end
   drag = { x = 9, y = 9 }
@@ -1834,8 +1883,7 @@ local function touchUp() drag = nil; city.drag = false end
 local held = {}
 local function navButton(b)   -- outside the Kitchen: L/R and SELECT go through the screens, START quits
   if b == "leftshoulder" then goTab(-1)
-  elseif b == "rightshoulder" or b == "back" then goTab(1)
-  elseif b == "start" then save(); love.event.quit() end
+  elseif b == "rightshoulder" or b == "back" then goTab(1) end
 end
 local function otherButton(b)
   if report then if b == "a" then closeReport() end; return end
@@ -1865,8 +1913,6 @@ local function otherButton(b)
     if b == "dpup" then S.ssel = math.max(1, S.ssel - 1); armed = nil
     elseif b == "dpdown" then S.ssel = math.min(#SHOP_ROWS, S.ssel + 1); armed = nil
     elseif b == "a" then shopAction(SHOP_ROWS[S.ssel])
-    elseif SHOP_ROWS[S.ssel] == "music" and (b == "dpleft" or b == "dpright") then MUS.setVol(MUS.vol + (b == "dpleft" and -1 or 1)); dirty = true
-    elseif SHOP_ROWS[S.ssel] == "music" and b == "x" then MUS.on = true; MUS.play(); dirty = true
     else navButton(b) end
   end
 end
@@ -1881,21 +1927,19 @@ local function menuButton(b)
   else navButton(b) end
 end
 local function button(b)
-  if ED and S.tab == "shop" and b ~= "start" then EDF.edButton(b); return end
+  if OPT.open then OPT.button(b); return end
+  if b == "start" then OPT.open, OPT.sel = true, 1; return end
+  if ED and S.tab == "shop" then EDF.edButton(b); return end
   if report or S.tab == "day" or S.tab == "contest" or S.tab == "shop" or S.tab == "city" then otherButton(b); return end
   if S.tab == "menu" then menuButton(b); return end
-  if b == "dpleft" then pickTopping(-1)
-  elseif b == "dpright" then pickTopping(1)
-  elseif b == "leftshoulder" then pickCat(-1)
-  elseif b == "rightshoulder" then pickCat(1)
-  elseif b == "dpup" then S.dough = cycle(D.DOUGH_ORDER, S.dough, 1); changed()
-  elseif b == "dpdown" then S.sauce = cycle(D.SAUCE_ORDER, S.sauce, 1); changed()
+  if b == "dpleft" or b == "dpright" or b == "dpup" or b == "dpdown" then KP.button(b)
+  elseif b == "leftshoulder" then goTab(-1)
+  elseif b == "rightshoulder" then goTab(1)
   elseif b == "a" then setCut(1 - curCut())
   elseif b == "x" then rotatePiece()
   elseif b == "b" then undo()
   elseif b == "y" then clear()
-  elseif b == "back" then goTab(1)
-  elseif b == "start" then save(); love.event.quit() end
+  elseif b == "back" then goTab(1) end
 end
 local REPEAT = { dpleft = true, dpright = true, dpup = true, dpdown = true }
 local function press(b) button(b); if REPEAT[b] then held[b] = .35 end end
@@ -1937,7 +1981,7 @@ function love.mousereleased(_, _, _, istouch) if not CONSOLE and not istouch the
      loading, the screen shows which step it was (a crash dump alone doesn't say). ]]
 local BOOT = {}
 -- fonts first: the system font is one 3 MB block of memory, easier to find before the textures are in
-BOOT[#BOOT + 1] = { "fonts", function() fonts.tiny, fonts.small, fonts.body, fonts.big = mkFont(9), mkFont(11), mkFont(14), mkFont(26) end }
+BOOT[#BOOT + 1] = { "fonts", function() for _, k in ipairs({ "tiny", "small", "body", "big" }) do fonts[k] = mkFont(k) end end }
 for i = 1, A.pages do
   BOOT[#BOOT + 1] = { "texture " .. i .. "/" .. A.pages, function() pages[i] = love.graphics.newImage("gfx/atlas" .. i .. ".png") end }
 end
