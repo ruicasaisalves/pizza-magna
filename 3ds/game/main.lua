@@ -21,7 +21,7 @@ local L3 = {
   en = { keys1 = "✚ choose   A whole/chopped   X turn   B undo   Y clear",
          kweek = "Topping of the week!", klow = "Least wanted this week", kcombo = "Combo", kcost = "Cost", ksugg = "Suggested price", kappeal = "Appeal",
          mkeys1 = "✚ pizza and price   A edit   X rename   Y remove", renamel = "Rename",
-         quit = "Save and quit", startopt = "START options", on = "On", off = "Off", back = "Back", okeys = "✚ choose   A change   B back",
+         quit = "Save and quit", startopt = "START options", rent = "Rent", sale = "Sale", on = "On", off = "Off", back = "Back", okeys = "✚ choose   A change   B back",
          dkeys = "A open the doors", drun = "✚ speed   B pause   A skip to closing", rkeys = "A continue",
          ckeys = "✚ pizza   A enter it", skeys = "✚ choose   A buy or choose   touch: hire, bank", stcols = { "Name", "Speed · skill", "Wage" },
          hkeys = "Y sales history", hback = "Y back to the day",
@@ -33,7 +33,7 @@ local L3 = {
   pt = { keys1 = "✚ escolher   A inteiro/picado   X rodar   B desfazer   Y limpar",
          kweek = "Ingrediente da semana!", klow = "Pouco procurado esta semana", kcombo = "Combo", kcost = "Custo", ksugg = "Preço sugerido", kappeal = "Apelo",
          mkeys1 = "✚ pizza e preço   A editar   X nome   Y remover", renamel = "Mudar nome",
-         quit = "Gravar e sair", startopt = "START opções", on = "Ligada", off = "Desligada", back = "Voltar", okeys = "✚ escolher   A mudar   B voltar",
+         quit = "Gravar e sair", startopt = "START opções", rent = "Arrenda", sale = "Venda", on = "Ligada", off = "Desligada", back = "Voltar", okeys = "✚ escolher   A mudar   B voltar",
          dkeys = "A abrir portas", drun = "✚ velocidade   B pausa   A saltar para o fecho", rkeys = "A continuar",
          ckeys = "✚ pizza   A inscrever", skeys = "✚ escolher   A comprar ou escolher   toque: contratar, banco", stcols = { "Nome", "Rapid. · arte", "Salário" },
          hkeys = "Y histórico de vendas", hback = "Y voltar ao dia",
@@ -1510,7 +1510,7 @@ local function drawCityTop()
     local k = G.lotKind(S, i)
     local px, py = P2(x.x + x.w / 2, x.y + x.h / 2)
     if k == "rent" or k == "sale" or k == "rival" or k == "mine" or k == "land" then
-      local s2 = k == "land" and P.upper(t("land." .. x.land)) or k == "rent" and t("city.sign.rent") or k == "sale" and t("city.sign.sale")
+      local s2 = k == "land" and P.upper(t("land." .. x.land)) or k == "rent" and P.upper(l3("rent")) or k == "sale" and P.upper(l3("sale"))
         or k == "rival" and t("city.pin.rival") or (t("city.pin.mine") .. (G.lotShop(S, i) == S.cur and " *" or ""))
       local c = hex(D.CITY.KCOL[k] or "#2a1407")
       do
@@ -1558,7 +1558,7 @@ local function drawCityBottom()
   local RX, RW = 164, 150
   local title = k == "land" and t("land." .. l.land) or k == "rival" and l.name or k == "mine" and G.shopName(S, own)
     or k == "taken" and t("biz." .. l.biz) or l.addr
-  local chip = t("city.k." .. k)
+  local chip = (k == "rent" or k == "sale") and l3(k) or t("city.k." .. k)   -- short words: the signs and chips are small
   local cw = fw("tiny", chip) + 8
   col(hex(D.CITY.KCOL[k] or "#7a6a55")); love.graphics.rectangle("fill", RX, 3, cw, 16)
   text(chip, RX, 4, "tiny", hex("#ffffff"), "center", cw)
