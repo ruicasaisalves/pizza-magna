@@ -20,26 +20,26 @@ local BOTTOM_X, BOTTOM_Y = 40, 240   -- where the bottom screen sits in the PC w
 local L3 = {
   en = { keys1 = "✚ choose   A whole/chopped   X turn   B undo   Y clear",
          kweek = "Topping of the week!", klow = "Least wanted this week", kcombo = "Combo", kcost = "Cost", ksugg = "Suggested price", kappeal = "Appeal",
-         mkeys1 = "Up/Down pizza   </> price   A edit   X rename   Y remove",
-         nav = "START options", rename = "RENAME", quit = "Save and quit", on = "On", off = "Off", back = "Back", okeys = "✚ choose   A change   B back",
-         dkeys = "A open the doors", drun = "</> speed   B pause   A skip to closing", rkeys = "A continue",
-         ckeys = "Up/Down pizza   A enter it", skeys = "Up/Down choose   A buy / choose   touch: hire, let go, bank",
+         mkeys1 = "✚ pizza and price   A edit   X rename   Y remove", renamel = "Rename",
+         quit = "Save and quit", startopt = "START options", on = "On", off = "Off", back = "Back", okeys = "✚ choose   A change   B back",
+         dkeys = "A open the doors", drun = "✚ speed   B pause   A skip to closing", rkeys = "A continue",
+         ckeys = "✚ pizza   A enter it", skeys = "✚ choose   A buy or choose   touch: hire, bank", stcols = { "Name", "Speed · skill", "Wage" },
          hkeys = "Y sales history", hback = "Y back to the day",
-         citykeys = "D-pad or map: move   A rent, buy, go   Y close, sell   X zoom",
-         edkeys = "L/R tab   Up/Down choose   A take / buy   B back", edplace = "Touch the room to place it (B: cancel)",
-         edpick = "X sell (+{x})   Y move   B done", edhint = "Touch a piece in the room to select it", ednofit = "It doesn't fit there.",
+         citykeys = "✚ move   A rent, buy, go   Y close, sell   X zoom",
+         edkeys = "L/R tab   ✚ choose   A take or buy   B back", edplace = "Drag it into the room (B: cancel)",
+         edpick = "Drag to move   X sell (+{x})   B done", edhint = "Touch a piece in the room, drag it to move it", ednofit = "It doesn't fit there.",
          edroom = "Decorate the room",
          },
   pt = { keys1 = "✚ escolher   A inteiro/picado   X rodar   B desfazer   Y limpar",
          kweek = "Ingrediente da semana!", klow = "Pouco procurado esta semana", kcombo = "Combo", kcost = "Custo", ksugg = "Preço sugerido", kappeal = "Apelo",
-         mkeys1 = "Cima/Baixo pizza   </> preço   A editar   X nome   Y remover",
-         nav = "START opções", rename = "MUDAR NOME", quit = "Gravar e sair", on = "Ligada", off = "Desligada", back = "Voltar", okeys = "✚ escolher   A mudar   B voltar",
-         dkeys = "A abrir portas", drun = "</> velocidade   B pausa   A saltar para o fecho", rkeys = "A continuar",
-         ckeys = "Cima/Baixo pizza   A inscrever", skeys = "Cima/Baixo escolher   A comprar / escolher   toque: contratar, dispensar, banco",
+         mkeys1 = "✚ pizza e preço   A editar   X nome   Y remover", renamel = "Mudar nome",
+         quit = "Gravar e sair", startopt = "START opções", on = "Ligada", off = "Desligada", back = "Voltar", okeys = "✚ escolher   A mudar   B voltar",
+         dkeys = "A abrir portas", drun = "✚ velocidade   B pausa   A saltar para o fecho", rkeys = "A continuar",
+         ckeys = "✚ pizza   A inscrever", skeys = "✚ escolher   A comprar ou escolher   toque: contratar, banco", stcols = { "Nome", "Rapid. · arte", "Salário" },
          hkeys = "Y histórico de vendas", hback = "Y voltar ao dia",
-         citykeys = "Cruz ou mapa: mover   A arrendar, comprar, ir   Y fechar, vender   X zoom",
-         edkeys = "L/R separador   Cima/Baixo escolher   A pegar / comprar   B voltar", edplace = "Toca na sala para pôr (B: cancelar)",
-         edpick = "X vender (+{x})   Y mudar de sítio   B pronto", edhint = "Toca numa peça da sala para a escolher", ednofit = "Não cabe aí.",
+         citykeys = "✚ mover   A arrendar, comprar, ir   Y fechar, vender   X zoom",
+         edkeys = "L/R separador   ✚ escolher   A pegar ou comprar   B voltar", edplace = "Arrasta-o para a sala (B: cancelar)",
+         edpick = "Arrasta para mudar   X vender (+{x})   B pronto", edhint = "Toca numa peça da sala e arrasta-a para a mudar", ednofit = "Não cabe aí.",
          edroom = "Decorar a sala",
          },
 }
@@ -531,12 +531,12 @@ local function benchLabel(s, x, y, c, hl)
 end
 -- a gold plate button (like the topping's name plate); returns its right edge
 local function plateBtn(label, x, y, fn, w, h, danger)
-  h = h or 14
-  w = w or math.ceil(fw("tiny", label)) + 10
+  h = h or 17
+  w = w or math.ceil(fw("tiny", label)) + 12
   col(hex("#4a260f")); love.graphics.rectangle("fill", x, y, w, h)
   col(danger and hex("#e0603c") or C.gold); love.graphics.rectangle("fill", x + 1, y + 1, w - 2, h - 2)
   col(danger and hex("#f59a7c") or hex("#fbe39a")); love.graphics.rectangle("fill", x + 1, y + 1, w - 2, 1)
-  benchLabel(label, x + w / 2, y + math.floor((h - 10) / 2), hex("#3a2706"), danger and hex("#f59a7c", .8) or hex("#fbe39a", .8))
+  benchLabel(label, x + w / 2, y + math.floor((h - 15) / 2) + 1, hex("#3a2706"), danger and hex("#f59a7c", .8) or hex("#fbe39a", .8))
   hit(x, y, w, h, fn)
   return x + w
 end
@@ -665,11 +665,11 @@ end
 
 -- ---------------------------------------------------------------- bottom screen: the chosen menu pizza
 local function lcd(x, y, w, rows)
-  local h = #rows * 12 + 4
+  local h = #rows * 15 + 3
   col(hex("#2a1407")); love.graphics.rectangle("fill", x - 2, y - 2, w + 4, h + 4)
   col(hex("#081008")); love.graphics.rectangle("fill", x, y, w, h)
   for k, r in ipairs(rows) do
-    local yy = y + 3 + (k - 1) * 12
+    local yy = y + 2 + (k - 1) * 15
     col(C.lcd); fprint("tiny", r[1], x + 3, yy)
     col(r[3] or C.lcd); fprint("tiny", r[2], x + w - 3 - fw("tiny", r[2]), yy)
   end
@@ -678,12 +678,12 @@ local function drawMenuBottom()
   marble()
   local p = selPizza()
   local strip = function()
-    local x = plateBtn(P.upper(t("nav.cozinha")), 4, 224, function() S.tab = "kitchen"; dirty = true end)
-    plateBtn(P.upper(t("k.fresh")), x + 4, 224, newDraft, nil, nil, isArmed("new"))
+    local x = plateBtn(t("nav.cozinha"), 4, 221, function() S.tab = "kitchen"; dirty = true end)
+    plateBtn(t("k.fresh"), x + 5, 221, newDraft, nil, nil, isArmed("new"))
   end
   if not p then   -- the "+ Create new pizza" row (or an empty menu)
     if #S.menu == 0 then text(t("menu.empty"), 20, 60, "body", C.ink, "center", 280) end
-    plateBtn(P.upper(t("menu.new", { n = #S.menu })), 60, 130, newDraft, 200, 24)
+    plateBtn(t("menu.new", { n = #S.menu }), 60, 130, newDraft, 200, 24)
     strip(); return
   end
   local a = anOf(p)
@@ -691,26 +691,26 @@ local function drawMenuBottom()
   nameStrip(p.name)
   hit(0, 0, BW, OY, renamePizza)
   -- right column: price with - and +, the figures, edit / rename / remove
-  local rx, rw = 222, 94
-  plateBtn("-", rx, 30, function() priceStep(-.5) end, 18, 22)
-  plateBtn("+", rx + rw - 18, 30, function() priceStep(.5) end, 18, 22)
-  text(P.eur(p.price), rx + 18, 33, "body", C.ink, "center", rw - 36)
+  local rx, rw = 186, 130
+  plateBtn("-", rx, 26, function() priceStep(-.5) end, 22, 22)
+  plateBtn("+", rx + rw - 22, 26, function() priceStep(.5) end, 22, 22)
+  text(P.eur(p.price), rx + 22, 28, "body", C.ink, "center", rw - 44)
   local margin = p.price - a.cost
-  lcd(rx, 62, rw, {
-    { fitText(P.upper(t("k.q")), "tiny", 60), tostring(a.q), P.qColor(a.q) },
-    { t("bench.c"), P.eur(a.cost) },
-    { fitText(P.upper(t("menu.margin")), "tiny", 50), P.eur(margin), margin > 0 and C.good or C.bad },
+  lcd(rx, 56, rw, {
+    { t("k.q"), tostring(a.q), P.qColor(a.q) },
+    { l3("kcost"), P.eur(a.cost) },
+    { t("menu.margin"), P.eur(margin), margin > 0 and C.good or C.bad },
   })
-  plateBtn(P.upper(t("menu.edit")), rx, 114, editPizza, rw, 18)
-  plateBtn(l3("rename"), rx, 138, renamePizza, rw, 18)
-  plateBtn(fitText(P.upper(t(isArmed("remove") and "menu.confirm" or "menu.remove")), "tiny", rw - 6), rx, 162, removePizza, rw, 18, isArmed("remove"))
+  plateBtn(t("menu.edit"), rx, 112, editPizza, rw, 19)
+  plateBtn(l3("renamel"), rx, 135, renamePizza, rw, 19)
+  plateBtn(fitText(t(isArmed("remove") and "menu.confirm" or "menu.remove"), "tiny", rw - 6), rx, 158, removePizza, rw, 19, isArmed("remove"))
   -- who picks it: the share of each customer group that would choose this pizza
-  text(fitText(t("menu.who"), "tiny", rw), rx, 184, "tiny", C.ink)
+  text(fitText(t("menu.who"), "tiny", rw), rx, 181, "tiny", C.ink)
   local W, i = shares(), S.msel
   for j, g in ipairs(D.SEG_ORDER) do
-    local x, y, v = rx - 2 + ((j - 1) % 2) * 52, 196 + math.floor((j - 1) / 2) * 12, math.floor(W.sh[g][i] * 100 + .5)
-    col(hex(D.SEG[g].col), v > 0 and 1 or .4); love.graphics.rectangle("fill", x, y + 3, 6, 6)
-    text(t("seg." .. g):sub(1, 3) .. " " .. v .. "%", x + 8, y, "tiny", v > 0 and C.ink or hex("#9a8a70"))
+    local x, y, v = rx + ((j - 1) % 2) * 66, 196 + math.floor((j - 1) / 2) * 15, math.floor(W.sh[g][i] * 100 + .5)
+    col(hex(D.SEG[g].col), v > 0 and 1 or .4); love.graphics.rectangle("fill", x, y + 4, 7, 7)
+    text(t("seg." .. g):sub(1, 3) .. " " .. v .. "%", x + 10, y, "tiny", v > 0 and C.ink or hex("#9a8a70"))
   end
   strip()
 end
@@ -718,6 +718,10 @@ end
 local drawBottom   -- (defined with the other screens)
 
 -- ---------------------------------------------------------------- top screen: picker and analysis
+local function keys(s)   -- the buttons of a screen, one line at the bottom (and START, when it fits)
+  local all = s .. "   " .. l3("startopt")
+  text(fw("tiny", all) <= 396 and all or s, 0, 224, "tiny", C.dim, "center", 400)
+end
 local function meter(x, y, w, h, v, c)
   col(hex("#000000", .45)); love.graphics.rectangle("fill", x, y, w, h)
   col(c); love.graphics.rectangle("fill", x, y, math.floor(w * v / 100 + .5), h)
@@ -733,8 +737,8 @@ local function goTab(step)
   S.tab = TABS[k]; armed = nil; clampSel(); dirty = true
 end
 local function stars(r) return string.format(P.lang() == "pt" and "%.1f" or "%.1f", r):gsub("%.", P.lang() == "pt" and "," or ".") .. "*" end
-drawHeader = function()   -- L, the screen before, this screen, the one after, R; then cash and stars
-  col(C.panel); love.graphics.rectangle("fill", 0, 0, 400, 20)
+drawHeader = function(alpha)   -- L, the screen before, this screen, the one after, R; then cash and stars
+  col(C.panel, alpha); love.graphics.rectangle("fill", 0, 0, 400, 20)
   local i = idxIn(TABS, S.tab)
   local prev, cur, nxt = t(TAB_KEY[TABS[(i - 2) % #TABS + 1]]), t(TAB_KEY[S.tab]), t(TAB_KEY[TABS[i % #TABS + 1]])
   local function key(k, x) col(hex("#4a260f")); love.graphics.rectangle("fill", x, 2, 15, 16); text(k, x, 3, "tiny", C.cream, "center", 15) end
@@ -796,7 +800,7 @@ local function drawTop()
     meter(rx + 80, yy + 5, 72, 8, an.appeal[sk], hex(D.SEG[sk].col))
     text(tostring(an.appeal[sk]), rx, yy, "small", C.cream, "right", 180)
   end
-  text(l3("keys1"), 0, 223, "tiny", C.dim, "center", 400)
+  keys(l3("keys1"))
 end
 
 -- a menu pizza drawn small (the whole 170 px pizza scaled)
@@ -805,7 +809,7 @@ local function miniPizza(p, cx, cy, size)
   drawPizza(p, 0, 0)
   love.graphics.pop()
 end
-local ROW_H, ROWS = 34, 5
+local ROW_H, ROWS = 37, 5
 local function drawMenuTop()
   col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
   drawHeader()
@@ -820,7 +824,7 @@ local function drawMenuTop()
   for row = 0, ROWS - 1 do
     local k = first + row
     if k > n then break end
-    local y = 38 + row * ROW_H
+    local y = 37 + row * ROW_H
     local on = k == S.msel
     col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, ROW_H - 3)
     if on then pxRect(5, y - 1, 390, ROW_H - 1, C.gold) end
@@ -828,18 +832,17 @@ local function drawMenuTop()
     if p then
       local a = anOf(p)
       miniPizza(p, 24, y + 15, 28)
-      text(fitText(p.name, "body", 200), 44, y + 1, "body", C.cream)
+      text(fitText(p.name, "body", 220), 44, y + 1, "body", C.cream)
       text(fitText(t("dough." .. p.dough) .. " · " .. t("sauce." .. p.sauce), "tiny", 200), 44, y + 18, "tiny", C.dim)
       text(P.eur(p.price), 250, y + 1, "body", C.gold, "right", 138)
       local margin = p.price - a.cost
-      text("Q" .. a.q, 250, y + 18, "tiny", P.qColor(a.q))
+      text("Q" .. a.q, 252, y + 18, "tiny", P.qColor(a.q))
       text(t("menu.margin") .. " " .. P.eur(margin), 280, y + 18, "tiny", margin > 0 and C.good or C.bad, "right", 108)
     else
       text(t("menu.new", { n = #S.menu }), 6, y + 8, "body", on and C.gold or C.dim, "center", 388)
     end
   end
-  text(l3("mkeys1"), 0, 214, "tiny", C.dim, "center", 400)
-  text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
+  keys(l3("mkeys1"))
 end
 
 local function drawToast()
@@ -893,7 +896,6 @@ local function lcdRows()
   local c = a and a.cnt or { served = 0, rival = 0, left = 0, rev = 0 }
   local m = a and math.min(a.t / D.DAY_SECONDS, 1) * 11 * 60 or 0
   local clock = string.format("%02d:%02d", 12 + math.floor(m / 60), math.floor(m % 60 / 15) * 15)
-  local share = (c.served + c.rival > 0) and (math.floor(c.served / (c.served + c.rival) * 100 + .5) .. "%") or "--"
   local rep = string.format("%.1f", S.rep); if P.lang() == "pt" then rep = rep:gsub("%.", ",") end
   return {
     { t("lcd.day") .. " " .. S.day .. " " .. P.upper(G.weekday(S.day)), clock },
@@ -902,12 +904,9 @@ local function lcdRows()
     { t("lcd.served"), tostring(c.served) },
     { t("lcd.rival"), tostring(c.rival) },
     { t("lcd.left"), tostring(c.left) },
-    { t("lcd.share"), share },
     false,
     { t("lcd.cooks"), tostring(#G.crew(S, "cook")) },
     { t("lcd.waiters"), tostring(#G.crew(S, "waiter")) },
-    { t("lcd.ovens"), tostring(S.ovens) },
-    { t("lcd.tables"), G.roomStats(S).tables .. " · " .. G.roomStats(S).seats },
     { t("lcd.cap"), c.served .. "/" .. math.min(G.capacity(S), G.serviceCap(S)) },
     false,
     { t("lcd.rev"), P.eur(c.rev) },
@@ -931,15 +930,15 @@ local function drawHistTop()
       { t("hist.sum.profit"), P.eur(profit) }, { t("hist.sum.avg"), P.eur(profit / #H) }, { t("hist.sum.best"), t("hist.day") .. " " .. best.d .. " · " .. P.eur(best.p) },
     }
     for k, x in ipairs(sum) do
-      local cx, cy = 8 + ((k - 1) % 3) * 130, 38 + math.floor((k - 1) / 3) * 22
-      text(fitText(x[1], "tiny", 124), cx, cy, "tiny", C.dim); text(fitText(x[2], "small", 124), cx, cy + 9, "small", C.cream)
+      local cx, cy = 8 + ((k - 1) % 3) * 130, 38 + math.floor((k - 1) / 3) * 30
+      text(fitText(x[1], "tiny", 124), cx, cy, "tiny", C.dim); text(fitText(x[2], "small", 124), cx, cy + 13, "small", C.cream)
     end
     -- profit by day: the last 30 days, a bar each, green above the line, red below
-    text(t("hist.chart"), 8, 84, "tiny", C.dim)
+    text(t("hist.chart"), 8, 98, "tiny", C.dim)
     local from = math.max(1, #H - 29)
     local mx = 1
     for k = from, #H do mx = math.max(mx, math.abs(H[k].p)) end
-    local x0, y0, bw, hh = 8, 126, math.floor(384 / 30), 28
+    local x0, y0, bw, hh = 8, 140, math.floor(384 / 30), 24
     col(C.dim, .5); love.graphics.rectangle("fill", x0, y0, 384, 1)
     for k = from, #H do
       local h = math.floor(math.abs(H[k].p) / mx * hh + .5)
@@ -952,26 +951,26 @@ local function drawHistTop()
     if any then
       local all = math.max(1, tot[1] + tot[2] + tot[3])
       local x = 8
-      text(t("face.title"), x, 140, "tiny", C.dim); x = x + fw("tiny", t("face.title")) + 10
+      text(t("face.title"), x, 146, "tiny", C.dim); x = x + fw("tiny", t("face.title")) + 10
       for k, key in ipairs({ "good", "meh", "bad" }) do
-        SALA.face(key, x + 5, 138)
+        SALA.face(key, x + 5, 146)
         local s = math.floor(tot[k] / all * 100 + .5) .. "% " .. t("face." .. key)
-        text(s, x + 13, 140, "tiny", C.cream); x = x + 13 + fw("tiny", s) + 12
+        text(s, x + 13, 146, "tiny", C.cream); x = x + 13 + fw("tiny", s) + 12
       end
     end
     -- day by day, the newest first
     local cols = { 8, 60, 120, 190 }
-    local y = 162
+    local y = 164
     for k, s2 in ipairs({ t("hist.day"), t("hist.served"), t("hist.profit"), t("hist.top") }) do text(s2, cols[k], y, "tiny", C.dim) end
-    for k = #H, math.max(1, #H - 3), -1 do
+    for k = #H, math.max(1, #H - 2), -1 do
       local h = H[k]
-      y = y + 11
+      y = y + 14
       text(tostring(h.d), cols[1], y, "tiny", C.cream); text(h.n .. "/" .. h.N, cols[2], y, "tiny", C.cream)
       text(P.eur(h.p), cols[3], y, "tiny", h.p >= 0 and C.good or C.bad)
       text(fitText(h.top ~= "" and (h.top .. " ×" .. h.topN) or "—", "tiny", 200), cols[4], y, "tiny", C.cream)
     end
   end
-  text(l3("hback") .. "   " .. l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
+  keys(l3("hback"))
 end
 
 -- the day: the dining room on the top screen (sala.lua, 320 wide, centred), with the clock and the takings on the
@@ -983,63 +982,53 @@ local function drawDayTop()
   SALA.draw(anim, anim and anim.sc or idleScene, S)
   local lbl = P.upper(S.rival.name) .. " >"
   local w = fw("tiny", lbl) + 8
-  col(hex("#120a04", .75)); love.graphics.rectangle("fill", 316 - w, 225, w, 13)
-  text(lbl, 316 - w, 227, "tiny", hex("#ffcf4a"), "center", w)
+  col(hex("#120a04", .75)); love.graphics.rectangle("fill", 316 - w, 223, w, 16)
+  text(lbl, 316 - w, 224, "tiny", hex("#ffcf4a"), "center", w)
   if anim then
     for _, b in ipairs(anim.bubbles) do
       local bw = fw("tiny", b.s) + 6
       local x = math.max(2, math.min(318 - bw, b.x - bw / 2))
-      col(hex("#000000", .7)); love.graphics.rectangle("fill", x, math.max(20, b.y), bw, 12)
-      text(b.s, x, math.max(20, b.y) + 1, "tiny", b.c, "center", bw)
+      col(hex("#000000", .7)); love.graphics.rectangle("fill", x, math.max(22, b.y), bw, 16)
+      text(b.s, x, math.max(22, b.y) + 1, "tiny", b.c, "center", bw)
     end
     if anim.paused then
       local s = P.upper(t("run.pause"))
       local pw = fw("small", s) + 16
-      col(hex("#120a04", .8)); love.graphics.rectangle("fill", 160 - pw / 2, 110, pw, 20)
-      text(s, 160 - pw / 2, 113, "small", C.gold, "center", pw)
+      col(hex("#120a04", .8)); love.graphics.rectangle("fill", 160 - pw / 2, 108, pw, 24)
+      text(s, 160 - pw / 2, 112, "small", C.gold, "center", pw)
     end
   end
   love.graphics.pop()
   -- the side strips: day and clock, takings; the faces so far
   local rows = lcdRows()
-  col(hex("#2a1407")); love.graphics.rectangle("fill", 0, 18, 40, 222); love.graphics.rectangle("fill", 360, 18, 40, 222)
-  text(t("lcd.day"), 0, 26, "tiny", C.dim, "center", 40)
-  text(tostring(S.day), 0, 36, "small", C.cream, "center", 40)
-  text(rows[1][2], 0, 54, "tiny", C.lcd, "center", 40)
+  col(hex("#2a1407")); love.graphics.rectangle("fill", 0, 20, 40, 220); love.graphics.rectangle("fill", 360, 20, 40, 220)
+  text(t("lcd.day"), 0, 28, "tiny", C.dim, "center", 40)
+  text(tostring(S.day), 0, 42, "body", C.cream, "center", 40)
+  text(rows[1][2], 0, 64, "tiny", C.lcd, "center", 40)
   if anim then
-    text("$", 0, 76, "tiny", C.dim, "center", 40)
-    text(fitText(P.eur(anim.cnt.rev):gsub("%.%d+$", ""), "tiny", 38), 0, 86, "tiny", C.good, "center", 40)
+    text("$", 0, 90, "tiny", C.dim, "center", 40)
+    text(fitText(P.eur(anim.cnt.rev):gsub("%.%d+$", ""), "tiny", 38), 0, 104, "tiny", C.good, "center", 40)
     for k, key in ipairs({ "good", "meh", "bad" }) do
-      local y = 30 + (k - 1) * 30
+      local y = 34 + (k - 1) * 34
       SALA.face(key, 380, y)
-      text(tostring(anim.faces[key]), 360, y + 13, "tiny", C.cream, "center", 40)
+      text(tostring(anim.faces[key]), 360, y + 12, "tiny", C.cream, "center", 40)
     end
   end
-  -- the header on top, see-through over the back wall
-  col(C.panel, .85); love.graphics.rectangle("fill", 0, 0, 400, 18)
-  local x = 6
-  for _, tb in ipairs(TABS) do
-    local s = P.upper(t(TAB_KEY[tb]))
-    local on = tb == S.tab
-    text(s, x, 4, "tiny", on and C.gold or C.dim)
-    if on then col(C.gold); love.graphics.rectangle("fill", x, 15, fw("tiny", s), 1) end
-    x = x + fw("tiny", s) + 9
-  end
-  text(P.eur(S.money) .. "   " .. stars(S.rep), 200, 3, "small", S.money < 0 and C.bad or C.cream, "right", 194)
+  drawHeader(.85)   -- see-through over the back wall
 end
 local function drawDayBottom()
   col(C.bg); love.graphics.rectangle("fill", 0, 0, 320, 240)
   -- the LCD
   col(hex("#2a1407")); love.graphics.rectangle("fill", 2, 2, 156, 172)
   col(hex("#081008")); love.graphics.rectangle("fill", 4, 4, 152, 168)
-  local y = 7
+  local y = 6
   for _, r in ipairs(lcdRows()) do
     if r then
-      text(fitText(r[1], "tiny", 96), 7, y, "tiny", C.lcd)
+      text(fitText(r[1], "tiny", 146 - fw("tiny", r[2]) - 6), 7, y, "tiny", C.lcd)
       text(r[2], 7, y, "tiny", C.lcd, "right", 146)
-      y = y + 10
+      y = y + 13
     else
-      col(C.lcd, .35); love.graphics.rectangle("fill", 7, y + 4, 146, 1); y = y + 9
+      col(C.lcd, .35); love.graphics.rectangle("fill", 7, y + 5, 146, 1); y = y + 9
     end
   end
   -- right: contest today, news, the manager's notes
@@ -1048,8 +1037,8 @@ local function drawDayBottom()
   if S.day % 5 == 0 then
     local entry
     for _, p in ipairs(S.menu) do if p.id == S.contestEntry then entry = p end end
-    local s = "> " .. t("day.ban", { x = P.upper(t("th." .. G.themeFor(S.day))) }) .. " " ..
-      (entry and t("day.ban.in", { p = P.upper(entry.name) }) or t("day.ban.none"))
+    local s = "> " .. t("day.ban", { x = t("th." .. G.themeFor(S.day)) }) .. " " ..
+      (entry and t("day.ban.in", { p = entry.name }) or t("day.ban.none"))
     local F = fonts.tiny
     local _, wr = F.f:getWrap(s, (w - 4) / F.s)
     local h = #wr * F.f:getHeight() * F.s + 4
@@ -1068,22 +1057,20 @@ local function drawDayBottom()
   for _, l in ipairs(lines) do
     local _, wrapped = F.f:getWrap(l[1], (w - 4) / F.s)
     local h = #wrapped * F.f:getHeight() * F.s
-    if y + h > 176 then break end
+    if y + h > 180 then break end
     text(l[1], x, y, "tiny", l[2], "left", w - 4)
     y = y + h + 3
   end
-  text(anim and l3("drun") or (l3("dkeys") .. "   " .. l3("hkeys")), 0, 180, "tiny", C.dim, "center", 320)
+  text(anim and l3("drun") or (l3("dkeys") .. "   " .. l3("hkeys")), 0, 186, "tiny", C.dim, "center", 320)
   if anim then
     local bx = 6
-    bx = plateBtn(P.upper(t(anim.paused and "run.resume" or "run.pause")), bx, 196, function() anim.paused = not anim.paused end, nil, 22, anim.paused) + 6
+    bx = plateBtn(t(anim.paused and "run.resume" or "run.pause"), bx, 206, function() anim.paused = not anim.paused end, nil, 26, anim.paused) + 6
     for _, v in ipairs({ 1, 2, 4 }) do   -- a speed button also resumes
-      bx = plateBtn("x" .. v, bx, 196, function() anim.speed = v; anim.paused = false end, 34, 22, anim.speed == v and not anim.paused) + 6
+      bx = plateBtn("x" .. v, bx, 206, function() anim.speed = v; anim.paused = false end, 34, 26, anim.speed == v and not anim.paused) + 6
     end
-    plateBtn(P.upper(t("run.skip")), bx, 196, skipDay, 314 - bx, 22)
-    text(l3("nav"), 0, 226, "tiny", C.dim, "center", 320)
+    plateBtn(fitText(t("run.skip"), "tiny", 310 - bx), bx, 206, skipDay, 314 - bx, 26)
   else
-    plateBtn(fitText(P.upper(t("day.open", { d = S.day })), "tiny", 300), 20, 194, startDay, 280, 24)
-    text(l3("nav"), 0, 226, "tiny", C.dim, "left", 260)
+    plateBtn(fitText(t("day.open", { d = S.day }), "tiny", 300), 20, 206, startDay, 280, 26)
   end
 end
 
@@ -1092,9 +1079,9 @@ local function drawReportTop()
   col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
   drawHeader()
   local r, res = report, report.res
-  text(t("rep.close", { d = r.day, w = G.weekday(r.day) }), 8, 22, "small", C.dim)
   local net = r2(r.profit - (r.interest or 0))   -- the day's result after the bank's interest
-  text(t(net >= 0 and "rep.good" or "rep.bad") .. ": " .. P.eur(net), 8, 36, "body", net >= 0 and C.good or C.bad)
+  text(t(net >= 0 and "rep.good" or "rep.bad") .. ": " .. P.eur(net), 8, 23, "body", net >= 0 and C.good or C.bad)
+  text(t("rep.close", { d = r.day, w = G.weekday(r.day) }), 8, 25, "small", C.dim, "right", 384)
   local rows = {
     { t("rep.served"), t("rep.ofN", { n = res.served, N = res.N }) },
     { t("rep.rival", { x = S.rival.name }), tostring(res.toRival) },
@@ -1110,32 +1097,32 @@ local function drawReportTop()
   if (r.interest or 0) > 0 then money[#money + 1] = { t("rep.interest"), P.eur(-r.interest) } end
   money[#money + 1] = { t("rep.result"), P.eur(net), net >= 0 and C.good or C.bad }
   for k, row in ipairs(rows) do
-    local y = 60 + (k - 1) * 15
+    local y = 46 + (k - 1) * 16
     text(fitText(row[1], "small", 180 - fw("small", row[2])), 8, y, "small", C.cream); text(row[2], 8, y, "small", C.cream, "right", 186)
   end
   for k, row in ipairs(money) do
-    local y = 60 + (k - 1) * (#money > 5 and 13 or 15)
+    local y = 46 + (k - 1) * (#money > 5 and 14 or 16)
     text(row[1], 208, y, "small", row[3] or C.cream); text(row[2], 208, y, "small", row[3] or C.cream, "right", 186)
   end
   -- how they left: the three faces with their counts, and why the unhappy ones were (as facesHTML() in index.html)
   local fc = { res.happy, res.meh or 0, (res.sad or 0) + res.full + res.noseat + (res.nostock or 0) }
   local x = 8
-  text(t("face.title"), x, 142, "tiny", C.dim)
+  text(t("face.title"), x, 146, "tiny", C.dim)
   x = x + fw("tiny", t("face.title")) + 10
   for k, key in ipairs({ "good", "meh", "bad" }) do
-    SALA.face(key, x + 5, 140)
+    SALA.face(key, x + 5, 146)
     local s = fc[k] .. " " .. t("face." .. key)
-    text(s, x + 13, 142, "tiny", C.cream); x = x + 13 + fw("tiny", s) + 12
+    text(s, x + 13, 146, "tiny", C.cream); x = x + 13 + fw("tiny", s) + 12
   end
-  if fc[3] > 0 then text(fitText(t("face.why", { f = res.sad or 0, g = fc[3] - (res.sad or 0) }), "tiny", 384), 8, 153, "tiny", C.dim) end
+  if fc[3] > 0 then text(fitText(t("face.why", { f = res.sad or 0, g = fc[3] - (res.sad or 0) }), "tiny", 384), 8, 161, "tiny", C.dim) end
   local f = function(v) local s = string.format("%.2f", v); return P.lang() == "pt" and s:gsub("%.", ",") or s end
-  text(t("rep.rep") .. ": " .. f(r.repBefore) .. " -> " .. f(r.repAfter) .. "*", 8, 164, "small", C.gold)
-  local w = P.week(S.day)
-  local wk = t("wk.ing", { x = P.ingName(w.ing) }) .. "  " .. t("wk.low", { x = P.ingName(w.low) }) .. "  " ..
-    t("wk.combo", { x = t("combo." .. w.combo), r = G.comboReq(w.combo) })
-  col(hex("#4a260f")); love.graphics.rectangle("fill", 6, 180, 388, 36)
-  text(wk, 10, 181, "tiny", C.combo, "left", 380)
-  text(l3("rkeys"), 0, 220, "tiny", C.dim, "center", 400)
+  text(t("rep.rep") .. ": " .. f(r.repBefore) .. " -> " .. f(r.repAfter) .. "*", 8, 176, "small", C.gold)
+  local w = P.week(S.day)   -- the week, short: no reasons in brackets
+  local wk = (t("wk.ing", { x = P.ingName(w.ing) }) .. "  " .. t("wk.low", { x = P.ingName(w.low) }) .. "  " ..
+    t("wk.combo", { x = t("combo." .. w.combo), r = "" })):gsub("%s*%(.-%)", "")
+  col(hex("#4a260f")); love.graphics.rectangle("fill", 6, 192, 388, 32)
+  text(wk, 10, 193, "tiny", C.combo, "left", 380)
+  keys(l3("rkeys"))
 end
 local function closeReport()
   if report and report.res and S.over then report = { over = true }; return end
@@ -1148,7 +1135,7 @@ local function drawReportBottom()
   if r.over then
     text(t("end.title"), 10, 30, "big", C.bad, "center", 300)
     text(t("end.lead", { d = S.day - 1 }), 20, 80, "body", C.ink, "center", 280)
-    plateBtn(P.upper(t("end.again")), 60, 180, closeReport, 200, 24)
+    plateBtn(t("end.again"), 60, 180, closeReport, 200, 26)
     return
   end
   local y = 6
@@ -1159,7 +1146,7 @@ local function drawReportBottom()
   -- with several shops: how each did today (the open one first) and the day's total
   if r.others and #r.others > 0 then
     text(t("rep.shops"), 8, y, "tiny", C.ink); text(t("rep.n"), 200, y, "tiny", C.ink, "right", 50); text(t("rep.result"), 250, y, "tiny", C.ink, "right", 60)
-    y = y + 11
+    y = y + 14
     local rows = { { name = G.shopName(S), open = true, served = r.res.served, N = r.res.N, profit = r.profit } }
     for _, x in ipairs(r.others) do rows[#rows + 1] = x end
     local tot = 0
@@ -1168,31 +1155,31 @@ local function drawReportBottom()
       text(fitText(x.name .. (x.open and "" or (" · " .. t("rep.closed"))), "tiny", 190), 8, y, "tiny", C.ink)
       text(x.open and (x.served .. "/" .. x.N) or "-", 200, y, "tiny", C.ink, "right", 50)
       text(P.eur(x.profit), 250, y, "tiny", x.profit >= 0 and hex("#1f7a3a") or C.bad, "right", 60)
-      y = y + 10
+      y = y + 14
     end
     text(t("rep.total"), 8, y, "tiny", C.ink); text(P.eur(r2(tot - (r.interest or 0))), 250, y, "tiny", C.ink, "right", 60)
-    y = y + 14
+    y = y + 17
   end
   -- who bought what: each pizza sold, by customer group
   local bs = r.res and r.res.bySeg
   if bs and next(bs) then
     text(t("rep.byseg"), 8, y, "tiny", C.ink)
     for j, g in ipairs(D.SEG_ORDER) do text(t("seg." .. g):sub(1, 3), 160 + (j - 1) * 38, y, "tiny", hex(D.SEG[g].col), "right", 34) end
-    y = y + 12
+    y = y + 15
     for _, p in ipairs(S.menu) do
       local any = false
       for _, g in ipairs(D.SEG_ORDER) do if (bs[g] or {})[p.id] then any = true end end
       if any then
         text(fitText(p.name, "tiny", 148), 8, y, "tiny", C.ink)
         for j, g in ipairs(D.SEG_ORDER) do text(tostring((bs[g] or {})[p.id] or 0), 160 + (j - 1) * 38, y, "tiny", C.ink, "right", 34) end
-        y = y + 11
+        y = y + 14
       end
     end
     y = y + 4
   end
   local F = fonts.tiny
   for _, q in ipairs(r.quotes) do
-    if y > 160 then break end   -- leave room for the contest and the button
+    if y > 150 then break end   -- leave room for the contest and the button
     local s = t("seg." .. q[1]) .. ": “" .. q[2] .. "”"
     local _, wrapped = F.f:getWrap(s, 304 / F.s)
     text(s, 8, y, "tiny", C.ink, "left", 304)
@@ -1201,17 +1188,18 @@ local function drawReportBottom()
   local c = r.contest
   if c then
     y = y + 2
-    text(t("ct.res", { t = t("th." .. c.th), n = c.pos }) .. (c.prize > 0 and (" · +" .. P.eur(c.prize)) or ""), 8, y, "small", hex("#8a5a00")); y = y + 14
-    if c.dq then text(t("ct.dq", { x = c.dq }), 8, y, "tiny", C.bad); y = y + 11 end
+    text(t("ct.res", { t = t("th." .. c.th), n = c.pos }) .. (c.prize > 0 and (" · +" .. P.eur(c.prize)) or ""), 8, y, "small", hex("#8a5a00")); y = y + 16
+    if c.dq then text(t("ct.dq", { x = c.dq }), 8, y, "tiny", C.bad); y = y + 14 end
     for k, x in ipairs(c.rows) do
       local cc = x.me and hex("#8a5a00") or C.ink
-      text(k .. ". " .. fitText(x.n, "tiny", 250), 12, y, "tiny", cc); text(tostring(x.s), 12, y, "tiny", cc, "right", 296); y = y + 11
+      if y > 190 then break end
+      text(k .. ". " .. fitText(x.n, "tiny", 250), 12, y, "tiny", cc); text(tostring(x.s), 12, y, "tiny", cc, "right", 296); y = y + 14
     end
   end
   local res = r.res
   local tip = res.noseat > 3 and "rep.tip.seats" or res.full > 3 and "rep.tip.queue" or res.toRival > res.served and "rep.tip.rival" or nil
-  if tip and y < 180 then text(t(tip), 8, math.max(y + 2, 174), "tiny", hex("#6c5233"), "left", 304) end
-  plateBtn(P.upper(t("rep.go")), 90, 206, closeReport, 140, 24)
+  if tip and y < 170 then text(t(tip), 8, math.max(y + 2, 170), "tiny", hex("#6c5233"), "left", 304) end
+  plateBtn(t("rep.go"), 90, 210, closeReport, 140, 26)
 end
 
 -- ---------------------------------------------------------------- the contest
@@ -1239,46 +1227,45 @@ local function drawContestTop()
   end
   rows[#rows + 1] = { t("ct.fee"), "$" .. D.ENTRY_FEE }
   rows[#rows + 1] = { t("ct.rivals"), t("ct.pts", { a = base - 8, b = base + 8 }) }
-  col(C.panel); love.graphics.rectangle("fill", 6, 88, 192, 80)
+  col(C.panel); love.graphics.rectangle("fill", 6, 92, 192, 84)
   for k, r in ipairs(rows) do
-    local y = 91 + (k - 1) * 15
+    local y = 95 + (k - 1) * 16
     text(fitText(r[1], "small", 178 - fw("small", r[2])), 10, y, "small", C.dim); text(r[2], 10, y, "small", C.cream, "right", 184)
   end
-  col(C.panel); love.graphics.rectangle("fill", 202, 88, 192, 120)
-  text(t("ct.hist"), 206, 91, "small", C.gold)
-  if #S.contestLog == 0 then text(t("ct.none"), 206, 107, "tiny", C.dim, "left", 184) end
+  col(C.panel); love.graphics.rectangle("fill", 202, 92, 192, 128)
+  text(t("ct.hist"), 206, 95, "small", C.gold)
+  if #S.contestLog == 0 then text(t("ct.none"), 206, 113, "tiny", C.dim, "left", 184) end
   for k, l in ipairs(S.contestLog) do
-    if k > 4 then break end
-    local y = 106 + (k - 1) * 25
+    if k > 3 then break end
+    local y = 113 + (k - 1) * 34
     text(fitText(t("ct.histrow", { d = l.day, t = t("th." .. l.theme) }), "tiny", 184), 206, y, "tiny", C.cream)
-    text(fitText(l.pizza, "tiny", 110), 206, y + 11, "tiny", C.dim)
-    text(t("ct.place", { n = l.pos }) .. (l.prize > 0 and (" · " .. P.eur(l.prize)) or ""), 206, y + 11, "tiny", C.combo, "right", 184)
+    text(fitText(l.pizza, "tiny", 100), 206, y + 15, "tiny", C.dim)
+    text(t("ct.place", { n = l.pos }) .. (l.prize > 0 and (" · " .. P.eur(l.prize)) or ""), 206, y + 15, "tiny", C.combo, "right", 184)
   end
-  text(t("ct.judge", { d = cd }), 8, 174, "tiny", C.dim, "left", 190)
-  text(l3("ckeys"), 0, 214, "tiny", C.dim, "center", 400)
-  text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
+  text(t("ct.judge", { d = cd }), 8, 182, "tiny", C.dim, "left", 190)
+  keys(l3("ckeys"))
 end
 local function drawContestBottom()
   col(hex("#f3ead3")); love.graphics.rectangle("fill", 0, 0, 320, 240)
   text(t("ct.pick"), 8, 4, "small", C.ink)
-  text(fitText(t(S.contestEntry and "ct.swap" or "ct.pay"), "tiny", 304), 8, 19, "tiny", hex("#6c5233"))
+  text(fitText(t(S.contestEntry and "ct.swap" or "ct.pay"), "tiny", 304), 8, 21, "tiny", hex("#6c5233"))
   if #S.menu == 0 then text(t("ct.need"), 8, 60, "body", C.ink, "center", 304); return end
   S.csel = math.max(1, math.min(S.csel, #S.menu))
   local th = G.themeFor(G.nextContestDay(S))
-  local RH, N = 30, 6
+  local RH, N = 35, 5
   local first = math.max(1, math.min(S.csel - 2, #S.menu - N + 1))
   for row = 0, N - 1 do
     local k = first + row
     local p = S.menu[k]
     if not p then break end
-    local y = 34 + row * RH
+    local y = 40 + row * RH
     local on, entered = k == S.csel, p.id == S.contestEntry
     col(entered and hex("#e3b34a") or on and hex("#eadcb8") or hex("#f9f3e3")); love.graphics.rectangle("fill", 6, y, 308, RH - 3)
     if on then pxRect(5, y - 1, 310, RH - 1, hex("#4a260f")) end
-    miniPizza(p, 22, y + 13, 24)
+    miniPizza(p, 22, y + 15, 26)
     local sc = P.contestScore(th, p)
-    text(fitText((entered and "> " or "") .. p.name, "small", 170), 40, y + 2, "small", C.ink)
-    text(sc.dq and t("ct.dq", { x = sc.dq }) or t("ct.pre", { n = math.floor(sc.s + .5) }), 40, y + 15, "tiny", sc.dq and hex("#b0381c") or hex("#6c5233"))
+    text(fitText((entered and "> " or "") .. p.name, "small", 260), 42, y + 1, "small", C.ink)
+    text(fitText(sc.dq and t("ct.dq", { x = sc.dq }) or t("ct.pre", { n = math.floor(sc.s + .5) }), "tiny", 260), 42, y + 16, "tiny", sc.dq and hex("#b0381c") or hex("#6c5233"))
     hit(6, y, 308, RH - 3, function() S.csel = k; enterContest(p) end)
   end
 end
@@ -1331,21 +1318,19 @@ end
 local function drawShopTop()
   col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
   drawHeader()
-  text(fitText(t("shop.lead", { m = P.eur(S.money) }), "small", 330), 6, 21, "small", C.dim)
-  text("v" .. (D.VERSION or "?"), 6, 23, "tiny", C.dim, "right", 388)   -- the build, for bug reports
+  text(fitText(t("shop.lead", { m = P.eur(S.money) }), "small", 388), 6, 21, "small", C.dim)
   S.ssel = math.max(1, math.min(S.ssel, #SHOP_ROWS))
   for k, id in ipairs(SHOP_ROWS) do
-    local y = 37 + (k - 1) * 17
+    local y = 39 + (k - 1) * 20
     local on = k == S.ssel
-    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, 15)
-    if on then pxRect(5, y - 1, 390, 17, C.gold) end
+    col(on and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 6, y, 388, 18)
+    if on then pxRect(5, y - 1, 390, 20, C.gold) end
     local n, l, c = shopRow(id)
-    text(fitText(n, "small", 166), 12, y + 1, "small", id == "reset" and C.bad or C.cream)
-    text(fitText(l, "tiny", 150), 180, y + 2, "tiny", C.dim)
+    text(fitText(n, "small", 160), 12, y + 1, "small", id == "reset" and C.bad or C.cream)
+    text(fitText(l, "tiny", 380 - 176 - fw("small", c) - 8), 176, y + 2, "tiny", C.dim)
     text(c, 12, y + 1, "small", C.gold, "right", 376)
   end
-  text(l3("skeys"), 0, 214, "tiny", C.dim, "center", 400)
-  text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
+  keys(l3("skeys"))
 end
 local function drawShopBottom()
   col(hex("#f3ead3")); love.graphics.rectangle("fill", 0, 0, 320, 240)
@@ -1356,70 +1341,74 @@ local function drawShopBottom()
   local brown = hex("#6c5233")
   if it then
     text(it.d(), 10, 28, "small", brown, "left", 300)
-    text(it.lvl(S), 10, 70, "small", C.ink)
+    text(it.lvl(S), 10, 74, "small", C.ink)
     local ok = it.ok(S)
-    local lbl = ok and (P.upper(t("shop.buy")) .. "  " .. P.eur(it.cost(S))) or P.upper(t("shop.done"))
-    plateBtn(lbl, 10, 96, function() buyItem(it) end, 150, 24, ok and S.money < it.cost(S))
+    local lbl = ok and (t("shop.buy") .. "  " .. P.eur(it.cost(S))) or t("shop.done")
+    plateBtn(lbl, 10, 98, function() buyItem(it) end, 170, 26, ok and S.money < it.cost(S))
   elseif id == "team" then
-    -- the team, two lines a person: name, role and wage; speed and the second skill (cooking or charm) as n/5
-    local y = 26
+    -- the team, a line a person: name and role, speed and the second skill (cooking or charm) as n/5, wage
+    local y = 28
+    for k, cx in ipairs({ 10, 128, 206 }) do text(l3("stcols")[k], cx, y, "tiny", brown) end; y = y + 17
     for _, p in ipairs(S.staff) do
-      text(fitText(p.n .. " · " .. t("staff." .. p.r) .. " · " .. t("staff.wage", { w = P.eur(p.w) }), "tiny", 230), 10, y, "tiny", C.ink)
-      text(t("staff.sp") .. " " .. p.sp .. "/5 · " .. t("staff.sk." .. p.r) .. " " .. p.sk .. "/5", 10, y + 10, "tiny", brown)
+      text(fitText(p.n .. " · " .. t("staff." .. p.r), "tiny", 128), 10, y + 1, "tiny", C.ink)
+      text(p.sp .. " · " .. p.sk, 142, y + 1, "tiny", C.ink)
+      text((P.eur(p.w):gsub("%.00$", "")), 206, y + 1, "tiny", brown)
       if #G.crew(S, p.r) > 1 then
         local who = p
-        plateBtn(P.upper(t("staff.fire")), 246, y + 2, function() local x = G.letGo(S, who.id); if x then toast(t("ts.fired2", { x = x.n })); dirty = true end end, 64, 16)
+        plateBtn(t("staff.fire"), 236, y, function() local x = G.letGo(S, who.id); if x then toast(t("ts.fired2", { x = x.n })); dirty = true end end, 78, 18)
       end
-      y = y + 22
+      y = y + 21
     end
   elseif id == "hire" then
     local day = S.candDay
     local cands = G.candidates(S)
     if day ~= S.candDay then dirty = true end   -- a new day brought new people
-    text(t("staff.candlead", { c = P.eur(D.HIRE_COST) }), 10, 26, "tiny", brown, "left", 300)
-    local y = 52
+    text(t("staff.candlead", { c = P.eur(D.HIRE_COST) }), 10, 28, "tiny", brown, "left", 300)
+    local y = 92
     if #cands == 0 then text(t("staff.none"), 10, y, "small", C.ink, "left", 300) end
+    for k, cx in ipairs({ 10, 128, 206 }) do text(l3("stcols")[k], cx, y - 17, "tiny", brown) end
     for _, p in ipairs(cands) do
-      text(fitText(p.n .. " · " .. t("staff." .. p.r) .. " · " .. t("staff.wage", { w = P.eur(p.w) }), "tiny", 222), 10, y, "tiny", C.ink)
-      text(t("staff.sp") .. " " .. p.sp .. "/5 · " .. t("staff.sk." .. p.r) .. " " .. p.sk .. "/5", 10, y + 10, "tiny", brown)
+      text(fitText(p.n .. " · " .. t("staff." .. p.r), "tiny", 128), 10, y + 2, "tiny", C.ink)
+      text(p.sp .. " · " .. p.sk, 142, y + 2, "tiny", C.ink)
+      text((P.eur(p.w):gsub("%.00$", "")), 206, y + 2, "tiny", brown)
       local full, who = #G.crew(S, p.r) >= D.MAX_STAFF[p.r], p
-      plateBtn(P.upper(t(full and "staff.full" or "staff.hire")), 238, y + 2, function()
+      plateBtn(t(full and "staff.full" or "staff.hire"), 236, y, function()
         if full then return end
         local x = G.hire(S, who.id); if x then toast(t("ts.hired", { x = x.n })); dirty = true end
-      end, 72, 16, not full and S.money < D.HIRE_COST)
-      y = y + 25
+      end, 78, 20, not full and S.money < D.HIRE_COST)
+      y = y + 23
     end
   elseif id == "bank" then
     local owe = S.loan or 0
-    text(t("bank.lead", { r = (P.lang() == "pt" and "0,5" or "0.5") }), 10, 26, "tiny", brown, "left", 300)
+    text(t("bank.lead", { r = (P.lang() == "pt" and "0,5" or "0.5") }), 10, 28, "tiny", brown, "left", 300)
     local rows = { { t("bank.owe"), P.eur(owe) }, { t("bank.today"), P.eur(owe * D.BANK_RATE) }, { t("bank.limit"), P.eur(D.BANK_MAX) } }
     for k, r in ipairs(rows) do
-      text(r[1], 10, 52 + (k - 1) * 14, "small", C.ink); text(r[2], 10, 52 + (k - 1) * 14, "small", C.ink, "right", 300)
+      text(r[1], 10, 92 + (k - 1) * 16, "small", C.ink); text(r[2], 10, 92 + (k - 1) * 16, "small", C.ink, "right", 300)
     end
     local x = 10
     for _, v in ipairs({ 500, 2000, 5000 }) do
       local amt = v
-      x = plateBtn(P.upper(t("bank.borrow", { x = P.eur(v):gsub("%.00$", "") })), x, 100, function()
+      x = plateBtn(t("bank.borrow", { x = P.eur(v):gsub("%.00$", "") }), x, 150, function()
         if G.borrow(S, amt) then toast(t("bank.got", { x = P.eur(amt):gsub("%.00$", "") })); dirty = true
         else toast(t("bank.max", { x = P.eur(D.BANK_MAX):gsub("%.00$", "") })) end
-      end, 96, 20) + 6
+      end, 96, 24) + 6
     end
     local function pay(v) local x = G.repay(S, v); if x then toast(t("bank.paid", { x = P.eur(x) })); dirty = true end end
-    plateBtn(P.upper(t("bank.repay", { x = "$500" })), 10, 128, function() pay(500) end, 140, 20, owe > 0 and S.money < math.min(500, owe))
-    plateBtn(P.upper(t("bank.all")), 160, 128, function() pay(nil) end, 140, 20, owe > 0 and S.money < owe)
+    plateBtn(t("bank.repay", { x = "$500" }), 10, 182, function() pay(500) end, 146, 24, owe > 0 and S.money < math.min(500, owe))
+    plateBtn(t("bank.all"), 164, 182, function() pay(nil) end, 146, 24, owe > 0 and S.money < owe)
   elseif id == "supplier" then
     text(t("sup.lead"), 10, 28, "tiny", brown, "left", 300)
     for k = 1, 3 do
-      local y = 74 + (k - 1) * 40
+      local y = 92 + (k - 1) * 48
       local sp = D.SUPPLIER[k]
-      plateBtn(P.upper(t("sup." .. k)), 10, y, function() setSupplier(k) end, 130, 30, S.supplier == k)
+      plateBtn(fitText(t("sup." .. k), "tiny", 126), 10, y, function() setSupplier(k) end, 130, 34, S.supplier == k)
       text(k == 1 and t("sup.d1") or t("sup.d", { q = sp.q, m = math.floor((sp.m - 1) * 100 + .5) }), 148, y + 2, "tiny", brown, "left", 162)
     end
   elseif id == "study" then
     text(t("study.lead"), 10, 28, "tiny", brown, "left", 300)
     local done = S.studyWeek == G.weekOf(S.day)
-    plateBtn(done and P.upper(t("study.done")) or (P.upper(t("study.btn")) .. "  " .. P.eur(D.STUDY_COST)), 10, 76, runStudy, 200, 24)
-    local y = 108
+    plateBtn(fitText(done and t("study.done") or (t("study.btn") .. "  " .. P.eur(D.STUDY_COST)), "tiny", 290), 10, 92, runStudy, 300, 24)
+    local y = 124
     for _, x in ipairs(S.tips) do
       for _, line in ipairs(G.tipText(x)) do
         if y > 210 then break end
@@ -1428,8 +1417,12 @@ local function drawShopBottom()
         y = y + #wr * fonts.tiny.f:getHeight() * fonts.tiny.s + 2
       end
     end
+  elseif id == "room" then
+    local A = G.roomStats(S)
+    text(t("rm.seats", { n = A.seats }) .. (A.nblocked > 0 and ("  ·  X " .. A.nblocked) or ""), 10, 30, "small", brown)
+    plateBtn(l3("edroom"), 10, 56, openEditor, 300, 26)
   else
-    plateBtn(P.upper(isArmed("reset") and t("ts.sure") or t("shop.reset")), 10, 40, resetGame, 300, 24, true)
+    plateBtn(isArmed("reset") and t("ts.sure") or t("shop.reset"), 10, 40, resetGame, 300, 26, true)
   end
 end
 
@@ -1445,7 +1438,7 @@ local city = { sel = nil, z = 1, armed = nil, cam = nil, drag = false }
 local CITY_MINI_W, MINI_X, MINI_Y = 152, 4, 4   -- the navigator (as made by tools/export_3ds_city.js)
 local CITY_MINI_H = math.floor(CITY_MINI_W * D.CITY.LH / D.CITY.LW + .5)
 local MINI_K = CITY_MINI_W / D.CITY.LW
-local CITY_TOP = 18   -- below the header
+local CITY_TOP = 20   -- below the header
 local function cityShown(i) local k = G.lotKind(S, i); return k == "rent" or k == "sale" or k == "rival" or k == "mine" or k == "land" end
 local function cityPick(dx, dy)   -- the nearest building worth seeing in that direction
   local a = CL[city.sel]
@@ -1503,13 +1496,13 @@ local function drawCityTop()
   if not cityImg then cityImg = love.graphics.newImage("gfx/city.png") end
   city.sel = city.sel or S.shops[S.cur].lot
   local z, l = city.z, CL[city.sel]
-  local vw, vh = 400 / z, (240 - CITY_TOP - 22) / z
+  local vw, vh = 400 / z, (240 - CITY_TOP - 18) / z
   local cx = math.max(0, math.min(D.CITY.LW - vw, l.x + l.w / 2 - vw / 2))
   local cy = math.max(0, math.min(D.CITY.LH - vh, l.y + l.h / 2 - vh / 2))
   if vw > D.CITY.LW then cx = (D.CITY.LW - vw) / 2 end
   city.cam = { x = cx, y = cy, w = vw, h = vh }   -- shown as a frame on the navigator
   local function P2(x, y) return math.floor((x - cx) * z), math.floor((y - cy) * z) + CITY_TOP end
-  love.graphics.setScissor(0, CITY_TOP, 400, 240 - CITY_TOP - 22)
+  love.graphics.setScissor(0, CITY_TOP, 400, 240 - CITY_TOP - 18)
   local ix, iy = P2(0, 0)
   col({ 1, 1, 1 }); love.graphics.draw(cityImg, ix, iy, 0, z, z)
   -- signs and pins: to rent / for sale, rivals, your shops (* the one open), the landmarks
@@ -1521,10 +1514,10 @@ local function drawCityTop()
         or k == "rival" and t("city.pin.rival") or (t("city.pin.mine") .. (G.lotShop(S, i) == S.cur and " *" or ""))
       local c = hex(D.CITY.KCOL[k] or "#2a1407")
       do
-        local w = fw("tiny", s2) + 6
-        col(hex("#120a04")); love.graphics.rectangle("fill", px - w / 2 - 1, py - 7, w + 2, 13)
-        col(k == "land" and hex("#2a1407", .85) or c); love.graphics.rectangle("fill", px - w / 2, py - 6, w, 11)
-        text(s2, px - w / 2, py - 6, "tiny", k == "land" and C.combo or hex("#ffffff"), "center", w)
+        local w = fw("tiny", s2) + 8
+        col(hex("#120a04")); love.graphics.rectangle("fill", px - w / 2 - 1, py - 9, w + 2, 18)
+        col(k == "land" and hex("#2a1407", .85) or c); love.graphics.rectangle("fill", px - w / 2, py - 8, w, 16)
+        text(s2, px - w / 2, py - 7, "tiny", k == "land" and C.combo or hex("#ffffff"), "center", w)
       end
     end
   end
@@ -1533,8 +1526,7 @@ local function drawCityTop()
   col(C.combo); love.graphics.setLineWidth(1); love.graphics.rectangle("line", x0 + .5, y0 + .5, l.w * z - 1, l.h * z - 1)
   love.graphics.setScissor()
   drawHeader()
-  text(l3("citykeys"), 0, 220, "tiny", C.dim, "center", 400)
-  text(l3("nav"), 0, 230, "tiny", C.dim, "center", 400)
+  keys(l3("citykeys"))
 end
 local function drawCityBottom()
   col(hex("#f3ead3")); love.graphics.rectangle("fill", 0, 0, 320, 240)
@@ -1568,17 +1560,17 @@ local function drawCityBottom()
     or k == "taken" and t("biz." .. l.biz) or l.addr
   local chip = t("city.k." .. k)
   local cw = fw("tiny", chip) + 8
-  col(hex(D.CITY.KCOL[k] or "#7a6a55")); love.graphics.rectangle("fill", RX, 3, cw, 12)
+  col(hex(D.CITY.KCOL[k] or "#7a6a55")); love.graphics.rectangle("fill", RX, 3, cw, 16)
   text(chip, RX, 4, "tiny", hex("#ffffff"), "center", cw)
-  text(t("hood." .. l.hood), RX + cw + 6, 4, "tiny", brown)
+  text(fitText(t("hood." .. l.hood), "tiny", RW - cw - 6), RX + cw + 6, 4, "tiny", brown)
   local F = fonts.tiny
   local function wrapped(str, y, c)   -- a paragraph in the right column; returns the next y
     local _, lines = F.f:getWrap(str, RW / F.s)
     text(str, RX, y, "tiny", c or brown, "left", RW)
     return y + #lines * F.f:getHeight() * F.s + 2
   end
-  local y = wrapped(title, 18, C.ink) + 2
-  local function row(a2, b2) text(a2, RX, y, "tiny", C.ink); text(b2, RX, y, "tiny", C.ink, "right", RW); y = y + 11 end
+  local y = wrapped(title, 22, C.ink) + 2
+  local function row(a2, b2) text(a2, RX, y, "tiny", C.ink); text(b2, RX, y, "tiny", C.ink, "right", RW); y = y + 15 end
   if k == "land" then
     y = wrapped(t("land.d." .. l.land), y)
     if l.land == "square" then y = wrapped(t("city.contest"), y + 2) end
@@ -1597,40 +1589,38 @@ local function drawCityBottom()
   end
   -- who comes in this neighbourhood, under the navigator
   y = MINI_Y + CITY_MINI_H + 6
-  text(t("city.mix"), 10, y, "tiny", C.ink); y = y + 11
+  text(t("city.mix"), 10, y, "tiny", C.ink)
+  text(t("city.yours") .. ": " .. #S.shops, 10, y, "tiny", brown, "right", 300); y = y + 16
   local mix, bx = D.CITY.HOODS[l.hood].mix, 10
   for j, g in ipairs(D.SEG_ORDER) do
     local w = math.floor(mix[j] / 100 * 300 + .5)
     col(hex(D.SEG[g].col)); love.graphics.rectangle("fill", bx, y, w, 8); bx = bx + w
   end
-  y = y + 10
-  local lx = 10
-  for j, g in ipairs(D.SEG_ORDER) do
-    local s2 = t("seg." .. g) .. " " .. mix[j] .. "%"
-    text(s2, lx, y, "tiny", hex(D.SEG[g].col)); lx = lx + fw("tiny", s2) + 8
+  y = y + 11
+  for j, g in ipairs(D.SEG_ORDER) do   -- two by two
+    text(t("seg." .. g) .. " " .. mix[j] .. "%", 10 + ((j - 1) % 2) * 150, y + math.floor((j - 1) / 2) * 14, "tiny", hex(D.SEG[g].col))
   end
-  y = y + 15
+  y = y + 32
   -- what you can do here
   if k == "rent" or k == "sale" then
     local buy = k == "sale"
     local can = G.ownMoney(S) >= D.CITY_CASH
     local lbl = city.armed == i and t("city.sure") or buy and (t("city.bBuy") .. " · " .. P.eur(G.lotCost(l, true)):gsub("%.00$", ""))
       or (t("city.bRent") .. " · " .. P.eur(l.rent):gsub("%.00$", "") .. t("city.perday"))
-    plateBtn(P.upper(lbl), 10, y, function() cityAct(false) end, 300, 20, not can)
-    y = y + 23
+    plateBtn(fitText(lbl, "tiny", 290), 10, y, function() cityAct(false) end, 300, 22, not can)
+    y = y + 25
     local w = l.cond == "works" and P.eur(l.works):gsub("%.00$", "") or "$0"
-    text(can and (buy and t("city.cost.buy", { p = P.eur(l.price):gsub("%.00$", ""), w = w }) or t("city.cost.rent", { w = w, r = P.eur(l.rent):gsub("%.00$", "") }))
-      or t("city.need", { m = P.eur(D.CITY_CASH):gsub("%.00$", "") }), 10, y, "tiny", brown, "left", 300)
+    text(fitText(can and (buy and t("city.cost.buy", { p = P.eur(l.price):gsub("%.00$", ""), w = w }) or t("city.cost.rent", { w = w, r = P.eur(l.rent):gsub("%.00$", "") }))
+      or t("city.need", { m = P.eur(D.CITY_CASH):gsub("%.00$", "") }), "tiny", 300), 10, y, "tiny", brown)
   elseif k == "mine" then
     if own == S.cur then text(t("city.here"), 10, y + 4, "small", hex("#8a5a00"))
-    else plateBtn(P.upper(t("city.go")), 10, y, function() cityAct(false) end, 145, 20) end
+    else plateBtn(t("city.go"), 10, y, function() cityAct(false) end, 145, 22) end
     if #S.shops > 1 then
       local sh = S.shops[own]
       local lbl = city.armed == "c" .. i and t("city.sure") or sh.owned and t("city.sell", { x = P.eur(math.floor(l.price * D.SELL_SHARE + .5)):gsub("%.00$", "") }) or t("city.close")
-      plateBtn(P.upper(fitText(lbl, "tiny", 135)), 165, y, function() cityAct(true) end, 145, 20, true)
+      plateBtn(fitText(lbl, "tiny", 135), 165, y, function() cityAct(true) end, 145, 22, true)
     end
   end
-  text(t("city.yours") .. ": " .. #S.shops, 10, 226, "tiny", brown)
 end
 
 
@@ -1673,35 +1663,81 @@ function EDF.edSell()
   else for i, it in ipairs(room.items) do if it == pk then table.remove(room.items, i); EDF.edRefund(RL.ITEMS[it.id].price); break end end end
   ED.pick = nil; EDF.edChanged()
 end
+--[[ Touch: a piece of the room is dragged where it goes and lands when the stylus lifts (the ghost's frame is green
+     where it fits, red where not); a piece taken from the catalogue is placed the same way. Wall pieces go in a slot
+     of the back wall with a tap. ]]
+function EDF.edPoint(x, y) return x * 2, (y + SALA.OY) * 2 end   -- the touch screen shows the room at half size
+function EDF.edTile(id, X, Y, dc, dr)
+  local d = RL.ITEMS[id]
+  if dc then return math.floor(X / 32) - dc, math.floor(Y / 32) - dr end
+  return math.floor(X / 32 - d.w / 2 + .5), math.floor(Y / 32 - d.h / 2 + .5)
+end
+function EDF.edPlace(c, r)   -- puts the taken (or moving) piece at c, r if it fits; true when it did
+  local room, d = G.room(S), RL.ITEMS[ED.tool]
+  if not RL.fits(room, ED.tool, c, r, ED.moving) then toast(l3("ednofit")); return false end
+  local was = G.roomStats(S).nblocked
+  if ED.moving then ED.moving.c, ED.moving.r = c, r; ED.pick = ED.moving
+  elseif EDF.edPay(d.price) then local it = { id = ED.tool, c = c, r = r }; room.items[#room.items + 1] = it; ED.pick = it
+  else return false end
+  EDF.edChanged()
+  local A = G.roomStats(S)
+  if ED.pick and A.blocked[ED.pick] then toast(t("rm.t.noseat"):gsub("%s*%(.-%)", "")) elseif A.nblocked > was then toast(t("rm.w.blocked", { n = A.nblocked }):gsub("%s*%(.-%)", "")) end
+  return true
+end
 function EDF.edTouch(x, y)
-  local room, X, Y = G.room(S), x * 2, (y + SALA.OY) * 2   -- the touch screen shows the room at half size, its top 16 px cut
+  local room, X, Y = G.room(S), EDF.edPoint(x, y)
   local T = 32
-  if ED.tool then
+  if ED.tool and RL.ITEMS[ED.tool].cat == "wall" then
     local d = RL.ITEMS[ED.tool]
-    if d.cat == "wall" then
-      if Y < 2 * T and X < 12 * T then
-        local slot = math.floor(X / 64) + 1
-        if room.walls[slot] ~= ED.tool and EDF.edPay(d.price) then
-          if room.walls[slot] then EDF.edRefund(RL.ITEMS[room.walls[slot]].price) end
-          room.walls[slot] = ED.tool; ED.tool = nil; ED.pick = { wall = slot }; EDF.edChanged()
-        end
-      else toast(l3("ednofit")) end
-      return
-    end
-    local c, r = math.floor(X / T - d.w / 2 + .5), math.floor(Y / T - d.h / 2 + .5)
-    ED.ghost = { c = c, r = r }
-    if not RL.fits(room, ED.tool, c, r, ED.moving) then toast(l3("ednofit")); return end
-    local was = G.roomStats(S).nblocked
-    if ED.moving then ED.moving.c, ED.moving.r = c, r; ED.pick = ED.moving
-    elseif EDF.edPay(d.price) then local it = { id = ED.tool, c = c, r = r }; room.items[#room.items + 1] = it; ED.pick = it
-    else return end
-    ED.tool, ED.moving, ED.ghost = nil, nil, nil; EDF.edChanged()
-    local A = G.roomStats(S)
-    if ED.pick and A.blocked[ED.pick] then toast(t("rm.t.noseat"):gsub("%s*%(.-%)", "")) elseif A.nblocked > was then toast(t("rm.w.blocked", { n = A.nblocked }):gsub("%s*%(.-%)", "")) end
+    if Y < 2 * T and X < 12 * T then
+      local slot = math.floor(X / 64) + 1
+      if room.walls[slot] ~= ED.tool and EDF.edPay(d.price) then
+        if room.walls[slot] then EDF.edRefund(RL.ITEMS[room.walls[slot]].price) end
+        room.walls[slot] = ED.tool; ED.tool = nil; ED.pick = { wall = slot }; EDF.edChanged()
+      end
+    else toast(l3("ednofit")) end
+    return
+  end
+  if ED.tool then   -- a piece from the catalogue (or one being moved with Y): it follows the stylus until it lifts
+    local c, r = EDF.edTile(ED.tool, X, Y)
+    ED.ghost, ED.drag = { c = c, r = r }, { new = true }
     return
   end
   if Y < 2 * T and X < 12 * T then local slot = math.floor(X / 64) + 1; ED.pick = room.walls[slot] and { wall = slot } or nil; return end
-  ED.pick = RL.hit(room, X, Y)
+  local it = RL.hit(room, X, Y)
+  ED.pick = it
+  if it then   -- held: it moves with the stylus
+    ED.drag = { it = it, dc = math.floor(X / T) - it.c, dr = math.floor(Y / T) - it.r, c0 = it.c, r0 = it.r }
+    ED.ghost = { c = it.c, r = it.r }
+  end
+end
+function EDF.edMove(x, y)
+  local dg = ED.drag; if not dg then return end
+  local X, Y = EDF.edPoint(x, y)
+  if dg.new then local c, r = EDF.edTile(ED.tool, X, Y); ED.ghost = { c = c, r = r }; return end
+  local c, r = EDF.edTile(dg.it.id, X, Y, dg.dc, dg.dr)
+  if c ~= ED.ghost.c or r ~= ED.ghost.r then
+    ED.ghost = { c = c, r = r }
+    dg.moved = true
+    dg.it.c, dg.it.r = c, r; idleScene = nil   -- drawn where the stylus is
+  end
+end
+function EDF.edUp()
+  local dg = ED.drag; if not dg then return end
+  ED.drag = nil
+  if dg.new then
+    if EDF.edPlace(ED.ghost.c, ED.ghost.r) then ED.tool, ED.moving = nil, nil end
+    ED.ghost = nil
+    return
+  end
+  local it = dg.it
+  local c, r = it.c, it.r
+  it.c, it.r = dg.c0, dg.r0; idleScene = nil
+  ED.ghost = nil
+  if not dg.moved or (c == dg.c0 and r == dg.r0) then return end
+  ED.tool, ED.moving = it.id, it
+  EDF.edPlace(c, r)
+  ED.tool, ED.moving = nil, nil
 end
 function EDF.edButton(b)
   local n = #EDF.edEntries(EDF.TABS[ED.tab])
@@ -1716,34 +1752,33 @@ end
 function EDF.drawEditorTop()
   col(C.bg); love.graphics.rectangle("fill", 0, 0, 400, 240)
   drawHeader()
-  text(t("rm.title"), 6, 21, "small", C.gold)
   local x = 6
   for i, k in ipairs(EDF.TABS) do   -- the tabs
     local s = t("rm.tab." .. k)
-    text(s, x, 37, "tiny", i == ED.tab and C.gold or C.dim)
-    if i == ED.tab then col(C.gold); love.graphics.rectangle("fill", x, 47, fw("tiny", s), 1) end
+    text(s, x, 23, "tiny", i == ED.tab and C.gold or C.dim)
+    if i == ED.tab then col(C.gold); love.graphics.rectangle("fill", x, 38, fw("tiny", s), 1) end
     x = x + fw("tiny", s) + 10
   end
   local list, room = EDF.edEntries(EDF.TABS[ED.tab]), G.room(S)
-  local top = math.max(0, math.min(ED.sel - 5, #list - 9))
-  for i = top + 1, math.min(#list, top + 9) do   -- the list: name, style, price
-    local e, y = list[i], 52 + (i - top - 1) * 16
+  local top = math.max(0, math.min(ED.sel - 4, #list - 8))
+  for i = top + 1, math.min(#list, top + 8) do   -- the list: name, style, price
+    local e, y = list[i], 43 + (i - top - 1) * 19
     local mine = (e.kind == "floor" and room.floor == e.id) or (e.kind == "walls" and room.wall == e.id) or (e.d.strip and room.lights) or ED.tool == e.id
-    col(i == ED.sel and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 4, y, 252, 14)
-    if i == ED.sel then pxRect(3, y - 1, 254, 16, C.gold) end
-    text(fitText((mine and "> " or "") .. e.name, "tiny", 150), 8, y + 2, "tiny", mine and C.gold or C.cream)
-    text(t("rm.st." .. e.d.style), 160, y + 2, "tiny", C.dim)
-    text(P.eur(e.d.price):gsub("%.00$", ""), 8, y + 2, "tiny", S.money < e.d.price and C.bad or C.gold, "right", 244)
+    col(i == ED.sel and hex("#4a260f") or C.panel); love.graphics.rectangle("fill", 4, y, 252, 17)
+    if i == ED.sel then pxRect(3, y - 1, 254, 19, C.gold) end
+    text(fitText((mine and "> " or "") .. e.name, "tiny", 140), 8, y + 1, "tiny", mine and C.gold or C.cream)
+    text(fitText(t("rm.st." .. e.d.style), "tiny", 60), 150, y + 1, "tiny", C.dim)
+    text((P.eur(e.d.price):gsub("%.00$", "")), 8, y + 1, "tiny", S.money < e.d.price and C.bad or C.gold, "right", 244)
   end
   local A = G.roomStats(S)   -- on the right: seats and the atmosphere for each group
-  text(t("rm.seats", { n = A.seats }), 266, 54, "small", C.cream)
-  if A.nblocked > 0 then text("X " .. A.nblocked, 266, 70, "small", C.bad) end
-  text(fitText(t("rm.atm"), "tiny", 130), 266, 90, "tiny", C.dim)
+  text(t("rm.seats", { n = A.seats }), 266, 44, "small", C.cream)
+  if A.nblocked > 0 then text("X " .. A.nblocked, 266, 62, "small", C.bad) end
+  text(fitText(t("rm.atm"), "tiny", 130), 266, 82, "tiny", C.dim)
   for i, k in ipairs(D.SEG_ORDER) do
-    local y = 104 + (i - 1) * 20
+    local y = 100 + (i - 1) * 24
     text(fitText(t("seg." .. k), "tiny", 128), 266, y, "tiny", C.cream)
-    col(hex("#120a04")); love.graphics.rectangle("fill", 266, y + 10, 124, 5)
-    col(hex(D.SEG[k].col)); love.graphics.rectangle("fill", 266, y + 10, 124 * A.atm[k] / 100, 5)
+    col(hex("#120a04")); love.graphics.rectangle("fill", 266, y + 15, 124, 5)
+    col(hex(D.SEG[k].col)); love.graphics.rectangle("fill", 266, y + 15, 124 * A.atm[k] / 100, 5)
   end
   local line
   if ED.tool then line = l3("edplace")
@@ -1751,9 +1786,8 @@ function EDF.drawEditorTop()
     local id = ED.pick.wall and room.walls[ED.pick.wall] or ED.pick.id
     line = t("rm.i." .. id) .. ":  " .. l3("edpick"):gsub("{x}", P.eur(math.floor(RL.ITEMS[id].price * .5 + .5)))
   else line = l3("edhint") end
-  text(fitText(line, "tiny", 390), 0, 200, "tiny", C.combo, "center", 400)
-  text(l3("edkeys"), 0, 214, "tiny", C.dim, "center", 400)
-  text(l3("nav"), 0, 226, "tiny", C.dim, "center", 400)
+  text(fitText(line, "tiny", 390), 0, 207, "tiny", C.combo, "center", 400)
+  keys(l3("edkeys"))
 end
 function EDF.drawEditorBottom()
   if not idleScene then idleScene = SALA.scene(S, G) end
@@ -1769,8 +1803,12 @@ function EDF.drawEditorBottom()
     end
   end
   if ED.tool and RL.ITEMS[ED.tool].cat == "wall" then for i = 0, 5 do box(i * 2, 0, 2, 2, hex("#ffd34a", .8)) end end
-  if ED.ghost and ED.tool then local d = RL.ITEMS[ED.tool]; box(ED.ghost.c, ED.ghost.r, d.w, d.h, RL.fits(room, ED.tool, ED.ghost.c, ED.ghost.r, ED.moving) and C.good or C.bad) end
-  if ED.pick then
+  local gid = ED.tool or (ED.drag and ED.drag.it and ED.drag.it.id)
+  if ED.ghost and gid then
+    local d = RL.ITEMS[gid]
+    box(ED.ghost.c, ED.ghost.r, d.w, d.h, RL.fits(room, gid, ED.ghost.c, ED.ghost.r, ED.moving or (ED.drag and ED.drag.it)) and C.good or C.bad)
+  end
+  if ED.pick and not ED.drag then
     if ED.pick.wall then box((ED.pick.wall - 1) * 2, 0, 2, 2, C.gold)
     else local d = RL.ITEMS[ED.pick.id]; box(ED.pick.c, ED.pick.r, d.w, d.h, C.gold) end
   end
@@ -1873,12 +1911,13 @@ local function touchDown(x, y)
   if addPiece(px, py) then drag = { x = px, y = py } end
 end
 local function touchMove(x, y)
+  if ED and S.tab == "shop" then EDF.edMove(x, y); return end
   if city.drag then if inMini(x, y) then cityTouch(x, y) end; return end
   if not drag then return end
   local px, py = benchPoint(x, y)
   if math.sqrt((px - drag.x) ^ 2 + (py - drag.y) ^ 2) > .2 and addPiece(px, py) then drag = { x = px, y = py } end
 end
-local function touchUp() drag = nil; city.drag = false end
+local function touchUp() drag = nil; city.drag = false; if ED and S.tab == "shop" then EDF.edUp() end end
 
 local held = {}
 local function navButton(b)   -- outside the Kitchen: L/R and SELECT go through the screens, START quits
