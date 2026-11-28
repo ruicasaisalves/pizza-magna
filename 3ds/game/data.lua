@@ -5159,7 +5159,7 @@ D.CITY={LW=904,LH=704,HOODS={uni={mix={60,15,10,15},rent=1,traffic=3},baixa={mix
   cond="good",
   works=950
  }}}
-D.VERSION="0.05c"
+D.VERSION="0.05d"
 D.ING_ORDER={"mozzarella","fiambre","pepperoni","cogumelos","azeitonas","pimento","cebola","ananas","manjericao","atum","bacon","tomate","milho","frango","coxa","salame","espinafres","tomate_cherry","jalapenos","alho","beringela","batata","curgete","salsicha","frankfurt","vaca","ribs","nutella","banana","cenoura","cereja","mirtilo","feta","oregaos","azeite","maionese","cheddar","provolone","carne_picada","cebola_roxa","batata_palha","salsa","chocolate","emmental","kebab","tomilho","pimenta","tofu","edamame","frango_teriyaki","calabresa","frango_tikka","grao","parmesao","chourico","piripiri","alheira","anchovas","grelos","sardinha","polvo","lulas","morcela","padron","farinheira","ameijoas","coentros","alecrim","maca","amora","sao_jorge","leitao","couve_galega","flamengo","marmelada","mejillones","ovo","bacalhau","queijo_serra","presunto","mel","rucula","gorgonzola","figo","espargos","camarao","ricotta","pera","cabra","salmao","burrata","nozes","alcachofra","pinhoes","prosciutto","balsamico","natas_azedas","trufa","char_siu","catupiry","brie","lagosta","framboesa","bife_osso"}
 D.DOUGH_ORDER={"fina","napo","alta","integral","sem_gluten","lenta","recheado"}
 D.SAUCE_ORDER={"tomate","natas","pesto","barbecue","arrabbiata","azeite_alho","trufa","pimentos","sem"}
